@@ -1,0 +1,7 @@
+{
+    "name": "mip",
+    "shaders": {
+        "vertex": "mip.vert",
+        "fragment": "mip.frag"
+    }
+}

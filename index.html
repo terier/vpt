@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title></title>
+<script type="text/javascript" src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+<script type="text/javascript" src="https://code.jquery.com/ui/1.12.0/jquery-ui.min.js"></script>
+<script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+<script type="text/javascript" src="WebGLUtils.js"></script>
+<script type="text/javascript" src="AsyncLoader.js"></script>
+<script type="text/javascript" src="shaders/Shaders.js"></script>
+<script type="text/javascript" src="VolumeRenderer.js"></script>
+<script type="text/javascript" src="main.js"></script>
+
+<link rel="stylesheet" type="text/css" href="https://code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
+<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="main.css">
+
+</head>
+<body>
+
+<nav class="navbar navbar-inverse navbar-static-top">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#">Volumetric Path Tracing</a>
+        </div>
+      
+        <div class="collapse navbar-collapse">
+            <ul class="nav navbar-nav">
+                <li id="open-file"><a href="#">Open file</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="fill">
+    <canvas id="viewer"></canvas>
+</div>
+
+</body>
+</html>
