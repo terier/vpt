@@ -6,3 +6,7 @@
     height: 34px;
     width: 34px;
 }
+
+.ui-dialog {
+    z-index: 50000 !important;
+}

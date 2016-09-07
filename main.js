@@ -13,10 +13,7 @@ $(function() {
     });
     $(window).resize();
 
-    var openFileDialog = $(
-        '<div><input type="file" id="open-file-input">' +
-        '<input type="text" id="open-file-dimensions" value="10 10 10">' +
-        '<input type="text" id="open-file-bits" value="8"></div>');
+    var openFileDialog = $(Templates["OpenFileDialog.html"]);
     openFileDialog.dialog({
         title: 'Open file',
         width: 300,

@@ -307,6 +307,34 @@ Matrix.prototype.inv = function() {
     return this;
 };
 
+Matrix.prototype.transform = function(v) {
+    var x = v.x;
+    var y = v.y;
+    var z = v.z;
+    var w = v.w;
+
+    var m = this.m;
+    var m11 = m[ 0], m12 = m[ 1], m13 = m[ 2], m14 = m[ 3];
+    var m21 = m[ 4], m22 = m[ 5], m23 = m[ 6], m24 = m[ 7];
+    var m31 = m[ 8], m32 = m[ 9], m33 = m[10], m34 = m[11];
+    var m41 = m[12], m42 = m[13], m43 = m[14], m44 = m[15];
+
+    v.x = m11 * x + m12 * y + m13 * z + m14 * w;
+    v.y = m21 * x + m22 * y + m23 * z + m24 * w;
+    v.z = m31 * x + m32 * y + m33 * z + m34 * w;
+    v.w = m41 * x + m42 * y + m43 * z + m44 * w;
+};
+
+Matrix.prototype.print = function() {
+    var m = this.m;
+    console.log(
+        '[ ' + m[ 0] + ', ' + m[ 1] + ', ' + m[ 2] + ', ' + m[ 3] + ' ]\n' +
+        '[ ' + m[ 4] + ', ' + m[ 5] + ', ' + m[ 6] + ', ' + m[ 7] + ' ]\n' +
+        '[ ' + m[ 8] + ', ' + m[ 9] + ', ' + m[10] + ', ' + m[11] + ' ]\n' +
+        '[ ' + m[12] + ', ' + m[13] + ', ' + m[14] + ', ' + m[15] + ' ]\n'
+    );
+};
+
 Matrix.prototype.fromFrustum = function(left, right, bottom, top, near, far) {
     var m = this.m;
 
@@ -315,9 +343,9 @@ Matrix.prototype.fromFrustum = function(left, right, bottom, top, near, far) {
 
     m[ 2] = (right + left) / (right - left);
     m[ 6] = (top + bottom) / (top - bottom);
-    m[10] = (far + near) / (far - near);
+    m[10] = -(far + near) / (far - near);
 
-    m[11] = 2 * far * near / (far - near);
+    m[11] = -2 * far * near / (far - near);
     m[14] = -1;
 
     m[1] = m[3] = m[4] = m[7] = m[8] = m[9] = m[12] = m[13] = m[15] = 0;
