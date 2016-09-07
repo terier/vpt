@@ -2,20 +2,27 @@
 <html>
 <head>
 
-<title></title>
+<meta charset="utf-8">
+
+<title>Volumetric Path Tracing</title>
 <script type="text/javascript" src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
 <script type="text/javascript" src="https://code.jquery.com/ui/1.12.0/jquery-ui.min.js"></script>
 <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
 <script type="text/javascript" src="WebGLUtils.js"></script>
+<script type="text/javascript" src="Math.js"></script>
 <script type="text/javascript" src="AsyncLoader.js"></script>
 <script type="text/javascript" src="shaders/Shaders.js"></script>
+<script type="text/javascript" src="Volume.js"></script>
 <script type="text/javascript" src="VolumeRenderer.js"></script>
 <script type="text/javascript" src="main.js"></script>
 
 <link rel="stylesheet" type="text/css" href="https://code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
 <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 <link rel="stylesheet" type="text/css" href="main.css">
+
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
 
 </head>
 <body>
@@ -29,7 +36,7 @@
               <span class="icon-bar"></span>
               <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="#">Volumetric Path Tracing</a>
+            <a class="navbar-brand" href="#"><img src="logo.png"></a>
         </div>
       
         <div class="collapse navbar-collapse">

@@ -7,5 +7,5 @@ in vec2 vFragmentPosition;
 out vec4 color;
 
 void main() {
-	color = texture(uTexture, vFragmentPosition);
+    color = texture(uTexture, vFragmentPosition);
 }

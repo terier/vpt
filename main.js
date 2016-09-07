@@ -13,18 +13,44 @@ $(function() {
     });
     $(window).resize();
 
-    var openFileDialog = $('<div><input type="file"></div>');
+    var openFileDialog = $(
+        '<div><input type="file" id="open-file-input">' +
+        '<input type="text" id="open-file-dimensions" value="10 10 10">' +
+        '<input type="text" id="open-file-bits" value="8"></div>');
     openFileDialog.dialog({
         title: 'Open file',
         width: 300,
-        height: 150,
+        height: 300,
         modal: true,
-        resizable: false,
         autoOpen: false,
         buttons: {
             'Load': function() {
-                // TODO: load file
-                $(this).dialog('close');
+                var $this = $(this);
+                var input = $this.find('#open-file-input')[0];
+                if (input.files.length > 0) {
+                    var file = input.files[0];
+                    var dimensions = $this
+                        .find('#open-file-dimensions')
+                        .val().trim().split(/\s+/)
+                        .map(function(x) { return parseInt(x); });
+                    var bits = parseInt($this.find('#open-file-bits')
+                        .val().trim());
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        var volume = new Volume(
+                            reader.result,
+                            dimensions[0],
+                            dimensions[1],
+                            dimensions[2],
+                            bits);
+                        renderer.setVolume(volume);
+                    };
+                    reader.onerror = function(e) {
+                        alert('Error while loading');
+                    };
+                    reader.readAsArrayBuffer(file);
+                }
+                $this.dialog('close');
             },
             'Cancel': function() {
                 $(this).dialog('close');
