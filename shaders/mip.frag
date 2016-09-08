@@ -21,7 +21,7 @@ void main() {
     //color = vec4(normalize(vRayOrigin.xyz), 1.0);
     vec2 t = max(intersectCube(vRayOrigin.xyz, vRayDirection.xyz), 0.0);
     if (t.x < t.y) {
-        color = vec4((t.y - t.x) * 3.0, 0.0, 0.0, 1.0);
+        color = vec4((t.y - t.x) * 10.0, 0.0, 0.0, 1.0);
     } else {
         color = vec4(0.0, 1.0, 0.0, 1.0);
     }

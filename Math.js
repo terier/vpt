@@ -425,14 +425,4 @@ Matrix.prototype.fromAxisAngle = function(x, y, z, w) {
     return this;
 };
 
-Matrix.prototype.fromProjection = function(d) {
-    this.identity();
-
-    var m = this.m;
-    m[15] = 0;
-    m[14] = d;
-
-    return this;
-};
-
 })(this);

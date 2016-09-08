@@ -105,12 +105,20 @@ function VolumeRayCaster(canvas) {
         var RZ = new Matrix().fromRotationZ(angle);
         var T = new Matrix().fromTranslation(0, 0, 5);
         var S = new Matrix().fromScale(0.2, 0.2, 0.2);
-        var P = new Matrix().fromProjection(-1);
-        var mat = new Matrix();
-        mat.multiply(S, RX);
-        mat.multiply(mat, RY);
-        mat.multiply(T, mat);
-        mat.inv().transpose();
+
+        var M = new Matrix();
+        var V = new Matrix();
+        var P = new Matrix().fromFrustum(-1, 1, -1, 1, 0.1, 10);
+
+        M.multiply(S, M);
+        M.multiply(RX, M);
+        M.multiply(RY, M);
+
+        V.copy(T);
+
+        M.transpose();
+        V.transpose();
+        P.transpose();
 
         // use shader
         gl.useProgram(program.program);
@@ -127,7 +135,9 @@ function VolumeRayCaster(canvas) {
 
         // set uniforms
         gl.uniform1i(program.uniforms['uVolume'], 0);
-        gl.uniformMatrix4fv(program.uniforms['uMvpMatrix'], false, mat.m);
+        gl.uniformMatrix4fv(program.uniforms['uMMatrix'], false, M.m);
+        gl.uniformMatrix4fv(program.uniforms['uVMatrix'], false, V.m);
+        gl.uniformMatrix4fv(program.uniforms['uPMatrix'], false, P.m);
 
         // render
         gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
