@@ -8,11 +8,11 @@ out vec4 vRayOrigin;
 out vec4 vRayDirection;
 
 void main() {
-    vec4 nearPosition = vec4(aPosition, -1.0, 0.0);
-    vec4 farPosition = vec4(aPosition, 1.0, 0.0);
+    vec4 nearPosition = vec4(aPosition, 0.1, 1.0);
+    vec4 farPosition = vec4(aPosition, 1.0, 1.0);
     vec4 origin = uMvpMatrix * nearPosition;
-    vec4 destination = uMvpMatrix * farPosition;
     origin /= origin.w;
+    vec4 destination = uMvpMatrix * farPosition;
     destination /= destination.w;
     vec4 direction = destination - origin;
 

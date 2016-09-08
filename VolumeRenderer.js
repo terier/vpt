@@ -99,13 +99,18 @@ function VolumeRayCaster(canvas) {
 
         // update camera
         var angle = +Date.now() * 0.002;
-        //camera.fovY = 0.5 + 0.5 * Math.sin(angle);
-        //camera.position.z = 5 * Math.sin(angle);
-        //camera.rotation.set(0, 1, 0, angle + Math.PI / 2).fromAxisAngle();
-        camera.updateViewMatrix();
-        camera.updateProjectionMatrix();
+        var R = new Matrix().fromAxisAngle(0.34874, 0.46499, 0.81373, angle);
+        var RX = new Matrix().fromRotationX(angle);
+        var RY = new Matrix().fromRotationY(angle);
+        var RZ = new Matrix().fromRotationZ(angle);
+        var T = new Matrix().fromTranslation(0, 0, 5);
+        var S = new Matrix().fromScale(0.2, 0.2, 0.2);
+        var P = new Matrix().fromProjection(-1);
         var mat = new Matrix();
-        mat.copy(camera.projectionMatrix).transpose().inv();
+        mat.multiply(S, RX);
+        mat.multiply(mat, RY);
+        mat.multiply(T, mat);
+        mat.inv().transpose();
 
         // use shader
         gl.useProgram(program.program);

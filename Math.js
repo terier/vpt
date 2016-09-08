@@ -353,4 +353,86 @@ Matrix.prototype.fromFrustum = function(left, right, bottom, top, near, far) {
     return this;
 };
 
+Matrix.prototype.fromTranslation = function(x, y, z) {
+    this.identity();
+
+    var m = this.m;
+    m[ 3] = x;
+    m[ 7] = y;
+    m[11] = z;
+
+    return this;
+};
+
+Matrix.prototype.fromRotationX = function(angle) {
+    this.identity();
+
+    var s = Math.sin(angle);
+    var c = Math.cos(angle);
+
+    var m = this.m;
+    m[ 5] = c;
+    m[ 6] = s;
+    m[ 9] = -s;
+    m[10] = c;
+
+    return this;
+};
+
+Matrix.prototype.fromRotationY = function(angle) {
+    this.identity();
+
+    var s = Math.sin(angle);
+    var c = Math.cos(angle);
+
+    var m = this.m;
+    m[ 0] = c;
+    m[ 2] = -s;
+    m[ 8] = s;
+    m[10] = c;
+
+    return this;
+};
+
+Matrix.prototype.fromRotationZ = function(angle) {
+    this.identity();
+
+    var s = Math.sin(angle);
+    var c = Math.cos(angle);
+
+    var m = this.m;
+    m[ 0] = c;
+    m[ 1] = s;
+    m[ 8] = -s;
+    m[ 9] = c;
+
+    return this;
+};
+
+Matrix.prototype.fromScale = function(x, y, z) {
+    this.identity();
+
+    var m = this.m;
+    m[ 0] = x;
+    m[ 5] = y;
+    m[10] = z;
+
+    return this;
+};
+
+Matrix.prototype.fromAxisAngle = function(x, y, z, w) {
+    new Quaternion(x, y, z, w).toRotationMatrix(this.m);
+    return this;
+};
+
+Matrix.prototype.fromProjection = function(d) {
+    this.identity();
+
+    var m = this.m;
+    m[15] = 0;
+    m[14] = d;
+
+    return this;
+};
+
 })(this);
