@@ -101,15 +101,17 @@ function VolumeRayCaster(canvas) {
         var angle = +Date.now() * 0.002;
         var R = new Matrix().fromAxisAngle(0.34874, 0.46499, 0.81373, angle);
         var RX = new Matrix().fromRotationX(angle);
-        var RY = new Matrix().fromRotationY(angle);
-        var RZ = new Matrix().fromRotationZ(angle);
-        var T = new Matrix().fromTranslation(0, 0, 5);
-        var S = new Matrix().fromScale(0.2, 0.2, 0.2);
+        var RY = new Matrix().fromRotationY(angle * 0.93);
+        var RZ = new Matrix().fromRotationZ(angle * 0.91);
+        var T = new Matrix().fromTranslation(0, 0, -5);
+        var S = new Matrix().fromScale(1, 1, 1);
 
         var M = new Matrix();
         var V = new Matrix();
-        var P = new Matrix().fromFrustum(-1, 1, -1, 1, 0.1, 10);
+        var scale = 0.03;
+        var P = new Matrix().fromFrustum(-scale, scale, -scale, scale, 0.1, 10);
 
+        M.multiply(new Matrix().fromTranslation(-0.5, -0.5, -0.5), M);
         M.multiply(S, M);
         M.multiply(RX, M);
         M.multiply(RY, M);

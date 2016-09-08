@@ -10,7 +10,7 @@ out vec4 vRayOrigin;
 out vec4 vRayDirection;
 
 void main() {
-    mat4 transform = inverse(uPMatrix);
+    mat4 transform = inverse(uPMatrix * uVMatrix * uMMatrix);
     vec4 nearPosition = vec4(aPosition, -1.0, 1.0);
     vec4 farPosition = vec4(aPosition, 1.0, 1.0);
     vec4 origin = transform * nearPosition;
