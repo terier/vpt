@@ -19,7 +19,7 @@ vec2 intersectCube(vec3 origin, vec3 direction) {
 
 void main() {
     vec2 t = max(intersectCube(vRayOrigin.xyz, vRayDirection.xyz), 0.0);
-    if (t.x > t.y) {
+    if (t.x >= t.y) {
         discard;
     }
     t.x = min(t.x, t.y);

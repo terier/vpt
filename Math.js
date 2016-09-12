@@ -42,13 +42,13 @@ Quaternion.prototype.inverse = function() {
 };
 
 Quaternion.prototype.multiply = function(a, b) {
-    var qax = a.x, qay = a.y, qaz = a.z, qaw = a.w;
-    var qbx = b.x, qby = b.y, qbz = b.z, qbw = b.w;
+    var ax = a.x, ay = a.y, az = a.z, aw = a.w;
+    var bx = b.x, by = b.y, bz = b.z, bw = b.w;
 
-    this.x = qax * qbw + qaw * qbx + qay * qbz - qaz * qby;
-    this.y = qay * qbw + qaw * qby + qaz * qbx - qax * qbz;
-    this.z = qaz * qbw + qaw * qbz + qax * qby - qay * qbx;
-    this.w = qaw * qbw - qax * qbx - qay * qby - qaz * qbz;
+    this.x = ax * bw + aw * bx + ay * bz - az * by;
+    this.y = ay * bw + aw * by + az * bx - ax * bz;
+    this.z = az * bw + aw * bz + ax * by - ay * bx;
+    this.w = aw * bw - ax * bx - ay * by - az * bz;
 
     return this;
 };
@@ -275,7 +275,7 @@ Matrix.prototype.det = function() {
     );
 };
 
-Matrix.prototype.inv = function() {
+Matrix.prototype.inverse = function() {
     var m = this.m;
     var detInv = 1 / this.det();
 
@@ -346,7 +346,7 @@ Matrix.prototype.fromFrustum = function(left, right, bottom, top, near, far) {
     m[10] = -(far + near) / (far - near);
 
     m[11] = -2 * far * near / (far - near);
-    m[14] = -1;
+    m[14] = 1;
 
     m[1] = m[3] = m[4] = m[7] = m[8] = m[9] = m[12] = m[13] = m[15] = 0;
 
@@ -403,8 +403,8 @@ Matrix.prototype.fromRotationZ = function(angle) {
     var m = this.m;
     m[ 0] = c;
     m[ 1] = s;
-    m[ 8] = -s;
-    m[ 9] = c;
+    m[ 4] = -s;
+    m[ 5] = c;
 
     return this;
 };
@@ -421,7 +421,7 @@ Matrix.prototype.fromScale = function(x, y, z) {
 };
 
 Matrix.prototype.fromAxisAngle = function(x, y, z, w) {
-    new Quaternion(x, y, z, w).toRotationMatrix(this.m);
+    new Quaternion(x, y, z, w).fromAxisAngle().toRotationMatrix(this.m);
     return this;
 };
 
