@@ -2,197 +2,115 @@
 
 global.VolumeRenderer = VolumeRenderer;
 function VolumeRenderer(canvas) {
-    var raycaster = new VolumeRayCaster(canvas);
-    var resizeHorizontally = true;
+    this._raycaster = new VolumeRaycaster();
+    this._camera = new Camera();
+    this._camera.position.z = -5;
+    this._volumeRotation = new Quaternion();
+    this._resizeHorizontally = true;
 
-    this.resize = function(width, height) {
-        raycaster.resize(width, height);
-        if (resizeHorizontally) {
-            var scale = width / height;
-            raycaster.camera.fovX = Math.atan(Math.tan(raycaster.camera.fovY / 2) * scale) * 2;
-        } else {
-            var scale = height / width;
-            raycaster.camera.fovY = Math.atan(Math.tan(raycaster.camera.fovX / 2) * scale) * 2;
-        }
+    this._lastX = 0;
+    this._lastY = 0;
+    this._isMoving = false;
+
+    this._handleMouseDown = this._handleMouseDown.bind(this);
+    this._handleMouseUp = this._handleMouseUp.bind(this);
+    this._handleMouseMove = this._handleMouseMove.bind(this);
+    this._handleMouseWheel = this._handleMouseWheel.bind(this);
+
+    var canvas = this.getCanvas();
+    canvas.addEventListener('mousedown', this._handleMouseDown);
+    canvas.addEventListener('mouseup', this._handleMouseUp);
+    canvas.addEventListener('mousemove', this._handleMouseMove);
+    canvas.addEventListener('wheel', this._handleMouseWheel);
+}
+
+var _ = VolumeRenderer.prototype;
+
+_.resize = function(width, height) {
+    this._raycaster.resize(width, height);
+    var camera = this._camera;
+    if (this._resizeHorizontally) {
+        var scale = width / height;
+        camera.fovX = Math.atan(Math.tan(camera.fovY / 2) * scale) * 2;
+    } else {
+        var scale = height / width;
+        camera.fovY = Math.atan(Math.tan(camera.fovX / 2) * scale) * 2;
+    }
+    this.render();
+};
+
+_.zoom = function(amount) {
+    var k = 0.01;
+    var scale = Math.exp(amount * k);
+    var camera = this._camera;
+    camera.fovX = Math.atan(Math.tan(camera.fovX / 2) * scale) * 2;
+    camera.fovY = Math.atan(Math.tan(camera.fovY / 2) * scale) * 2;
+    this.render();
+};
+
+_.render = function() {
+    var mvpInverseMatrix = new Matrix();
+    var volumeTransformation = new Matrix();
+    var volumeTranslation = new Matrix().fromTranslation(-0.5, -0.5, -0.5);
+
+    return function() {
+        this._camera.updateTransformation();
+        this._volumeRotation.toRotationMatrix(volumeTransformation.m);
+        volumeTransformation.multiply(volumeTransformation, volumeTranslation);
+
+        mvpInverseMatrix.multiply(this._camera.projectionMatrix, this._camera.viewMatrix);
+        mvpInverseMatrix.multiply(mvpInverseMatrix, volumeTransformation);
+
+        mvpInverseMatrix.inverse().transpose();
+        this._raycaster.setMvpInverseMatrix(mvpInverseMatrix);
+        this._raycaster.render();
     };
+}();
 
-    this.zoom = function(amount) {
-        var k = 0.01;
-        var scale = Math.exp(amount * k);
-        raycaster.camera.fovX = Math.atan(Math.tan(raycaster.camera.fovX / 2) * scale) * 2;
-        raycaster.camera.fovY = Math.atan(Math.tan(raycaster.camera.fovY / 2) * scale) * 2;
-    };
+_.setVolume = function(volume) {
+    this._raycaster.setVolume(volume);
+};
 
-    this.setVolume = function(volume) {
-        raycaster.setVolume(volume);
-    };
+_.getCanvas = function() {
+    return this._raycaster.getCanvas();
+};
 
-    this.render = function() {
-        raycaster.render();
-    };
+_._handleMouseDown = function(e) {
+    this._isMoving = true;
+    this._lastX = e.clientX;
+    this._lastY = e.clientY;
+};
 
-    var lastX = 0, lastY = 0;
-    var isMoving = false;
-    this.onMouseDown = function(e) {
-        isMoving = true;
-        lastX = e.clientX;
-        lastY = e.clientY;
-    }.bind(this);
+_._handleMouseUp = function(e) {
+    this._isMoving = false;
+};
 
-    this.onMouseUp = function(e) {
-        isMoving = false;
-    }.bind(this);
+_._handleMouseMove = function(e) {
+    if (this._isMoving) {
+        var x = e.clientX;
+        var y = e.clientY;
+        var dx = x - this._lastX;
+        var dy = y - this._lastY;
 
-    this.onMouseMove = function(e) {
-        if (isMoving) {
-            var x = e.clientX;
-            var y = e.clientY;
-            var dx = x - lastX;
-            var dy = y - lastY;
+        var speed = 0.005;
+        var camera = this._camera;
+        var scale = speed * Math.min(camera.fovX, camera.fovY);
 
-            var speed = 0.002;
-            var scale = speed * Math.min(raycaster.camera.fovX, raycaster.camera.fovY);
+        var qx = new Quaternion(0, 1, 0, dx * scale).fromAxisAngle();
+        var qy = new Quaternion(1, 0, 0, dy * scale).fromAxisAngle();
+        var rot = this._volumeRotation;
+        rot.multiply(rot, qx);
+        rot.multiply(rot, qy);
 
-            var qx = new Quaternion(0, 1, 0, dx * scale).fromAxisAngle();
-            var qy = new Quaternion(1, 0, 0, dy * scale).fromAxisAngle();
-            var rot = raycaster.camera.rotation;
-            rot.multiply(qx, rot);
-            rot.multiply(qy, rot);
-            this.render();
-        }
-
-        lastX = x;
-        lastY = y;
-    }.bind(this);
-
-    this.onWheel = function(e) {
-        this.zoom(e.deltaY);
         this.render();
-    }.bind(this);
-
-    canvas.addEventListener('mousedown', this.onMouseDown);
-    canvas.addEventListener('mouseup', this.onMouseUp);
-    canvas.addEventListener('mousemove', this.onMouseMove);
-    canvas.addEventListener('wheel', this.onWheel);
-
-    function temprender() {
-        raycaster.render();
-        requestAnimationFrame(temprender);
-    }
-    requestAnimationFrame(temprender);
-
-}
-
-global.VolumeRayCaster = VolumeRayCaster;
-function VolumeRayCaster(canvas) {
-    var volume, gl, vbo, program;
-    var camera;
-    var self = this;
-
-    function init() {
-        camera = self.camera = new Camera();
-
-        try {
-            gl = WebGLUtils.getContext(canvas, ['webgl2', 'experimental-webgl2']);
-
-            // create volume
-            volume = gl.createTexture();
-            gl.bindTexture(gl.TEXTURE_3D, volume);
-            gl.texImage3D(gl.TEXTURE_3D, 0, gl.R16F,
-                1, 1, 1,
-                0, gl.RED, gl.FLOAT, new Float32Array([1]));
-            gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-            gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-            gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-            gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-            gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
-            gl.bindTexture(gl.TEXTURE_3D, null);
-
-            // create quad
-            vbo = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,1,1,-1,1]), gl.STATIC_DRAW);
-            gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
-            // create shaders
-            program = WebGLUtils.createProgram(gl, [
-                WebGLUtils.createShader(gl, Shaders.mip.vertex, gl.VERTEX_SHADER),
-                WebGLUtils.createShader(gl, Shaders.mip.fragment, gl.FRAGMENT_SHADER)
-            ]);
-        } catch(e) {
-            gl = undefined;
-            console.error(e);
-        }
     }
 
-    this.resize = function(width, height) {
-        canvas.width = width;
-        canvas.height = height;
-        if (gl) {
-            gl.viewport(0, 0, width, height);
-        }
-    };
+    this._lastX = x;
+    this._lastY = y;
+};
 
-    this.setVolume = function(_volume) {
-        if (!gl) {
-            return;
-        }
-
-        gl.bindTexture(gl.TEXTURE_3D, volume);
-        gl.texImage3D(gl.TEXTURE_3D, 0, gl.R16F,
-            _volume.width, _volume.height, _volume.depth,
-            0, gl.RED, gl.FLOAT, _volume.data);
-        gl.bindTexture(gl.TEXTURE_3D, null);
-    };
-
-    this.render = function() {
-        var uMvpInverseMatrix = new Matrix();
-        var volumeTransformation = new Matrix().fromTranslation(-0.5, -0.5, -0.5);
-
-        return function() {
-            if (!gl) {
-                return;
-            }
-
-            // update camera
-            var angle = +Date.now() * 0.005;
-            var s = Math.sin(angle);
-            var c = Math.cos(angle);
-            camera.position.set(0, 0, -5);
-            camera.updateTransformation();
-            uMvpInverseMatrix.multiply(camera.projectionMatrix, camera.viewMatrix);
-            uMvpInverseMatrix.multiply(uMvpInverseMatrix, volumeTransformation);
-            uMvpInverseMatrix.inverse().transpose();
-
-            // use shader
-            gl.useProgram(program.program);
-
-            // set volume
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_3D, volume);
-
-            // set vbo
-            gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-            var aPosition = program.attributes['aPosition'];
-            gl.enableVertexAttribArray(aPosition);
-            gl.vertexAttribPointer(aPosition, 2, gl.FLOAT, false, 0, 0);
-
-            // set uniforms
-            gl.uniform1i(program.uniforms['uVolume'], 0);
-            gl.uniformMatrix4fv(program.uniforms['uMvpInverseMatrix'], false, uMvpInverseMatrix.m);
-
-            // render
-            gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-
-            // clean up
-            gl.disableVertexAttribArray(aPosition);
-            gl.bindBuffer(gl.ARRAY_BUFFER, null);
-            gl.bindTexture(gl.TEXTURE_3D, null);
-        }
-    }();
-
-    init();
-
-}
+_._handleMouseWheel = function(e) {
+    this.zoom(e.deltaY);
+};
 
 })(this);

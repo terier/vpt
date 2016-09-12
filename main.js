@@ -1,5 +1,6 @@
 $(function() {
-    var renderer = new VolumeRenderer(document.getElementById('viewer'));
+    var renderer = new VolumeRenderer();
+    $('.fill').append($(renderer.getCanvas()));
 
     $(window).resize(function() {
         var w = window.innerWidth;
