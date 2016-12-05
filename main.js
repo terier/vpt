@@ -31,6 +31,10 @@ $(function() {
                         .find('#open-file-dimensions')
                         .val().trim().split(/\s+/)
                         .map(function(x) { return parseInt(x); });
+                    var scale = $this
+                        .find('#open-file-scale')
+                        .val().trim().split(/\s+/)
+                        .map(function(x) { return parseFloat(x); });
                     var bits = parseInt($this.find('#open-file-bits')
                         .val().trim());
                     var reader = new FileReader();
@@ -42,6 +46,7 @@ $(function() {
                             dimensions[2],
                             bits);
                         renderer.setVolume(volume);
+                        renderer.setScale(scale[0], scale[1], scale[2]);
                     };
                     reader.onerror = function(e) {
                         alert('Error while loading');

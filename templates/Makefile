@@ -1,5 +1,5 @@
 all:
-	node MakeTemplates.js *.html
+	nodejs MakeTemplates.js *.html
 
 clean:
 	rm Templates.js

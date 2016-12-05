@@ -28,7 +28,7 @@ void main() {
     do {
         vec3 pos = vRayOrigin.xyz + vRayDirection.xyz * mix(t.x, t.y, tt);
         val = max(val, texture(uVolume, pos).r);
-        tt += 0.02;
+        tt += 0.005;
     } while (tt < 1.0);
     color = vec4(1.0 - val, 1.0 - val, 1.0 - val, 1.0);
     //color = vec4(val, val, val, 1.0);

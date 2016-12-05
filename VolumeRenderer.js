@@ -8,6 +8,10 @@ function VolumeRenderer(canvas) {
     this._volumeRotation = new Quaternion();
     this._resizeHorizontally = true;
 
+    this._sx = 1;
+    this._sy = 1;
+    this._sz = 1;
+
     this._lastX = 0;
     this._lastY = 0;
     this._isMoving = false;
@@ -52,10 +56,13 @@ _.render = function() {
     var mvpInverseMatrix = new Matrix();
     var volumeTransformation = new Matrix();
     var volumeTranslation = new Matrix().fromTranslation(-0.5, -0.5, -0.5);
+    var volumeScale = new Matrix().fromScale(1, 1, 1);
 
     return function() {
         this._camera.updateTransformation();
         this._volumeRotation.toRotationMatrix(volumeTransformation.m);
+        volumeScale.fromScale(this._sx, this._sy, this._sz);
+        volumeTransformation.multiply(volumeTransformation, volumeScale);
         volumeTransformation.multiply(volumeTransformation, volumeTranslation);
 
         mvpInverseMatrix.multiply(this._camera.projectionMatrix, this._camera.viewMatrix);
@@ -66,6 +73,13 @@ _.render = function() {
         this._raycaster.render();
     };
 }();
+
+_.setScale = function(sx, sy, sz) {
+    this._sx = sx;
+    this._sy = sy;
+    this._sz = sz;
+    this.render();
+};
 
 _.setVolume = function(volume) {
     this._raycaster.setVolume(volume);
