@@ -1,5 +1,5 @@
 all:
-	nodejs MakeShaders.js *.prog
+	node MakeShaders.js *.prog
 
 clean:
 	rm Shaders.js
