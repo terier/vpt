@@ -14,7 +14,7 @@ $(function() {
     });
     $(window).resize();
 
-    var openFileDialog = $(Templates["OpenFileDialog.html"]);
+    var openFileDialog = $(TEMPLATES["OpenFileDialog.html"]);
     openFileDialog.dialog({
         title: 'Open file',
         width: 300,

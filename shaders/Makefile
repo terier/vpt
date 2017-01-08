@@ -1,5 +1,5 @@
-all:
+SHADERS.js: *.prog *.frag *.vert
 	node MakeShaders.js *.prog
 
 clean:
-	rm Shaders.js
+	rm SHADERS.js

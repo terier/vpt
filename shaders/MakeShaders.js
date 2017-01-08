@@ -12,5 +12,5 @@ process.argv.slice(2).forEach(function(arg) {
     });
 });
 
-var data = '(function(global) { Shaders = ' + JSON.stringify(programs) + ';})(this);';
-fs.writeFile('Shaders.js', data, 'utf8');
+var data = 'SHADERS = ' + JSON.stringify(programs) + ';';
+fs.writeFile('SHADERS.js', data, 'utf8');

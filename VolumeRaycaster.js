@@ -41,8 +41,8 @@ _._init = function() {
 
         // create shaders
         this._program = WebGLUtils.createProgram(gl, [
-            WebGLUtils.createShader(gl, Shaders.mip.vertex, gl.VERTEX_SHADER),
-            WebGLUtils.createShader(gl, Shaders.mip.fragment, gl.FRAGMENT_SHADER)
+            WebGLUtils.createShader(gl, SHADERS.mip.vertex, gl.VERTEX_SHADER),
+            WebGLUtils.createShader(gl, SHADERS.mip.fragment, gl.FRAGMENT_SHADER)
         ]);
     } catch(e) {
         gl = null;

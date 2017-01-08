@@ -7,5 +7,5 @@ process.argv.slice(2).forEach(function(arg) {
     templates[arg] = html;
 });
 
-var data = '(function(global) { Templates = ' + JSON.stringify(templates) + ';})(this);';
-fs.writeFile('Templates.js', data, 'utf8');
+var data = 'TEMPLATES = ' + JSON.stringify(templates) + ';';
+fs.writeFile('TEMPLATES.js', data, 'utf8');

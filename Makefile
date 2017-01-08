@@ -1,12 +1,9 @@
-.PHONY: trap
-trap:
+.PHONY: all
+all: templates shaders
 
 .PHONY: run
 run:
 	python -m http.server
-
-.PHONY: all
-all: templates shaders
 
 .PHONY: templates
 templates:
@@ -15,4 +12,3 @@ templates:
 .PHONY: shaders
 shaders:
 	cd shaders && $(MAKE)
-
