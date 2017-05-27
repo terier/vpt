@@ -91,13 +91,13 @@ _.render = function() {
 
     // set vbo
     gl.bindBuffer(gl.ARRAY_BUFFER, this._vbo);
-    var aPosition = program.attributes['aPosition'];
+    var aPosition = program.attributes.aPosition;
     gl.enableVertexAttribArray(aPosition);
     gl.vertexAttribPointer(aPosition, 2, gl.FLOAT, false, 0, 0);
 
     // set uniforms
-    gl.uniform1i(program.uniforms['uVolume'], 0);
-    gl.uniformMatrix4fv(program.uniforms['uMvpInverseMatrix'], false, this._mvpInverseMatrix.m);
+    gl.uniform1i(program.uniforms.uVolume, 0);
+    gl.uniformMatrix4fv(program.uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
 
     // render
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
