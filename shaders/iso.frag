@@ -2,6 +2,7 @@
 precision mediump float;
 
 uniform mediump sampler3D uVolume;
+uniform float uSamplingStep;
 uniform float uIsovalue;
 
 in vec3 vRayFrom;
@@ -18,10 +19,14 @@ void main() {
     }
     float val = 0.0;
     float t = 0.0;
+    vec3 from = mix(vRayFrom, vRayTo, tbounds.x);
+    vec3 to = mix(vRayFrom, vRayTo, tbounds.y);
+    vec3 pos = from;
+    vec3 posDelta = (to - from) * uSamplingStep;
     do {
-        vec3 pos = mix(vRayFrom, vRayTo, mix(tbounds.x, tbounds.y, t));
-        val = max(val, texture(uVolume, pos).r);
-        t += 0.01;
+        val = texture(uVolume, pos).r;
+        pos += posDelta;
+        t += uSamplingStep;
     } while (val < uIsovalue && t < 1.0);
 
     float h = 0.005;
