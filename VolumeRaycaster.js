@@ -22,6 +22,7 @@ _._init = function() {
 
         // create volume
         this._volume = gl.createTexture();
+        gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_3D, this._volume);
         gl.texImage3D(gl.TEXTURE_3D, 0, gl.R16F,
             1, 1, 1,
@@ -34,16 +35,10 @@ _._init = function() {
         gl.bindTexture(gl.TEXTURE_3D, null);
 
         // create quad
-        this._vbo = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._vbo);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,1,1,-1,1]), gl.STATIC_DRAW);
-        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        this._vbo = WebGLUtils.createClipQuad(gl);
 
         // create shaders
-        this._program = WebGLUtils.createProgram(gl, [
-            WebGLUtils.createShader(gl, SHADERS.mip.vertex, gl.VERTEX_SHADER),
-            WebGLUtils.createShader(gl, SHADERS.mip.fragment, gl.FRAGMENT_SHADER)
-        ]);
+        this._program = WebGLUtils.compileShaders(gl, SHADERS, MIXINS).mip;
     } catch(e) {
         gl = null;
         console.error(e);
@@ -64,6 +59,7 @@ _.setVolume = function(volume) {
         return;
     }
 
+    gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_3D, this._volume);
     gl.texImage3D(gl.TEXTURE_3D, 0, gl.R16F,
         volume.width, volume.height, volume.depth,

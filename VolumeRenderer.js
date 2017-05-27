@@ -108,10 +108,9 @@ _._handleMouseMove = function(e) {
 
         var speed = 0.005;
         var camera = this._camera;
-        var scale = speed * Math.min(camera.fovX, camera.fovY);
 
-        var qx = new Quaternion(0, 1, 0, dx * scale).fromAxisAngle();
-        var qy = new Quaternion(1, 0, 0, dy * scale).fromAxisAngle();
+        var qx = new Quaternion(0, 1, 0, dx * speed).fromAxisAngle();
+        var qy = new Quaternion(1, 0, 0, dy * speed).fromAxisAngle();
         var rot = this._volumeRotation;
         rot.multiply(rot, qx);
         rot.multiply(rot, qy);
