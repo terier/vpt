@@ -7,9 +7,11 @@ var $scale      = $html.find('#open-file-scale');
 var $bits       = $html.find('#open-file-bits');
 
 function parse() {
+    var pint = function(x) { return parseInt(x, 10); };
+    var pfloat = function(x) { return parseFloat(x); };
     OpenFileDialog.file = $input.files[0];
-    OpenFileDialog.dimensions = $dimensions.val().trim().split(/\s+/).map(parseInt);
-    OpenFileDialog.scale = $scale.val().trim().split(/\s+/).map(parseFloat);
+    OpenFileDialog.dimensions = $dimensions.val().trim().split(/\s+/).map(pint);
+    OpenFileDialog.scale = $scale.val().trim().split(/\s+/).map(pfloat);
     OpenFileDialog.bits = parseInt($bits.val().trim());
 }
 
@@ -25,7 +27,7 @@ $(function() {
                     var reader = new FileReader();
                     reader.onload = OpenFileDialog.onload;
                     reader.onerror = OpenFileDialog.onerror;
-                    reader.readAsArrayBuffer(file);
+                    reader.readAsArrayBuffer(OpenFileDialog.file);
                 }
                 $html.dialog('close');
             },
