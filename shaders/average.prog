@@ -1,7 +1,0 @@
-{
-    "name": "average",
-    "shaders": {
-        "vertex": "average.vert",
-        "fragment": "average.frag"
-    }
-}

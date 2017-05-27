@@ -1,7 +1,0 @@
-{
-    "name": "quad",
-    "shaders": {
-        "vertex": "quad.vert",
-        "fragment": "quad.frag"
-    }
-}
