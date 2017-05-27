@@ -38,7 +38,7 @@ _._init = function() {
         this._vbo = WebGLUtils.createClipQuad(gl);
 
         // create shaders
-        this._program = WebGLUtils.compileShaders(gl, SHADERS, MIXINS).mip;
+        this._program = WebGLUtils.compileShaders(gl, SHADERS, MIXINS).iso;
     } catch(e) {
         gl = null;
         console.error(e);
@@ -97,6 +97,7 @@ _.render = function() {
 
     // set uniforms
     gl.uniform1i(program.uniforms.uVolume, 0);
+    gl.uniform1f(program.uniforms.uIsovalue, 0.2);
     gl.uniformMatrix4fv(program.uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
 
     // render

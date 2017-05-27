@@ -23,9 +23,25 @@ void main() {
         val = max(val, texture(uVolume, pos).r);
         t += 0.01;
     } while (val < uIsovalue && t < 1.0);
+
+    float h = 0.005;
     if (t >= 1.0) {
         color = vec4(0.0);
     } else {
-        color = vec4(1.0, 0.0, 0.0, 1.0);
+        vec3 pos = mix(vRayFrom, vRayTo, mix(tbounds.x, tbounds.y, t));
+        float vxm = texture(uVolume, pos + vec3(-h, 0.0, 0.0)).r;
+        float vxp = texture(uVolume, pos + vec3( h, 0.0, 0.0)).r;
+        float vym = texture(uVolume, pos + vec3(0.0, -h, 0.0)).r;
+        float vyp = texture(uVolume, pos + vec3(0.0,  h, 0.0)).r;
+        float vzm = texture(uVolume, pos + vec3(0.0, 0.0, -h)).r;
+        float vzp = texture(uVolume, pos + vec3(0.0, 0.0,  h)).r;
+        float dx = (vxp - vxm) / (2.0 * h);
+        float dy = (vyp - vym) / (2.0 * h);
+        float dz = (vzp - vzm) / (2.0 * h);
+        vec3 normal = normalize(vec3(dx, dy, dz));
+        vec3 light = normalize(vec3(1.0, 1.0, 1.0));
+        float lambert = max(dot(normal, light), 0.0);
+        vec3 diffuse = vec3(1.0, 0.0, 0.0);
+        color = vec4(diffuse * lambert, 1.0);
     }
 }
