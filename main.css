@@ -7,6 +7,20 @@
     width: 34px;
 }
 
+nav {
+	opacity: 0.5;
+}
+
+nav:hover {
+	opacity: 1;
+}
+
 .ui-dialog {
     z-index: 50000 !important;
+}
+
+.renderer {
+	position: fixed;
+	left: 0;
+	top: 0;
 }
