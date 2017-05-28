@@ -90,6 +90,9 @@ _.getCanvas = function() {
 };
 
 _._handleMouseDown = function(e) {
+    if (e.button !== 0) {
+        return;
+    }
     this._isMoving = true;
     this._lastX = e.clientX;
     this._lastY = e.clientY;
