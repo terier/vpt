@@ -1,0 +1,32 @@
+{
+  "name": "vpt",
+  "version": "1.0.0",
+  "description": "Volumetric Path Tracing",
+  "main": "app.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "start": "node app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://terier@bitbucket.org/terier/vpt.git"
+  },
+  "author": "terier",
+  "license": "ISC",
+  "homepage": "https://bitbucket.org/terier/vpt#readme",
+  "devDependencies": {
+    "browser-sync": "^2.18.12",
+    "del": "^2.2.2",
+    "gulp": "^3.9.1",
+    "gulp-concat": "^2.6.1",
+    "gulp-run": "^1.7.1",
+    "gulp-sass": "^3.1.0",
+    "gulp-shell": "^0.6.3"
+  },
+  "dependencies": {
+    "express": "^4.15.3"
+  }
+}

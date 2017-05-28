@@ -1,3 +1,2 @@
-shaders/SHADERS.js
-shaders/MIXINS.js
-templates/TEMPLATES.js
+node_modules
+build
