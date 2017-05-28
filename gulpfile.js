@@ -16,6 +16,7 @@ var del        = require('del');
 gulp.task('sass', function() {
     return gulp.src('app/css/**/*.scss')
         .pipe(sass())
+        .pipe(concat('main.css'))
         .pipe(gulp.dest('build/css'));
 });
 
@@ -50,7 +51,7 @@ gulp.task('templates', function() {
     return gulp.src('app/templates/**/*.html')
         .pipe(htmlToJs({
             concat: 'templates.js',
-            global: 'TEMPLATES'
+            global: 'window.TEMPLATES'
         }))
         .pipe(gulp.dest('build/js'));
 });
