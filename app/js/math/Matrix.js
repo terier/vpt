@@ -1,184 +1,5 @@
 (function(global) {
 
-global.Quaternion = Quaternion;
-function Quaternion(x, y, z, w) {
-    this.x = x || 0;
-    this.y = y || 0;
-    this.z = z || 0;
-    this.w = (w !== undefined) ? w : 1;
-}
-
-Quaternion.prototype.clone = function() {
-    return new Quaternion(this.x, this.y, this.z, this.w);
-};
-
-Quaternion.prototype.copy = function(q) {
-    this.x = q.x;
-    this.y = q.y;
-    this.z = q.z;
-    this.w = q.w;
-    return this;
-};
-
-Quaternion.prototype.set = function(x, y, z, w) {
-    this.x = x;
-    this.y = y;
-    this.z = z;
-    this.w = w;
-    return this;
-};
-
-Quaternion.prototype.identity = function() {
-    this.x = this.y = this.z = 0;
-    this.w = 1;
-    return this;
-};
-
-Quaternion.prototype.inverse = function() {
-    this.x *= -1;
-    this.y *= -1;
-    this.z *= -1;
-    return this;
-};
-
-Quaternion.prototype.multiply = function(a, b) {
-    var ax = a.x, ay = a.y, az = a.z, aw = a.w;
-    var bx = b.x, by = b.y, bz = b.z, bw = b.w;
-
-    this.x = ax * bw + aw * bx + ay * bz - az * by;
-    this.y = ay * bw + aw * by + az * bx - ax * bz;
-    this.z = az * bw + aw * bz + ax * by - ay * bx;
-    this.w = aw * bw - ax * bx - ay * by - az * bz;
-
-    return this;
-};
-
-Quaternion.prototype.fromAxisAngle = function() {
-    var s = Math.sin(this.w / 2);
-    var c = Math.cos(this.w / 2);
-
-    this.x *= s;
-    this.y *= s;
-    this.z *= s;
-    this.w = c;
-
-    return this;
-};
-
-Quaternion.prototype.fromDevice = function(alpha, beta, gamma) {
-    var degtorad = Math.PI / 180;
-    var x = beta * degtorad / 2;
-    var y = gamma * degtorad / 2;
-    var z = alpha * degtorad / 2;
-
-    var cx = Math.cos(x);
-    var sx = Math.sin(x);
-    var cy = Math.cos(y);
-    var sy = Math.sin(y);
-    var cz = Math.cos(z);
-    var sz = Math.sin(z);
-
-    this.x = sx * cy * cz - cx * sy * sz;
-    this.y = cx * sy * cz + sx * cy * sz;
-    this.z = cx * cy * sz + sx * sy * cz;
-    this.w = cx * cy * cz - sx * sy * sz;
-
-    return this;
-};
-
-Quaternion.prototype.toRotationMatrix = function(m) {
-    var x = this.x, y = this.y, z = this.z, w = this.w;
-    var x2 = x + x, y2 = y + y, z2 = z + z;
-    var xx = x * x2, xy = x * y2, xz = x * z2;
-    var yy = y * y2, yz = y * z2, zz = z * z2;
-    var wx = w * x2, wy = w * y2, wz = w * z2;
-
-    m[0] = 1 - (yy + zz);
-    m[4] = xy - wz;
-    m[8] = xz + wy;
-
-    m[1] = xy + wz;
-    m[5] = 1 - (xx + zz);
-    m[9] = yz - wx;
-
-    m[2] = xz - wy;
-    m[6] = yz + wx;
-    m[10] = 1 - (xx + yy);
-
-    m[3] = m[7] = m[11] = m[12] = m[13] = m[14] = 0;
-    m[15] = 1;
-};
-
-global.Vector = Vector;
-function Vector(x, y, z, w) {
-    this.x = x || 0;
-    this.y = y || 0;
-    this.z = z || 0;
-    this.w = (w !== undefined) ? w : 1;
-}
-
-Vector.prototype.clone = function() {
-    return new Vector(this.x, this.y, this.z, this.w);
-};
-
-Vector.prototype.copy = function(v) {
-    this.x = v.x;
-    this.y = v.y;
-    this.z = v.z;
-    this.w = v.w;
-    return this;
-};
-
-Vector.prototype.set = function(x, y, z, w) {
-    this.x = x;
-    this.y = y;
-    this.z = z;
-    this.w = w;
-    return this;
-};
-
-Vector.prototype.add = function(a, b) {
-    if (!b) {
-        b = this;
-    }
-
-    this.x = a.x + b.x;
-    this.y = a.y + b.y;
-    this.z = a.z + b.z;
-    this.w = a.w + b.w;
-
-    return this;
-};
-
-Vector.prototype.sub = function(a, b) {
-    if (!b) {
-        b = this;
-    }
-
-    this.x = a.x - b.x;
-    this.y = a.y - b.y;
-    this.z = a.z - b.z;
-    this.w = a.w - b.w;
-
-    return this;
-};
-
-Vector.prototype.dot = function(v) {
-    return this.x * v.x + this.y * v.y + this.z * v.z;
-};
-
-Vector.prototype.cross = function(a, b) {
-    var ax = a.x, ay = a.y, az = a.z;
-    var bx = b.x, by = b.y, bz = b.z;
-
-    this.x = ay * bz - az * by;
-    this.y = az * bx - ax * bz;
-    this.z = ax * by - ay * bx;
-    this.w = 1;
-
-    return this;
-};
-
 global.Matrix = Matrix;
 function Matrix(data) {
     this.m = new Float32Array(16);
@@ -189,21 +10,23 @@ function Matrix(data) {
     }
 }
 
-Matrix.prototype.clone = function() {
+var _ = Matrix.prototype;
+
+_.clone  = function() {
     return new Matrix(this.m);
 };
 
-Matrix.prototype.copy = function(m) {
+_.copy = function(m) {
     this.m.set(m.m);
     return this;
 };
 
-Matrix.prototype.identity = function() {
+_.identity = function() {
     this.m.fill(0);
     this.m[0] = this.m[5] = this.m[10] = this.m[15] = 1;
 };
 
-Matrix.prototype.transpose = function() {
+_.transpose = function() {
     var T;
     var m = this.m;
 
@@ -217,7 +40,7 @@ Matrix.prototype.transpose = function() {
     return this;
 };
 
-Matrix.prototype.multiply = function(a, b) {
+_.multiply = function(a, b) {
     var am = a.m;
     var bm = b.m;
     var m = this.m;
@@ -255,7 +78,7 @@ Matrix.prototype.multiply = function(a, b) {
     return this;
 };
 
-Matrix.prototype.det = function() {
+_.det = function() {
     var m = this.m;
 
     var m11 = m[ 0], m12 = m[ 1], m13 = m[ 2], m14 = m[ 3];
@@ -275,7 +98,7 @@ Matrix.prototype.det = function() {
     );
 };
 
-Matrix.prototype.inverse = function() {
+_.inverse = function() {
     var m = this.m;
     var detInv = 1 / this.det();
 
@@ -307,7 +130,7 @@ Matrix.prototype.inverse = function() {
     return this;
 };
 
-Matrix.prototype.transform = function(v) {
+_.transform = function(v) {
     var x = v.x;
     var y = v.y;
     var z = v.z;
@@ -325,7 +148,7 @@ Matrix.prototype.transform = function(v) {
     v.w = m41 * x + m42 * y + m43 * z + m44 * w;
 };
 
-Matrix.prototype.print = function() {
+_.print = function() {
     var m = this.m;
     console.log(
         '[ ' + m[ 0] + ', ' + m[ 1] + ', ' + m[ 2] + ', ' + m[ 3] + ' ]\n' +
@@ -335,7 +158,7 @@ Matrix.prototype.print = function() {
     );
 };
 
-Matrix.prototype.fromFrustum = function(left, right, bottom, top, near, far) {
+_.fromFrustum = function(left, right, bottom, top, near, far) {
     var m = this.m;
 
     m[ 0] = 2 * near / (right - left);
@@ -353,7 +176,7 @@ Matrix.prototype.fromFrustum = function(left, right, bottom, top, near, far) {
     return this;
 };
 
-Matrix.prototype.fromTranslation = function(x, y, z) {
+_.fromTranslation = function(x, y, z) {
     this.identity();
 
     var m = this.m;
@@ -364,7 +187,7 @@ Matrix.prototype.fromTranslation = function(x, y, z) {
     return this;
 };
 
-Matrix.prototype.fromRotationX = function(angle) {
+_.fromRotationX = function(angle) {
     this.identity();
 
     var s = Math.sin(angle);
@@ -379,7 +202,7 @@ Matrix.prototype.fromRotationX = function(angle) {
     return this;
 };
 
-Matrix.prototype.fromRotationY = function(angle) {
+_.fromRotationY = function(angle) {
     this.identity();
 
     var s = Math.sin(angle);
@@ -394,7 +217,7 @@ Matrix.prototype.fromRotationY = function(angle) {
     return this;
 };
 
-Matrix.prototype.fromRotationZ = function(angle) {
+_.fromRotationZ = function(angle) {
     this.identity();
 
     var s = Math.sin(angle);
@@ -409,7 +232,7 @@ Matrix.prototype.fromRotationZ = function(angle) {
     return this;
 };
 
-Matrix.prototype.fromScale = function(x, y, z) {
+_.fromScale = function(x, y, z) {
     this.identity();
 
     var m = this.m;
@@ -420,7 +243,7 @@ Matrix.prototype.fromScale = function(x, y, z) {
     return this;
 };
 
-Matrix.prototype.fromAxisAngle = function(x, y, z, w) {
+_.fromAxisAngle = function(x, y, z, w) {
     new Quaternion(x, y, z, w).fromAxisAngle().toRotationMatrix(this.m);
     return this;
 };

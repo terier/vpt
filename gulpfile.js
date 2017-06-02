@@ -13,8 +13,22 @@ var del        = require('del');
 
 // --------------------------------------------------------
 
+var jsFiles = [
+    'app/js/math/**/*.js',
+    'app/js/dialogs/**/*.js',
+    'app/js/**/*.js'
+];
+var sassFiles = 'app/css/**/*.scss';
+var glslFiles = 'app/glsl/**/*.(frag|vert|glsl)';
+var imageFiles = 'app/images/**/*.+(png|jpg|jpeg|gif|svg|ico|bmp)';
+var templateFiles = 'app/templates/**/*.html';
+var htmlFiles = [
+    'app/**/*.html',
+    '!app/templates/**/*'
+];
+
 gulp.task('sass', function() {
-    return gulp.src('app/css/**/*.scss')
+    return gulp.src(sassFiles)
         .pipe(sass())
         .pipe(concat('main.css'))
         .pipe(gulp.dest('build/css'));
@@ -27,7 +41,7 @@ gulp.task('glsl', shell.task([
 ]));
 
 gulp.task('js', function() {
-    return gulp.src('app/js/**/*.js')
+    return gulp.src(jsFiles)
         .pipe(concat('main.js'))
         .pipe(sourcemaps.init())
         .pipe(uglify())
@@ -36,19 +50,19 @@ gulp.task('js', function() {
 });
 
 gulp.task('images', function(){
-    return gulp.src('app/images/**/*.+(png|jpg|jpeg|gif|svg|ico|bmp)')
+    return gulp.src(imageFiles)
         .pipe(cache(imagemin()))
         .pipe(gulp.dest('build/images'));
 });
 
 gulp.task('html', function() {
-    return gulp.src(['app/**/*.html', '!app/templates/**/*'])
+    return gulp.src(htmlFiles)
         .pipe(htmlmin({ collapseWhitespace: true }))
         .pipe(gulp.dest('build'));
 });
 
 gulp.task('templates', function() {
-    return gulp.src('app/templates/**/*.html')
+    return gulp.src(templateFiles)
         .pipe(htmlToJs({
             concat: 'templates.js',
             global: 'window.TEMPLATES'
@@ -59,12 +73,12 @@ gulp.task('templates', function() {
 // --------------------------------------------------------
 
 gulp.task('watch', function() {
-    gulp.watch('app/css/**/*.scss', ['sass']);
-    gulp.watch('app/js/**/*.js', ['js']);
-    gulp.watch('app/images/**/*.+(png|jpg|jpeg|gif|svg|ico|bmp)', ['images']);
-    gulp.watch('app/glsl/**/*.(frag|vert|glsl)', ['glsl']);
-    gulp.watch(['app/**/*.html', '!app/templates/**/*'], ['html']);
-    gulp.watch(['app/templates/**/*'], ['templates']);
+    gulp.watch(sassFiles, ['sass']);
+    gulp.watch(jsFiles, ['js']);
+    gulp.watch(imageFiles, ['images']);
+    gulp.watch(glslFiles, ['glsl']);
+    gulp.watch(htmlFiles, ['html']);
+    gulp.watch(templateFiles, ['templates']);
 });
 
 gulp.task('build', function() {
