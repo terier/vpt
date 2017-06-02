@@ -13,13 +13,11 @@ $(function() {
 
     $('#open-file').click(function() {
         OpenFileDialog.onload = function(e) {
-            var dimensions = OpenFileDialog.dimensions;
-            var scale = OpenFileDialog.scale;
+            var size = OpenFileDialog.size;
             var bits = OpenFileDialog.bits;
-            var volume = new Volume(e.target.result, dimensions[0], dimensions[1], dimensions[2], bits);
+            var volume = new Volume(e.target.result, size.x, size.y, size.z, bits);
             renderer.setVolume(volume);
-            renderer.setScale(scale[0], scale[1], scale[2]);
         }
-        OpenFileDialog.dialog('open');
+        OpenFileDialog.dialog('show');
     });
 });

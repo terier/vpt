@@ -1,45 +1,39 @@
 (function(global) {
 
 var $html       = $(TEMPLATES["OpenFileDialog.html"]);
-var $input      = $html.find('#open-file-input')[0];
-var $dimensions = $html.find('#open-file-dimensions');
-var $scale      = $html.find('#open-file-scale');
-var $bits       = $html.find('#open-file-bits');
+var $input      = $html.find('#open-file-dialog-file')[0];
+var $size       = $html.find('input[name="open-file-dialog-size"]');
+var $bits       = $html.find('input[name="open-file-dialog-bits"]');
+var $open       = $html.find('#open-file-dialog-open');
+var $close      = $html.find('#open-file-dialog-close');
 
 function parse() {
-    var pint = function(x) { return parseInt(x, 10); };
-    var pfloat = function(x) { return parseFloat(x); };
     OpenFileDialog.file = $input.files[0];
-    OpenFileDialog.dimensions = $dimensions.val().trim().split(/\s+/).map(pint);
-    OpenFileDialog.scale = $scale.val().trim().split(/\s+/).map(pfloat);
-    OpenFileDialog.bits = parseInt($bits.val().trim());
+    OpenFileDialog.size = {
+        x: parseInt($size.filter('[data-axis="x"]').val()),
+        y: parseInt($size.filter('[data-axis="y"]').val()),
+        z: parseInt($size.filter('[data-axis="z"]').val())
+    };
+    OpenFileDialog.bits = parseInt($bits.filter(':checked').val());
 }
 
 $(function() {
-    $html.dialog({
-        title: 'Open file',
-        modal: true,
-        autoOpen: false,
-        buttons: {
-            'Load': function() {
-                if ($input.files.length > 0) {
-                    parse();
-                    var reader = new FileReader();
-                    reader.onload = OpenFileDialog.onload;
-                    reader.onerror = OpenFileDialog.onerror;
-                    reader.readAsArrayBuffer(OpenFileDialog.file);
-                }
-                $html.dialog('close');
-            },
-            'Cancel': function() {
-                $html.dialog('close');
-            }
+    $html.modal({
+        show: false
+    });
+    $open.click(function() {
+        if ($input.files.length > 0) {
+            parse();
+            var reader = new FileReader();
+            reader.onload = OpenFileDialog.onload;
+            reader.onerror = OpenFileDialog.onerror;
+            reader.readAsArrayBuffer(OpenFileDialog.file);
         }
     });
 });
 
 var OpenFileDialog = {
-    dialog:     $html.dialog.bind($html),
+    dialog:     $html.modal.bind($html),
     onload:     noop,
     onerror:    noop,
     oncancel:   noop
