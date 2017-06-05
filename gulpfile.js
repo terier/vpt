@@ -12,6 +12,8 @@ var sourcemaps = require('gulp-sourcemaps');
 var htmlToJs   = require('gulp-html-to-js');
 var del        = require('del');
 
+var debug = !!process.env.DEBUG;
+
 // --------------------------------------------------------
 
 var jsFiles = [
@@ -29,13 +31,20 @@ var htmlFiles = [
 ];
 
 gulp.task('sass', function() {
-    return gulp.src(sassFiles)
-        .pipe(sass())
-        .pipe(concat('main.css'))
-        .pipe(sourcemaps.init())
-        .pipe(cleanCSS())
-        .pipe(sourcemaps.write())
-        .pipe(gulp.dest('build/css'));
+    if (debug) {
+        return gulp.src(sassFiles)
+            .pipe(sass())
+            .pipe(concat('main.css'))
+            .pipe(gulp.dest('build/css'));
+    } else {
+        return gulp.src(sassFiles)
+            .pipe(sass())
+            .pipe(concat('main.css'))
+            .pipe(sourcemaps.init())
+            .pipe(cleanCSS())
+            .pipe(sourcemaps.write())
+            .pipe(gulp.dest('build/css'));
+    }
 });
 
 gulp.task('glsl', shell.task([
@@ -45,12 +54,18 @@ gulp.task('glsl', shell.task([
 ]));
 
 gulp.task('js', function() {
-    return gulp.src(jsFiles)
-        .pipe(concat('main.js'))
-        .pipe(sourcemaps.init())
-        .pipe(uglify())
-        .pipe(sourcemaps.write())
-        .pipe(gulp.dest('build/js'));
+    if (debug) {
+        return gulp.src(jsFiles)
+            .pipe(concat('main.js'))
+            .pipe(gulp.dest('build/js'));
+    } else {
+        return gulp.src(jsFiles)
+            .pipe(concat('main.js'))
+            .pipe(sourcemaps.init())
+            .pipe(uglify())
+            .pipe(sourcemaps.write())
+            .pipe(gulp.dest('build/js'));
+    }
 });
 
 gulp.task('images', function(){
