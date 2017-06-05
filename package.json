@@ -26,7 +26,6 @@
     "gulp-html-to-js": "0.0.5",
     "gulp-htmlmin": "^3.0.0",
     "gulp-imagemin": "^3.2.0",
-    "gulp-run": "^1.7.1",
     "gulp-sass": "^3.1.0",
     "gulp-shell": "^0.6.3",
     "gulp-uglify": "^3.0.0"
