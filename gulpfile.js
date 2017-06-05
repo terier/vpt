@@ -7,6 +7,7 @@ var imagemin   = require('gulp-imagemin');
 var htmlmin    = require('gulp-htmlmin');
 var cache      = require('gulp-cache');
 var uglify     = require('gulp-uglify');
+var cleanCSS   = require('gulp-clean-css');
 var sourcemaps = require('gulp-sourcemaps');
 var htmlToJs   = require('gulp-html-to-js');
 var del        = require('del');
@@ -31,6 +32,9 @@ gulp.task('sass', function() {
     return gulp.src(sassFiles)
         .pipe(sass())
         .pipe(concat('main.css'))
+        .pipe(sourcemaps.init())
+        .pipe(cleanCSS())
+        .pipe(sourcemaps.write())
         .pipe(gulp.dest('build/css'));
 });
 
