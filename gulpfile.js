@@ -21,7 +21,7 @@ var jsFiles = [
     'app/js/**/*.js'
 ];
 var sassFiles = 'app/css/**/*.scss';
-var glslFiles = 'app/glsl/**/*.(frag|vert|glsl)';
+var glslFiles = 'app/glsl/**/*.+(frag|vert|glsl)';
 var imageFiles = 'app/images/**/*.+(png|jpg|jpeg|gif|svg|ico|bmp)';
 var templateFiles = 'app/templates/**/*.html';
 var htmlFiles = [

@@ -13,7 +13,9 @@ function Camera(options) {
     this.far = 1;
 }
 
-Camera.prototype.updateViewMatrix = function() {
+var _ = Camera.prototype;
+
+_.updateViewMatrix = function() {
     this.rotation.toRotationMatrix(this.viewMatrix.m);
     this.viewMatrix.m[ 3] = this.position.x;
     this.viewMatrix.m[ 7] = this.position.y;
@@ -21,13 +23,13 @@ Camera.prototype.updateViewMatrix = function() {
     this.viewMatrix.inverse();
 };
 
-Camera.prototype.updateProjectionMatrix = function() {
-    var w = Math.tan(this.fovX / 2) * this.near;
-    var h = Math.tan(this.fovY / 2) * this.near;
+_.updateProjectionMatrix = function() {
+    var w = this.fovX * this.near;
+    var h = this.fovY * this.near;
     this.projectionMatrix.fromFrustum(-w, w, -h, h, this.near, this.far);
 };
 
-Camera.prototype.updateTransformation = function() {
+_.updateTransformation = function() {
     this.updateViewMatrix();
     this.updateProjectionMatrix();
 };
