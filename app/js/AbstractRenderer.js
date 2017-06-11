@@ -9,6 +9,11 @@ function AbstractRenderer() {
     this._programs = null;
     this._program = null;
 
+    this._frameBuffer = null;
+    this._accBufferRead = null;
+    this._accBufferWrite = null;
+    this._bufferSize = 512;
+
     this._mvpInverseMatrix = new Matrix();
 
     this._init();
@@ -34,6 +39,20 @@ _._init = function() {
         gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
         gl.bindTexture(gl.TEXTURE_3D, null);
+
+        // create framebuffers
+        var framebufferOptions = {
+            width:          this._bufferSize,
+            height:         this._bufferSize,
+            min:            gl.LINEAR,
+            mag:            gl.LINEAR,
+            format:         gl.RED,
+            type:           gl.FLOAT,
+            internalFormat: gl.R16F
+        };
+        this._frameBuffer = WebGLUtils.createSimpleRenderTarget(gl, framebufferOptions);
+        this._accBufferRead = WebGLUtils.createSimpleRenderTarget(gl, framebufferOptions);
+        this._accBufferWrite = WebGLUtils.createSimpleRenderTarget(gl, framebufferOptions);
 
         // create quad
         this._clipQuad = WebGLUtils.createClipQuad(gl);
