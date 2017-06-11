@@ -1,12 +1,18 @@
 (function(global) {
 
-global.VolumeRenderer = VolumeRenderer;
-function VolumeRenderer(canvas) {
-    this._raycaster = new VolumeRaycaster();
+global.RendererController = RendererController;
+function RendererController(renderer) {
+    this._renderer = renderer;
+    var canvas = this.getCanvas();
     this._camera = new Camera();
-    this._camera.position.z = -5;
+    this._camera.position.z = -2;
+    this._camera.fovX = canvas.width * 0.001;
+    this._camera.fovY = canvas.height * 0.001;
+
     this._volumeRotation = new Quaternion();
-    this._resizeHorizontally = true;
+
+    this.resizeScale = 0;
+    this.zoomSpeed = 0.01;
 
     this._sx = 1;
     this._sy = 1;
@@ -21,35 +27,40 @@ function VolumeRenderer(canvas) {
     this._handleMouseMove = this._handleMouseMove.bind(this);
     this._handleMouseWheel = this._handleMouseWheel.bind(this);
 
-    var canvas = this.getCanvas();
     canvas.addEventListener('mousedown', this._handleMouseDown);
     canvas.addEventListener('mouseup', this._handleMouseUp);
     canvas.addEventListener('mousemove', this._handleMouseMove);
     canvas.addEventListener('wheel', this._handleMouseWheel);
 }
 
-var _ = VolumeRenderer.prototype;
+var _ = RendererController.prototype;
 
-_.resize = function(width, height) {
-    this._raycaster.resize(width, height);
+_.resize = function(w, h) {
+    var canvas = this.getCanvas();
     var camera = this._camera;
-    if (this._resizeHorizontally) {
-        var scale = width / height;
-        camera.fovX = Math.atan(Math.tan(camera.fovY / 2) * scale) * 2;
-    } else {
-        var scale = height / width;
-        camera.fovY = Math.atan(Math.tan(camera.fovX / 2) * scale) * 2;
-    }
-    this.render();
+    var w0 = canvas.width;
+    var h0 = canvas.height;
+    var fxa = camera.fovX;
+    var fya = camera.fovY;
+    var fxb = fxa * (w / w0);
+    var fyb = fya * (h / h0);
+    var areaScale = (w / w0) * (h / h0);
+    var fxc = fxb / Math.sqrt(areaScale);
+    var fyc = fyb / Math.sqrt(areaScale);
+    camera.fovX = fxb + this.resizeScale * (fxc - fxb);
+    camera.fovY = fyb + this.resizeScale * (fyc - fyb);
+    this._renderer.resize(w, h);
 };
 
-_.zoom = function(amount) {
-    var k = 0.01;
-    var scale = Math.exp(amount * k);
+_.zoom = function(amount, shouldChangeFov) {
     var camera = this._camera;
-    camera.fovX = Math.atan(Math.tan(camera.fovX / 2) * scale) * 2;
-    camera.fovY = Math.atan(Math.tan(camera.fovY / 2) * scale) * 2;
-    this.render();
+    var scale = Math.exp(amount * this.zoomSpeed);
+    if (shouldChangeFov) {
+        camera.fovX *= scale;
+        camera.fovY *= scale;
+    } else {
+        camera.position.mul(new Vector(scale, scale, scale, 1));
+    }
 };
 
 _.render = function() {
@@ -69,8 +80,8 @@ _.render = function() {
         mvpInverseMatrix.multiply(mvpInverseMatrix, volumeTransformation);
 
         mvpInverseMatrix.inverse().transpose();
-        this._raycaster.setMvpInverseMatrix(mvpInverseMatrix);
-        this._raycaster.render();
+        this._renderer.setMvpInverseMatrix(mvpInverseMatrix);
+        this._renderer.render();
     };
 }();
 
@@ -78,18 +89,18 @@ _.setScale = function(sx, sy, sz) {
     this._sx = sx;
     this._sy = sy;
     this._sz = sz;
-    this.render();
 };
 
 _.setVolume = function(volume) {
-    this._raycaster.setVolume(volume);
+    this._renderer.setVolume(volume);
 };
 
 _.getCanvas = function() {
-    return this._raycaster.getCanvas();
+    return this._renderer.getCanvas();
 };
 
 _._handleMouseDown = function(e) {
+    e.preventDefault();
     if (e.button !== 0) {
         return;
     }
@@ -99,10 +110,12 @@ _._handleMouseDown = function(e) {
 };
 
 _._handleMouseUp = function(e) {
+    e.preventDefault();
     this._isMoving = false;
 };
 
 _._handleMouseMove = function(e) {
+    e.preventDefault();
     if (this._isMoving) {
         var x = e.clientX;
         var y = e.clientY;
@@ -117,8 +130,6 @@ _._handleMouseMove = function(e) {
         var rot = this._volumeRotation;
         rot.multiply(rot, qx);
         rot.multiply(rot, qy);
-
-        this.render();
     }
 
     this._lastX = x;
@@ -126,7 +137,7 @@ _._handleMouseMove = function(e) {
 };
 
 _._handleMouseWheel = function(e) {
-    this.zoom(e.deltaY);
+    this.zoom(e.deltaY, e.shiftKey);
 };
 
 })(this);

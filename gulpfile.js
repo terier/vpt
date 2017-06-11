@@ -1,25 +1,29 @@
 var gulp       = require('gulp');
 var sass       = require('gulp-sass');
-var run        = require('gulp-run');
 var concat     = require('gulp-concat');
 var shell      = require('gulp-shell');
 var imagemin   = require('gulp-imagemin');
 var htmlmin    = require('gulp-htmlmin');
 var cache      = require('gulp-cache');
 var uglify     = require('gulp-uglify');
+var cleanCSS   = require('gulp-clean-css');
 var sourcemaps = require('gulp-sourcemaps');
 var htmlToJs   = require('gulp-html-to-js');
 var del        = require('del');
+
+var debug = !!process.env.DEBUG;
 
 // --------------------------------------------------------
 
 var jsFiles = [
     'app/js/math/**/*.js',
     'app/js/dialogs/**/*.js',
+    'app/js/AbstractRenderer.js',
+    'app/js/MIPRenderer.js',
     'app/js/**/*.js'
 ];
 var sassFiles = 'app/css/**/*.scss';
-var glslFiles = 'app/glsl/**/*.(frag|vert|glsl)';
+var glslFiles = 'app/glsl/**/*.+(frag|vert|glsl)';
 var imageFiles = 'app/images/**/*.+(png|jpg|jpeg|gif|svg|ico|bmp)';
 var templateFiles = 'app/templates/**/*.html';
 var htmlFiles = [
@@ -28,10 +32,20 @@ var htmlFiles = [
 ];
 
 gulp.task('sass', function() {
-    return gulp.src(sassFiles)
-        .pipe(sass())
-        .pipe(concat('main.css'))
-        .pipe(gulp.dest('build/css'));
+    if (debug) {
+        return gulp.src(sassFiles)
+            .pipe(sass())
+            .pipe(concat('main.css'))
+            .pipe(gulp.dest('build/css'));
+    } else {
+        return gulp.src(sassFiles)
+            .pipe(sass())
+            .pipe(concat('main.css'))
+            .pipe(sourcemaps.init())
+            .pipe(cleanCSS())
+            .pipe(sourcemaps.write())
+            .pipe(gulp.dest('build/css'));
+    }
 });
 
 gulp.task('glsl', shell.task([
@@ -41,12 +55,18 @@ gulp.task('glsl', shell.task([
 ]));
 
 gulp.task('js', function() {
-    return gulp.src(jsFiles)
-        .pipe(concat('main.js'))
-        .pipe(sourcemaps.init())
-        .pipe(uglify())
-        .pipe(sourcemaps.write())
-        .pipe(gulp.dest('build/js'));
+    if (debug) {
+        return gulp.src(jsFiles)
+            .pipe(concat('main.js'))
+            .pipe(gulp.dest('build/js'));
+    } else {
+        return gulp.src(jsFiles)
+            .pipe(concat('main.js'))
+            .pipe(sourcemaps.init())
+            .pipe(uglify())
+            .pipe(sourcemaps.write())
+            .pipe(gulp.dest('build/js'));
+    }
 });
 
 gulp.task('images', function(){

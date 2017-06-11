@@ -56,6 +56,19 @@ _.sub = function(a, b) {
     return this;
 };
 
+_.mul = function(a, b) {
+    if (!b) {
+        b = this;
+    }
+
+    this.x = a.x * b.x;
+    this.y = a.y * b.y;
+    this.z = a.z * b.z;
+    this.w = a.w * b.w;
+
+    return this;
+};
+
 _.dot = function(v) {
     return this.x * v.x + this.y * v.y + this.z * v.z;
 };

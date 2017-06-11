@@ -1,4 +1,5 @@
-function noop() {}
+function noop() {
+}
 
 function downloadJSON(json, filename) {
     var str = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(json));
@@ -8,3 +9,11 @@ function downloadJSON(json, filename) {
     a.click();
     a = null;
 }
+
+function inherit(sub, sup) {
+    $.extend(sub.prototype, sup.prototype, {
+        sup: sup.prototype
+    });
+}
+
+var noimpl = new Error('Not implemented!');
