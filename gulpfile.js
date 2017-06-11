@@ -18,6 +18,8 @@ var debug = !!process.env.DEBUG;
 var jsFiles = [
     'app/js/math/**/*.js',
     'app/js/dialogs/**/*.js',
+    'app/js/AbstractRenderer.js',
+    'app/js/MIPRenderer.js',
     'app/js/**/*.js'
 ];
 var sassFiles = 'app/css/**/*.scss';

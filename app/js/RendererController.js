@@ -1,8 +1,8 @@
 (function(global) {
 
-global.VolumeRenderer = VolumeRenderer;
-function VolumeRenderer() {
-    this._raycaster = new VolumeRaycaster();
+global.RendererController = RendererController;
+function RendererController(renderer) {
+    this._renderer = renderer;
     var canvas = this.getCanvas();
     this._camera = new Camera();
     this._camera.position.z = -2;
@@ -33,7 +33,7 @@ function VolumeRenderer() {
     canvas.addEventListener('wheel', this._handleMouseWheel);
 }
 
-var _ = VolumeRenderer.prototype;
+var _ = RendererController.prototype;
 
 _.resize = function(w, h) {
     var canvas = this.getCanvas();
@@ -49,7 +49,7 @@ _.resize = function(w, h) {
     var fyc = fyb / Math.sqrt(areaScale);
     camera.fovX = fxb + this.resizeScale * (fxc - fxb);
     camera.fovY = fyb + this.resizeScale * (fyc - fyb);
-    this._raycaster.resize(w, h);
+    this._renderer.resize(w, h);
 };
 
 _.zoom = function(amount, shouldChangeFov) {
@@ -60,7 +60,6 @@ _.zoom = function(amount, shouldChangeFov) {
         camera.fovY *= scale;
     } else {
         camera.position.mul(new Vector(scale, scale, scale, 1));
-        console.log(camera.position);
     }
 };
 
@@ -81,8 +80,8 @@ _.render = function() {
         mvpInverseMatrix.multiply(mvpInverseMatrix, volumeTransformation);
 
         mvpInverseMatrix.inverse().transpose();
-        this._raycaster.setMvpInverseMatrix(mvpInverseMatrix);
-        this._raycaster.render();
+        this._renderer.setMvpInverseMatrix(mvpInverseMatrix);
+        this._renderer.render();
     };
 }();
 
@@ -93,11 +92,11 @@ _.setScale = function(sx, sy, sz) {
 };
 
 _.setVolume = function(volume) {
-    this._raycaster.setVolume(volume);
+    this._renderer.setVolume(volume);
 };
 
 _.getCanvas = function() {
-    return this._raycaster.getCanvas();
+    return this._renderer.getCanvas();
 };
 
 _._handleMouseDown = function(e) {

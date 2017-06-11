@@ -1,11 +1,12 @@
 (function(global) {
 
-global.VolumeRaycaster = VolumeRaycaster;
-function VolumeRaycaster() {
+global.AbstractRenderer = AbstractRenderer;
+function AbstractRenderer() {
     this._gl = null;
-    this._vbo = null;
+    this._clipQuad = null;
     this._volume = null;
     this._canvas = null;
+    this._programs = null;
     this._program = null;
 
     this._mvpInverseMatrix = new Matrix();
@@ -13,12 +14,12 @@ function VolumeRaycaster() {
     this._init();
 }
 
-var _ = VolumeRaycaster.prototype;
+var _ = AbstractRenderer.prototype;
 
 _._init = function() {
     try {
         this._canvas = document.createElement('canvas');
-        var gl = this._gl = WebGLUtils.getContext(this._canvas, ['webgl2', 'experimental-webgl2']);
+        var gl = this._gl = WebGLUtils.getContext(this._canvas, ['webgl2']);
 
         // create volume
         this._volume = gl.createTexture();
@@ -35,14 +36,62 @@ _._init = function() {
         gl.bindTexture(gl.TEXTURE_3D, null);
 
         // create quad
-        this._vbo = WebGLUtils.createClipQuad(gl);
+        this._clipQuad = WebGLUtils.createClipQuad(gl);
 
         // create shaders
-        this._program = WebGLUtils.compileShaders(gl, SHADERS, MIXINS).iso;
+        this._programs = WebGLUtils.compileShaders(gl, SHADERS, MIXINS);
+        this._program = this._programs.mip;
     } catch(e) {
         gl = null;
         console.error(e);
     }
+};
+
+_.reset = function() {
+    throw noimpl;
+};
+
+_.generateFrame = function() {
+    throw noimpl;
+};
+
+_.integrateFrame = function() {
+    throw noimpl;
+};
+
+_.render = function() {
+    var gl = this._gl;
+    if (!gl) {
+        return;
+    }
+
+    // use shader
+    var program = this._program;
+    gl.useProgram(program.program);
+
+    // set volume
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_3D, this._volume);
+
+    // set vbo
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._clipQuad);
+    var aPosition = program.attributes.aPosition;
+    gl.enableVertexAttribArray(aPosition);
+    gl.vertexAttribPointer(aPosition, 2, gl.FLOAT, false, 0, 0);
+
+    // set uniforms
+    gl.uniform1i(program.uniforms.uVolume, 0);
+    gl.uniform1f(program.uniforms.uSamplingStep, 0.01);
+    gl.uniform1f(program.uniforms.uIsovalue, 0.2);
+    gl.uniformMatrix4fv(program.uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
+
+    // render
+    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+
+    // clean up
+    gl.disableVertexAttribArray(aPosition);
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    gl.bindTexture(gl.TEXTURE_3D, null);
 };
 
 _.resize = function(width, height) {
@@ -73,41 +122,6 @@ _.setMvpInverseMatrix = function(matrix) {
 
 _.getCanvas = function() {
     return this._canvas;
-};
-
-_.render = function() {
-    var gl = this._gl;
-    if (!gl) {
-        return;
-    }
-
-    // use shader
-    var program = this._program;
-    gl.useProgram(program.program);
-
-    // set volume
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_3D, this._volume);
-
-    // set vbo
-    gl.bindBuffer(gl.ARRAY_BUFFER, this._vbo);
-    var aPosition = program.attributes.aPosition;
-    gl.enableVertexAttribArray(aPosition);
-    gl.vertexAttribPointer(aPosition, 2, gl.FLOAT, false, 0, 0);
-
-    // set uniforms
-    gl.uniform1i(program.uniforms.uVolume, 0);
-    gl.uniform1f(program.uniforms.uSamplingStep, 0.1);
-    gl.uniform1f(program.uniforms.uIsovalue, 0.2);
-    gl.uniformMatrix4fv(program.uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
-
-    // render
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-
-    // clean up
-    gl.disableVertexAttribArray(aPosition);
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
-    gl.bindTexture(gl.TEXTURE_3D, null);
 };
 
 })(this);
