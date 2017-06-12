@@ -28,8 +28,11 @@ function RendererController(renderer) {
     this._handleMouseWheel = this._handleMouseWheel.bind(this);
 
     canvas.addEventListener('mousedown', this._handleMouseDown);
+    canvas.addEventListener('touchstart', this._handleMouseDown);
     canvas.addEventListener('mouseup', this._handleMouseUp);
+    canvas.addEventListener('touchend', this._handleMouseUp);
     canvas.addEventListener('mousemove', this._handleMouseMove);
+    canvas.addEventListener('touchmove', this._handleMouseMove);
     canvas.addEventListener('wheel', this._handleMouseWheel);
 }
 
@@ -101,12 +104,9 @@ _.getCanvas = function() {
 
 _._handleMouseDown = function(e) {
     e.preventDefault();
-    if (e.button !== 0) {
-        return;
-    }
     this._isMoving = true;
-    this._lastX = e.clientX;
-    this._lastY = e.clientY;
+    this._lastX = e.clientX || e.touches[0].clientX;
+    this._lastY = e.clientY || e.touches[0].clientY;
 };
 
 _._handleMouseUp = function(e) {
@@ -117,8 +117,8 @@ _._handleMouseUp = function(e) {
 _._handleMouseMove = function(e) {
     e.preventDefault();
     if (this._isMoving) {
-        var x = e.clientX;
-        var y = e.clientY;
+        var x = e.clientX || e.touches[0].clientX;
+        var y = e.clientY || e.touches[0].clientY;
         var dx = x - this._lastX;
         var dy = y - this._lastY;
 
