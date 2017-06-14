@@ -71,18 +71,33 @@ gulp.task('images', function(){
 });
 
 gulp.task('html', function() {
-    return gulp.src(htmlFiles)
-        .pipe(htmlmin({ collapseWhitespace: true }))
-        .pipe(gulp.dest('build'));
+    if (debug) {
+        return gulp.src(htmlFiles)
+            .pipe(gulp.dest('build'));
+    } else {
+        return gulp.src(htmlFiles)
+            .pipe(htmlmin({ collapseWhitespace: true }))
+            .pipe(gulp.dest('build'));
+    }
 });
 
 gulp.task('templates', function() {
-    return gulp.src(templateFiles)
-        .pipe(htmlToJs({
-            concat: 'templates.js',
-            global: 'window.TEMPLATES'
-        }))
-        .pipe(gulp.dest('build/js'));
+    if (debug) {
+        return gulp.src(templateFiles)
+            .pipe(htmlToJs({
+                concat: 'templates.js',
+                global: 'window.TEMPLATES'
+            }))
+            .pipe(gulp.dest('build/js'));
+    } else {
+        return gulp.src(templateFiles)
+            .pipe(htmlmin({ collapseWhitespace: true }))
+            .pipe(htmlToJs({
+                concat: 'templates.js',
+                global: 'window.TEMPLATES'
+            }))
+            .pipe(gulp.dest('build/js'));
+    }
 });
 
 // --------------------------------------------------------
