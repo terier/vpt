@@ -3,7 +3,7 @@
 global.RendererController = RendererController;
 function RendererController(renderer) {
     this._renderer = renderer;
-    var canvas = this.getCanvas();
+    var canvas = renderer.getCanvas();
     this._camera = new Camera();
     this._camera.position.z = -2;
     this._camera.fovX = canvas.width * 0.001;
@@ -39,7 +39,7 @@ function RendererController(renderer) {
 var _ = RendererController.prototype;
 
 _.resize = function(w, h) {
-    var canvas = this.getCanvas();
+    var canvas = this._renderer.getCanvas();
     var camera = this._camera;
     var w0 = canvas.width;
     var h0 = canvas.height;
@@ -96,10 +96,6 @@ _.setScale = function(sx, sy, sz) {
 
 _.setVolume = function(volume) {
     this._renderer.setVolume(volume);
-};
-
-_.getCanvas = function() {
-    return this._renderer.getCanvas();
 };
 
 _._handleMouseDown = function(e) {
