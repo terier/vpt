@@ -16,6 +16,7 @@ function downloadJSON(json, filename) {
 function inherit(sub, sup) {
     sub.prototype = Object.create(sup.prototype);
     sub.prototype.constructor = sub;
+    sub.prototype.sup = sup.prototype;
 }
 
 var noimpl = new Error('Not implemented!');

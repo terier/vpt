@@ -1,21 +1,20 @@
 $(function() {
 'use strict';
 
-var renderer = new AbstractRenderer();
-var controller = new RendererController(renderer);
-var $canvas = $(renderer.getCanvas());
+var context = new RenderingContext();
+var $canvas = $(context.getCanvas());
 $canvas.addClass('renderer');
 $(document.body).append($canvas);
 
 $(window).resize(function() {
     var w = window.innerWidth;
     var h = window.innerHeight;
-    controller.resize(w, h);
+    context.resize(w, h);
 });
 $(window).resize();
 
 (function render() {
-    controller.render();
+    context.render();
     requestAnimationFrame(render);
 })();
 
@@ -24,7 +23,7 @@ $('#open-file').click(function() {
         var size = OpenFileDialog.size;
         var bits = OpenFileDialog.bits;
         var volume = new Volume(e.target.result, size.x, size.y, size.z, bits);
-        controller.setVolume(volume);
+        context.setVolume(volume);
     }
     OpenFileDialog.dialog('show');
 });

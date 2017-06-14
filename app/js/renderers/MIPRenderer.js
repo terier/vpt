@@ -2,11 +2,22 @@ var MIPRenderer = (function() {
 'use strict';
 
 Util.inherit(MIPRenderer, AbstractRenderer);
-function MIPRenderer() {
+function MIPRenderer(gl, volumeTexture) {
+    this.sup.constructor.call(this, gl, volumeTexture);
+
+    this._programs = WebGLUtils.compileShaders(gl, {
+        mip: SHADERS.mip
+    }, MIXINS);
     this._program = this._programs.mip;
 }
 
 var _ = MIPRenderer.prototype;
+
+_.destroy = function() {
+    this.sup.destroy.call(this);
+    var gl = this._gl;
+    gl.deleteProgram(this._program);
+};
 
 _.reset = function() {
 };
@@ -19,9 +30,6 @@ _.integrateFrame = function() {
 
 _.render = function() {
     var gl = this._gl;
-    if (!gl) {
-        return;
-    }
 
     // use shader
     var program = this._program;
