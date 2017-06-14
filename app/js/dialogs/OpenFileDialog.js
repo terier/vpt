@@ -2,11 +2,11 @@ var OpenFileDialog = (function() {
 'use strict';
 
 var $html       = $(TEMPLATES["OpenFileDialog.html"]);
-var $input      = $html.find('#open-file-dialog-file')[0];
-var $size       = $html.find('input[name="open-file-dialog-size"]');
-var $bits       = $html.find('input[name="open-file-dialog-bits"]');
-var $open       = $html.find('#open-file-dialog-open');
-var $close      = $html.find('#open-file-dialog-close');
+var $input      = $html.find('[name="open-file-dialog-file"]')[0];
+var $size       = $html.find('[name="open-file-dialog-size"]');
+var $bits       = $html.find('[name="open-file-dialog-bits"]');
+var $open       = $html.find('[name="open-file-dialog-open"]');
+var $close      = $html.find('[name="open-file-dialog-close"]');
 
 function parse() {
     OpenFileDialog.file = $input.files[0];
