@@ -9,6 +9,7 @@ var uglify     = require('gulp-uglify');
 var cleanCSS   = require('gulp-clean-css');
 var sourcemaps = require('gulp-sourcemaps');
 var htmlToJs   = require('gulp-html-to-js');
+var sequence   = require('gulp-sequence');
 var del        = require('del');
 
 var debug = !!process.env.DEBUG;
@@ -95,12 +96,10 @@ gulp.task('watch', function() {
     gulp.watch(templateFiles, ['templates']);
 });
 
-gulp.task('build', function() {
-    gulp.start('sass', 'js', 'glsl', 'images', 'html', 'templates');
-});
+gulp.task('build', sequence(['sass', 'js', 'glsl', 'images', 'html', 'templates']));
 
 gulp.task('clean', function() {
     return del('build');
 });
 
-gulp.task('default', ['watch']);
+gulp.task('default', sequence('build', 'watch'));
