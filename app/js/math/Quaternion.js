@@ -1,6 +1,6 @@
-(function(global) {
+var Quaternion = (function() {
+'use strict';
 
-global.Quaternion = Quaternion;
 function Quaternion(x, y, z, w) {
     this.x = x || 0;
     this.y = y || 0;
@@ -111,4 +111,6 @@ _.toRotationMatrix = function(m) {
     m[15] = 1;
 };
 
-})(this);
+return Quaternion;
+
+})();

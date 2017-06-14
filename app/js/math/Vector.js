@@ -1,6 +1,6 @@
-(function(global) {
+var Vector = (function() {
+'use strict';
 
-global.Vector = Vector;
 function Vector(x, y, z, w) {
     this.x = x || 0;
     this.y = y || 0;
@@ -85,4 +85,6 @@ _.cross = function(a, b) {
     return this;
 };
 
-})(this);
+return Vector;
+
+})();

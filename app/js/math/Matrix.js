@@ -1,6 +1,6 @@
-(function(global) {
+var Matrix = (function() {
+'use strict';
 
-global.Matrix = Matrix;
 function Matrix(data) {
     this.m = new Float32Array(16);
     if (data) {
@@ -248,4 +248,6 @@ _.fromAxisAngle = function(x, y, z, w) {
     return this;
 };
 
-})(this);
+return Matrix;
+
+})();

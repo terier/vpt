@@ -1,6 +1,6 @@
-(function(global) {
+var RendererController = (function() {
+'use strict';
 
-global.RendererController = RendererController;
 function RendererController(renderer) {
     this._renderer = renderer;
     var canvas = renderer.getCanvas();
@@ -10,6 +10,11 @@ function RendererController(renderer) {
     this._camera.fovY = canvas.height * 0.001;
 
     this._volumeRotation = new Quaternion();
+
+    this._mvpInverseMatrix = new Matrix();
+    this._volumeTransformation = new Matrix();
+    this._volumeTranslation = new Matrix().fromTranslation(-0.5, -0.5, -0.5);
+    this._volumeScale = new Matrix().fromScale(1, 1, 1);
 
     this.resizeScale = 0;
     this.zoomSpeed = 0.01;
@@ -67,26 +72,19 @@ _.zoom = function(amount, shouldChangeFov) {
 };
 
 _.render = function() {
-    var mvpInverseMatrix = new Matrix();
-    var volumeTransformation = new Matrix();
-    var volumeTranslation = new Matrix().fromTranslation(-0.5, -0.5, -0.5);
-    var volumeScale = new Matrix().fromScale(1, 1, 1);
+    this._camera.updateTransformation();
+    this._volumeRotation.toRotationMatrix(this._volumeTransformation.m);
+    this._volumeScale.fromScale(this._sx, this._sy, this._sz);
+    this._volumeTransformation.multiply(this._volumeTransformation, this._volumeScale);
+    this._volumeTransformation.multiply(this._volumeTransformation, this._volumeTranslation);
 
-    return function() {
-        this._camera.updateTransformation();
-        this._volumeRotation.toRotationMatrix(volumeTransformation.m);
-        volumeScale.fromScale(this._sx, this._sy, this._sz);
-        volumeTransformation.multiply(volumeTransformation, volumeScale);
-        volumeTransformation.multiply(volumeTransformation, volumeTranslation);
+    this._mvpInverseMatrix.multiply(this._camera.projectionMatrix, this._camera.viewMatrix);
+    this._mvpInverseMatrix.multiply(this._mvpInverseMatrix, this._volumeTransformation);
 
-        mvpInverseMatrix.multiply(this._camera.projectionMatrix, this._camera.viewMatrix);
-        mvpInverseMatrix.multiply(mvpInverseMatrix, volumeTransformation);
-
-        mvpInverseMatrix.inverse().transpose();
-        this._renderer.setMvpInverseMatrix(mvpInverseMatrix);
-        this._renderer.render();
-    };
-}();
+    this._mvpInverseMatrix.inverse().transpose();
+    this._renderer.setMvpInverseMatrix(this._mvpInverseMatrix);
+    this._renderer.render();
+};
 
 _.setScale = function(sx, sy, sz) {
     this._sx = sx;
@@ -136,4 +134,6 @@ _._handleMouseWheel = function(e) {
     this.zoom(e.deltaY, e.shiftKey);
 };
 
-})(this);
+return RendererController;
+
+})();

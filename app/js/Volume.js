@@ -1,3 +1,6 @@
+var Volume = (function() {
+'use strict';
+
 function Volume(data, width, height, depth, bitdepth) {
     if (bitdepth === 8) {
         this.data = new Float32Array(new Uint8Array(data)).map(function(x) { return x / (1 << 8); });
@@ -9,3 +12,7 @@ function Volume(data, width, height, depth, bitdepth) {
     this.depth = depth;
     this.bitdepth = bitdepth;
 }
+
+return Volume;
+
+})();

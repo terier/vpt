@@ -1,6 +1,6 @@
-(function(global) {
+var AbstractRenderer = (function() {
+'use strict';
 
-global.AbstractRenderer = AbstractRenderer;
 function AbstractRenderer() {
     this._gl = null;
     this._clipQuad = null;
@@ -143,4 +143,6 @@ _.getCanvas = function() {
     return this._canvas;
 };
 
-})(this);
+return AbstractRenderer;
+
+})();

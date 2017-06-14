@@ -1,6 +1,6 @@
-(function(global) {
+var Camera = (function() {
+'use strict';
 
-global.Camera = Camera;
 function Camera(options) {
     this.position = new Vector();
     this.rotation = new Quaternion();
@@ -34,4 +34,6 @@ _.updateTransformation = function() {
     this.updateProjectionMatrix();
 };
 
-})(this);
+return Camera;
+
+})();

@@ -1,4 +1,5 @@
-(function(global) {
+var OpenFileDialog = (function() {
+'use strict';
 
 var $html       = $(TEMPLATES["OpenFileDialog.html"]);
 var $input      = $html.find('#open-file-dialog-file')[0];
@@ -32,13 +33,11 @@ $(function() {
     });
 });
 
-var OpenFileDialog = {
+return {
     dialog:     $html.modal.bind($html),
-    onload:     noop,
-    onerror:    noop,
-    oncancel:   noop
+    onload:     Util.noop,
+    onerror:    Util.noop,
+    oncancel:   Util.noop
 };
 
-global.OpenFileDialog = OpenFileDialog;
-
-})(this);
+})();

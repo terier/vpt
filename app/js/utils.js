@@ -1,3 +1,6 @@
+var Util = (function() {
+'use strict';
+
 function noop() {
 }
 
@@ -12,6 +15,16 @@ function downloadJSON(json, filename) {
 
 function inherit(sub, sup) {
     sub.prototype = Object.create(sup.prototype);
+    sub.prototype.constructor = sub;
 }
 
 var noimpl = new Error('Not implemented!');
+
+return {
+    noop: noop,
+    downloadJSON: downloadJSON,
+    inherit: inherit,
+    noimpl: noimpl
+};
+
+})();

@@ -1,7 +1,7 @@
-(function(global) {
+var MIPRenderer = (function() {
+'use strict';
 
-global.MIPRenderer = MIPRenderer;
-inherit(MIPRenderer, AbstractRenderer);
+Util.inherit(MIPRenderer, AbstractRenderer);
 function MIPRenderer() {
     this._program = this._programs.mip;
 }
@@ -52,5 +52,6 @@ _.render = function() {
     gl.bindTexture(gl.TEXTURE_3D, null);
 };
 
+return MIPRenderer;
 
-})(this);
+})();

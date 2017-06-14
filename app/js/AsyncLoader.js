@@ -1,12 +1,11 @@
-(function(global) {
-
-var AsyncLoader = global.AsyncLoader = {};
+var AsyncLoader = (function() {
+'use strict';
 
 var cache = {};
 
 // Load a number of files, then callback.
 // [url->{responseType,bypassCache}] --> [url->{responseType,data,cached}]
-AsyncLoader.loadFiles = function(files, callbackComplete, callbackError) {
+function loadFiles(files, callbackComplete, callbackError) {
     var returnFiles = {};
     var filenames = (files instanceof Array) ? files : Object.keys(files);
     var numberOfFilesRemaining = filenames.length;
@@ -61,7 +60,7 @@ AsyncLoader.loadFiles = function(files, callbackComplete, callbackError) {
     });
 };
 
-AsyncLoader.extractUrlBase = function(url) {
+function extractUrlBase(url) {
     var parts = url.split('/');
     if (parts.length === 1) {
         return './';
@@ -71,13 +70,20 @@ AsyncLoader.extractUrlBase = function(url) {
     }
 };
 
-AsyncLoader.extractFilename = function(url) {
+function extractFilename(url) {
     var parts = url.split('/');
     return parts.pop();
 };
 
-AsyncLoader.extractFilenameExtension = function(url) {
+function extractFilenameExtension(url) {
     return AsyncLoader.extractFilename(url).split('.').pop();
 };
 
-})(this);
+return {
+    loadFiles: loadFiles,
+    extractUrlBase: extractUrlBase,
+    extractFilename: extractFilename,
+    extractFilenameExtension: extractFilenameExtension
+};
+
+})();

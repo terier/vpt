@@ -1,4 +1,5 @@
-(function(global) {
+var WebGLUtils = (function() {
+'use strict';
 
 /*
  * Receives a canvas and a list of context keys, then tries them
@@ -256,7 +257,7 @@ function createClipQuad(gl) {
     return buffer;
 }
 
-var WebGLUtils = global.WebGLUtils = {
+return {
     getContext: getContext,
     createShader: createShader,
     createProgram: createProgram,
@@ -267,4 +268,4 @@ var WebGLUtils = global.WebGLUtils = {
     createClipQuad: createClipQuad
 };
 
-})(this);
+})();

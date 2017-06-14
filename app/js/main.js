@@ -1,4 +1,5 @@
 $(function() {
+'use strict';
 
 var renderer = new AbstractRenderer();
 var controller = new RendererController(renderer);
