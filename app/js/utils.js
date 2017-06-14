@@ -11,9 +11,7 @@ function downloadJSON(json, filename) {
 }
 
 function inherit(sub, sup) {
-    $.extend(sub.prototype, sup.prototype, {
-        sup: sup.prototype
-    });
+    sub.prototype = Object.create(sup.prototype);
 }
 
 var noimpl = new Error('Not implemented!');
