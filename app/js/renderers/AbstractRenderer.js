@@ -5,7 +5,7 @@ function AbstractRenderer(gl, volumeTexture) {
     this._gl = gl;
     this._volumeTexture = volumeTexture;
 
-    this._bufferSize = 256;
+    this._bufferSize = 1024;
     var bufferOptions = {
         width:          this._bufferSize,
         height:         this._bufferSize,
@@ -46,6 +46,12 @@ _.render = function() {
     this._accBuffer.swap();
 };
 
+_.reset = function() {
+    this._accBuffer.use();
+    this._resetFrame();
+    this._accBuffer.swap();
+};
+
 _.getTexture = function() {
     return this._accBuffer.getTexture();
 };
@@ -54,7 +60,7 @@ _.setMvpInverseMatrix = function(matrix) {
     this._mvpInverseMatrix.copy(matrix);
 };
 
-_.reset = function() {
+_._resetFrame = function() {
     throw Util.noimpl;
 };
 

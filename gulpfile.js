@@ -45,8 +45,8 @@ gulp.task('sass', function() {
 
 gulp.task('glsl', shell.task([
     'mkdir -p build/js',
-    'bin/concader -x -n MIXINS app/glsl/*.glsl > build/js/mixins.js',
-    'bin/concader -n SHADERS app/glsl/*.frag app/glsl/*.vert > build/js/shaders.js',
+    'bin/concader -x -n MIXINS $(find app/glsl/ -type f -name \'*.glsl\') > build/js/mixins.js',
+    'bin/concader -n SHADERS $(find app/glsl/ -type f -name \'*.frag\' -o -name \'*.vert\') > build/js/shaders.js',
 ]));
 
 gulp.task('js', function() {

@@ -25,4 +25,8 @@ $('#open-file').click(function() {
     OpenFileDialog.dialog('show');
 });
 
+$('#reset-renderer').click(function() {
+    context._renderer.reset();
+});
+
 });
