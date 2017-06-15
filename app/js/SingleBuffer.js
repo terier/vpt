@@ -17,6 +17,7 @@ _.destroy = function() {
 _.use = function() {
     var gl = this._gl;
     gl.bindFramebuffer(gl.FRAMEBUFFER, this._target.framebuffer);
+    gl.viewport(0, 0, this._target.width, this._target.height);
 };
 
 _.getTexture = function() {

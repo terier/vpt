@@ -22,13 +22,7 @@ _.destroy = function() {
 _.reset = function() {
 };
 
-_.generateFrame = function() {
-};
-
-_.integrateFrame = function() {
-};
-
-_.render = function() {
+_._generateFrame = function() {
     var gl = this._gl;
 
     // use shader
@@ -37,10 +31,10 @@ _.render = function() {
 
     // set volume
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_3D, this._volume);
+    gl.bindTexture(gl.TEXTURE_3D, this._volumeTexture);
 
     // set vbo
-    gl.bindBuffer(gl.ARRAY_BUFFER, this._vbo);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._clipQuad);
     var aPosition = program.attributes.aPosition;
     gl.enableVertexAttribArray(aPosition);
     gl.vertexAttribPointer(aPosition, 2, gl.FLOAT, false, 0, 0);
@@ -58,6 +52,35 @@ _.render = function() {
     gl.disableVertexAttribArray(aPosition);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.bindTexture(gl.TEXTURE_3D, null);
+};
+
+_._integrateFrame = function() {
+    var gl = this._gl;
+
+    // use shader
+    var program = this._clipQuadProgram;
+    gl.useProgram(program.program);
+
+    // set texture
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, this._frameBuffer.getTexture());
+
+    // set vbo
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._clipQuad);
+    var aPosition = program.attributes.aPosition;
+    gl.enableVertexAttribArray(aPosition);
+    gl.vertexAttribPointer(aPosition, 2, gl.FLOAT, false, 0, 0);
+
+    // set uniforms
+    gl.uniform1i(program.uniforms.uTexture, 0);
+
+    // render
+    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+
+    // clean up
+    gl.disableVertexAttribArray(aPosition);
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    gl.bindTexture(gl.TEXTURE_2D, null);
 };
 
 return MIPRenderer;

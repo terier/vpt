@@ -20,12 +20,17 @@ _.destroy = function() {
 _.use = function() {
     var gl = this._gl;
     gl.bindFramebuffer(gl.FRAMEBUFFER, this._writeTarget.framebuffer);
+    gl.viewport(0, 0, this._writeTarget.width, this._writeTarget.height);
 };
 
 _.swap = function() {
 	var tmp = this._readTarget;
 	this._readTarget = this._writeTarget;
 	this._writeTarget = tmp;
+};
+
+_.getTexture = function() {
+    return this._readTarget.texture;
 };
 
 _.getReadTexture = function() {

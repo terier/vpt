@@ -6,55 +6,64 @@ function AbstractRenderer(gl, volumeTexture) {
     this._volumeTexture = volumeTexture;
 
     this._bufferSize = 256;
-    var framebufferOptions = {
+    var bufferOptions = {
         width:          this._bufferSize,
         height:         this._bufferSize,
         min:            gl.LINEAR,
         mag:            gl.LINEAR,
-        format:         gl.RED,
-        type:           gl.FLOAT,
-        internalFormat: gl.R16F
+        format:         gl.RGBA,
+        internalFormat: gl.RGBA,
+        type:           gl.UNSIGNED_BYTE
     };
-    this._frameBuffer = WebGLUtils.createSimpleRenderTarget(gl, framebufferOptions);
-    this._accBufferRead = WebGLUtils.createSimpleRenderTarget(gl, framebufferOptions);
-    this._accBufferWrite = WebGLUtils.createSimpleRenderTarget(gl, framebufferOptions);
+    this._frameBuffer = new SingleBuffer(gl, bufferOptions);
+    this._accBuffer = new DoubleBuffer(gl, bufferOptions);
 
     this._mvpInverseMatrix = new Matrix();
 
     this._clipQuad = WebGLUtils.createClipQuad(gl);
+    this._clipQuadProgram = WebGLUtils.compileShaders(gl, {
+        quad: SHADERS.quad
+    }).quad;
 }
 
 var _ = AbstractRenderer.prototype;
 
 _.destroy = function() {
     var gl = this._gl;
-    gl.deleteTexture(this._frameBuffer.texture);
-    gl.deleteFramebuffer(this._frameBuffer.framebuffer);
-    gl.deleteTexture(this._accBufferRead.texture);
-    gl.deleteFramebuffer(this._accBufferRead.framebuffer);
-    gl.deleteTexture(this._accBufferWrite.texture);
-    gl.deleteFramebuffer(this._accBufferWrite.framebuffer);
+    this._frameBuffer.destroy();
+    this._accBuffer.destroy();
     gl.deleteBuffer(this._clipQuad);
-};
-
-_.reset = function() {
-    throw noimpl;
-};
-
-_.generateFrame = function() {
-    throw noimpl;
-};
-
-_.integrateFrame = function() {
-    throw noimpl;
+    gl.deleteProgram(this._clipQuadProgram);
 };
 
 _.render = function() {
-    throw noimpl;
+    this._frameBuffer.use();
+    this._generateFrame();
+
+    this._accBuffer.use();
+    this._integrateFrame();
+
+    this._accBuffer.swap();
+};
+
+_.getTexture = function() {
+    return this._accBuffer.getTexture();
 };
 
 _.setMvpInverseMatrix = function(matrix) {
     this._mvpInverseMatrix.copy(matrix);
+};
+
+_.reset = function() {
+    throw Util.noimpl;
+};
+
+_._generateFrame = function() {
+    throw Util.noimpl;
+};
+
+_._integrateFrame = function() {
+    throw Util.noimpl;
 };
 
 return AbstractRenderer;

@@ -13,10 +13,7 @@ $(window).resize(function() {
 });
 $(window).resize();
 
-(function render() {
-    context.render();
-    requestAnimationFrame(render);
-})();
+context.startRendering();
 
 $('#open-file').click(function() {
     OpenFileDialog.onload = function(e) {
