@@ -2,16 +2,28 @@ var Camera = (function() {
 'use strict';
 
 function Camera(options) {
+    this._opts = $.extend({}, this.constructor.defaults, options);
+
     this.position = new Vector();
     this.rotation = new Quaternion();
     this.viewMatrix = new Matrix();
     this.projectionMatrix = new Matrix();
+    this.transformationMatrix = new Matrix();
 
-    this.fovX = 1;
-    this.fovY = 1;
-    this.near = 0.1;
-    this.far = 1;
+    this.fovX = this._opts.fovX;
+    this.fovY = this._opts.fovY;
+    this.near = this._opts.near;
+    this.far = this._opts.far;
+    this.zoomFactor = this._opts.zoomFactor;
 }
+
+Camera.defaults = {
+    fovX: 1,
+    fovY: 1,
+    near: 1,
+    far: 10,
+    zoomFactor: 0.001
+};
 
 var _ = Camera.prototype;
 
@@ -29,9 +41,22 @@ _.updateProjectionMatrix = function() {
     this.projectionMatrix.fromFrustum(-w, w, -h, h, this.near, this.far);
 };
 
-_.updateTransformation = function() {
+_.updateMatrices = function() {
     this.updateViewMatrix();
     this.updateProjectionMatrix();
+    this.transformationMatrix.multiply(this.projectionMatrix, this.viewMatrix);
+};
+
+_.resize = function(width, height) {
+    this.fovX = width * this.zoom;
+    this.fovY = height * this.zoom;
+};
+
+_.zoom = function(amount) {
+    var scale = Math.exp(-amount);
+    this.zoomFactor *= scale;
+    this.fovX *= scale;
+    this.fovY *= scale;
 };
 
 return Camera;
