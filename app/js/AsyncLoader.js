@@ -76,7 +76,7 @@ function extractFilename(url) {
 };
 
 function extractFilenameExtension(url) {
-    return AsyncLoader.extractFilename(url).split('.').pop();
+    return extractFilename(url).split('.').pop();
 };
 
 return {
