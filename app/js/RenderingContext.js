@@ -53,7 +53,7 @@ _._init = function() {
     this._camera.fovX = 0.3;
     this._camera.fovY = 0.3;
 
-    this._camera.updateTransformation();
+    this._camera.updateMatrices();
     var tr = new Matrix();
     tr.multiply(this._camera.projectionMatrix, this._camera.viewMatrix).inverse().transpose();
     this._renderer.setMvpInverseMatrix(tr);

@@ -72,7 +72,7 @@ _.zoom = function(amount, shouldChangeFov) {
 };
 
 _.render = function() {
-    this._camera.updateTransformation();
+    this._camera.updateMatrices();
     this._volumeRotation.toRotationMatrix(this._volumeTransformation.m);
     this._volumeScale.fromScale(this._sx, this._sy, this._sz);
     this._volumeTransformation.multiply(this._volumeTransformation, this._volumeScale);
