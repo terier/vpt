@@ -5,7 +5,7 @@ function AbstractRenderer(gl, volumeTexture) {
     this._gl = gl;
     this._volumeTexture = volumeTexture;
 
-    this._bufferSize = 1024;
+    this._bufferSize = 512;
     var bufferOptions = {
         width:          this._bufferSize,
         height:         this._bufferSize,

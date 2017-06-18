@@ -10,6 +10,9 @@ function MIPRenderer(gl, volumeTexture) {
         mipIntegrate: SHADERS.mipIntegrate,
         mipReset: SHADERS.mipReset
     }, MIXINS);
+
+    this._randomT = -2;
+    this._randomS = 2;
 }
 
 var _ = MIPRenderer.prototype;
@@ -22,6 +25,9 @@ _.destroy = function() {
 
 _._resetFrame = function() {
     var gl = this._gl;
+
+    this._randomT = -2;
+    this._randomS = 2;
 
     // use shader
     var program = this._programs.mipReset;
@@ -60,7 +66,7 @@ _._generateFrame = function() {
 
     // set uniforms
     gl.uniform1i(program.uniforms.uVolume, 0);
-    gl.uniform1f(program.uniforms.uDistance, Math.random());
+    gl.uniform1f(program.uniforms.uDistance, this._nextRandom());
     //gl.uniform1f(program.uniforms.uSamplingStep, 0.01);
     gl.uniformMatrix4fv(program.uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
 
@@ -103,6 +109,15 @@ _._integrateFrame = function() {
     gl.disableVertexAttribArray(aPosition);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.bindTexture(gl.TEXTURE_2D, null);
+};
+
+_._nextRandom = function() {
+    this._randomT += this._randomS;
+    if (this._randomT > 1.0) {
+        this._randomT -= 1.0 + this._randomS / 4;
+        this._randomS /= 2;
+    }
+    return this._randomT;
 };
 
 return MIPRenderer;

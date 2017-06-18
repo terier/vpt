@@ -47,9 +47,11 @@ _._init = function() {
     this._camera = new Camera();
     this._renderer = new MIPRenderer(gl, this._volumeTexture);
 
-    this._camera.position.z = -3;
-    this._camera.position.y = 2;
-    this._camera.position.x = 2;
+    this._camera.position.z = -1.5;
+    this._camera.position.y = 0.5;
+    this._camera.position.x = 0.5;
+    this._camera.fovX = 0.3;
+    this._camera.fovY = 0.3;
 
     this._camera.updateTransformation();
     var tr = new Matrix();
