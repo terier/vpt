@@ -1,43 +1,57 @@
 var OpenFileDialog = (function() {
 'use strict';
 
-var $html       = $(TEMPLATES["OpenFileDialog.html"]);
-var $input      = $html.find('[name="open-file-dialog-file"]')[0];
-var $size       = $html.find('[name="open-file-dialog-size"]');
-var $bits       = $html.find('[name="open-file-dialog-bits"]');
-var $open       = $html.find('[name="open-file-dialog-open"]');
-var $close      = $html.find('[name="open-file-dialog-close"]');
+function OpenFileDialog(options) {
+    this._opts = $.extend({}, this.constructor.defaults, options);
 
-function parse() {
-    OpenFileDialog.file = $input.files[0];
-    OpenFileDialog.size = {
-        x: parseInt($size.filter('[data-axis="x"]').val()),
-        y: parseInt($size.filter('[data-axis="y"]').val()),
-        z: parseInt($size.filter('[data-axis="z"]').val())
-    };
-    OpenFileDialog.bits = parseInt($bits.filter(':checked').val());
+    this._$html  = $(TEMPLATES["OpenFileDialog.html"]);
+    this._$input = this._$html.find('[name="file"]')[0];
+    this._$size  = this._$html.find('[name="size"]');
+    this._$bits  = this._$html.find('[name="bits"]');
+    this._$open  = this._$html.find('[name="open"]');
+    this._$close = this._$html.find('[name="close"]');
+
+    this._onLoad = this._opts.onLoad;
+    this._onError = this._opts.onError;
+
+    this._init();
 }
 
-$(function() {
-    $html.modal({
+OpenFileDialog.defaults = {
+};
+
+var _ = OpenFileDialog.prototype;
+
+_._init = function() {
+    this._$html.modal({
         show: false
     });
-    $open.click(function() {
-        if ($input.files.length > 0) {
-            parse();
+    this._$open.click(function() {
+        if (this._$input.files.length > 0) {
+            var file = this._$input.files[0];
+            var size = {
+                x: parseInt(this._$size.filter('[data-axis="x"]').val()),
+                y: parseInt(this._$size.filter('[data-axis="y"]').val()),
+                z: parseInt(this._$size.filter('[data-axis="z"]').val())
+            };
+            var bits = parseInt(this._$bits.filter(':checked').val());
             var reader = new FileReader();
-            reader.onload = OpenFileDialog.onload;
-            reader.onerror = OpenFileDialog.onerror;
-            reader.readAsArrayBuffer(OpenFileDialog.file);
+            reader.onload = function(e) {
+                this._onLoad(e.target.result, size, bits);
+            }.bind(this);
+            reader.onerror = this._onError;
+            reader.readAsArrayBuffer(file);
         }
-    });
-});
-
-return {
-    dialog:     $html.modal.bind($html),
-    onload:     Util.noop,
-    onerror:    Util.noop,
-    oncancel:   Util.noop
+    }.bind(this));
 };
+
+_.destroy = function() {
+};
+
+_.show = function() {
+    this._$html.modal('show');
+};
+
+return OpenFileDialog;
 
 })();

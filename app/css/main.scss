@@ -1,22 +1,3 @@
-.navbar-brand {
-    padding: 8px;
-}
-
-.navbar-brand > img {
-    height: 34px;
-    width: 34px;
-}
-
-nav {
-    opacity: 0.5;
-    transition: opacity 200ms;
-    box-shadow: 0 10px 10px 0px rgba(0, 0, 0, 0.3);
-}
-
-nav:hover {
-    opacity: 1;
-}
-
 .renderer {
     position: fixed;
     left: 0;
