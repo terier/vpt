@@ -7,6 +7,8 @@
     "test": "tests"
   },
   "scripts": {
+    "build": "gulp build",
+    "postinstall": "gulp build",
     "start": "node app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -32,6 +34,18 @@
     "gulp-uglify": "^3.0.0"
   },
   "dependencies": {
-    "express": "^4.15.3"
+    "del": "^2.2.2",
+    "express": "^4.15.3",
+    "gulp": "^3.9.1",
+    "gulp-cache": "^0.4.6",
+    "gulp-clean-css": "^3.4.1",
+    "gulp-concat": "^2.6.1",
+    "gulp-html-to-js": "0.0.5",
+    "gulp-htmlmin": "^3.0.0",
+    "gulp-imagemin": "^3.2.0",
+    "gulp-sass": "^3.1.0",
+    "gulp-sequence": "^0.4.6",
+    "gulp-shell": "^0.6.3",
+    "gulp-uglify": "^3.0.0"
   }
 }
