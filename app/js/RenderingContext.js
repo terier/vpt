@@ -56,7 +56,7 @@ _._init = function() {
 
     this._camera.updateMatrices();
     var tr = new Matrix();
-    tr.multiply(this._camera.projectionMatrix, this._camera.viewMatrix).inverse().transpose();
+    tr.copy(this._camera.transformationMatrix).inverse().transpose();
     this._renderer.setMvpInverseMatrix(tr);
 
     this._program = WebGLUtils.compileShaders(gl, {
@@ -92,10 +92,11 @@ _.destroy = function() {
     this._program = null;
 };
 
-_.resize = function(w, h) {
+_.resize = function(width, height) {
     var gl = this._gl;
-    this._canvas.width = w;
-    this._canvas.height = h;
+    this._canvas.width = width;
+    this._canvas.height = height;
+    this._camera.resize(width, height);
 };
 
 _.setVolume = function(volume) {

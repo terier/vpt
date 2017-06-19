@@ -19,9 +19,9 @@ _._init = function() {
     $(document.body).append(this._$canvas);
 
     $(window).resize(function() {
-        var w = window.innerWidth;
-        var h = window.innerHeight;
-        this._renderingContext.resize(w, h);
+        var width = window.innerWidth;
+        var height = window.innerHeight;
+        this._renderingContext.resize(width, height);
     }.bind(this));
     $(window).resize();
 

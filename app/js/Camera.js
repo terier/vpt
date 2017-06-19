@@ -50,8 +50,8 @@ _.updateMatrices = function() {
 };
 
 _.resize = function(width, height) {
-    this.fovX = width * this.zoom;
-    this.fovY = height * this.zoom;
+    this.fovX = width * this.zoomFactor;
+    this.fovY = height * this.zoomFactor;
     this.isDirty = true;
 };
 
