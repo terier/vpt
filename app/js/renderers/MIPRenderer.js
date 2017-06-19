@@ -6,9 +6,9 @@ function MIPRenderer(gl, volumeTexture) {
     this.sup.constructor.call(this, gl, volumeTexture);
 
     this._programs = WebGLUtils.compileShaders(gl, {
-        mipGenerate: SHADERS.mipGenerate,
-        mipIntegrate: SHADERS.mipIntegrate,
-        mipReset: SHADERS.mipReset
+        mipGenerate: SHADERS.MIPGenerate,
+        mipIntegrate: SHADERS.MIPIntegrate,
+        mipReset: SHADERS.MIPReset
     }, MIXINS);
 
     this._stepSize = 0.05; // TODO: figure out options for inherited classes
