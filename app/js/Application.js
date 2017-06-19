@@ -6,6 +6,7 @@ function Application() {
     this._$canvas = null;
     this._navbar = null;
     this._openFileDialog = null;
+    this._mipRendererController = null;
 
     this._init();
 }
@@ -25,7 +26,8 @@ _._init = function() {
     }.bind(this));
     $(window).resize();
 
-    this._openFileDialog = new OpenFileDialog({
+    this._openFileDialog = new OpenFileDialog(
+        document.body, {
         onLoad: function(data, size, bits) {
             var volume = new Volume(data, size.x, size.y, size.z, bits);
             this._renderingContext.setVolume(volume);
@@ -33,9 +35,18 @@ _._init = function() {
         }.bind(this)
     });
 
-    this._navbar = new Navbar(document.body, {
+    this._mipRendererController = new MIPRendererController(
+        document.body,
+        this._renderingContext._renderer, {
+    });
+
+    this._navbar = new Navbar(
+        document.body, {
         onOpenFile: function() {
             this._openFileDialog.show();
+        }.bind(this),
+        onMipRendererController: function() {
+            this._mipRendererController.show();
         }.bind(this),
         onResetRenderer: function() {
             this._renderingContext._renderer.reset();

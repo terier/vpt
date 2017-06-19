@@ -1,8 +1,10 @@
 var OpenFileDialog = (function() {
 'use strict';
 
-function OpenFileDialog(options) {
+function OpenFileDialog(container, options) {
     this._opts = $.extend({}, this.constructor.defaults, options);
+
+    this._$container = $(container);
 
     this._$html  = $(TEMPLATES["OpenFileDialog.html"]);
     this._$input = this._$html.find('[name="file"]')[0];
@@ -26,6 +28,7 @@ _._init = function() {
     this._$html.modal({
         show: false
     });
+    this._$container.append(this._$html);
     this._$open.click(function() {
         if (this._$input.files.length > 0) {
             var file = this._$input.files[0];

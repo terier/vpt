@@ -119,7 +119,9 @@ _._render = function() {
         this._camera.isDirty = false;
         this._camera.updateMatrices();
         var tr = new Matrix();
-        tr.multiply(this._camera.projectionMatrix, this._camera.viewMatrix).inverse().transpose();
+        var rotation = new Matrix().fromRotationY(Math.PI / 2);
+        tr.multiply(this._camera.transformationMatrix, rotation);
+        tr.inverse().transpose();
         this._renderer.setMvpInverseMatrix(tr);
         this._renderer.reset();
     }
