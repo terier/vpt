@@ -2,8 +2,8 @@
 precision mediump float;
 
 uniform mediump sampler3D uVolume;
-//uniform float uSamplingStep;
-uniform float uDistance;
+uniform float uStepSize;
+uniform float uOffset;
 
 in vec3 vRayFrom;
 in vec3 vRayTo;
@@ -19,8 +19,17 @@ void main() {
     } else {
         vec3 from = mix(vRayFrom, vRayTo, tbounds.x);
         vec3 to = mix(vRayFrom, vRayTo, tbounds.y);
-        vec3 pos = mix(from, to, uDistance);
-        float val = texture(uVolume, pos).r;
+
+        float t = 0.0;
+        float val = 0.0;
+        float offset = uOffset;
+        vec3 pos;
+        do {
+            pos = mix(from, to, offset);
+            val = max(texture(uVolume, pos).r, val);
+            t += uStepSize;
+            offset = mod(offset + uStepSize, 1.0);
+        } while (t < 1.0);
         color = vec4(val, val, val, 1.0);
     }
 }

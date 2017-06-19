@@ -11,8 +11,7 @@ function MIPRenderer(gl, volumeTexture) {
         mipReset: SHADERS.mipReset
     }, MIXINS);
 
-    this._randomT = -2;
-    this._randomS = 2;
+    this._stepSize = 0.05; // TODO: figure out options for inherited classes
 }
 
 var _ = MIPRenderer.prototype;
@@ -66,8 +65,8 @@ _._generateFrame = function() {
 
     // set uniforms
     gl.uniform1i(program.uniforms.uVolume, 0);
-    gl.uniform1f(program.uniforms.uDistance, this._nextRandom());
-    //gl.uniform1f(program.uniforms.uSamplingStep, 0.01);
+    gl.uniform1f(program.uniforms.uStepSize, this._stepSize);
+    gl.uniform1f(program.uniforms.uOffset, Math.random());
     gl.uniformMatrix4fv(program.uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
 
     // render
@@ -109,15 +108,6 @@ _._integrateFrame = function() {
     gl.disableVertexAttribArray(aPosition);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.bindTexture(gl.TEXTURE_2D, null);
-};
-
-_._nextRandom = function() {
-    this._randomT += this._randomS;
-    if (this._randomT > 1.0) {
-        this._randomT -= 1.0 + this._randomS / 4;
-        this._randomS /= 2;
-    }
-    return this._randomT;
 };
 
 return MIPRenderer;
