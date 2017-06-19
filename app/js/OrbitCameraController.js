@@ -79,6 +79,7 @@ _._handleMouseMove = function(e) {
         rotation.w = angle;
         rotation.fromAxisAngle();
         this._camera.rotation.multiply(this._camera.rotation, rotation);
+        this._camera.rotation.normalize();
         var position = this._camera.position;
         var positionQuat = new Quaternion(position.x, position.y, position.z, 0);
         rotation.inverse();

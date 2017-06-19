@@ -55,6 +55,21 @@ _.multiply = function(a, b) {
     return this;
 };
 
+_.length = function() {
+    return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w);
+};
+
+_.normalize = function() {
+    var length = this.length();
+
+    this.x /= length;
+    this.y /= length;
+    this.z /= length;
+    this.w /= length;
+
+    return this;
+};
+
 _.fromAxisAngle = function() {
     var s = Math.sin(this.w / 2);
     var c = Math.cos(this.w / 2);
