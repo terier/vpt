@@ -15,6 +15,8 @@ function Camera(options) {
     this.near = this._opts.near;
     this.far = this._opts.far;
     this.zoomFactor = this._opts.zoomFactor;
+
+    this.isDirty = false;
 }
 
 Camera.defaults = {
@@ -50,13 +52,15 @@ _.updateMatrices = function() {
 _.resize = function(width, height) {
     this.fovX = width * this.zoom;
     this.fovY = height * this.zoom;
+    this.isDirty = true;
 };
 
 _.zoom = function(amount) {
-    var scale = Math.exp(-amount);
+    var scale = Math.exp(amount);
     this.zoomFactor *= scale;
     this.fovX *= scale;
     this.fovY *= scale;
+    this.isDirty = true;
 };
 
 return Camera;

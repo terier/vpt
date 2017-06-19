@@ -45,6 +45,7 @@ _._init = function() {
     gl.bindTexture(gl.TEXTURE_3D, null);
 
     this._camera = new Camera();
+    this._cameraController = new OrbitCameraController(this._camera, this._canvas);
     this._renderer = new MIPRenderer(gl, this._volumeTexture);
 
     this._camera.position.z = -1.5;
@@ -66,11 +67,14 @@ _._init = function() {
 };
 
 _.destroy = function() {
+    this.stopRendering();
+
     if (this._canvas.parentNode) {
         this._canvas.parentNode.removeChild(this._canvas);
     }
 
     this._renderer.destroy();
+    this._cameraController.destroy();
     this._camera.destroy();
     var gl = this._gl;
     gl.deleteProgram(this._program);
@@ -109,6 +113,15 @@ _.getCanvas = function() {
 
 _._render = function() {
     var gl = this._gl;
+
+    if (this._camera.isDirty) {
+        this._camera.isDirty = false;
+        this._camera.updateMatrices();
+        var tr = new Matrix();
+        tr.multiply(this._camera.projectionMatrix, this._camera.viewMatrix).inverse().transpose();
+        this._renderer.setMvpInverseMatrix(tr);
+        this._renderer.reset();
+    }
 
     // TODO: pipeline goes here
     this._renderer.render();
