@@ -22,7 +22,7 @@ function OrbitCameraController(camera, element, options) {
 }
 
 OrbitCameraController.defaults = {
-    rotationSpeed: 0.01,
+    rotationSpeed: 0.03,
     zoomSpeed: 0.01
 };
 
@@ -66,8 +66,26 @@ _._handleMouseMove = function(e) {
         var dx = x - this._startX;
         var dy = y - this._startY;
 
-        this._camera.position.x -= dx * this._rotationSpeed;
-        this._camera.position.y += dy * this._rotationSpeed;
+        var angleX = dx * this._rotationSpeed;
+        var angleY = dy * this._rotationSpeed;
+        var angle = angleX * angleX + angleY * angleY;
+        var movement = new Vector(-angleX, angleY, 0);
+        var axis = new Vector().cross(new Vector(0, 0, 1), movement).normalize();
+        var camRot = this._camera.rotation.clone();
+        var rotation = new Quaternion(axis.x, axis.y, axis.z, 0);
+        rotation.multiply(rotation, camRot);
+        camRot.inverse();
+        rotation.multiply(camRot, rotation);
+        rotation.w = angle;
+        rotation.fromAxisAngle();
+        this._camera.rotation.multiply(this._camera.rotation, rotation);
+        var position = this._camera.position;
+        var positionQuat = new Quaternion(position.x, position.y, position.z, 0);
+        rotation.inverse();
+        positionQuat.multiply(rotation, positionQuat);
+        rotation.inverse();
+        positionQuat.multiply(positionQuat, rotation);
+        this._camera.position.set(positionQuat.x, positionQuat.y, positionQuat.z);
         this._camera.isDirty = true;
 
         this._startX = x;

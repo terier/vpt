@@ -48,9 +48,7 @@ _._init = function() {
     this._cameraController = new OrbitCameraController(this._camera, this._canvas);
     this._renderer = new MIPRenderer(gl, this._volumeTexture);
 
-    this._camera.position.z = -1.5;
-    this._camera.position.y = 0.5;
-    this._camera.position.x = 0.5;
+    this._camera.position.z = 1.5;
     this._camera.fovX = 0.3;
     this._camera.fovY = 0.3;
 
@@ -119,8 +117,8 @@ _._render = function() {
         this._camera.isDirty = false;
         this._camera.updateMatrices();
         var tr = new Matrix();
-        var rotation = new Matrix().fromRotationY(Math.PI / 2);
-        tr.multiply(this._camera.transformationMatrix, rotation);
+        var centerTranslation = new Matrix().fromTranslation(-0.5, -0.5, -0.5);
+        tr.multiply(this._camera.transformationMatrix, centerTranslation);
         tr.inverse().transpose();
         this._renderer.setMvpInverseMatrix(tr);
         this._renderer.reset();

@@ -69,6 +69,26 @@ _.mul = function(a, b) {
     return this;
 };
 
+_.normalize = function() {
+    var len = this.len();
+
+    this.x /= len;
+    this.y /= len;
+    this.z /= len;
+
+    return this;
+};
+
+_.setLength = function(len) {
+    this.normalize();
+
+    this.x *= len;
+    this.y *= len;
+    this.z *= len;
+
+    return this;
+};
+
 _.dot = function(v) {
     return this.x * v.x + this.y * v.y + this.z * v.z;
 };
@@ -83,6 +103,14 @@ _.cross = function(a, b) {
     this.w = 1;
 
     return this;
+};
+
+_.lensq = function() {
+    return this.dot(this);
+};
+
+_.len = function() {
+    return Math.sqrt(this.lensq());
 };
 
 return Vector;
