@@ -1,5 +1,5 @@
 var Application = (function() {
-'ure strict';
+'use strict';
 
 function Application() {
     this._renderingContext = null;

@@ -1,4 +1,5 @@
 var OrbitCameraController = (function() {
+'use strict';
 
 function OrbitCameraController(camera, element, options) {
     this._opts = $.extend({}, this.constructor.defaults, options);
