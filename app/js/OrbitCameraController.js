@@ -22,7 +22,7 @@ function OrbitCameraController(camera, element, options) {
 }
 
 OrbitCameraController.defaults = {
-    rotationSpeed: 0.03,
+    rotationSpeed: 0.01,
     zoomSpeed: 0.01
 };
 
@@ -68,7 +68,7 @@ _._handleMouseMove = function(e) {
 
         var angleX = dx * this._rotationSpeed;
         var angleY = dy * this._rotationSpeed;
-        var angle = angleX * angleX + angleY * angleY;
+        var angle = Math.sqrt(angleX * angleX + angleY * angleY);
         var movement = new Vector(-angleX, angleY, 0);
         var axis = new Vector().cross(new Vector(0, 0, 1), movement).normalize();
         var camRot = this._camera.rotation.clone();
