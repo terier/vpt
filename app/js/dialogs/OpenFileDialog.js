@@ -6,7 +6,7 @@ function OpenFileDialog(container, options) {
 
     this._$container = $(container);
 
-    this._$html  = $(TEMPLATES["OpenFileDialog.html"]);
+    this._$html  = $(TEMPLATES['OpenFileDialog.html']);
     this._$input = this._$html.find('[name="file"]')[0];
     this._$size  = this._$html.find('[name="size"]');
     this._$bits  = this._$html.find('[name="bits"]');
@@ -49,6 +49,7 @@ _._init = function() {
 };
 
 _.destroy = function() {
+    this._$html.remove();
 };
 
 _.show = function() {

@@ -7,7 +7,7 @@ function MIPRendererController(container, renderer, options) {
     this._$container = $(container);
     this._renderer = renderer;
 
-    this._$html  = $(TEMPLATES["MIPRendererController.html"]);
+    this._$html  = $(TEMPLATES['MIPRendererController.html']);
     this._$heading = this._$html.find('.panel-heading');
     this._$resizeHandle = this._$html.find('.resize-handle');
     this._$closeButton = this._$html.find('.close');
@@ -45,6 +45,7 @@ _._init = function() {
 };
 
 _.destroy = function() {
+    this._$html.remove();
 };
 
 _.show = function() {

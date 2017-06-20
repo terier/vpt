@@ -6,7 +6,7 @@ function Navbar(container, options) {
 
     this._$container = $(container);
 
-    this._$html = $(TEMPLATES["Navbar.html"]);
+    this._$html = $(TEMPLATES['Navbar.html']);
     this._$openFile = this._$html.find('[name="open-file-button"]');
     this._$mipRendererController = this._$html.find('[name="mip-renderer-controller-button"]');
     this._$resetRenderer = this._$html.find('[name="reset-renderer-button"]');
