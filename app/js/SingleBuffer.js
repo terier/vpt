@@ -1,18 +1,42 @@
-var SingleBuffer = (function() {
+(function(global) {
 'use strict';
 
-function SingleBuffer(gl, options) {
-    this._gl = gl;
-    this._target = WebGLUtils.createSimpleRenderTarget(gl, options);
-}
+var Class = global.SingleBuffer = SingleBuffer;
+var _ = Class.prototype;
 
-var _ = SingleBuffer.prototype;
+// ========================== CLASS DECLARATION ============================ //
+
+function SingleBuffer(gl, bufferOptions, options) {
+    this._opts = $.extend(this._opts || {}, Class.defaults, options);
+
+    // option variables
+
+    // instance variables
+    this._gl = gl;
+    this._bufferOptions = bufferOptions;
+    this._target = null;
+
+    // function binds
+
+    this._init();
+};
+
+Class.defaults = {
+};
+
+// ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
+
+_._init = function() {
+    this._target = WebGLUtils.createSimpleRenderTarget(this._gl, this._bufferOptions);
+};
 
 _.destroy = function() {
     var gl = this._gl;
     gl.deleteTexture(this._target.texture);
     gl.deleteFramebuffer(this._target.framebuffer);
 };
+
+// =========================== INSTANCE METHODS ============================ //
 
 _.use = function() {
     var gl = this._gl;
@@ -24,6 +48,6 @@ _.getTexture = function() {
     return this._target.texture;
 };
 
-return SingleBuffer;
+// ============================ STATIC METHODS ============================= //
 
-})();
+})(this);

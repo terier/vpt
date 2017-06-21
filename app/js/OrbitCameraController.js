@@ -1,50 +1,63 @@
-var OrbitCameraController = (function() {
+(function(global) {
 'use strict';
 
-function OrbitCameraController(camera, element, options) {
-    this._opts = $.extend({}, this.constructor.defaults, options);
+var Class = global.OrbitCameraController = OrbitCameraController;
+var _ = Class.prototype;
 
-    this._camera = camera;
-    this._element = element;
+// ========================== CLASS DECLARATION ============================ //
 
+function OrbitCameraController(camera, domElement, options) {
+    this._opts = $.extend(this._opts || {}, Class.defaults, options);
+
+    // option variables
     this._rotationSpeed = this._opts.rotationSpeed;
     this._zoomSpeed = this._opts.zoomSpeed;
 
-    this._startX = 0;
-    this._startY = 0;
-    this._isMoving = false;
+    // instance variables
+    this._camera = camera;
+    this._domElement = domElement;
+    this._startX = null;
+    this._startY = null;
+    this._isMoving = null;
 
+    // function binds
     this._handleMouseDown = this._handleMouseDown.bind(this);
     this._handleMouseUp = this._handleMouseUp.bind(this);
     this._handleMouseMove = this._handleMouseMove.bind(this);
     this._handleMouseWheel = this._handleMouseWheel.bind(this);
 
-    this._addEventListeners();
-}
-
-OrbitCameraController.defaults = {
-    rotationSpeed: 0.01,
-    zoomSpeed: 0.01
+    this._init();
 };
 
-var _ = OrbitCameraController.prototype;
+Class.defaults = {
+    rotationSpeed: 0.01,
+    zoomSpeed: 0.003
+};
+
+// ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
+
+_._init = function() {
+    this._addEventListeners();
+};
 
 _.destroy = function() {
     this._removeEventListeners();
 };
 
+// =========================== INSTANCE METHODS ============================ //
+
 _._addEventListeners = function() {
-    this._element.addEventListener('mousedown', this._handleMouseDown);
-    this._element.addEventListener('mouseup', this._handleMouseUp);
-    this._element.addEventListener('mousemove', this._handleMouseMove);
-    this._element.addEventListener('mousewheel', this._handleMouseWheel);
+    this._domElement.addEventListener('mousedown', this._handleMouseDown);
+    this._domElement.addEventListener('mouseup', this._handleMouseUp);
+    this._domElement.addEventListener('mousemove', this._handleMouseMove);
+    this._domElement.addEventListener('mousewheel', this._handleMouseWheel);
 };
 
 _._removeEventListeners = function() {
-    this._element.removeEventListener('mousedown', this._handleMouseDown);
-    this._element.removeEventListener('mouseup', this._handleMouseUp);
-    this._element.removeEventListener('mousemove', this._handleMouseMove);
-    this._element.removeEventListener('mousewheel', this._handleMouseWheel);
+    this._domElement.removeEventListener('mousedown', this._handleMouseDown);
+    this._domElement.removeEventListener('mouseup', this._handleMouseUp);
+    this._domElement.removeEventListener('mousemove', this._handleMouseMove);
+    this._domElement.removeEventListener('mousewheel', this._handleMouseWheel);
 };
 
 _._handleMouseDown = function(e) {
@@ -67,6 +80,7 @@ _._handleMouseMove = function(e) {
         var dx = x - this._startX;
         var dy = y - this._startY;
 
+        // magic. TODO: find out how this works
         var angleX = dx * this._rotationSpeed;
         var angleY = dy * this._rotationSpeed;
         var angle = Math.sqrt(angleX * angleX + angleY * angleY);
@@ -105,6 +119,6 @@ _._handleMouseWheel = function(e) {
     }
 };
 
-return OrbitCameraController;
+// ============================ STATIC METHODS ============================= //
 
-})();
+})(this);

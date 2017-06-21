@@ -1,25 +1,35 @@
-var Camera = (function() {
+(function(global) {
 'use strict';
 
+var Class = global.Camera = Camera;
+var _ = Class.prototype;
+
+// ========================== CLASS DECLARATION ============================ //
+
 function Camera(options) {
-    this._opts = $.extend({}, this.constructor.defaults, options);
+    this._opts = $.extend(this._opts || {}, Class.defaults, options);
 
-    this.position = new Vector();
-    this.rotation = new Quaternion();
-    this.viewMatrix = new Matrix();
-    this.projectionMatrix = new Matrix();
-    this.transformationMatrix = new Matrix();
-
+    // option variables
     this.fovX = this._opts.fovX;
     this.fovY = this._opts.fovY;
     this.near = this._opts.near;
     this.far = this._opts.far;
     this.zoomFactor = this._opts.zoomFactor;
 
-    this.isDirty = false;
-}
+    // instance variables
+    this.position = null;
+    this.rotation = null;
+    this.viewMatrix = null;
+    this.projectionMatrix = null;
+    this.transformationMatrix = null;
+    this.isDirty = null;
 
-Camera.defaults = {
+    // function binds
+
+    this._init();
+};
+
+Class.defaults = {
     fovX: 1,
     fovY: 1,
     near: 1,
@@ -27,7 +37,21 @@ Camera.defaults = {
     zoomFactor: 0.001
 };
 
-var _ = Camera.prototype;
+// ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
+
+_._init = function() {
+    this.position = new Vector();
+    this.rotation = new Quaternion();
+    this.viewMatrix = new Matrix();
+    this.projectionMatrix = new Matrix();
+    this.transformationMatrix = new Matrix();
+    this.isDirty = false;
+};
+
+_.destroy = function() {
+};
+
+// =========================== INSTANCE METHODS ============================ //
 
 _.updateViewMatrix = function() {
     this.rotation.toRotationMatrix(this.viewMatrix.m);
@@ -63,6 +87,6 @@ _.zoom = function(amount) {
     this.isDirty = true;
 };
 
-return Camera;
+// ============================ STATIC METHODS ============================= //
 
-})();
+})(this);

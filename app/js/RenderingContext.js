@@ -1,25 +1,38 @@
-var RenderingContext = (function() {
+(function(global) {
 'use strict';
 
-function RenderingContext() {
+var Class = global.RenderingContext = RenderingContext;
+var _ = Class.prototype;
+
+// ========================== CLASS DECLARATION ============================ //
+
+function RenderingContext(options) {
+    this._opts = $.extend(this._opts || {}, Class.defaults, options);
+
+    // option variables
+
+    // instance variables
     this._canvas = null;
     this._gl = null;
     this._camera = null;
     this._cameraController = null;
     this._renderer = null;
     this._toneMapper = null;
-
     this._volumeTexture = null;
     this._transferFunction = null;
     this._program = null;
     this._clipQuad = null;
 
+    // function binds
     this._render = this._render.bind(this);
 
     this._init();
-}
+};
 
-var _ = RenderingContext.prototype;
+Class.defaults = {
+};
+
+// ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
 
 _._init = function() {
     this._canvas = document.createElement('canvas');
@@ -77,18 +90,9 @@ _.destroy = function() {
     var gl = this._gl;
     gl.deleteProgram(this._program);
     gl.deleteBuffer(this._clipQuad);
-
-    this._canvas = null;
-    this._gl = null;
-    this._camera = null;
-    this._cameraController = null;
-    this._renderer = null;
-    this._toneMapper = null;
-
-    this._volumeTexture = null;
-    this._transferFunction = null;
-    this._program = null;
 };
+
+// =========================== INSTANCE METHODS ============================ //
 
 _.resize = function(width, height) {
     var gl = this._gl;
@@ -153,6 +157,6 @@ _.stopRendering = function() {
     Ticker.remove(this._render);
 };
 
-return RenderingContext;
+// ============================ STATIC METHODS ============================= //
 
-})();
+})(this);

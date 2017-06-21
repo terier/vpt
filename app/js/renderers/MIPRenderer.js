@@ -130,6 +130,6 @@ _._integrateFrame = function() {
     gl.bindTexture(gl.TEXTURE_2D, null);
 };
 
-return MIPRenderer;
+// ============================ STATIC METHODS ============================= //
 
-})();
+})(this);

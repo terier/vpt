@@ -1,17 +1,32 @@
-var Application = (function() {
+(function(global) {
 'use strict';
 
-function Application() {
+var Class = global.Application = Application;
+var _ = Class.prototype;
+
+// ========================== CLASS DECLARATION ============================ //
+
+function Application(options) {
+    this._opts = $.extend(this._opts || {}, Class.defaults, options);
+
+    // option variables
+
+    // instance variables
     this._renderingContext = null;
     this._$canvas = null;
     this._navbar = null;
     this._openFileDialog = null;
     this._mipRendererController = null;
 
-    this._init();
-}
+    // function binds
 
-var _ = Application.prototype;
+    this._init();
+};
+
+Class.defaults = {
+};
+
+// ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
 
 _._init = function() {
     this._renderingContext = new RenderingContext();
@@ -62,6 +77,8 @@ _.destroy = function() {
     this._$canvas.remove();
 };
 
-return Application;
+// =========================== INSTANCE METHODS ============================ //
 
-})();
+// ============================ STATIC METHODS ============================= //
+
+})(this);

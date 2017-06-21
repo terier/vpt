@@ -1,11 +1,39 @@
-var AbstractRenderer = (function() {
+(function(global) {
 'use strict';
 
-function AbstractRenderer(gl, volumeTexture) {
+var Class = global.AbstractRenderer = AbstractRenderer;
+var _ = Class.prototype;
+
+// ========================== CLASS DECLARATION ============================ //
+
+function AbstractRenderer(gl, volumeTexture, options) {
+    this._opts = $.extend(this._opts || {}, Class.defaults, options);
+
+    // option variables
+    this._bufferSize = this._opts.bufferSize;
+
+    // instance variables
     this._gl = gl;
     this._volumeTexture = volumeTexture;
+    this._frameBuffer = null;
+    this._accBuffer = null;
+    this._mvpInverseMatrix = null;
+    this._clipQuad = null;
+    this._clipQuadProgram = null;
 
-    this._bufferSize = 512;
+    // function binds
+
+    this._init();
+};
+
+Class.defaults = {
+    bufferSize: 512
+};
+
+// ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
+
+_._init = function() {
+    var gl = this._gl;
     var bufferOptions = {
         width:          this._bufferSize,
         height:         this._bufferSize,
@@ -24,9 +52,7 @@ function AbstractRenderer(gl, volumeTexture) {
     this._clipQuadProgram = WebGLUtils.compileShaders(gl, {
         quad: SHADERS.quad
     }).quad;
-}
-
-var _ = AbstractRenderer.prototype;
+};
 
 _.destroy = function() {
     var gl = this._gl;
@@ -35,6 +61,8 @@ _.destroy = function() {
     gl.deleteBuffer(this._clipQuad);
     gl.deleteProgram(this._clipQuadProgram);
 };
+
+// =========================== INSTANCE METHODS ============================ //
 
 _.render = function() {
     this._frameBuffer.use();
@@ -72,6 +100,6 @@ _._integrateFrame = function() {
     throw Util.noimpl;
 };
 
-return AbstractRenderer;
+// ============================ STATIC METHODS ============================= //
 
-})();
+})(this);
