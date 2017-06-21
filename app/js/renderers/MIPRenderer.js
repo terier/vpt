@@ -1,32 +1,52 @@
-var MIPRenderer = (function() {
+(function(global) {
 'use strict';
 
-Util.inherit(MIPRenderer, AbstractRenderer);
-function MIPRenderer(gl, volumeTexture) {
-    this.sup.constructor.call(this, gl, volumeTexture);
+var Class = global.MIPRenderer = MIPRenderer;
+Util.inherit(Class, AbstractRenderer);
+var _ = Class.prototype;
 
-    this._programs = WebGLUtils.compileShaders(gl, {
+// ========================== CLASS DECLARATION ============================ //
+
+function MIPRenderer(gl, volumeTexture, options) {
+    _.sup.constructor.call(this, gl, volumeTexture, options);
+    this._opts = $.extend(this._opts || {}, Class.defaults, options);
+
+    // option variables
+    this._stepSize = this._opts.stepSize;
+
+    // instance variables
+    this._programs = null;
+
+    // function binds
+
+    this._init();
+};
+
+Class.defaults = {
+    stepSize: 0.05
+};
+
+// ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
+
+_._init = function() {
+    _.sup._init.call(this);
+    this._programs = WebGLUtils.compileShaders(this._gl, {
         mipGenerate: SHADERS.MIPGenerate,
         mipIntegrate: SHADERS.MIPIntegrate,
         mipReset: SHADERS.MIPReset
     }, MIXINS);
-
-    this._stepSize = 0.05; // TODO: figure out options for inherited classes
-}
-
-var _ = MIPRenderer.prototype;
+};
 
 _.destroy = function() {
-    this.sup.destroy.call(this);
+    _.sup.destroy.call(this);
     var gl = this._gl;
     gl.deleteProgram(this._program);
 };
 
+// =========================== INSTANCE METHODS ============================ //
+
 _._resetFrame = function() {
     var gl = this._gl;
-
-    this._randomT = -2;
-    this._randomS = 2;
 
     // use shader
     var program = this._programs.mipReset;

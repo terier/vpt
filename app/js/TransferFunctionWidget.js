@@ -35,7 +35,7 @@ TransferFunctionWidget.defaults = {
 var _ = TransferFunctionWidget.prototype;
 
 _._init = function() {
-	this._$html = $(TEMPLATES['TransferFunctionWidget.html']);
+    this._$html = $(TEMPLATES['TransferFunctionWidget.html']);
     this._$container.append(this._$html);
     this._canvas = this._$html.find('canvas').get(0);
     this._canvas.width = this._transferFunctionWidth;
@@ -68,7 +68,10 @@ _._init = function() {
                 x: Math.random(),
                 y: Math.random()
             },
-            size: Math.random() * 0.3,
+            size: {
+                x: Math.random() * 0.5,
+                y: Math.random() * 0.5
+            },
             color: {
                 r: Math.random(),
                 g: Math.random(),
@@ -77,34 +80,44 @@ _._init = function() {
             }
         };
         var $handle = $(TEMPLATES['TransferFunctionWidgetBumpHandle.html']);
+        $handle.data('index', i);
         this._$html.append($handle);
-        var left = (this._bumps[i].x * this._width) + 'px';
-        var top = (this._bumps[i].y * this._height) + 'px';
+        var left = (this._bumps[i].position.x * this._width - 5) + 'px';
+        var top = ((1 - this._bumps[i].position.y) * this._height - 5) + 'px';
         $handle.css({
             left: left,
             top: top
         });
-        //$handle.draggable();
+        $handle.draggable({
+            drag: function(e, ui) {
+                var x = (ui.position.left + 5) / this._width;
+                var y = 1 - (ui.position.top + 5) / this._height;
+                var i = parseInt($(e.target).data('index'), 10);
+                this._bumps[i].position.x = x;
+                this._bumps[i].position.y = y;
+                this.render();
+            }.bind(this)
+        });
     }
 };
 
 _.destroy = function() {
-	var gl = this._gl;
+    var gl = this._gl;
     gl.deleteBuffer(this._clipQuad);
     gl.deleteProgram(this._program);
     this._$html.remove();
 };
 
 _.resize = function(width, height) {
-	this._canvas.style.width = width + 'px';
-	this._canvas.style.height = height + 'px';
-	this._width = width;
+    this._canvas.style.width = width + 'px';
+    this._canvas.style.height = height + 'px';
+    this._width = width;
     this._height = height;
 };
 
 _.resizeTransferFunction = function(width, height) {
-	this._canvas.width = width;
-	this._canvas.height = height;
+    this._canvas.width = width;
+    this._canvas.height = height;
     this._transferFunctionWidth = width;
     this._transferFunctionHeight = height;
     var gl = this._gl;
@@ -118,7 +131,7 @@ _.render = function() {
     for (var i = 0; i < this._nBumps; i++) {
         var bump = this._bumps[i];
         gl.uniform2f(program.uniforms['uBumps[' + i + '].position'], bump.position.x, bump.position.y);
-        gl.uniform1f(program.uniforms['uBumps[' + i + '].size'], bump.size);
+        gl.uniform2f(program.uniforms['uBumps[' + i + '].size'], bump.size.x, bump.size.y);
         gl.uniform4f(program.uniforms['uBumps[' + i + '].color'], bump.color.r, bump.color.g, bump.color.b, bump.color.a);
     }
 
