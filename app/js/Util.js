@@ -25,6 +25,7 @@ function inherit(sub, sup) {
     sub.prototype = Object.create(sup.prototype);
     sub.prototype.constructor = sub;
     sub.prototype.sup = sup.prototype;
+    sub.sup = sup;
 }
 
 var noimpl = new Error('Not implemented!');

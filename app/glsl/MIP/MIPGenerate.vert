@@ -3,7 +3,7 @@ precision mediump float;
 
 uniform mat4 uMvpInverseMatrix;
 
-in vec2 aPosition;
+layout(location = 0) in vec2 aPosition;
 out vec3 vRayFrom;
 out vec3 vRayTo;
 

@@ -16,7 +16,8 @@ function AbstractRenderer(gl, volumeTexture, options) {
     this._gl = gl;
     this._volumeTexture = volumeTexture;
     this._frameBuffer = null;
-    this._accBuffer = null;
+    this._accumulationBuffer = null;
+    this._renderBuffer = null;
     this._mvpInverseMatrix = null;
     this._clipQuad = null;
     this._clipQuadProgram = null;
@@ -34,17 +35,10 @@ Class.defaults = {
 
 _._init = function() {
     var gl = this._gl;
-    var bufferOptions = {
-        width:          this._bufferSize,
-        height:         this._bufferSize,
-        min:            gl.LINEAR,
-        mag:            gl.LINEAR,
-        format:         gl.RGBA,
-        internalFormat: gl.RGBA,
-        type:           gl.UNSIGNED_BYTE
-    };
-    this._frameBuffer = new SingleBuffer(gl, bufferOptions);
-    this._accBuffer = new DoubleBuffer(gl, bufferOptions);
+
+    this._frameBuffer = new SingleBuffer(gl, this._getFrameBufferOptions());
+    this._accumulationBuffer = new DoubleBuffer(gl, this._getAccumulationBufferOptions());
+    this._renderBuffer = new SingleBuffer(gl, this._getRenderBufferOptions());
 
     this._mvpInverseMatrix = new Matrix();
 
@@ -57,7 +51,8 @@ _._init = function() {
 _.destroy = function() {
     var gl = this._gl;
     this._frameBuffer.destroy();
-    this._accBuffer.destroy();
+    this._accumulationBuffer.destroy();
+    this._renderBuffer.destroy();
     gl.deleteBuffer(this._clipQuad);
     gl.deleteProgram(this._clipQuadProgram);
 };
@@ -65,23 +60,37 @@ _.destroy = function() {
 // =========================== INSTANCE METHODS ============================ //
 
 _.render = function() {
+    // TODO: put the following logic in VAO
+    var gl = this._gl;
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._clipQuad);
+    gl.enableVertexAttribArray(0); // position always bound to attribute 0
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+
     this._frameBuffer.use();
     this._generateFrame();
 
-    this._accBuffer.use();
+    this._accumulationBuffer.use();
     this._integrateFrame();
+    this._accumulationBuffer.swap();
 
-    this._accBuffer.swap();
+    this._renderBuffer.use();
+    this._renderFrame();
 };
 
 _.reset = function() {
-    this._accBuffer.use();
+    // TODO: put the following logic in VAO
+    var gl = this._gl;
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._clipQuad);
+    gl.enableVertexAttribArray(0); // position always bound to attribute 0
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+
+    this._accumulationBuffer.use();
     this._resetFrame();
-    this._accBuffer.swap();
+    this._accumulationBuffer.swap();
 };
 
 _.getTexture = function() {
-    return this._accBuffer.getTexture();
+    return this._renderBuffer.getTexture();
 };
 
 _.setMvpInverseMatrix = function(matrix) {
@@ -98,6 +107,31 @@ _._generateFrame = function() {
 
 _._integrateFrame = function() {
     throw Util.noimpl;
+};
+
+_._renderFrame = function() {
+    throw Util.noimpl;
+};
+
+_._getFrameBufferOptions = function() {
+    throw Util.noimpl;
+};
+
+_._getAccumulationBufferOptions = function() {
+    throw Util.noimpl;
+};
+
+_._getRenderBufferOptions = function() {
+    var gl = this._gl;
+    return {
+        width:          this._bufferSize,
+        height:         this._bufferSize,
+        min:            gl.LINEAR,
+        mag:            gl.LINEAR,
+        format:         gl.RGBA,
+        internalFormat: gl.RGBA,
+        type:           gl.UNSIGNED_BYTE
+    };
 };
 
 // ============================ STATIC METHODS ============================= //
