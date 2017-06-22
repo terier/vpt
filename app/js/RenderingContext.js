@@ -26,7 +26,7 @@ function RenderingContext(options) {
     // function binds
     this._render = this._render.bind(this);
 
-    this._init();
+    _._init.call(this);
 };
 
 Class.defaults = {

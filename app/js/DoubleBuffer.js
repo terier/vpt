@@ -19,7 +19,7 @@ function DoubleBuffer(gl, bufferOptions, options) {
 
     // function binds
 
-    this._init();
+    _._init.call(this);
 };
 
 Class.defaults = {

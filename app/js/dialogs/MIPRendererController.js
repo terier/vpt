@@ -14,7 +14,7 @@ function MIPRendererController(container, renderer, options) {
 
     this._$steps = this._$html.find('[name="steps"]');
 
-    this._init();
+    _._init.call(this);
 }
 
 MIPRendererController.defaults = {

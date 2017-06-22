@@ -15,7 +15,7 @@ function Navbar(container, options) {
     this._onMipRendererController = this._opts.onMipRendererController;
     this._onResetRenderer = this._opts.onResetRenderer;
 
-    this._init();
+    _._init.call(this);
 }
 
 Navbar.defaults = {

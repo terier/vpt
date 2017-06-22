@@ -16,7 +16,7 @@ function OpenFileDialog(container, options) {
     this._onLoad = this._opts.onLoad;
     this._onError = this._opts.onError;
 
-    this._init();
+    _._init.call(this);
 }
 
 OpenFileDialog.defaults = {

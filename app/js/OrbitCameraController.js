@@ -26,7 +26,7 @@ function OrbitCameraController(camera, domElement, options) {
     this._handleMouseMove = this._handleMouseMove.bind(this);
     this._handleMouseWheel = this._handleMouseWheel.bind(this);
 
-    this._init();
+    _._init.call(this);
 };
 
 Class.defaults = {

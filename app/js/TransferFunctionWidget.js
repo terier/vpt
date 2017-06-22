@@ -1,30 +1,37 @@
-var TransferFunctionWidget = (function() {
+(function(global) {
 'use strict';
 
-function TransferFunctionWidget(container, options) {
-    this._opts = $.extend({}, this.constructor.defaults, options);
+var Class = global.TransferFunctionWidget = TransferFunctionWidget;
+var _ = Class.prototype;
 
-    this._$container = $(container);
+// ========================== CLASS DECLARATION ============================ //
 
-    this._$html = null;
-    this._canvas = null;
-    this._gl = null;
-    this._clipQuad = null;
-    this._program = null;
+function TransferFunctionWidget(options) {
+    this._opts = $.extend(this._opts || {}, Class.defaults, options);
 
-    this._bumps = null;
-    this._bumpHandles = null;
-
+    // option variables
     this._width = this._opts.width;
     this._height = this._opts.height;
     this._transferFunctionWidth = this._opts.transferFunctionWidth;
     this._transferFunctionHeight = this._opts.transferFunctionHeight;
     this._nBumps = this._opts.nBumps;
 
-    this._init();
-}
+    // instance variables
+    this._$container = $(container);
+    this._$html = null;
+    this._canvas = null;
+    this._gl = null;
+    this._clipQuad = null;
+    this._program = null;
+    this._bumps = null;
+    this._bumpHandles = null;
 
-TransferFunctionWidget.defaults = {
+    // function binds
+
+    _._init.call(this);
+};
+
+Class.defaults = {
     width: 256,
     height: 256,
     transferFunctionWidth: 256,
@@ -32,7 +39,7 @@ TransferFunctionWidget.defaults = {
     nBumps: 16
 };
 
-var _ = TransferFunctionWidget.prototype;
+// ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
 
 _._init = function() {
     this._$html = $(TEMPLATES['TransferFunctionWidget.html']);
@@ -144,6 +151,8 @@ _._createBumpHandle = function() {
     return $handle;
 };
 
-return TransferFunctionWidget;
+// =========================== INSTANCE METHODS ============================ //
 
-})();
+// ============================ STATIC METHODS ============================= //
+
+})(this);

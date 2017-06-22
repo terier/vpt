@@ -19,7 +19,7 @@ function MIPRenderer(gl, volumeTexture, options) {
 
     // function binds
 
-    this._init();
+    _._init.call(this);
 };
 
 Class.defaults = {
@@ -29,7 +29,6 @@ Class.defaults = {
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
 
 _._init = function() {
-    _.sup._init.call(this);
     this._programs = WebGLUtils.compileShaders(this._gl, {
         MIPGenerate:  SHADERS.MIPGenerate,
         MIPIntegrate: SHADERS.MIPIntegrate,
