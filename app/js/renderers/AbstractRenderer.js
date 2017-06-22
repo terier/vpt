@@ -128,6 +128,8 @@ _._getRenderBufferOptions = function() {
         height:         this._bufferSize,
         min:            gl.LINEAR,
         mag:            gl.LINEAR,
+        wrapS:          gl.CLAMP_TO_EDGE,
+        wrapT:          gl.CLAMP_TO_EDGE,
         format:         gl.RGBA,
         internalFormat: gl.RGBA,
         type:           gl.UNSIGNED_BYTE
