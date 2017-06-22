@@ -7,5 +7,6 @@ in vec2 vPosition;
 out vec4 color;
 
 void main() {
-    color = texture(uAccumulator, vPosition);
+    float acc = texture(uAccumulator, vPosition).r;
+    color = vec4(acc, acc, acc, 1.0);
 }

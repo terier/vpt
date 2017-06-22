@@ -110,10 +110,10 @@ _._getFrameBufferOptions = function() {
     return {
         width:          this._bufferSize,
         height:         this._bufferSize,
-        min:            gl.LINEAR,
-        mag:            gl.LINEAR,
-        format:         gl.RGBA,
-        internalFormat: gl.RGBA,
+        min:            gl.NEAREST,
+        mag:            gl.NEAREST,
+        format:         gl.RED,
+        internalFormat: gl.R8,
         type:           gl.UNSIGNED_BYTE
     };
 };
@@ -123,10 +123,10 @@ _._getAccumulationBufferOptions = function() {
     return {
         width:          this._bufferSize,
         height:         this._bufferSize,
-        min:            gl.LINEAR,
-        mag:            gl.LINEAR,
-        format:         gl.RGBA,
-        internalFormat: gl.RGBA,
+        min:            gl.NEAREST,
+        mag:            gl.NEAREST,
+        format:         gl.RED,
+        internalFormat: gl.R8,
         type:           gl.UNSIGNED_BYTE
     };
 };
