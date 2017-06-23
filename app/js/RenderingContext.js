@@ -59,7 +59,7 @@ _._init = function() {
 
     this._camera = new Camera();
     this._cameraController = new OrbitCameraController(this._camera, this._canvas);
-    this._renderer = new MIPRenderer(gl, this._volumeTexture);
+    this._renderer = new ISORenderer(gl, this._volumeTexture);
 
     this._camera.position.z = 1.5;
     this._camera.fovX = 0.3;

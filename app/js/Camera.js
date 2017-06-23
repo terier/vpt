@@ -32,8 +32,8 @@ function Camera(options) {
 Class.defaults = {
     fovX: 1,
     fovY: 1,
-    near: 1,
-    far: 10,
+    near: 0.1,
+    far: 5,
     zoomFactor: 0.001
 };
 
