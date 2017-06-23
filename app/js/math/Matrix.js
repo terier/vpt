@@ -169,7 +169,7 @@ _.fromFrustum = function(left, right, bottom, top, near, far) {
     m[10] = -(far + near) / (far - near);
 
     m[11] = -2 * far * near / (far - near);
-    m[14] = 1;
+    m[14] = -1;
 
     m[1] = m[3] = m[4] = m[7] = m[8] = m[9] = m[12] = m[13] = m[15] = 0;
 
