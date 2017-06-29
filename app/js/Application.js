@@ -17,6 +17,7 @@ function Application(options) {
     this._navbar = null;
     this._openFileDialog = null;
     this._mipRendererController = null;
+    this._isoRendererController = null;
 
     // function binds
 
@@ -55,6 +56,11 @@ _._init = function() {
         this._renderingContext._renderer, {
     });
 
+    this._isoRendererController = new ISORendererController(
+        document.body,
+        this._renderingContext._renderer, {
+    });
+
     this._navbar = new Navbar(
         document.body, {
         onOpenFile: function() {
@@ -62,6 +68,9 @@ _._init = function() {
         }.bind(this),
         onMipRendererController: function() {
             this._mipRendererController.show();
+        }.bind(this),
+        onIsoRendererController: function() {
+            this._isoRendererController.show();
         }.bind(this),
         onResetRenderer: function() {
             this._renderingContext._renderer.reset();

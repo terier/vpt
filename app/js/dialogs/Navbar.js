@@ -8,12 +8,14 @@ function Navbar(container, options) {
 
     this._$html = $(TEMPLATES['Navbar.html']);
     this._$openFile = this._$html.find('[name="open-file-button"]');
-    this._$mipRendererController = this._$html.find('[name="mip-renderer-controller-button"]');
     this._$resetRenderer = this._$html.find('[name="reset-renderer-button"]');
+    this._$mipRendererController = this._$html.find('[name="mip-renderer-controller-button"]');
+    this._$isoRendererController = this._$html.find('[name="iso-renderer-controller-button"]');
 
     this._onOpenFile = this._opts.onOpenFile;
-    this._onMipRendererController = this._opts.onMipRendererController;
     this._onResetRenderer = this._opts.onResetRenderer;
+    this._onMipRendererController = this._opts.onMipRendererController;
+    this._onIsoRendererController = this._opts.onIsoRendererController;
 
     _._init.call(this);
 }
@@ -26,8 +28,9 @@ var _ = Navbar.prototype;
 _._init = function() {
     this._$container.append(this._$html);
     this._$openFile.click(this._opts.onOpenFile);
-    this._$mipRendererController.click(this._opts.onMipRendererController);
     this._$resetRenderer.click(this._opts.onResetRenderer);
+    this._$mipRendererController.click(this._opts.onMipRendererController);
+    this._$isoRendererController.click(this._opts.onIsoRendererController);
 };
 
 _.destroy = function() {
