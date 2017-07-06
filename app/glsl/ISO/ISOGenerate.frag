@@ -8,7 +8,7 @@ uniform float uIsovalue;
 
 in vec3 vRayFrom;
 in vec3 vRayTo;
-out vec4 color;
+out vec4 oColor;
 
 @intersectCube
 
@@ -16,7 +16,7 @@ void main() {
     vec3 rayDirection = vRayTo - vRayFrom;
     vec2 tbounds = max(intersectCube(vRayFrom, rayDirection), 0.0);
     if (tbounds.x >= tbounds.y) {
-        color = vec4(0.0, 0.0, 0.0, 1.0);
+        oColor = vec4(0.0, 0.0, 0.0, 1.0);
     } else {
         vec3 from = mix(vRayFrom, vRayTo, tbounds.x);
         vec3 to = mix(vRayFrom, vRayTo, tbounds.y);
@@ -48,9 +48,9 @@ void main() {
             float dz = (vzp - vzm) / (2.0 * h);
             vec3 grad = normalize(vec3(dx, dy, dz));
             vec3 gradEncoded = grad * 0.5 + 0.5;
-            color = vec4(gradEncoded, closest);
+            oColor = vec4(gradEncoded, closest);
         } else {
-            color = vec4(0.0, 0.0, 0.0, 1.0);
+            oColor = vec4(0.0, 0.0, 0.0, 1.0);
         }
     }
 }

@@ -1,8 +1,8 @@
 #version 300 es
 precision mediump float;
 
-out float color;
+out float oColor;
 
 void main() {
-    color = 0.0;
+    oColor = 0.0;
 }

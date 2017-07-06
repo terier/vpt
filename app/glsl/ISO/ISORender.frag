@@ -6,7 +6,7 @@ uniform vec3 uLight;
 uniform vec3 uDiffuse;
 
 in vec2 vPosition;
-out vec4 color;
+out vec4 oColor;
 
 void main() {
     vec4 acc = texture(uAccumulator, vPosition);
@@ -17,8 +17,8 @@ void main() {
         vec3 normal = normalize(grad);
         vec3 light = normalize(uLight);
         float lambert = max(dot(normal, light), 0.0);
-        color = vec4(uDiffuse * lambert, 1.0);
+        oColor = vec4(uDiffuse * lambert, 1.0);
     } else {
-        color = vec4(1.0);
+        oColor = vec4(1.0);
     }
 }

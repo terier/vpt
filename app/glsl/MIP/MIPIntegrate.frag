@@ -5,10 +5,10 @@ uniform mediump sampler2D uAccumulator;
 uniform mediump sampler2D uFrame;
 
 in vec2 vPosition;
-out float color;
+out float oColor;
 
 void main() {
     float acc = texture(uAccumulator, vPosition).r;
     float frame = texture(uFrame, vPosition).r;
-    color = max(acc, frame);
+    oColor = max(acc, frame);
 }

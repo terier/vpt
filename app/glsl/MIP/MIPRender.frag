@@ -4,9 +4,9 @@ precision mediump float;
 uniform mediump sampler2D uAccumulator;
 
 in vec2 vPosition;
-out vec4 color;
+out vec4 oColor;
 
 void main() {
     float acc = texture(uAccumulator, vPosition).r;
-    color = vec4(acc, acc, acc, 1.0);
+    oColor = vec4(acc, acc, acc, 1.0);
 }
