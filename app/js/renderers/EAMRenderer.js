@@ -13,6 +13,7 @@ function EAMRenderer(gl, volumeTexture, options) {
 
     // option variables
     this._stepSize = this._opts.stepSize;
+    this._alphaCorrection = this._opts.alphaCorrection;
 
     // instance variables
     this._programs = null;
@@ -23,17 +24,18 @@ function EAMRenderer(gl, volumeTexture, options) {
 };
 
 Class.defaults = {
-    stepSize: 0.05
+    stepSize: 0.05,
+    alphaCorrection: 3
 };
 
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
 
 _._init = function() {
     this._programs = WebGLUtils.compileShaders(this._gl, {
-        EAMGenerate:  SHADERS.EAMGenerate,
-        EAMIntegrate: SHADERS.EAMIntegrate,
-        EAMRender:    SHADERS.EAMRender,
-        EAMReset:     SHADERS.EAMReset
+        EAMGenerate  : SHADERS.EAMGenerate,
+        EAMIntegrate : SHADERS.EAMIntegrate,
+        EAMRender    : SHADERS.EAMRender,
+        EAMReset     : SHADERS.EAMReset
     }, MIXINS);
 };
 
@@ -64,9 +66,13 @@ _._generateFrame = function() {
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_3D, this._volumeTexture);
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
 
     gl.uniform1i(program.uniforms.uVolume, 0);
+    gl.uniform1i(program.uniforms.uTransferFunction, 1);
     gl.uniform1f(program.uniforms.uStepSize, this._stepSize);
+    gl.uniform1f(program.uniforms.uAlphaCorrection, this._alphaCorrection);
     gl.uniform1f(program.uniforms.uOffset, Math.random());
     gl.uniformMatrix4fv(program.uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
 
@@ -107,26 +113,26 @@ _._renderFrame = function() {
 _._getFrameBufferOptions = function() {
     var gl = this._gl;
     return {
-        width:          this._bufferSize,
-        height:         this._bufferSize,
-        min:            gl.NEAREST,
-        mag:            gl.NEAREST,
-        format:         gl.RED,
-        internalFormat: gl.R8,
-        type:           gl.UNSIGNED_BYTE
+        width          : this._bufferSize,
+        height         : this._bufferSize,
+        min            : gl.NEAREST,
+        mag            : gl.NEAREST,
+        format         : gl.RGBA,
+        internalFormat : gl.RGBA,
+        type           : gl.UNSIGNED_BYTE
     };
 };
 
 _._getAccumulationBufferOptions = function() {
     var gl = this._gl;
     return {
-        width:          this._bufferSize,
-        height:         this._bufferSize,
-        min:            gl.NEAREST,
-        mag:            gl.NEAREST,
-        format:         gl.RED,
-        internalFormat: gl.R8,
-        type:           gl.UNSIGNED_BYTE
+        width          : this._bufferSize,
+        height         : this._bufferSize,
+        min            : gl.NEAREST,
+        mag            : gl.NEAREST,
+        format         : gl.RGBA,
+        internalFormat : gl.RGBA,
+        type           : gl.UNSIGNED_BYTE
     };
 };
 

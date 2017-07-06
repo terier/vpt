@@ -1,8 +1,8 @@
 #version 300 es
 precision mediump float;
 
-out vec4 color;
+out vec4 oColor;
 
 void main() {
-    color = vec4(0.0, 0.0, 0.0, 1.0);
+    oColor = vec4(0.0, 0.0, 0.0, 1.0);
 }

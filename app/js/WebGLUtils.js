@@ -176,10 +176,15 @@ function createTexture(gl, options) {
     if (options.image) {
         gl.texImage2D(target, 0, internalFormat, format, type, options.image);
     } else { // if options.data == null, just allocate
-        gl.texImage2D(target, 0, internalFormat, options.width, options.height, 0, format, type, options.data);
+        if (target === gl.TEXTURE_3D) {
+            gl.texImage3D(target, 0, internalFormat, options.width, options.height, options.depth, 0, format, type, options.data);
+        } else {
+            gl.texImage2D(target, 0, internalFormat, options.width, options.height, 0, format, type, options.data);
+        }
     }
     if (options.wrapS) { gl.texParameteri(target, gl.TEXTURE_WRAP_S, options.wrapS); }
     if (options.wrapT) { gl.texParameteri(target, gl.TEXTURE_WRAP_T, options.wrapT); }
+    if (options.wrapR) { gl.texParameteri(target, gl.TEXTURE_WRAP_R, options.wrapR); }
     if (options.min) { gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, options.min); }
     if (options.mag) { gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, options.mag); }
     gl.bindTexture(target, null);

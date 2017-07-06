@@ -37,29 +37,33 @@ Class.defaults = {
 _._init = function() {
     this._canvas = document.createElement('canvas');
     this._gl = WebGLUtils.getContext(this._canvas, ['webgl2'], {
-        alpha: false,
-        depth: false,
-        stencil: false,
-        antialias: false,
-        preserveDrawingBuffer: true
+        alpha                 : false,
+        depth                 : false,
+        stencil               : false,
+        antialias             : false,
+        preserveDrawingBuffer : true
     });
     var gl = this._gl;
 
-    this._volumeTexture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_3D, this._volumeTexture);
-    gl.texImage3D(gl.TEXTURE_3D, 0, gl.R16F,
-        1, 1, 1,
-        0, gl.RED, gl.FLOAT, new Float32Array([1]));
-    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
-    gl.bindTexture(gl.TEXTURE_3D, null);
+    this._volumeTexture = WebGLUtils.createTexture(gl, {
+        target         : gl.TEXTURE_3D,
+        width          : 1,
+        height         : 1,
+        depth          : 1,
+        data           : new Float32Array([1]),
+        format         : gl.RED,
+        internalFormat : gl.R16F,
+        type           : gl.FLOAT,
+        wrapS          : gl.CLAMP_TO_EDGE,
+        wrapT          : gl.CLAMP_TO_EDGE,
+        wrapR          : gl.CLAMP_TO_EDGE,
+        min            : gl.LINEAR,
+        mag            : gl.LINEAR
+    });
 
     this._camera = new Camera();
     this._cameraController = new OrbitCameraController(this._camera, this._canvas);
-    this._renderer = new ISORenderer(gl, this._volumeTexture);
+    this._renderer = new EAMRenderer(gl, this._volumeTexture);
 
     this._camera.position.z = 1.5;
     this._camera.fovX = 0.3;
@@ -90,6 +94,7 @@ _.destroy = function() {
     var gl = this._gl;
     gl.deleteProgram(this._program);
     gl.deleteBuffer(this._clipQuad);
+    gl.deleteTexture(this._volumeTexture);
 };
 
 // =========================== INSTANCE METHODS ============================ //

@@ -18,6 +18,7 @@ function AbstractRenderer(gl, volumeTexture, options) {
     this._frameBuffer = null;
     this._accumulationBuffer = null;
     this._renderBuffer = null;
+    this._transferFunction = null;
     this._mvpInverseMatrix = null;
     this._clipQuad = null;
     this._clipQuadProgram = null;
@@ -40,6 +41,16 @@ _._init = function() {
     this._accumulationBuffer = new DoubleBuffer(gl, this._getAccumulationBufferOptions());
     this._renderBuffer = new SingleBuffer(gl, this._getRenderBufferOptions());
 
+    this._transferFunction = WebGLUtils.createTexture(gl, {
+        width  : 2,
+        height : 1,
+        data   : new Uint8Array([255, 0, 0, 0, 255, 0, 0, 255]),
+        wrapS  : gl.CLAMP_TO_EDGE,
+        wrapT  : gl.CLAMP_TO_EDGE,
+        min    : gl.LINEAR,
+        mag    : gl.LINEAR
+    });
+
     this._mvpInverseMatrix = new Matrix();
 
     this._clipQuad = WebGLUtils.createClipQuad(gl);
@@ -53,6 +64,7 @@ _.destroy = function() {
     this._frameBuffer.destroy();
     this._accumulationBuffer.destroy();
     this._renderBuffer.destroy();
+    gl.deleteTexture(this._transferFunction);
     gl.deleteBuffer(this._clipQuad);
     gl.deleteProgram(this._clipQuadProgram);
 };
@@ -87,6 +99,14 @@ _.reset = function() {
     this._accumulationBuffer.use();
     this._resetFrame();
     this._accumulationBuffer.swap();
+};
+
+_.setTransferFunction = function(transferFunction) {
+    var gl = this._gl;
+    gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
+    gl.texImage2D(gl.TEXTURE_2D, 0,
+        gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, transferFunction);
+    gl.bindTexture(gl.TEXTURE_2D, null);
 };
 
 _.getTexture = function() {

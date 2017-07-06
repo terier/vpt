@@ -18,6 +18,7 @@ function Application(options) {
     this._openFileDialog = null;
     this._mipRendererController = null;
     this._isoRendererController = null;
+    this._eamRendererController = null;
 
     // function binds
 
@@ -61,6 +62,11 @@ _._init = function() {
         this._renderingContext._renderer, {
     });
 
+    this._eamRendererController = new EAMRendererController(
+        document.body,
+        this._renderingContext._renderer, {
+    });
+
     this._navbar = new Navbar(
         document.body, {
         onOpenFile: function() {
@@ -71,6 +77,9 @@ _._init = function() {
         }.bind(this),
         onIsoRendererController: function() {
             this._isoRendererController.show();
+        }.bind(this),
+        onEamRendererController: function() {
+            this._eamRendererController.show();
         }.bind(this),
         onResetRenderer: function() {
             this._renderingContext._renderer.reset();
@@ -83,6 +92,10 @@ _._init = function() {
 _.destroy = function() {
     this._renderingContext.destroy();
     this._navbar.destroy();
+    this._openFileDialog.destroy();
+    this._mipRendererController.destroy();
+    this._isoRendererController.destroy();
+    this._eamRendererController.destroy();
     this._$canvas.remove();
 };
 
