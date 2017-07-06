@@ -144,15 +144,15 @@ _._getAccumulationBufferOptions = function() {
 _._getRenderBufferOptions = function() {
     var gl = this._gl;
     return {
-        width:          this._bufferSize,
-        height:         this._bufferSize,
-        min:            gl.LINEAR,
-        mag:            gl.LINEAR,
-        wrapS:          gl.CLAMP_TO_EDGE,
-        wrapT:          gl.CLAMP_TO_EDGE,
-        format:         gl.RGBA,
-        internalFormat: gl.RGBA,
-        type:           gl.UNSIGNED_BYTE
+        width          : this._bufferSize,
+        height         : this._bufferSize,
+        min            : gl.LINEAR,
+        mag            : gl.LINEAR,
+        wrapS          : gl.CLAMP_TO_EDGE,
+        wrapT          : gl.CLAMP_TO_EDGE,
+        format         : gl.RGBA,
+        internalFormat : gl.RGBA,
+        type           : gl.UNSIGNED_BYTE
     };
 };
 

@@ -36,10 +36,10 @@ Class.defaults = {
 
 _._init = function() {
     this._programs = WebGLUtils.compileShaders(this._gl, {
-        ISOGenerate:  SHADERS.ISOGenerate,
-        ISOIntegrate: SHADERS.ISOIntegrate,
-        ISORender:    SHADERS.ISORender,
-        ISOReset:     SHADERS.ISOReset
+        ISOGenerate  : SHADERS.ISOGenerate,
+        ISOIntegrate : SHADERS.ISOIntegrate,
+        ISORender    : SHADERS.ISORender,
+        ISOReset     : SHADERS.ISOReset
     }, MIXINS);
 };
 
@@ -116,26 +116,26 @@ _._renderFrame = function() {
 _._getFrameBufferOptions = function() {
     var gl = this._gl;
     return {
-        width:          this._bufferSize,
-        height:         this._bufferSize,
-        min:            gl.NEAREST,
-        mag:            gl.NEAREST,
-        format:         gl.RGBA,
-        internalFormat: gl.RGBA,
-        type:           gl.UNSIGNED_BYTE
+        width          : this._bufferSize,
+        height         : this._bufferSize,
+        min            : gl.NEAREST,
+        mag            : gl.NEAREST,
+        format         : gl.RGBA,
+        internalFormat : gl.RGBA,
+        type           : gl.UNSIGNED_BYTE
     };
 };
 
 _._getAccumulationBufferOptions = function() {
     var gl = this._gl;
     return {
-        width:          this._bufferSize,
-        height:         this._bufferSize,
-        min:            gl.NEAREST,
-        mag:            gl.NEAREST,
-        format:         gl.RGBA,
-        internalFormat: gl.RGBA,
-        type:           gl.UNSIGNED_BYTE
+        width          : this._bufferSize,
+        height         : this._bufferSize,
+        min            : gl.NEAREST,
+        mag            : gl.NEAREST,
+        format         : gl.RGBA,
+        internalFormat : gl.RGBA,
+        type           : gl.UNSIGNED_BYTE
     };
 };
 
