@@ -1,0 +1,21 @@
+.transfer-function-widget {
+    overflow: hidden;
+    line-height: 0;
+    display: inline-block;
+    position: relative;
+}
+
+.transfer-function-widget canvas {
+    background: url('/images/alpha-checkerboard.png') repeat;
+}
+
+.transfer-function-widget .bump-handle {
+    box-sizing: border-box;
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    top: -5px;
+    left: -5px;
+    border: 2px solid black;
+    border-radius: 5px;
+}
