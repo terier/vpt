@@ -2,11 +2,11 @@
   "name": "vpt",
   "version": "1.0.0",
   "description": "Volumetric Path Tracing",
-  "main": "app.js",
+  "main": "bin/server-express",
   "scripts": {
     "build": "make",
     "postinstall": "make",
-    "start": "node app.js",
+    "start": "bin/server-express",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
