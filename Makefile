@@ -37,11 +37,11 @@ INPUT_CSS        := $(wildcard $(SRC_DIR)/css/*.css) \
 INPUT_TEMPLATES  := $(wildcard $(SRC_DIR)/templates/*.html) \
                     $(wildcard $(SRC_DIR)/templates/**/*.html)
 INPUT_IMAGES     := $(SRC_DIR)/images
-INPUT_SHADERS    := $(wildcard $(SRC_DIR)/glsl/*.vert) \
+INPUT_GLSL       := $(wildcard $(SRC_DIR)/glsl/*.vert) \
                     $(wildcard $(SRC_DIR)/glsl/**/*.vert) \
                     $(wildcard $(SRC_DIR)/glsl/*.frag) \
-                    $(wildcard $(SRC_DIR)/glsl/**/*.frag)
-INPUT_MIXINS     := $(wildcard $(SRC_DIR)/glsl/*.glsl) \
+                    $(wildcard $(SRC_DIR)/glsl/**/*.frag) \
+					$(wildcard $(SRC_DIR)/glsl/*.glsl) \
                     $(wildcard $(SRC_DIR)/glsl/**/*.glsl)
 
 OUTPUT_HTML      := $(INPUT_HTML:$(SRC_DIR)%=$(DST_DIR)%)
@@ -49,8 +49,7 @@ OUTPUT_JS        := $(DST_DIR)/js/main.js
 OUTPUT_CSS       := $(DST_DIR)/css/main.css
 OUTPUT_TEMPLATES := $(DST_DIR)/js/templates.js
 OUTPUT_IMAGES    := $(DST_DIR)/images
-OUTPUT_SHADERS   := $(DST_DIR)/js/shaders.js
-OUTPUT_MIXINS    := $(DST_DIR)/js/mixins.js
+OUTPUT_GLSL      := $(DST_DIR)/js/shaders.js
 
 # ---------------------------------------------------------
 
@@ -80,13 +79,9 @@ $(OUTPUT_IMAGES): $(INPUT_IMAGES)
 	@echo "Building $@"
 	@cp -r $^ $@
 
-$(OUTPUT_SHADERS): $(INPUT_SHADERS)
+$(OUTPUT_GLSL): $(INPUT_GLSL)
 	@echo "Building $@"
-	@bin/concader -n SHADERS $^ > $@ 2>/dev/null
-
-$(OUTPUT_MIXINS): $(INPUT_MIXINS)
-	@echo "Building $@"
-	@bin/concader -x -n MIXINS $^ > $@ 2>/dev/null
+	@cat $^ | bin/concader > $@
 
 # ---------------------------------------------------------
 
@@ -94,10 +89,9 @@ $(OUTPUT_MIXINS): $(INPUT_MIXINS)
 all: $(OUTPUT_HTML) \
      $(OUTPUT_JS) \
      $(OUTPUT_CSS) \
-     $(OUTPUT_IMAGES) \
      $(OUTPUT_TEMPLATES) \
-     $(OUTPUT_SHADERS) \
-     $(OUTPUT_MIXINS)
+     $(OUTPUT_IMAGES) \
+     $(OUTPUT_GLSL)
 
 .PHONY: clean
 clean:

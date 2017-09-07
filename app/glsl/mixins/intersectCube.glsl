@@ -1,3 +1,5 @@
+%%intersectCube
+
 vec2 intersectCube(in vec3 origin, in vec3 direction) {
     vec3 tmin = (vec3(0.0) - origin) / direction;
     vec3 tmax = (vec3(1.0) - origin) / direction;

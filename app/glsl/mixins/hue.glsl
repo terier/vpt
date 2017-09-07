@@ -1,3 +1,5 @@
+%%hue
+
 #define HUE_PART 0.16666666666666
 vec4 hue(float x) {
     float r = smoothstep(1.0 * HUE_PART, 2.0 * HUE_PART, x) - smoothstep(4.0 * HUE_PART, 5.0 * HUE_PART, x);

@@ -1,3 +1,5 @@
+%%encodeFloat
+
 highp float shiftRight(highp float v, highp float amt) {
     v = floor(v) + 0.5;
     return floor(v / exp2(amt));
