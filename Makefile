@@ -68,18 +68,18 @@ $(DST_DIR)/%.html: $(SRC_DIR)/%.html
 
 $(OUTPUT_JS): $(INPUT_JS)
 	@echo "Building $@"
-	@cat $^ > $@
+	@cat $^ | tr -s '[:blank:]' ' ' | tr -s '\n' > $@
 
 $(OUTPUT_CSS): $(INPUT_CSS)
 	@echo "Building $@"
-	@cat $^ > $@
+	@cat $^ | tr -s '[:blank:]' ' ' | tr -s '\n' > $@
 
 $(OUTPUT_TEMPLATES): $(INPUT_TEMPLATES)
 	@echo "Building $@"
 	@echo "TEMPLATES={" > $@
 	@for file in $^; do \
         echo -n "'$$(basename $$file)':'" >> $@ ; \
-        cat $$file | tr '\n' ' ' >> $@ ; \
+        cat $$file | tr -s '[:space:]' ' ' >> $@ ; \
         echo "'," >> $@ ; \
     done
 	@echo "};" >> $@
@@ -90,15 +90,15 @@ $(OUTPUT_IMAGES): $(INPUT_IMAGES)
 
 $(OUTPUT_GLSL): $(INPUT_GLSL)
 	@echo "Building $@"
-	@cat $^ | bin/concader > $@
+	@cat $^ | tr -s '[:blank:]' ' ' | tr -s '\n' | bin/concader > $@
 
 $(OUTPUT_LIB_JS): $(INPUT_LIB_JS)
 	@echo "Building $@"
-	@cat $^ > $@
+	@cat $^ | tr -s '[:blank:]' ' ' | tr -s '\n' > $@
 
 $(OUTPUT_LIB_CSS): $(INPUT_LIB_CSS)
 	@echo "Building $@"
-	@cat $^ > $@
+	@cat $^ | tr -s '[:blank:]' ' ' | tr -s '\n' > $@
 
 # ---------------------------------------------------------
 
