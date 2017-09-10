@@ -9,32 +9,27 @@ var _ = Class.prototype;
 
 function ISORenderer(gl, volumeTexture, options) {
     _.sup.constructor.call(this, gl, volumeTexture, options);
-    this._opts = $.extend(this._opts || {}, Class.defaults, options);
-
-    // option variables
-    this._stepSize = this._opts.stepSize;
-    this._isovalue = this._opts.isovalue;
-    this._light = this._opts.light;
-    this._diffuse = this._opts.diffuse;
-
-    // instance variables
-    this._programs = null;
-
-    // function binds
+    $.extend(this, Class.defaults, options);
 
     _._init.call(this);
 };
 
 Class.defaults = {
-    stepSize: 0.05,
-    isovalue: 0.4,
-    light: [0.5, 0.5, 0.5],
-    diffuse: [0.7, 0.8, 0.9]
+    _stepSize : 0.05,
+    _isovalue : 0.4,
+    _light    : [0.5, 0.5, 0.5],
+    _diffuse  : [0.7, 0.8, 0.9]
 };
 
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
 
+_._nullify = function() {
+    this._programs = null;
+};
+
 _._init = function() {
+    _._nullify.call(this);
+
     this._programs = WebGLUtils.compileShaders(this._gl, {
         ISOGenerate  : SHADERS.ISOGenerate,
         ISOIntegrate : SHADERS.ISOIntegrate,
@@ -45,10 +40,13 @@ _._init = function() {
 
 _.destroy = function() {
     _.sup.destroy.call(this);
+
     var gl = this._gl;
     this._programs.forEach(function(program) {
         gl.deleteProgram(program.program);
     });
+
+    _._nullify.call(this);
 };
 
 // =========================== INSTANCE METHODS ============================ //

@@ -1,10 +1,37 @@
-var OpenFileDialog = (function() {
+(function(global) {
 'use strict';
 
+var Class = global.OpenFileDialog = OpenFileDialog;
+var _ = Class.prototype;
+
+// ========================== CLASS DECLARATION ============================ //
+
 function OpenFileDialog(container, options) {
-    this._opts = $.extend({}, this.constructor.defaults, options);
+    $.extend(this, Class.defaults, options);
 
     this._$container = $(container);
+
+    _._init.call(this);
+}
+
+Class.defaults = {
+    onLoad  : null,
+    onError : null
+};
+
+// ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
+
+_._nullify = function() {
+    this._$html  = null;
+    this._$input = null;
+    this._$size  = null;
+    this._$bits  = null;
+    this._$open  = null;
+    this._$close = null;
+};
+
+_._init = function() {
+    _._nullify.call(this);
 
     this._$html  = $(TEMPLATES['OpenFileDialog.html']);
     this._$input = this._$html.find('[name="file"]')[0];
@@ -13,18 +40,6 @@ function OpenFileDialog(container, options) {
     this._$open  = this._$html.find('[name="open"]');
     this._$close = this._$html.find('[name="close"]');
 
-    this._onLoad = this._opts.onLoad;
-    this._onError = this._opts.onError;
-
-    _._init.call(this);
-}
-
-OpenFileDialog.defaults = {
-};
-
-var _ = OpenFileDialog.prototype;
-
-_._init = function() {
     this._$html.modal({
         show: false
     });
@@ -50,12 +65,16 @@ _._init = function() {
 
 _.destroy = function() {
     this._$html.remove();
+
+    _._nullify.call(this);
 };
+
+// =========================== INSTANCE METHODS ============================ //
 
 _.show = function() {
     this._$html.modal('show');
 };
 
-return OpenFileDialog;
+// ============================ STATIC METHODS ============================= //
 
-})();
+})(this);

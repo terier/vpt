@@ -1,13 +1,45 @@
-var ISORendererController = (function() {
+(function(global) {
 'use strict';
 
+var Class = global.ISORendererController = ISORendererController;
+var _ = Class.prototype;
+
+// ========================== CLASS DECLARATION ============================ //
+
 function ISORendererController(container, renderer, options) {
-    this._opts = $.extend({}, this.constructor.defaults, options);
+    $.extend(this, Class.defaults, options);
 
     this._$container = $(container);
     this._renderer = renderer;
 
-    this._$html  = $(TEMPLATES['ISORendererController.html']);
+    _._init.call(this);
+}
+
+Class.defaults = {
+    steps           : 10,
+    isovalue        : 0.5,
+    diffuseColor    : '#ffffff',
+    lightDirectionX : 1,
+    lightDirectionY : 0,
+    lightDirectionZ : 0
+};
+
+// ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
+
+_._nullify = function() {
+    this._$html         = null;
+    this._$heading      = null;
+    this._$resizeHandle = null;
+    this._$closeButton  = null;
+    this._$steps        = null;
+    this._$isovalue     = null;
+    this._$color        = null;
+};
+
+_._init = function() {
+    _._nullify.call(this);
+
+    this._$html = $(TEMPLATES['ISORendererController.html']);
     this._$heading = this._$html.find('.panel-heading');
     this._$resizeHandle = this._$html.find('.resize-handle');
     this._$closeButton = this._$html.find('.close');
@@ -16,21 +48,6 @@ function ISORendererController(container, renderer, options) {
     this._$isovalue = this._$html.find('[name="isovalue"]');
     this._$color = this._$html.find('[name="color"]');
 
-    _._init.call(this);
-}
-
-ISORendererController.defaults = {
-    steps: 10,
-    isovalue: 0.5,
-    diffuseColor: '#ffffff',
-    lightDirectionX: 1,
-    lightDirectionY: 0,
-    lightDirectionZ: 0
-};
-
-var _ = ISORendererController.prototype;
-
-_._init = function() {
     this._$html.hide();
     this._$container.append(this._$html);
     this._$html.draggable({
@@ -45,17 +62,17 @@ _._init = function() {
         this._$html.hide();
     }.bind(this));
 
-    this._$steps.val(this._opts.steps);
+    this._$steps.val(this.steps);
     this._$steps.change(function() {
         this._renderer._stepSize = 1 / parseInt(this._$steps.val(), 10);
     }.bind(this));
 
-    this._$isovalue.val(this._opts.isovalue);
+    this._$isovalue.val(this.isovalue);
     this._$isovalue.change(function() {
         this._renderer._isovalue = parseFloat(this._$isovalue.val());
     }.bind(this));
 
-    this._$color.val(this._opts.diffuseColor);
+    this._$color.val(this.diffuseColor);
     this._$color.change(function() {
         var color = this._$color.val();
         console.log(color);
@@ -67,12 +84,16 @@ _._init = function() {
 
 _.destroy = function() {
     this._$html.remove();
+
+    _._nullify.call(this);
 };
+
+// =========================== INSTANCE METHODS ============================ //
 
 _.show = function() {
     this._$html.show();
 };
 
-return ISORendererController;
+// ============================ STATIC METHODS ============================= //
 
-})();
+})(this);

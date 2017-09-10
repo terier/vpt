@@ -7,41 +7,36 @@ var _ = Class.prototype;
 // ========================== CLASS DECLARATION ============================ //
 
 function TransferFunctionWidget(options) {
-    this._opts = $.extend(this._opts || {}, Class.defaults, options);
+    $.extend(this, Class.defaults, options);
 
-    // option variables
-    this._width = this._opts.width;
-    this._height = this._opts.height;
-    this._transferFunctionWidth = this._opts.transferFunctionWidth;
-    this._transferFunctionHeight = this._opts.transferFunctionHeight;
-    this._nBumps = this._opts.nBumps;
-
-    // instance variables
     this._$container = $(container);
-    this._$html = null;
-    this._canvas = null;
-    this._gl = null;
-    this._clipQuad = null;
-    this._program = null;
-    this._bumps = null;
-    this._bumpHandles = null;
-
-    // function binds
 
     _._init.call(this);
 };
 
 Class.defaults = {
-    width: 256,
-    height: 256,
-    transferFunctionWidth: 256,
-    transferFunctionHeight: 256,
-    nBumps: 16
+    _width                  : 256,
+    _height                 : 256,
+    _transferFunctionWidth  : 256,
+    _transferFunctionHeight : 256,
+    _nBumps                 : 16
 };
 
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
 
+_._nullify = function() {
+    this._$html       = null;
+    this._canvas      = null;
+    this._gl          = null;
+    this._clipQuad    = null;
+    this._program     = null;
+    this._bumps       = null;
+    this._bumpHandles = null;
+};
+
 _._init = function() {
+    _._nullify.call(this);
+
     this._$html = $(TEMPLATES['TransferFunctionWidget.html']);
     this._$container.append(this._$html);
     this._canvas = this._$html.find('canvas').get(0);
@@ -113,7 +108,11 @@ _.destroy = function() {
     gl.deleteBuffer(this._clipQuad);
     gl.deleteProgram(this._program);
     this._$html.remove();
+
+    _._nullify.call(this);
 };
+
+// =========================== INSTANCE METHODS ============================ //
 
 _.resize = function(width, height) {
     this._canvas.style.width = width + 'px';
@@ -150,8 +149,6 @@ _._createBumpHandle = function() {
     this._$html.append($handle);
     return $handle;
 };
-
-// =========================== INSTANCE METHODS ============================ //
 
 // ============================ STATIC METHODS ============================= //
 

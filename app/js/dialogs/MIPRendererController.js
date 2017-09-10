@@ -1,29 +1,44 @@
-var MIPRendererController = (function() {
+(function(global) {
 'use strict';
 
+var Class = global.MIPRendererController = MIPRendererController;
+var _ = Class.prototype;
+
+// ========================== CLASS DECLARATION ============================ //
+
 function MIPRendererController(container, renderer, options) {
-    this._opts = $.extend({}, this.constructor.defaults, options);
+    $.extend(this, Class.defaults, options);
 
     this._$container = $(container);
     this._renderer = renderer;
 
-    this._$html  = $(TEMPLATES['MIPRendererController.html']);
+    _._init.call(this);
+}
+
+Class.defaults = {
+    steps : 10
+};
+
+// ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
+
+_._nullify = function() {
+    this._$html         = null;
+    this._$heading      = null;
+    this._$resizeHandle = null;
+    this._$closeButton  = null;
+    this._$steps        = null;
+};
+
+_._init = function() {
+    _._nullify.call(this);
+
+    this._$html = $(TEMPLATES['MIPRendererController.html']);
     this._$heading = this._$html.find('.panel-heading');
     this._$resizeHandle = this._$html.find('.resize-handle');
     this._$closeButton = this._$html.find('.close');
 
     this._$steps = this._$html.find('[name="steps"]');
 
-    _._init.call(this);
-}
-
-MIPRendererController.defaults = {
-    steps: 10
-};
-
-var _ = MIPRendererController.prototype;
-
-_._init = function() {
     this._$html.hide();
     this._$container.append(this._$html);
     this._$html.draggable({
@@ -38,7 +53,7 @@ _._init = function() {
         this._$html.hide();
     }.bind(this));
 
-    this._$steps.val(this._opts.steps);
+    this._$steps.val(this.steps);
     this._$steps.change(function() {
         this._renderer._stepSize = 1 / parseInt(this._$steps.val(), 10);
     }.bind(this));
@@ -46,12 +61,16 @@ _._init = function() {
 
 _.destroy = function() {
     this._$html.remove();
+
+    _._nullify.call(this);
 };
+
+// =========================== INSTANCE METHODS ============================ //
 
 _.show = function() {
     this._$html.show();
 };
 
-return MIPRendererController;
+// ============================ STATIC METHODS ============================= //
 
-})();
+})(this);

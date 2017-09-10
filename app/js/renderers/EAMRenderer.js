@@ -9,28 +9,25 @@ var _ = Class.prototype;
 
 function EAMRenderer(gl, volumeTexture, options) {
     _.sup.constructor.call(this, gl, volumeTexture, options);
-    this._opts = $.extend(this._opts || {}, Class.defaults, options);
-
-    // option variables
-    this._stepSize = this._opts.stepSize;
-    this._alphaCorrection = this._opts.alphaCorrection;
-
-    // instance variables
-    this._programs = null;
-
-    // function binds
+    $.extend(this, Class.defaults, options);
 
     _._init.call(this);
 };
 
 Class.defaults = {
-    stepSize: 0.05,
-    alphaCorrection: 3
+    _stepSize        : 0.05,
+    _alphaCorrection : 3
 };
 
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
 
+_._nullify = function() {
+    this._programs = null;
+};
+
 _._init = function() {
+    _._nullify.call(this);
+
     this._programs = WebGLUtils.compileShaders(this._gl, {
         EAMGenerate  : SHADERS.EAMGenerate,
         EAMIntegrate : SHADERS.EAMIntegrate,
@@ -41,10 +38,13 @@ _._init = function() {
 
 _.destroy = function() {
     _.sup.destroy.call(this);
+
     var gl = this._gl;
     this._programs.forEach(function(program) {
         gl.deleteProgram(program.program);
     });
+
+    _._nullify.call(this);
 };
 
 // =========================== INSTANCE METHODS ============================ //

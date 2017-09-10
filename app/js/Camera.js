@@ -7,39 +7,33 @@ var _ = Class.prototype;
 // ========================== CLASS DECLARATION ============================ //
 
 function Camera(options) {
-    this._opts = $.extend(this._opts || {}, Class.defaults, options);
-
-    // option variables
-    this.fovX = this._opts.fovX;
-    this.fovY = this._opts.fovY;
-    this.near = this._opts.near;
-    this.far = this._opts.far;
-    this.zoomFactor = this._opts.zoomFactor;
-
-    // instance variables
-    this.position = null;
-    this.rotation = null;
-    this.viewMatrix = null;
-    this.projectionMatrix = null;
-    this.transformationMatrix = null;
-    this.isDirty = null;
-
-    // function binds
+    $.extend(this, Class.defaults, options);
 
     _._init.call(this);
 };
 
 Class.defaults = {
-    fovX: 1,
-    fovY: 1,
-    near: 0.1,
-    far: 5,
-    zoomFactor: 0.001
+    fovX       : 1,
+    fovY       : 1,
+    near       : 0.1,
+    far        : 5,
+    zoomFactor : 0.001
 };
 
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
 
+_._nullify = function() {
+    this.position             = null;
+    this.rotation             = null;
+    this.viewMatrix           = null;
+    this.projectionMatrix     = null;
+    this.transformationMatrix = null;
+    this.isDirty              = null;
+};
+
 _._init = function() {
+    _._nullify.call(this);
+
     this.position = new Vector();
     this.rotation = new Quaternion();
     this.viewMatrix = new Matrix();
@@ -49,6 +43,7 @@ _._init = function() {
 };
 
 _.destroy = function() {
+    _._nullify.call(this);
 };
 
 // =========================== INSTANCE METHODS ============================ //

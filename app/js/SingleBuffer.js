@@ -7,16 +7,10 @@ var _ = Class.prototype;
 // ========================== CLASS DECLARATION ============================ //
 
 function SingleBuffer(gl, bufferOptions, options) {
-    this._opts = $.extend(this._opts || {}, Class.defaults, options);
+    $.extend(this, Class.defaults, options);
 
-    // option variables
-
-    // instance variables
     this._gl = gl;
     this._bufferOptions = bufferOptions;
-    this._target = null;
-
-    // function binds
 
     _._init.call(this);
 };
@@ -26,7 +20,13 @@ Class.defaults = {
 
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
 
+_._nullify = function() {
+    this._target = null;
+};
+
 _._init = function() {
+    _._nullify.call(this);
+
     this._target = WebGLUtils.createSimpleRenderTarget(this._gl, this._bufferOptions);
 };
 
@@ -34,6 +34,8 @@ _.destroy = function() {
     var gl = this._gl;
     gl.deleteTexture(this._target.texture);
     gl.deleteFramebuffer(this._target.framebuffer);
+
+    _._nullify.call(this);
 };
 
 // =========================== INSTANCE METHODS ============================ //

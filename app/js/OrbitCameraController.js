@@ -7,20 +7,11 @@ var _ = Class.prototype;
 // ========================== CLASS DECLARATION ============================ //
 
 function OrbitCameraController(camera, domElement, options) {
-    this._opts = $.extend(this._opts || {}, Class.defaults, options);
+    $.extend(this, Class.defaults, options);
 
-    // option variables
-    this._rotationSpeed = this._opts.rotationSpeed;
-    this._zoomSpeed = this._opts.zoomSpeed;
-
-    // instance variables
     this._camera = camera;
     this._domElement = domElement;
-    this._startX = null;
-    this._startY = null;
-    this._isMoving = null;
 
-    // function binds
     this._handleMouseDown = this._handleMouseDown.bind(this);
     this._handleMouseUp = this._handleMouseUp.bind(this);
     this._handleMouseMove = this._handleMouseMove.bind(this);
@@ -30,18 +21,28 @@ function OrbitCameraController(camera, domElement, options) {
 };
 
 Class.defaults = {
-    rotationSpeed: 0.01,
-    zoomSpeed: 0.003
+    rotationSpeed : 0.01,
+    zoomSpeed     : 0.003
 };
 
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
 
+_._nullify = function() {
+    this._startX = null;
+    this._startY = null;
+    this._isMoving = null;
+};
+
 _._init = function() {
+    _._nullify.call(this);
+
     this._addEventListeners();
 };
 
 _.destroy = function() {
     this._removeEventListeners();
+
+    _._nullify.call(this);
 };
 
 // =========================== INSTANCE METHODS ============================ //
@@ -81,8 +82,8 @@ _._handleMouseMove = function(e) {
         var dy = y - this._startY;
 
         // magic. TODO: find out how this works
-        var angleX = dx * this._rotationSpeed;
-        var angleY = dy * this._rotationSpeed;
+        var angleX = dx * this.rotationSpeed;
+        var angleY = dy * this.rotationSpeed;
         var angle = Math.sqrt(angleX * angleX + angleY * angleY);
         var movement = new Vector(angleX, -angleY, 0);
         var axis = new Vector().cross(new Vector(0, 0, 1), movement).normalize();
@@ -111,7 +112,7 @@ _._handleMouseMove = function(e) {
 
 _._handleMouseWheel = function(e) {
     e.preventDefault();
-    var amount = e.deltaY * this._zoomSpeed;
+    var amount = e.deltaY * this.zoomSpeed;
     this._camera.zoom(amount);
     if (e.shiftKey) {
         var scale = Math.exp(-amount);

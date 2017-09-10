@@ -7,20 +7,7 @@ var _ = Class.prototype;
 // ========================== CLASS DECLARATION ============================ //
 
 function Application(options) {
-    this._opts = $.extend(this._opts || {}, Class.defaults, options);
-
-    // option variables
-
-    // instance variables
-    this._renderingContext = null;
-    this._$canvas = null;
-    this._navbar = null;
-    this._openFileDialog = null;
-    this._mipRendererController = null;
-    this._isoRendererController = null;
-    this._eamRendererController = null;
-
-    // function binds
+    $.extend(this, Class.defaults, options);
 
     _._init.call(this);
 };
@@ -30,7 +17,19 @@ Class.defaults = {
 
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
 
+_._nullify = function() {
+    this._renderingContext      = null;
+    this._$canvas               = null;
+    this._navbar                = null;
+    this._openFileDialog        = null;
+    this._mipRendererController = null;
+    this._isoRendererController = null;
+    this._eamRendererController = null;
+};
+
 _._init = function() {
+    _._nullify.call(this);
+
     this._renderingContext = new RenderingContext();
     this._$canvas = $(this._renderingContext.getCanvas());
     this._$canvas.addClass('renderer');
@@ -97,6 +96,8 @@ _.destroy = function() {
     this._isoRendererController.destroy();
     this._eamRendererController.destroy();
     this._$canvas.remove();
+
+    _._nullify.call(this);
 };
 
 // =========================== INSTANCE METHODS ============================ //

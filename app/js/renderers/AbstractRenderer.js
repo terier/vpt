@@ -7,34 +7,33 @@ var _ = Class.prototype;
 // ========================== CLASS DECLARATION ============================ //
 
 function AbstractRenderer(gl, volumeTexture, options) {
-    this._opts = $.extend(this._opts || {}, Class.defaults, options);
+    $.extend(this, Class.defaults, options);
 
-    // option variables
-    this._bufferSize = this._opts.bufferSize;
-
-    // instance variables
     this._gl = gl;
     this._volumeTexture = volumeTexture;
-    this._frameBuffer = null;
-    this._accumulationBuffer = null;
-    this._renderBuffer = null;
-    this._transferFunction = null;
-    this._mvpInverseMatrix = null;
-    this._clipQuad = null;
-    this._clipQuadProgram = null;
-
-    // function binds
 
     _._init.call(this);
 };
 
 Class.defaults = {
-    bufferSize: 512
+    _bufferSize : 512
 };
 
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
 
+_._nullify = function() {
+    this._frameBuffer        = null;
+    this._accumulationBuffer = null;
+    this._renderBuffer       = null;
+    this._transferFunction   = null;
+    this._mvpInverseMatrix   = null;
+    this._clipQuad           = null;
+    this._clipQuadProgram    = null;
+};
+
 _._init = function() {
+    _._nullify.call(this);
+
     var gl = this._gl;
 
     this._frameBuffer = new SingleBuffer(gl, this._getFrameBufferOptions());
@@ -67,6 +66,8 @@ _.destroy = function() {
     gl.deleteTexture(this._transferFunction);
     gl.deleteBuffer(this._clipQuad);
     gl.deleteProgram(this._clipQuadProgram);
+
+    _._nullify.call(this);
 };
 
 // =========================== INSTANCE METHODS ============================ //

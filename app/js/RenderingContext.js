@@ -7,8 +7,7 @@ var _ = Class.prototype;
 // ========================== CLASS DECLARATION ============================ //
 
 function RenderingContext(options) {
-    this._opts = $.extend(this._opts || {}, Class.defaults, options);
-    $.extend(this, this._opts);
+    $.extend(this, Class.defaults, options);
 
     this._render = this._render.bind(this);
 
@@ -31,7 +30,7 @@ _._nullify = function() {
 };
 
 _._init = function() {
-    this._nullify();
+    _._nullify.call(this);
 
     this._canvas = document.createElement('canvas');
     this._initGL();
@@ -69,7 +68,7 @@ _.destroy = function() {
     this._cameraController.destroy();
     this._camera.destroy();
 
-    this._nullify();
+    _._nullify.call(this);
 };
 
 // ============================ WEBGL SUBSYSTEM ============================ //
