@@ -8,22 +8,8 @@ var _ = Class.prototype;
 
 function RenderingContext(options) {
     this._opts = $.extend(this._opts || {}, Class.defaults, options);
+    $.extend(this, this._opts);
 
-    // option variables
-
-    // instance variables
-    this._canvas = null;
-    this._gl = null;
-    this._camera = null;
-    this._cameraController = null;
-    this._renderer = null;
-    this._toneMapper = null;
-    this._volumeTexture = null;
-    this._transferFunction = null;
-    this._program = null;
-    this._clipQuad = null;
-
-    // function binds
     this._render = this._render.bind(this);
 
     _._init.call(this);
@@ -34,8 +20,72 @@ Class.defaults = {
 
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
 
+_._nullify = function() {
+    this._canvas = null;
+    this._camera = null;
+    this._cameraController = null;
+    this._renderer = null;
+    this._toneMapper = null;
+
+    this._nullifyGL();
+};
+
 _._init = function() {
+    this._nullify();
+
     this._canvas = document.createElement('canvas');
+    this._initGL();
+
+    this._camera = new Camera();
+    this._cameraController = new OrbitCameraController(this._camera, this._canvas);
+    this._renderer = new MIPRenderer(this._gl, this._volumeTexture);
+
+    this._contextRestorable = true;
+
+    this._canvas.addEventListener('webglcontextlost', this._webglcontextlostHandler);
+    this._canvas.addEventListener('webglcontextrestored', this._webglcontextrestoredHandler);
+
+    this._camera.position.z = 1.5;
+    this._camera.fovX = 0.3;
+    this._camera.fovY = 0.3;
+
+    this._camera.updateMatrices();
+    var mvpi = this._camera.transformationMatrix.clone().inverse().transpose();
+    this._renderer.setMvpInverseMatrix(mvpi);
+};
+
+_.destroy = function() {
+    this.stopRendering();
+    this._destroyGL();
+
+    this._canvas.removeEventListener('webglcontextlost', this._webglcontextlostHandler);
+    this._canvas.removeEventListener('webglcontextrestored', this._webglcontextrestoredHandler);
+
+    if (this._canvas.parentNode) {
+        this._canvas.parentNode.removeChild(this._canvas);
+    }
+
+    this._renderer.destroy();
+    this._cameraController.destroy();
+    this._camera.destroy();
+
+    this._nullify();
+};
+
+// ============================ WEBGL SUBSYSTEM ============================ //
+
+_._nullifyGL = function() {
+    this._gl               = null;
+    this._volumeTexture    = null;
+    this._transferFunction = null;
+    this._program          = null;
+    this._clipQuad         = null;
+    this._extLoseContext   = null;
+};
+
+_._initGL = function() {
+    this._nullifyGL();
+
     this._gl = WebGLUtils.getContext(this._canvas, ['webgl2'], {
         alpha                 : false,
         depth                 : false,
@@ -44,6 +94,7 @@ _._init = function() {
         preserveDrawingBuffer : true
     });
     var gl = this._gl;
+    this._extLoseContext = gl.getExtension('WEBGL_lose_context');
 
     this._volumeTexture = WebGLUtils.createTexture(gl, {
         target         : gl.TEXTURE_3D,
@@ -61,19 +112,6 @@ _._init = function() {
         mag            : gl.LINEAR
     });
 
-    this._camera = new Camera();
-    this._cameraController = new OrbitCameraController(this._camera, this._canvas);
-    this._renderer = new EAMRenderer(gl, this._volumeTexture);
-
-    this._camera.position.z = 1.5;
-    this._camera.fovX = 0.3;
-    this._camera.fovY = 0.3;
-
-    this._camera.updateMatrices();
-    var tr = new Matrix();
-    tr.copy(this._camera.transformationMatrix).inverse().transpose();
-    this._renderer.setMvpInverseMatrix(tr);
-
     this._program = WebGLUtils.compileShaders(gl, {
         quad: SHADERS.quad
     }, MIXINS).quad;
@@ -81,26 +119,42 @@ _._init = function() {
     this._clipQuad = WebGLUtils.createClipQuad(gl);
 };
 
-_.destroy = function() {
-    this.stopRendering();
-
-    if (this._canvas.parentNode) {
-        this._canvas.parentNode.removeChild(this._canvas);
+_._destroyGL = function() {
+    var gl = this._gl;
+    if (!gl) {
+        return;
     }
 
-    this._renderer.destroy();
-    this._cameraController.destroy();
-    this._camera.destroy();
-    var gl = this._gl;
     gl.deleteProgram(this._program);
     gl.deleteBuffer(this._clipQuad);
     gl.deleteTexture(this._volumeTexture);
+
+    this._contextRestorable = false;
+    if (this._extLoseContext) {
+        this._extLoseContext.loseContext();
+    }
+    this._nullifyGL();
+};
+
+_._webglcontextlostHandler = function() {
+    if (this._contextRestorable) {
+        e.preventDefault();
+    }
+    this._nullifyGL();
+};
+
+_._webglcontextrestoredHandler = function() {
+    this._initGL();
 };
 
 // =========================== INSTANCE METHODS ============================ //
 
 _.resize = function(width, height) {
     var gl = this._gl;
+    if (!gl) {
+        return;
+    }
+
     this._canvas.width = width;
     this._canvas.height = height;
     this._camera.resize(width, height);
@@ -108,6 +162,10 @@ _.resize = function(width, height) {
 
 _.setVolume = function(volume) {
     var gl = this._gl;
+    if (!gl) {
+        return;
+    }
+
     gl.bindTexture(gl.TEXTURE_3D, this._volumeTexture);
     gl.texImage3D(gl.TEXTURE_3D, 0, gl.R16F,
         volume.width, volume.height, volume.depth,
@@ -121,6 +179,9 @@ _.getCanvas = function() {
 
 _._render = function() {
     var gl = this._gl;
+    if (!gl) {
+        return;
+    }
 
     if (this._camera.isDirty) {
         this._camera.isDirty = false;
