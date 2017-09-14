@@ -42,7 +42,7 @@ _._init = function() {
 _.destroy = function() {
     this._renderBuffer.destroy();
     gl.deleteBuffer(this._clipQuad);
-    gl.deleteProgram(this._clipQuadProgram);
+    gl.deleteProgram(this._clipQuadProgram.program);
 
     _._nullify.call(this);
 };

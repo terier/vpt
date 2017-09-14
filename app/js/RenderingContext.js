@@ -131,7 +131,7 @@ _._destroyGL = function() {
         return;
     }
 
-    gl.deleteProgram(this._program);
+    gl.deleteProgram(this._program.program);
     gl.deleteBuffer(this._clipQuad);
     gl.deleteTexture(this._volumeTexture);
 

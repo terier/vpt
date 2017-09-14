@@ -55,9 +55,9 @@ _._init = function() {
             var bits = parseInt(this._$bits.filter(':checked').val());
             var reader = new FileReader();
             reader.onload = function(e) {
-                this._onLoad(e.target.result, size, bits);
+                this.onLoad(e.target.result, size, bits);
             }.bind(this);
-            reader.onerror = this._onError;
+            reader.onerror = this.onError;
             reader.readAsArrayBuffer(file);
         }
     }.bind(this));
