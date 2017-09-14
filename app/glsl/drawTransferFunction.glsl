@@ -3,7 +3,7 @@
 #version 300 es
 precision mediump float;
 
-in vec2 aPosition;
+layout(location = 0) in vec2 aPosition;
 out vec2 vPosition;
 
 void main() {
