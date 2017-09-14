@@ -16,11 +16,11 @@ INPUT_JS         := Util.js \
                     SingleBuffer.js \
                     DoubleBuffer.js \
                     TransferFunctionWidget.js \
-                    dialogs/Navbar.js \
+                    Navbar.js \
                     dialogs/OpenFileDialog.js \
-                    dialogs/EAMRendererController.js \
-                    dialogs/ISORendererController.js \
-                    dialogs/MIPRendererController.js \
+                    dialogs/EAMRendererDialog.js \
+                    dialogs/ISORendererDialog.js \
+                    dialogs/MIPRendererDialog.js \
                     renderers/AbstractRenderer.js \
                     renderers/EAMRenderer.js \
                     renderers/ISORenderer.js \

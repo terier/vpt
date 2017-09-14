@@ -1,4 +1,4 @@
-.iso-renderer-controller {
+.eam-renderer-dialog {
     position: fixed;
     z-index: 1010;
     width: 300px;
@@ -6,11 +6,11 @@
     box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.3);
 }
 
-.iso-renderer-controller .panel-heading {
+.eam-renderer-dialog .panel-heading {
     cursor: move;
 }
 
-.iso-renderer-controller .resize-handle {
+.eam-renderer-dialog .resize-handle {
     position: absolute;
     right: 0;
     bottom: 0;
@@ -19,7 +19,7 @@
     cursor: se-resize;
 }
 
-.iso-renderer-controller:hover {
+.eam-renderer-dialog:hover {
     opacity: 1;
 }
 

@@ -1,4 +1,4 @@
-.mip-renderer-controller {
+.mip-renderer-dialog {
     position: fixed;
     z-index: 1010;
     width: 300px;
@@ -6,11 +6,11 @@
     box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.3);
 }
 
-.mip-renderer-controller .panel-heading {
+.mip-renderer-dialog .panel-heading {
     cursor: move;
 }
 
-.mip-renderer-controller .resize-handle {
+.mip-renderer-dialog .resize-handle {
     position: absolute;
     right: 0;
     bottom: 0;
@@ -19,7 +19,7 @@
     cursor: se-resize;
 }
 
-.mip-renderer-controller:hover {
+.mip-renderer-dialog:hover {
     opacity: 1;
 }
 

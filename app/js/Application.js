@@ -18,13 +18,13 @@ Class.defaults = {
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
 
 _._nullify = function() {
-    this._renderingContext      = null;
-    this._$canvas               = null;
-    this._navbar                = null;
-    this._openFileDialog        = null;
-    this._mipRendererController = null;
-    this._isoRendererController = null;
-    this._eamRendererController = null;
+    this._renderingContext  = null;
+    this._$canvas           = null;
+    this._navbar            = null;
+    this._openFileDialog    = null;
+    this._mipRendererDialog = null;
+    this._isoRendererDialog = null;
+    this._eamRendererDialog = null;
 };
 
 _._init = function() {
@@ -51,17 +51,17 @@ _._init = function() {
         }.bind(this)
     });
 
-    this._mipRendererController = new MIPRendererController(
+    this._mipRendererDialog = new MIPRendererDialog(
         document.body,
         this._renderingContext._renderer, {
     });
 
-    this._isoRendererController = new ISORendererController(
+    this._isoRendererDialog = new ISORendererDialog(
         document.body,
         this._renderingContext._renderer, {
     });
 
-    this._eamRendererController = new EAMRendererController(
+    this._eamRendererDialog = new EAMRendererDialog(
         document.body,
         this._renderingContext._renderer, {
     });
@@ -71,14 +71,14 @@ _._init = function() {
         onOpenFile: function() {
             this._openFileDialog.show();
         }.bind(this),
-        onMipRendererController: function() {
-            this._mipRendererController.show();
+        onMipRendererDialog: function() {
+            this._mipRendererDialog.show();
         }.bind(this),
-        onIsoRendererController: function() {
-            this._isoRendererController.show();
+        onIsoRendererDialog: function() {
+            this._isoRendererDialog.show();
         }.bind(this),
-        onEamRendererController: function() {
-            this._eamRendererController.show();
+        onEamRendererDialog: function() {
+            this._eamRendererDialog.show();
         }.bind(this),
         onResetRenderer: function() {
             this._renderingContext._renderer.reset();
@@ -92,9 +92,9 @@ _.destroy = function() {
     this._renderingContext.destroy();
     this._navbar.destroy();
     this._openFileDialog.destroy();
-    this._mipRendererController.destroy();
-    this._isoRendererController.destroy();
-    this._eamRendererController.destroy();
+    this._mipRendererDialog.destroy();
+    this._isoRendererDialog.destroy();
+    this._eamRendererDialog.destroy();
     this._$canvas.remove();
 
     _._nullify.call(this);

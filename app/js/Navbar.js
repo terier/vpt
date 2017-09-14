@@ -15,22 +15,22 @@ function Navbar(container, options) {
 }
 
 Class.defaults = {
-    onOpenFile              : null,
-    onResetRenderer         : null,
-    onMipRendererController : null,
-    onIsoRendererController : null,
-    onEamRendererController : null
+    onOpenFile          : null,
+    onResetRenderer     : null,
+    onMipRendererDialog : null,
+    onIsoRendererDialog : null,
+    onEamRendererDialog : null
 };
 
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
 
 _._nullify = function() {
-    this._$html                  = null;
-    this._$openFile              = null;
-    this._$resetRenderer         = null;
-    this._$mipRendererController = null;
-    this._$isoRendererController = null;
-    this._$eamRendererController = null;
+    this._$html              = null;
+    this._$openFile          = null;
+    this._$resetRenderer     = null;
+    this._$mipRendererDialog = null;
+    this._$isoRendererDialog = null;
+    this._$eamRendererDialog = null;
 };
 
 _._init = function() {
@@ -39,16 +39,16 @@ _._init = function() {
     this._$html = $(TEMPLATES['Navbar.html']);
     this._$openFile = this._$html.find('[name="open-file-button"]');
     this._$resetRenderer = this._$html.find('[name="reset-renderer-button"]');
-    this._$mipRendererController = this._$html.find('[name="mip-renderer-controller-button"]');
-    this._$isoRendererController = this._$html.find('[name="iso-renderer-controller-button"]');
-    this._$eamRendererController = this._$html.find('[name="eam-renderer-controller-button"]');
+    this._$mipRendererDialog = this._$html.find('[name="mip-renderer-dialog-button"]');
+    this._$isoRendererDialog = this._$html.find('[name="iso-renderer-dialog-button"]');
+    this._$eamRendererDialog = this._$html.find('[name="eam-renderer-dialog-button"]');
 
     this._$container.append(this._$html);
     this._$openFile.click(this.onOpenFile);
     this._$resetRenderer.click(this.onResetRenderer);
-    this._$mipRendererController.click(this.onMipRendererController);
-    this._$isoRendererController.click(this.onIsoRendererController);
-    this._$eamRendererController.click(this.onEamRendererController);
+    this._$mipRendererDialog.click(this.onMipRendererDialog);
+    this._$isoRendererDialog.click(this.onIsoRendererDialog);
+    this._$eamRendererDialog.click(this.onEamRendererDialog);
 };
 
 _.destroy = function() {

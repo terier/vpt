@@ -1,12 +1,12 @@
 (function(global) {
 'use strict';
 
-var Class = global.MIPRendererController = MIPRendererController;
+var Class = global.EAMRendererDialog = EAMRendererDialog;
 var _ = Class.prototype;
 
 // ========================== CLASS DECLARATION ============================ //
 
-function MIPRendererController(container, renderer, options) {
+function EAMRendererDialog(container, renderer, options) {
     $.extend(this, Class.defaults, options);
 
     this._$container = $(container);
@@ -16,28 +16,31 @@ function MIPRendererController(container, renderer, options) {
 }
 
 Class.defaults = {
-    steps : 10
+    steps           : 10,
+    alphaCorrection : 1
 };
 
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
 
 _._nullify = function() {
-    this._$html         = null;
-    this._$heading      = null;
-    this._$resizeHandle = null;
-    this._$closeButton  = null;
-    this._$steps        = null;
+    this._$html            = null;
+    this._$heading         = null;
+    this._$resizeHandle    = null;
+    this._$closeButton     = null;
+    this._$steps           = null;
+    this._$alphaCorrection = null;
 };
 
 _._init = function() {
     _._nullify.call(this);
 
-    this._$html = $(TEMPLATES['MIPRendererController.html']);
+    this._$html = $(TEMPLATES['EAMRendererDialog.html']);
     this._$heading = this._$html.find('.panel-heading');
     this._$resizeHandle = this._$html.find('.resize-handle');
     this._$closeButton = this._$html.find('.close');
 
     this._$steps = this._$html.find('[name="steps"]');
+    this._$alphaCorrection = this._$html.find('[name="alpha-correction"]');
 
     this._$html.hide();
     this._$container.append(this._$html);
@@ -56,6 +59,11 @@ _._init = function() {
     this._$steps.val(this.steps);
     this._$steps.change(function() {
         this._renderer._stepSize = 1 / parseInt(this._$steps.val(), 10);
+    }.bind(this));
+
+    this._$alphaCorrection.val(this.alphaCorrection);
+    this._$alphaCorrection.change(function() {
+        this._renderer._alphaCorrection = parseFloat(this._$alphaCorrection.val());
     }.bind(this));
 };
 
