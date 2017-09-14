@@ -14,7 +14,11 @@
 * Priority:
   - VPTRenderer
   - AbstractToneMapper
+* Input ownership (volume for renderers, frame for tone mappers)
 * Dialog abstraction layer
+* Revisit inheritance
+
+* Remove the need for EXT_color_buffer_float?
 * Automatic dependency resolution tool
 * Non-blocking file processing
 * Remove dependencies:
