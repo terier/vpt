@@ -20,11 +20,11 @@ Class.defaults = {
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
 
 _._nullify = function() {
-    this._canvas = null;
-    this._camera = null;
+    this._canvas           = null;
+    this._camera           = null;
     this._cameraController = null;
-    this._renderer = null;
-    this._toneMapper = null;
+    this._renderer         = null;
+    this._toneMapper       = null;
 
     this._nullifyGL();
 };
