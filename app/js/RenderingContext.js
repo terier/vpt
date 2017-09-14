@@ -96,6 +96,11 @@ _._initGL = function() {
     });
     var gl = this._gl;
     this._extLoseContext = gl.getExtension('WEBGL_lose_context');
+    this._extColorBufferFloat = gl.getExtension('EXT_color_buffer_float');
+
+    if (!this._extColorBufferFloat) {
+        console.error('EXT_color_buffer_float not supported!');
+    }
 
     this._volumeTexture = WebGLUtils.createTexture(gl, {
         target         : gl.TEXTURE_3D,
