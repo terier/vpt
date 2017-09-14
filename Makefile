@@ -25,6 +25,8 @@ INPUT_JS         := Util.js \
                     renderers/EAMRenderer.js \
                     renderers/ISORenderer.js \
                     renderers/MIPRenderer.js \
+                    tonemappers/AbstractToneMapper.js \
+                    tonemappers/ReinhardToneMapper.js \
                     RenderingContext.js \
                     Application.js \
                     main.js
