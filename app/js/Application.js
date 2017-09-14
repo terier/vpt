@@ -18,13 +18,14 @@ Class.defaults = {
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
 
 _._nullify = function() {
-    this._renderingContext  = null;
-    this._$canvas           = null;
-    this._navbar            = null;
-    this._openFileDialog    = null;
-    this._mipRendererDialog = null;
-    this._isoRendererDialog = null;
-    this._eamRendererDialog = null;
+    this._renderingContext         = null;
+    this._$canvas                  = null;
+    this._navbar                   = null;
+    this._openFileDialog           = null;
+    this._mipRendererDialog        = null;
+    this._isoRendererDialog        = null;
+    this._eamRendererDialog        = null;
+    this._reinhardToneMapperDialog = null;
 };
 
 _._init = function() {
@@ -51,6 +52,8 @@ _._init = function() {
         }.bind(this)
     });
 
+    // TODO: remove direct references to private members,
+    //       instantiate correct dialog with an abstract factory
     this._mipRendererDialog = new MIPRendererDialog(
         document.body,
         this._renderingContext._renderer, {
@@ -66,10 +69,18 @@ _._init = function() {
         this._renderingContext._renderer, {
     });
 
+    this._reinhardToneMapperDialog = new ReinhardToneMapperDialog(
+        document.body,
+        this._renderingContext._toneMapper, {
+    })
+
     this._navbar = new Navbar(
         document.body, {
         onOpenFile: function() {
             this._openFileDialog.show();
+        }.bind(this),
+        onResetRenderer: function() {
+            this._renderingContext._renderer.reset();
         }.bind(this),
         onMipRendererDialog: function() {
             this._mipRendererDialog.show();
@@ -80,8 +91,8 @@ _._init = function() {
         onEamRendererDialog: function() {
             this._eamRendererDialog.show();
         }.bind(this),
-        onResetRenderer: function() {
-            this._renderingContext._renderer.reset();
+        onReinhardToneMapperDialog: function() {
+            this._reinhardToneMapperDialog.show();
         }.bind(this)
     });
 
@@ -95,6 +106,7 @@ _.destroy = function() {
     this._mipRendererDialog.destroy();
     this._isoRendererDialog.destroy();
     this._eamRendererDialog.destroy();
+    this._reinhardToneMapperDialog.destroy();
     this._$canvas.remove();
 
     _._nullify.call(this);

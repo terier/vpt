@@ -152,8 +152,8 @@ _._getRenderBufferOptions = function() {
         wrapS          : gl.CLAMP_TO_EDGE,
         wrapT          : gl.CLAMP_TO_EDGE,
         format         : gl.RGBA,
-        internalFormat : gl.RGBA,
-        type           : gl.UNSIGNED_BYTE
+        internalFormat : gl.RGBA16F,
+        type           : gl.FLOAT
     };
 };
 

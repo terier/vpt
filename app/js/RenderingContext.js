@@ -38,7 +38,7 @@ _._init = function() {
     this._camera = new Camera();
     this._cameraController = new OrbitCameraController(this._camera, this._canvas);
     this._renderer = new MIPRenderer(this._gl, this._volumeTexture);
-    this._toneMapper = new ReinhardToneMapper(this._gl);
+    this._toneMapper = new ReinhardToneMapper(this._gl, this._renderer.getTexture());
 
     this._contextRestorable = true;
 
@@ -202,6 +202,7 @@ _._render = function() {
 
     // TODO: pipeline goes here
     this._renderer.render();
+    this._toneMapper.render();
 
     gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
     var program = this._program;
@@ -212,7 +213,7 @@ _._render = function() {
     gl.enableVertexAttribArray(aPosition);
     gl.vertexAttribPointer(aPosition, 2, gl.FLOAT, false, 0, 0);
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this._renderer.getTexture());
+    gl.bindTexture(gl.TEXTURE_2D, this._toneMapper.getTexture());
     gl.uniform1i(program.uniforms.uTexture, 0);
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 

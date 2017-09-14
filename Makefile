@@ -21,6 +21,7 @@ INPUT_JS         := Util.js \
                     dialogs/EAMRendererDialog.js \
                     dialogs/ISORendererDialog.js \
                     dialogs/MIPRendererDialog.js \
+                    dialogs/ReinhardToneMapperDialog.js \
                     renderers/AbstractRenderer.js \
                     renderers/EAMRenderer.js \
                     renderers/ISORenderer.js \

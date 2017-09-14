@@ -24,5 +24,5 @@ out vec4 color;
 
 void main() {
     vec4 src = texture(uTexture, vFragmentPosition);
-    color = src / (1.0 + src);
+    color = src / (1.0 / uExposure + src);
 }
