@@ -22,12 +22,14 @@ INPUT_JS         := Util.js \
                     dialogs/ISORendererDialog.js \
                     dialogs/MIPRendererDialog.js \
                     dialogs/ReinhardToneMapperDialog.js \
+                    dialogs/RangeToneMapperDialog.js \
                     renderers/AbstractRenderer.js \
                     renderers/EAMRenderer.js \
                     renderers/ISORenderer.js \
                     renderers/MIPRenderer.js \
                     tonemappers/AbstractToneMapper.js \
                     tonemappers/ReinhardToneMapper.js \
+                    tonemappers/RangeToneMapper.js \
                     RenderingContext.js \
                     Application.js \
                     main.js

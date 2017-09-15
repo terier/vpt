@@ -20,7 +20,8 @@ Class.defaults = {
     onMipRendererDialog        : null,
     onIsoRendererDialog        : null,
     onEamRendererDialog        : null,
-    onReinhardToneMapperDialog : null
+    onReinhardToneMapperDialog : null,
+    onRangeToneMapperDialog    : null
 };
 
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
@@ -33,6 +34,7 @@ _._nullify = function() {
     this._$isoRendererDialog        = null;
     this._$eamRendererDialog        = null;
     this._$reinhardToneMapperDialog = null;
+    this._$rangeToneMapperDialog    = null;
 };
 
 _._init = function() {
@@ -45,6 +47,7 @@ _._init = function() {
     this._$isoRendererDialog = this._$html.find('[name="iso-renderer-dialog-button"]');
     this._$eamRendererDialog = this._$html.find('[name="eam-renderer-dialog-button"]');
     this._$reinhardToneMapperDialog = this._$html.find('[name="reinhard-tone-mapper-dialog-button"]');
+    this._$rangeToneMapperDialog = this._$html.find('[name="range-tone-mapper-dialog-button"]');
 
     this._$container.append(this._$html);
     this._$openFile.click(this.onOpenFile);
@@ -53,6 +56,7 @@ _._init = function() {
     this._$isoRendererDialog.click(this.onIsoRendererDialog);
     this._$eamRendererDialog.click(this.onEamRendererDialog);
     this._$reinhardToneMapperDialog.click(this.onReinhardToneMapperDialog);
+    this._$rangeToneMapperDialog.click(this.onRangeToneMapperDialog);
 };
 
 _.destroy = function() {

@@ -26,6 +26,7 @@ _._nullify = function() {
     this._isoRendererDialog        = null;
     this._eamRendererDialog        = null;
     this._reinhardToneMapperDialog = null;
+    this._rangeToneMapperDialog    = null;
 };
 
 _._init = function() {
@@ -72,7 +73,12 @@ _._init = function() {
     this._reinhardToneMapperDialog = new ReinhardToneMapperDialog(
         document.body,
         this._renderingContext._toneMapper, {
-    })
+    });
+
+    this._rangeToneMapperDialog = new RangeToneMapperDialog(
+        document.body,
+        this._renderingContext._toneMapper, {
+    });
 
     this._navbar = new Navbar(
         document.body, {
@@ -93,6 +99,9 @@ _._init = function() {
         }.bind(this),
         onReinhardToneMapperDialog: function() {
             this._reinhardToneMapperDialog.show();
+        }.bind(this),
+        onRangeToneMapperDialog: function() {
+            this._rangeToneMapperDialog.show();
         }.bind(this)
     });
 
@@ -107,6 +116,7 @@ _.destroy = function() {
     this._isoRendererDialog.destroy();
     this._eamRendererDialog.destroy();
     this._reinhardToneMapperDialog.destroy();
+    this._rangeToneMapperDialog.destroy();
     this._$canvas.remove();
 
     _._nullify.call(this);
