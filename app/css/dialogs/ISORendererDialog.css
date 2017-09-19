@@ -1,8 +1,11 @@
 .iso-renderer-dialog {
     position: fixed;
+    overflow: hidden;
     z-index: 1010;
     width: 300px;
     height: 300px;
+    min-width: 200px;
+    min-height: 100px;
     box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.3);
 }
 
