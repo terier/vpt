@@ -37,7 +37,7 @@ _._init = function() {
 
     this._camera = new Camera();
     this._cameraController = new OrbitCameraController(this._camera, this._canvas);
-    this._renderer = new MIPRenderer(this._gl, this._volumeTexture);
+    this._renderer = new EAMRenderer(this._gl, this._volumeTexture);
     this._toneMapper = new RangeToneMapper(this._gl, this._renderer.getTexture());
 
     this._contextRestorable = true;

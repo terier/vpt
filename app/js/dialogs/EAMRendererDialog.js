@@ -23,12 +23,13 @@ Class.defaults = {
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
 
 _._nullify = function() {
-    this._$html            = null;
-    this._$heading         = null;
-    this._$resizeHandle    = null;
-    this._$closeButton     = null;
-    this._$steps           = null;
-    this._$alphaCorrection = null;
+    this._$html                  = null;
+    this._$heading               = null;
+    this._$resizeHandle          = null;
+    this._$closeButton           = null;
+    this._$steps                 = null;
+    this._$alphaCorrection       = null;
+    this._transferFunctionWidget = null;
 };
 
 _._init = function() {
@@ -65,9 +66,13 @@ _._init = function() {
     this._$alphaCorrection.change(function() {
         this._renderer._alphaCorrection = parseFloat(this._$alphaCorrection.val());
     }.bind(this));
+
+    var tfwContainer = this._$html.find('.tfw-container');
+    this._transferFunctionWidget = new TransferFunctionWidget(tfwContainer);
 };
 
 _.destroy = function() {
+    this._transferFunctionWidget.destroy();
     this._$html.remove();
 
     _._nullify.call(this);

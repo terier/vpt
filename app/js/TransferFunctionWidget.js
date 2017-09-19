@@ -6,7 +6,7 @@ var _ = Class.prototype;
 
 // ========================== CLASS DECLARATION ============================ //
 
-function TransferFunctionWidget(options) {
+function TransferFunctionWidget(container, options) {
     $.extend(this, Class.defaults, options);
 
     this._$container = $(container);
@@ -18,20 +18,18 @@ Class.defaults = {
     _width                  : 256,
     _height                 : 256,
     _transferFunctionWidth  : 256,
-    _transferFunctionHeight : 256,
-    _nBumps                 : 16
+    _transferFunctionHeight : 256
 };
 
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
 
 _._nullify = function() {
-    this._$html       = null;
-    this._canvas      = null;
-    this._gl          = null;
-    this._clipQuad    = null;
-    this._program     = null;
-    this._bumps       = null;
-    this._bumpHandles = null;
+    this._$html    = null;
+    this._canvas   = null;
+    this._gl       = null;
+    this._clipQuad = null;
+    this._program  = null;
+    this._bumps    = null;
 };
 
 _._init = function() {
@@ -43,20 +41,22 @@ _._init = function() {
     this._canvas.width = this._transferFunctionWidth;
     this._canvas.height = this._transferFunctionHeight;
     this.resize(this._width, this._height);
+
     this._gl = WebGLUtils.getContext(this._canvas, ['webgl2'], {
-        depth: false,
-        stencil: false,
-        antialias: false,
-        preserveDrawingBuffer: true
+        depth                 : false,
+        stencil               : false,
+        antialias             : false,
+        preserveDrawingBuffer : true
     });
     var gl = this._gl;
+
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
     this._clipQuad = WebGLUtils.createClipQuad(gl);
     this._program = WebGLUtils.compileShaders(gl, {
         drawTransferFunction: SHADERS.drawTransferFunction
-    }, {
-        NBUMPS: this._nBumps
-    }).drawTransferFunction;
-
+    }, MIXINS).drawTransferFunction;
     var program = this._program;
     gl.useProgram(program.program);
     gl.bindBuffer(gl.ARRAY_BUFFER, this._clipQuad);
@@ -64,49 +64,17 @@ _._init = function() {
     gl.vertexAttribPointer(program.attributes.aPosition, 2, gl.FLOAT, false, 0, 0);
 
     this._bumps = [];
-    for (var i = 0; i < this._nBumps; i++) {
-        this._bumps[i] = {
-            position: {
-                x: Math.random(),
-                y: Math.random()
-            },
-            size: {
-                x: Math.random() * 0.5,
-                y: Math.random() * 0.5
-            },
-            color: {
-                r: Math.random(),
-                g: Math.random(),
-                b: Math.random(),
-                a: Math.random()
-            }
-        };
-        var $handle = $(TEMPLATES['TransferFunctionWidgetBumpHandle.html']);
-        $handle.data('index', i);
-        this._$html.append($handle);
-        var left = (this._bumps[i].position.x * this._width - 5) + 'px';
-        var top = ((1 - this._bumps[i].position.y) * this._height - 5) + 'px';
-        $handle.css({
-            left: left,
-            top: top
-        });
-        $handle.draggable({
-            drag: function(e, ui) {
-                var x = (ui.position.left + 5) / this._width;
-                var y = 1 - (ui.position.top + 5) / this._height;
-                var i = parseInt($(e.target).data('index'), 10);
-                this._bumps[i].position.x = x;
-                this._bumps[i].position.y = y;
-                this.render();
-            }.bind(this)
-        });
-    }
+
+    var addBumpButton = this._$html.find('[name="add-bump"]');
+    addBumpButton.click(function() {
+        this.addBump();
+    }.bind(this));
 };
 
 _.destroy = function() {
     var gl = this._gl;
     gl.deleteBuffer(this._clipQuad);
-    gl.deleteProgram(this._program);
+    gl.deleteProgram(this._program.program);
     this._$html.remove();
 
     _._nullify.call(this);
@@ -134,20 +102,65 @@ _.render = function() {
     var gl = this._gl;
     var program = this._program;
 
-    for (var i = 0; i < this._nBumps; i++) {
-        var bump = this._bumps[i];
-        gl.uniform2f(program.uniforms['uBumps[' + i + '].position'], bump.position.x, bump.position.y);
-        gl.uniform2f(program.uniforms['uBumps[' + i + '].size'], bump.size.x, bump.size.y);
-        gl.uniform4f(program.uniforms['uBumps[' + i + '].color'], bump.color.r, bump.color.g, bump.color.b, bump.color.a);
-    }
-
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    this._bumps.forEach(function(bump) {
+        gl.uniform2f(program.uniforms['uPosition'], bump.position.x, bump.position.y);
+        gl.uniform2f(program.uniforms['uSize'], bump.size.x, bump.size.y);
+        gl.uniform4f(program.uniforms['uColor'], bump.color.r, bump.color.g, bump.color.b, bump.color.a);
+        gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+    });
 };
 
-_._createBumpHandle = function() {
+_.addBump = function(options) {
     var $handle = $(TEMPLATES['TransferFunctionWidgetBumpHandle.html']);
-    this._$html.append($handle);
-    return $handle;
+    var bumpIndex = this._bumps.length;
+    this._$html.find('.widget').append($handle);
+    $handle.data('index', bumpIndex);
+    var newBump = {
+        position: {
+            x: Math.random(),
+            y: Math.random()
+        },
+        size: {
+            x: Math.random() * 0.5,
+            y: Math.random() * 0.5
+        },
+        color: {
+            r: Math.random(),
+            g: Math.random(),
+            b: Math.random(),
+            a: Math.random()
+        }
+    };
+    this._bumps.push(newBump);
+
+    var left = (newBump.position.x * this._width) + 'px';
+    var top = ((1 - newBump.position.y) * this._height) + 'px';
+    $handle.css({
+        left: left,
+        top: top
+    });
+    $handle.draggable({
+        handle: $handle.find('.bump-handle'),
+        drag: function(e, ui) {
+            var x = ui.position.left / this._width;
+            var y = 1 - ui.position.top / this._height;
+            var i = parseInt($(e.target).data('index'), 10);
+            this._bumps[i].position.x = x;
+            this._bumps[i].position.y = y;
+            this.render();
+        }.bind(this)
+    });
+
+    this.selectBump(bumpIndex);
+    this.render();
+};
+
+_.selectBump = function(index) {
+    var handles = this._$html.find('.bump');
+    var correctHandle = handles.eq(index);
+    handles.removeClass('selected');
+    correctHandle.addClass('selected');
 };
 
 // ============================ STATIC METHODS ============================= //
