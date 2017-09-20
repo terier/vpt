@@ -151,6 +151,10 @@ _.addBump = function(options) {
             this.render();
         }.bind(this)
     });
+    $handle.mousedown(function(e) {
+        var i = parseInt($(e.currentTarget).data('index'), 10);
+        this.selectBump(i);
+    }.bind(this));
 
     this.selectBump(bumpIndex);
     this.render();
