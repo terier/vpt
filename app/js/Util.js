@@ -28,6 +28,14 @@ function inherit(sub, sup) {
     sub.sup = sup;
 }
 
+function parseColorHex(str) {
+    return {
+        r: parseInt(str.substr(1, 2), 16) / 255,
+        g: parseInt(str.substr(3, 2), 16) / 255,
+        b: parseInt(str.substr(5, 2), 16) / 255
+    };
+}
+
 var noimpl = new Error('Not implemented!');
 
 return {
@@ -36,6 +44,7 @@ return {
     lerp: lerp,
     downloadJSON: downloadJSON,
     inherit: inherit,
+    parseColorHex: parseColorHex,
     noimpl: noimpl
 };
 

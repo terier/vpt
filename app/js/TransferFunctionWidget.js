@@ -11,6 +11,8 @@ function TransferFunctionWidget(container, options) {
 
     this._$container = $(container);
 
+    this._onColorChange = this._onColorChange.bind(this);
+
     _._init.call(this);
 };
 
@@ -18,24 +20,31 @@ Class.defaults = {
     _width                  : 256,
     _height                 : 256,
     _transferFunctionWidth  : 256,
-    _transferFunctionHeight : 256
+    _transferFunctionHeight : 256,
+    scaleSpeed              : 0.003,
+    onChange                : null
 };
 
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
 
 _._nullify = function() {
-    this._$html    = null;
-    this._canvas   = null;
-    this._gl       = null;
-    this._clipQuad = null;
-    this._program  = null;
-    this._bumps    = null;
+    this._$html        = null;
+    this._$colorPicker = null;
+    this._$alphaPicker = null;
+    this._canvas       = null;
+    this._gl           = null;
+    this._clipQuad     = null;
+    this._program      = null;
+    this._bumps        = null;
 };
 
 _._init = function() {
     _._nullify.call(this);
 
     this._$html = $(TEMPLATES['TransferFunctionWidget.html']);
+    this._$colorPicker = this._$html.find('[name="color"]');
+    this._$alphaPicker = this._$html.find('[name="alpha"]');
+
     this._$container.append(this._$html);
     this._canvas = this._$html.find('canvas').get(0);
     this._canvas.width = this._transferFunctionWidth;
@@ -69,6 +78,9 @@ _._init = function() {
     addBumpButton.click(function() {
         this.addBump();
     }.bind(this));
+
+    this._$colorPicker.change(this._onColorChange);
+    this._$alphaPicker.change(this._onColorChange);
 };
 
 _.destroy = function() {
@@ -149,15 +161,30 @@ _.addBump = function(options) {
             this._bumps[i].position.x = x;
             this._bumps[i].position.y = y;
             this.render();
+            this.onChange && this.onChange();
         }.bind(this)
     });
     $handle.mousedown(function(e) {
         var i = parseInt($(e.currentTarget).data('index'), 10);
         this.selectBump(i);
     }.bind(this));
+    $handle.on('mousewheel', function(e) {
+        var amount = e.originalEvent.deltaY * this.scaleSpeed;
+        var scale = Math.exp(-amount);
+        var i = parseInt($(e.currentTarget).data('index'), 10);
+        this.selectBump(i);
+        if (e.shiftKey) {
+            this._bumps[i].size.y *= scale;
+        } else {
+            this._bumps[i].size.x *= scale;
+        }
+        this.render();
+        this.onChange && this.onChange();
+    }.bind(this));
 
     this.selectBump(bumpIndex);
     this.render();
+    this.onChange && this.onChange();
 };
 
 _.selectBump = function(index) {
@@ -165,6 +192,23 @@ _.selectBump = function(index) {
     var correctHandle = handles.eq(index);
     handles.removeClass('selected');
     correctHandle.addClass('selected');
+};
+
+_.getTransferFunction = function() {
+    return this._canvas;
+};
+
+_._onColorChange = function() {
+    var $selectedBump = this._$html.find('.bump.selected');
+    var i = parseInt($selectedBump.data('index'), 10);
+    var color = Util.parseColorHex(this._$colorPicker.val());
+    var alpha = parseFloat(this._$alphaPicker.val());
+    this._bumps[i].color.r = color.r;
+    this._bumps[i].color.g = color.g;
+    this._bumps[i].color.b = color.b;
+    this._bumps[i].color.a = alpha;
+    this.render();
+    this.onChange && this.onChange();
 };
 
 // ============================ STATIC METHODS ============================= //

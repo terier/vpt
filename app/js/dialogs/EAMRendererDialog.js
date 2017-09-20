@@ -68,7 +68,12 @@ _._init = function() {
     }.bind(this));
 
     var tfwContainer = this._$html.find('.tfw-container');
-    this._transferFunctionWidget = new TransferFunctionWidget(tfwContainer);
+    this._transferFunctionWidget = new TransferFunctionWidget(tfwContainer, {
+        onChange: function() {
+            this._renderer.reset();
+            this._renderer.setTransferFunction(this._transferFunctionWidget.getTransferFunction());
+        }.bind(this)
+    });
 };
 
 _.destroy = function() {
