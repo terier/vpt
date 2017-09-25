@@ -18,6 +18,7 @@ INPUT_JS         := Util.js \
                     TransferFunctionWidget.js \
                     Navbar.js \
                     dialogs/OpenFileDialog.js \
+                    dialogs/OpenEnvironmentMapDialog.js \
                     dialogs/EAMRendererDialog.js \
                     dialogs/ISORendererDialog.js \
                     dialogs/MIPRendererDialog.js \

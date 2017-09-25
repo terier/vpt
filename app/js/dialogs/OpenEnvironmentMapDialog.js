@@ -1,12 +1,12 @@
 (function(global) {
 'use strict';
 
-var Class = global.OpenFileDialog = OpenFileDialog;
+var Class = global.OpenEnvironmentMapDialog = OpenEnvironmentMapDialog;
 var _ = Class.prototype;
 
 // ========================== CLASS DECLARATION ============================ //
 
-function OpenFileDialog(container, options) {
+function OpenEnvironmentMapDialog(container, options) {
     $.extend(this, Class.defaults, options);
 
     this._$container = $(container);
@@ -24,8 +24,6 @@ Class.defaults = {
 _._nullify = function() {
     this._$html  = null;
     this._$input = null;
-    this._$size  = null;
-    this._$bits  = null;
     this._$open  = null;
     this._$close = null;
 };
@@ -33,10 +31,8 @@ _._nullify = function() {
 _._init = function() {
     _._nullify.call(this);
 
-    this._$html  = $(TEMPLATES['OpenFileDialog.html']);
+    this._$html  = $(TEMPLATES['OpenEnvironmentMapDialog.html']);
     this._$input = this._$html.find('[name="file"]')[0];
-    this._$size  = this._$html.find('[name="size"]');
-    this._$bits  = this._$html.find('[name="bits"]');
     this._$open  = this._$html.find('[name="open"]');
     this._$close = this._$html.find('[name="close"]');
 
@@ -47,18 +43,22 @@ _._init = function() {
     this._$open.click(function() {
         if (this._$input.files.length > 0) {
             var file = this._$input.files[0];
-            var size = {
-                x: parseInt(this._$size.filter('[data-axis="x"]').val()),
-                y: parseInt(this._$size.filter('[data-axis="y"]').val()),
-                z: parseInt(this._$size.filter('[data-axis="z"]').val())
-            };
-            var bits = parseInt(this._$bits.filter(':checked').val());
+            var image = new Image();
             var reader = new FileReader();
-            reader.addEventListener('load', function(e) {
-                this.onLoad(e.target.result, size, bits);
-            }.bind(this));
+
+            var onImageLoad = function() {
+                image.removeEventListener('load', onImageLoad);
+                this.onLoad(image);
+            }.bind(this);
+
+            var onReaderLoad = function() {
+                image.src = reader.result;
+            };
+
+            image.addEventListener('load', onImageLoad);
+            reader.addEventListener('load', onReaderLoad);
             reader.addEventListener('error', this.onError);
-            reader.readAsArrayBuffer(file);
+            reader.readAsDataURL(file);
         }
     }.bind(this));
 };

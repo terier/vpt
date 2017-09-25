@@ -22,6 +22,7 @@ _._nullify = function() {
     this._$canvas                  = null;
     this._navbar                   = null;
     this._openFileDialog           = null;
+    this._openEnvironmentMapDialog = null;
     this._mipRendererDialog        = null;
     this._isoRendererDialog        = null;
     this._eamRendererDialog        = null;
@@ -49,41 +50,51 @@ _._init = function() {
         onLoad: function(data, size, bits) {
             var volume = new Volume(data, size.x, size.y, size.z, bits);
             this._renderingContext.setVolume(volume);
-            this._renderingContext._renderer.reset();
+            this._renderingContext.getRenderer().reset();
         }.bind(this)
     });
 
-    // TODO: remove direct references to private members,
-    //       instantiate correct dialog with an abstract factory
+    this._openEnvironmentMapDialog = new OpenEnvironmentMapDialog(
+        document.body, {
+        onLoad: function(image) {
+            this._renderingContext.setEnvironmentMap(image);
+            this._renderingContext.getRenderer().reset();
+        }.bind(this)
+    });
+
+    // TODO: instantiate correct dialog with an abstract factory
     this._mipRendererDialog = new MIPRendererDialog(
         document.body,
-        this._renderingContext._renderer, {
+        this._renderingContext.getRenderer(), {
     });
 
     this._isoRendererDialog = new ISORendererDialog(
         document.body,
-        this._renderingContext._renderer, {
+        this._renderingContext.getRenderer(), {
     });
 
     this._eamRendererDialog = new EAMRendererDialog(
         document.body,
-        this._renderingContext._renderer, {
+        this._renderingContext.getRenderer(), {
     });
 
     this._reinhardToneMapperDialog = new ReinhardToneMapperDialog(
         document.body,
-        this._renderingContext._toneMapper, {
+        this._renderingContext.getToneMapper(), {
     });
 
     this._rangeToneMapperDialog = new RangeToneMapperDialog(
         document.body,
-        this._renderingContext._toneMapper, {
+        this._renderingContext.getToneMapper(), {
     });
 
     this._navbar = new Navbar(
         document.body, {
-        onOpenFile: function() {
+        onOpenFileDialog: function() {
             this._openFileDialog.show();
+        }.bind(this),
+        onOpenEnvironmentMapDialog: function() {
+            this._openEnvironmentMapDialog.show();
         }.bind(this),
         onResetRenderer: function() {
             this._renderingContext._renderer.reset();
@@ -112,6 +123,7 @@ _.destroy = function() {
     this._renderingContext.destroy();
     this._navbar.destroy();
     this._openFileDialog.destroy();
+    this._openEnvironmentMapDialog.destroy();
     this._mipRendererDialog.destroy();
     this._isoRendererDialog.destroy();
     this._eamRendererDialog.destroy();

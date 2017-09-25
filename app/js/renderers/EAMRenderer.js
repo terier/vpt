@@ -7,8 +7,8 @@ var _ = Class.prototype;
 
 // ========================== CLASS DECLARATION ============================ //
 
-function EAMRenderer(gl, volumeTexture, options) {
-    _.sup.constructor.call(this, gl, volumeTexture, options);
+function EAMRenderer(gl, volumeTexture, environmentTexture, options) {
+    _.sup.constructor.call(this, gl, volumeTexture, environmentTexture, options);
     $.extend(this, Class.defaults, options);
 
     _._init.call(this);

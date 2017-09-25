@@ -37,7 +37,7 @@ _._init = function() {
 
     this._camera = new Camera();
     this._cameraController = new OrbitCameraController(this._camera, this._canvas);
-    this._renderer = new EAMRenderer(this._gl, this._volumeTexture);
+    this._renderer = new EAMRenderer(this._gl, this._volumeTexture, this._environmentTexture);
     this._toneMapper = new RangeToneMapper(this._gl, this._renderer.getTexture());
 
     this._contextRestorable = true;
@@ -76,12 +76,14 @@ _.destroy = function() {
 // ============================ WEBGL SUBSYSTEM ============================ //
 
 _._nullifyGL = function() {
-    this._gl               = null;
-    this._volumeTexture    = null;
-    this._transferFunction = null;
-    this._program          = null;
-    this._clipQuad         = null;
-    this._extLoseContext   = null;
+    this._gl                  = null;
+    this._volumeTexture       = null;
+    this._environmentTexture  = null;
+    this._transferFunction    = null;
+    this._program             = null;
+    this._clipQuad            = null;
+    this._extLoseContext      = null;
+    this._extColorBufferFloat = null;
 };
 
 _._initGL = function() {
@@ -116,6 +118,19 @@ _._initGL = function() {
         wrapR          : gl.CLAMP_TO_EDGE,
         min            : gl.LINEAR,
         mag            : gl.LINEAR
+    });
+
+    this._environmentTexture = WebGLUtils.createTexture(gl, {
+        width          : 1,
+        height         : 1,
+        data           : new Float32Array([1]),
+        format         : gl.RGBA,
+        internalFormat : gl.RGBA, // TODO: HDRI & OpenEXR support
+        type           : gl.UNSIGNED_BYTE,
+        wrapS          : gl.CLAMP_TO_EDGE,
+        wrapT          : gl.CLAMP_TO_EDGE,
+        min            : gl.LINEAR,
+        max            : gl.LINEAR
     });
 
     this._program = WebGLUtils.compileShaders(gl, {
@@ -172,6 +187,7 @@ _.setVolume = function(volume) {
         return;
     }
 
+    // TODO: texture class, to avoid duplicating texture specs
     gl.bindTexture(gl.TEXTURE_3D, this._volumeTexture);
     gl.texImage3D(gl.TEXTURE_3D, 0, gl.R16F,
         volume.width, volume.height, volume.depth,
@@ -179,8 +195,30 @@ _.setVolume = function(volume) {
     gl.bindTexture(gl.TEXTURE_3D, null);
 };
 
+_.setEnvironmentMap = function(image) {
+    var gl = this._gl;
+    if (!gl) {
+        return;
+    }
+
+    // TODO: texture class, to avoid duplicating texture specs
+    gl.bindTexture(gl.TEXTURE_2D, this._environmentTexture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl. RGBA,
+        image.width, image.height,
+        0, gl.RGBA, gl.UNSIGNED_BYTE, image);
+    gl.bindTexture(gl.TEXTURE_2D, null);
+};
+
 _.getCanvas = function() {
     return this._canvas;
+};
+
+_.getRenderer = function() {
+    return this._renderer;
+};
+
+_.getToneMapper = function() {
+    return this._toneMapper;
 };
 
 _._render = function() {
