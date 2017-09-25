@@ -5,6 +5,7 @@
 //@@dialogs/MIPRendererDialog.js
 //@@dialogs/ISORendererDialog.js
 //@@dialogs/EAMRendererDialog.js
+//@@dialogs/MCSRendererDialog.js
 //@@dialogs/ReinhardToneMapperDialog.js
 //@@dialogs/RangeToneMapperDialog.js
 
@@ -36,6 +37,7 @@ _._nullify = function() {
     this._mipRendererDialog        = null;
     this._isoRendererDialog        = null;
     this._eamRendererDialog        = null;
+    this._mcsRendererDialog        = null;
     this._reinhardToneMapperDialog = null;
     this._rangeToneMapperDialog    = null;
 };
@@ -88,6 +90,11 @@ _._init = function() {
         this._renderingContext.getRenderer(), {
     });
 
+    this._mcsRendererDialog = new MCSRendererDialog(
+        document.body,
+        this._renderingContext.getRenderer(), {
+    });
+
     this._reinhardToneMapperDialog = new ReinhardToneMapperDialog(
         document.body,
         this._renderingContext.getToneMapper(), {
@@ -118,6 +125,9 @@ _._init = function() {
         onEamRendererDialog: function() {
             this._eamRendererDialog.show();
         }.bind(this),
+        onMcsRendererDialog: function() {
+            this._mcsRendererDialog.show();
+        }.bind(this),
         onReinhardToneMapperDialog: function() {
             this._reinhardToneMapperDialog.show();
         }.bind(this),
@@ -137,6 +147,7 @@ _.destroy = function() {
     this._mipRendererDialog.destroy();
     this._isoRendererDialog.destroy();
     this._eamRendererDialog.destroy();
+    this._mcsRendererDialog.destroy();
     this._reinhardToneMapperDialog.destroy();
     this._rangeToneMapperDialog.destroy();
     this._$canvas.remove();

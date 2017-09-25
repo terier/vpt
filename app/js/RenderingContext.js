@@ -5,6 +5,7 @@
 //@@renderers/MIPRenderer.js
 //@@renderers/ISORenderer.js
 //@@renderers/EAMRenderer.js
+//@@renderers/MCSRenderer.js
 //@@tonemappers/ReinhardToneMapper.js
 //@@tonemappers/RangeToneMapper.js
 //@@math/Matrix.js
@@ -48,8 +49,8 @@ _._init = function() {
 
     this._camera = new Camera();
     this._cameraController = new OrbitCameraController(this._camera, this._canvas);
-    this._renderer = new EAMRenderer(this._gl, this._volumeTexture, this._environmentTexture);
-    this._toneMapper = new RangeToneMapper(this._gl, this._renderer.getTexture());
+    this._renderer = new MCSRenderer(this._gl, this._volumeTexture, this._environmentTexture);
+    this._toneMapper = new ReinhardToneMapper(this._gl, this._renderer.getTexture());
 
     this._contextRestorable = true;
 

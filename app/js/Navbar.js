@@ -21,6 +21,7 @@ Class.defaults = {
     onMipRendererDialog        : null,
     onIsoRendererDialog        : null,
     onEamRendererDialog        : null,
+    onMcsRendererDialog        : null,
     onReinhardToneMapperDialog : null,
     onRangeToneMapperDialog    : null
 };
@@ -43,6 +44,7 @@ _._init = function() {
     this._$html.find('[name="mip-renderer-dialog-button"]').click(this.onMipRendererDialog);
     this._$html.find('[name="iso-renderer-dialog-button"]').click(this.onIsoRendererDialog);
     this._$html.find('[name="eam-renderer-dialog-button"]').click(this.onEamRendererDialog);
+    this._$html.find('[name="mcs-renderer-dialog-button"]').click(this.onMcsRendererDialog);
     this._$html.find('[name="reinhard-tone-mapper-dialog-button"]').click(this.onReinhardToneMapperDialog);
     this._$html.find('[name="range-tone-mapper-dialog-button"]').click(this.onRangeToneMapperDialog);
 };

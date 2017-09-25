@@ -1,0 +1,27 @@
+.mcs-renderer-dialog {
+    position: fixed;
+    overflow: hidden;
+    z-index: 1010;
+    width: 300px;
+    height: 500px;
+    min-width: 200px;
+    min-height: 100px;
+    box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.3);
+}
+
+.mcs-renderer-dialog .panel-heading {
+    cursor: move;
+}
+
+.mcs-renderer-dialog .resize-handle {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 10px;
+    height: 10px;
+    cursor: se-resize;
+}
+
+.mcs-renderer-dialog:hover {
+    opacity: 1;
+}
