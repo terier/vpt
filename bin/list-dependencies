@@ -4,10 +4,12 @@ checked=
 queue=$@
 graph=
 
+trim='sed -e s/^[[:space:]]*// -e s/[[:space:]]*$//'
+
 while [ ! -z "$queue" ]; do
     # pop from queue
     file=$(echo $queue | cut -d' ' -f1)
-    queue=$(echo ${queue#$file} | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+    queue=$(echo ${queue#$file} | $trim)
 
     # generate absolute path
     file=$(readlink -e $file)
@@ -33,7 +35,7 @@ while [ ! -z "$queue" ]; do
     done
 
     # add deps to queue
-    queue=$(echo $queue $deps | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+    queue=$(echo $queue $deps | $trim)
 
     # add deps to graph
     for dep in $deps; do
