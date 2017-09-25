@@ -2,43 +2,10 @@ SRC_DIR          := app
 LIB_DIR          := lib
 DST_DIR          := build
 
-# TODO: make a tool for automatic dependency resolution
-INPUT_JS         := Util.js \
-                    Ticker.js \
-                    AsyncLoader.js \
-                    WebGLUtils.js \
-                    math/Matrix.js \
-                    math/Vector.js \
-                    math/Quaternion.js \
-                    Camera.js \
-                    OrbitCameraController.js \
-                    Volume.js \
-                    SingleBuffer.js \
-                    DoubleBuffer.js \
-                    TransferFunctionWidget.js \
-                    Navbar.js \
-                    dialogs/OpenFileDialog.js \
-                    dialogs/OpenEnvironmentMapDialog.js \
-                    dialogs/EAMRendererDialog.js \
-                    dialogs/ISORendererDialog.js \
-                    dialogs/MIPRendererDialog.js \
-                    dialogs/ReinhardToneMapperDialog.js \
-                    dialogs/RangeToneMapperDialog.js \
-                    renderers/AbstractRenderer.js \
-                    renderers/EAMRenderer.js \
-                    renderers/ISORenderer.js \
-                    renderers/MIPRenderer.js \
-                    tonemappers/AbstractToneMapper.js \
-                    tonemappers/ReinhardToneMapper.js \
-                    tonemappers/RangeToneMapper.js \
-                    RenderingContext.js \
-                    Application.js \
-                    main.js
-INPUT_JS         := $(addprefix $(SRC_DIR)/js/,$(INPUT_JS))
-
+# TODO: automatic dependency resolution tool should generate a
+#       makefile dependency, so that it does not run on every make call
+INPUT_JS         := $(shell bin/list-dependencies $(SRC_DIR)/js/main.js)
 INPUT_HTML       := $(wildcard $(SRC_DIR)/*.html)
-#INPUT_JS         := $(wildcard $(SRC_DIR)/js/*.js) \
-#                    $(wildcard $(SRC_DIR)/js/**/*.js)
 INPUT_CSS        := $(wildcard $(SRC_DIR)/css/*.css) \
                     $(wildcard $(SRC_DIR)/css/**/*.css)
 INPUT_TEMPLATES  := $(wildcard $(SRC_DIR)/templates/*.html) \

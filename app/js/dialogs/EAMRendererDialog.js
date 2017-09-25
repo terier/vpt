@@ -1,3 +1,5 @@
+//@@../TransferFunctionWidget.js
+
 (function(global) {
 'use strict';
 

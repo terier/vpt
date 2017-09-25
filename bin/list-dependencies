@@ -1,0 +1,44 @@
+#!/bin/sh
+
+checked=
+queue=$@
+graph=
+
+while [ ! -z "$queue" ]; do
+    # pop from queue
+    file=$(echo $queue | cut -d' ' -f1)
+    queue=$(echo ${queue#$file} | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+
+    # generate absolute path
+    file=$(readlink -e $file)
+    dir=$(dirname $file)
+
+    # check if already checked
+    if $(echo $checked | grep -q $file); then
+        continue
+    fi
+    checked="$checked $file"
+
+    # process file
+    rawdeps=$(cat $file | grep -o "@@\S\+")
+    deps=
+    for rawdep in $rawdeps; do
+        rawdep=${rawdep#@@}
+        dep=$(readlink -e $dir/$rawdep)
+        if [ -z $dep ]; then
+            (>&2 echo "Cannot resolve dependency $rawdep in $file")
+            continue
+        fi
+        deps="$deps $dep"
+    done
+
+    # add deps to queue
+    queue=$(echo $queue $deps | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+
+    # add deps to graph
+    for dep in $deps; do
+        graph="$graph $file $dep"
+    done
+done
+
+echo $graph | tsort | tac

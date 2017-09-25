@@ -1,3 +1,7 @@
+//@@../Util.js
+//@@../WebGLUtils.js
+//@@AbstractToneMapper.js
+
 (function(global) {
 'use strict';
 

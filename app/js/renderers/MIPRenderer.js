@@ -1,3 +1,7 @@
+//@@../Util.js
+//@@../WebGLUtils.js
+//@@AbstractRenderer.js
+
 (function(global) {
 'use strict';
 

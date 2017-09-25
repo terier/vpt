@@ -1,3 +1,14 @@
+//@@WebGLUtils.js
+//@@Ticker.js
+//@@Camera.js
+//@@OrbitCameraController.js
+//@@renderers/MIPRenderer.js
+//@@renderers/ISORenderer.js
+//@@renderers/EAMRenderer.js
+//@@tonemappers/ReinhardToneMapper.js
+//@@tonemappers/RangeToneMapper.js
+//@@math/Matrix.js
+
 (function(global) {
 'use strict';
 

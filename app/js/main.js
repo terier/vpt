@@ -1,3 +1,5 @@
+//@@Application.js
+
 $(function() {
 'use strict';
 

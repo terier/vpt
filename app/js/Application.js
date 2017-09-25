@@ -1,3 +1,13 @@
+//@@RenderingContext.js
+//@@Navbar.js
+//@@dialogs/OpenFileDialog.js
+//@@dialogs/OpenEnvironmentMapDialog.js
+//@@dialogs/MIPRendererDialog.js
+//@@dialogs/ISORendererDialog.js
+//@@dialogs/EAMRendererDialog.js
+//@@dialogs/ReinhardToneMapperDialog.js
+//@@dialogs/RangeToneMapperDialog.js
+
 (function(global) {
 'use strict';
 
