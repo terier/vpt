@@ -134,7 +134,7 @@ _._initGL = function() {
     this._environmentTexture = WebGLUtils.createTexture(gl, {
         width          : 1,
         height         : 1,
-        data           : new Float32Array([1]),
+        data           : new Uint8Array([255, 255, 255, 255]),
         format         : gl.RGBA,
         internalFormat : gl.RGBA, // TODO: HDRI & OpenEXR support
         type           : gl.UNSIGNED_BYTE,
