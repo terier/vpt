@@ -33,10 +33,10 @@ _._init = function() {
     _._nullify.call(this);
 
     this._programs = WebGLUtils.compileShaders(this._gl, {
-        EAMGenerate  : SHADERS.EAMGenerate,
-        EAMIntegrate : SHADERS.EAMIntegrate,
-        EAMRender    : SHADERS.EAMRender,
-        EAMReset     : SHADERS.EAMReset
+        generate  : SHADERS.EAMGenerate,
+        integrate : SHADERS.EAMIntegrate,
+        render    : SHADERS.EAMRender,
+        reset     : SHADERS.EAMReset
     }, MIXINS);
 };
 
@@ -56,7 +56,7 @@ _.destroy = function() {
 _._resetFrame = function() {
     var gl = this._gl;
 
-    var program = this._programs.EAMReset;
+    var program = this._programs.reset;
     gl.useProgram(program.program);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
@@ -65,7 +65,7 @@ _._resetFrame = function() {
 _._generateFrame = function() {
     var gl = this._gl;
 
-    var program = this._programs.EAMGenerate;
+    var program = this._programs.generate;
     gl.useProgram(program.program);
 
     gl.activeTexture(gl.TEXTURE0);
@@ -86,7 +86,7 @@ _._generateFrame = function() {
 _._integrateFrame = function() {
     var gl = this._gl;
 
-    var program = this._programs.EAMIntegrate;
+    var program = this._programs.integrate;
     gl.useProgram(program.program);
 
     gl.activeTexture(gl.TEXTURE0);
@@ -103,7 +103,7 @@ _._integrateFrame = function() {
 _._renderFrame = function() {
     var gl = this._gl;
 
-    var program = this._programs.EAMRender;
+    var program = this._programs.render;
     gl.useProgram(program.program);
 
     gl.activeTexture(gl.TEXTURE0);

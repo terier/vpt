@@ -35,10 +35,10 @@ _._init = function() {
     _._nullify.call(this);
 
     this._programs = WebGLUtils.compileShaders(this._gl, {
-        ISOGenerate  : SHADERS.ISOGenerate,
-        ISOIntegrate : SHADERS.ISOIntegrate,
-        ISORender    : SHADERS.ISORender,
-        ISOReset     : SHADERS.ISOReset
+        generate  : SHADERS.ISOGenerate,
+        integrate : SHADERS.ISOIntegrate,
+        render    : SHADERS.ISORender,
+        reset     : SHADERS.ISOReset
     }, MIXINS);
 };
 
@@ -58,7 +58,7 @@ _.destroy = function() {
 _._resetFrame = function() {
     var gl = this._gl;
 
-    var program = this._programs.ISOReset;
+    var program = this._programs.reset;
     gl.useProgram(program.program);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
@@ -67,7 +67,7 @@ _._resetFrame = function() {
 _._generateFrame = function() {
     var gl = this._gl;
 
-    var program = this._programs.ISOGenerate;
+    var program = this._programs.generate;
     gl.useProgram(program.program);
 
     gl.activeTexture(gl.TEXTURE0);
@@ -85,7 +85,7 @@ _._generateFrame = function() {
 _._integrateFrame = function() {
     var gl = this._gl;
 
-    var program = this._programs.ISOIntegrate;
+    var program = this._programs.integrate;
     gl.useProgram(program.program);
 
     gl.activeTexture(gl.TEXTURE0);
@@ -102,7 +102,7 @@ _._integrateFrame = function() {
 _._renderFrame = function() {
     var gl = this._gl;
 
-    var program = this._programs.ISORender;
+    var program = this._programs.render;
     gl.useProgram(program.program);
 
     gl.activeTexture(gl.TEXTURE0);
