@@ -18,9 +18,7 @@ function MCSRendererDialog(container, renderer, options) {
 }
 
 Class.defaults = {
-    primaryStepSize   : 0.05,
-    secondaryStepSize : 0.05,
-    alphaCorrection   : 1
+    sigmaMax : 1
 };
 
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
@@ -30,9 +28,7 @@ _._nullify = function() {
     this._$heading               = null;
     this._$resizeHandle          = null;
     this._$closeButton           = null;
-    this._$primaryStepSize       = null;
-    this._$secondaryStepSize     = null;
-    this._$alphaCorrection       = null;
+    this._$sigmaMax              = null;
     this._transferFunctionWidget = null;
 };
 
@@ -44,9 +40,7 @@ _._init = function() {
     this._$resizeHandle = this._$html.find('.resize-handle');
     this._$closeButton = this._$html.find('.close');
 
-    this._$primaryStepSize = this._$html.find('[name="primary-step-size"]');
-    this._$secondaryStepSize = this._$html.find('[name="secondary-step-size"]');
-    this._$alphaCorrection = this._$html.find('[name="alpha-correction"]');
+    this._$sigmaMax = this._$html.find('[name="sigma-max"]');
 
     this._$html.hide();
     this._$container.append(this._$html);
@@ -62,19 +56,9 @@ _._init = function() {
         this._$html.hide();
     }.bind(this));
 
-    this._$primaryStepSize.val(this.primaryStepSize);
-    this._$primaryStepSize.change(function() {
-        this._renderer._stepSize = parseFloat(this._$primaryStepSize.val());
-    }.bind(this));
-
-    this._$secondaryStepSize.val(this.secondaryStepSize);
-    this._$secondaryStepSize.change(function() {
-        this._renderer._stepSize = parseFloat(this._$secondaryStepSize.val());
-    }.bind(this));
-
-    this._$alphaCorrection.val(this.alphaCorrection);
-    this._$alphaCorrection.change(function() {
-        this._renderer._alphaCorrection = parseFloat(this._$alphaCorrection.val());
+    this._$sigmaMax.val(this.sigmaMax);
+    this._$sigmaMax.change(function() {
+        this._renderer._sigmaMax = parseFloat(this._$sigmaMax.val());
     }.bind(this));
 
     var tfwContainer = this._$html.find('.tfw-container');

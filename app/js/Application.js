@@ -1,5 +1,6 @@
 //@@RenderingContext.js
 //@@Navbar.js
+//@@Volume.js
 //@@dialogs/OpenFileDialog.js
 //@@dialogs/OpenEnvironmentMapDialog.js
 //@@dialogs/MIPRendererDialog.js

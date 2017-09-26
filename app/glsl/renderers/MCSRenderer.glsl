@@ -21,10 +21,14 @@ void main() {
 #version 300 es
 precision mediump float;
 
+#define M_INVPI 0.31830988618
+
 uniform mediump sampler3D uVolume;
-uniform float uStepSize;
+uniform mediump sampler2D uTransferFunction;
+uniform mediump sampler2D uEnvironment;
+uniform mediump sampler2D uRandom;
 uniform float uOffset;
-uniform float uMCSvalue;
+uniform float uSigmaMax;
 
 in vec3 vRayFrom;
 in vec3 vRayTo;
@@ -33,44 +37,44 @@ out vec4 oColor;
 @intersectCube
 
 void main() {
-    vec3 rayDirection = vRayTo - vRayFrom;
+    vec3 rayDirection = normalize(vRayTo - vRayFrom);
     vec2 tbounds = max(intersectCube(vRayFrom, rayDirection), 0.0);
+    vec2 texCoord = vec2(atan(rayDirection.x, -rayDirection.z), asin(-rayDirection.y) * 2.0) * M_INVPI * 0.5 + 0.5;
     if (tbounds.x >= tbounds.y) {
-        oColor = vec4(0.0, 0.0, 0.0, 1.0);
+        oColor = texture(uEnvironment, texCoord);
     } else {
         vec3 from = mix(vRayFrom, vRayTo, tbounds.x);
         vec3 to = mix(vRayFrom, vRayTo, tbounds.y);
+        float smax = tbounds.y - tbounds.x;
 
         float t = 0.0;
-        float closest = 2.0; // anything > 1.0
-        float offset = uOffset;
-        vec3 pos;
+        float randpos = uOffset;
+        float alphaAccumulation = 0.0;
         do {
-            pos = mix(from, to, offset);
-            if (texture(uVolume, pos).r > uMCSvalue) {
-                closest = min(offset, closest);
+            vec4 rand = texture(uRandom, vec2(randpos, 0.5));
+            randpos = mod(randpos + 1.0 / float(textureSize(uRandom, 0).x), 1.0);
+            float s = -log(1.0 - rand.r) / uSigmaMax;
+            float dist = s * smax;
+            t += s;
+            if (t > 1.0) {
+                break;
             }
-            t += uStepSize;
-            offset = mod(offset + uStepSize, 1.0);
-        } while (t < 1.0);
+            vec3 samplingPosition = mix(from, to, t);
+            float volumeSample = texture(uVolume, samplingPosition).r;
+            vec4 transferSample = texture(uTransferFunction, vec2(volumeSample, 0.5));
+            float alphaSample = transferSample.a;
+            alphaAccumulation += exp(-alphaSample * dist);
+            if (rand.g < alphaSample / uSigmaMax) {
+                break;
+            }
+        } while (true);
 
-        if (closest < 1.0) {
-            pos = mix(from, to, closest);
-            float h = 0.005;
-            float vxm = texture(uVolume, pos + vec3(-h, 0.0, 0.0)).r;
-            float vxp = texture(uVolume, pos + vec3( h, 0.0, 0.0)).r;
-            float vym = texture(uVolume, pos + vec3(0.0, -h, 0.0)).r;
-            float vyp = texture(uVolume, pos + vec3(0.0,  h, 0.0)).r;
-            float vzm = texture(uVolume, pos + vec3(0.0, 0.0, -h)).r;
-            float vzp = texture(uVolume, pos + vec3(0.0, 0.0,  h)).r;
-            float dx = (vxp - vxm) / (2.0 * h);
-            float dy = (vyp - vym) / (2.0 * h);
-            float dz = (vzp - vzm) / (2.0 * h);
-            vec3 grad = normalize(vec3(dx, dy, dz));
-            vec3 gradEncoded = grad * 0.5 + 0.5;
-            oColor = vec4(gradEncoded, closest);
+        if (t > 1.0) {
+            // sample environment map
+            oColor = vec4(alphaAccumulation, 0.0, 1.0, 1.0);
         } else {
-            oColor = vec4(0.0, 0.0, 0.0, 1.0);
+            // sample emission
+            oColor = vec4(0.0, alphaAccumulation, 1.0, 1.0);
         }
     }
 }
@@ -95,6 +99,7 @@ precision mediump float;
 
 uniform mediump sampler2D uAccumulator;
 uniform mediump sampler2D uFrame;
+uniform float uFrameNumber; // float to avoid casting
 
 in vec2 vPosition;
 out vec4 oColor;
@@ -102,9 +107,8 @@ out vec4 oColor;
 void main() {
     vec4 acc = texture(uAccumulator, vPosition);
     vec4 frame = texture(uFrame, vPosition);
-    float closestAcc = acc.w;
-    float closestFrame = frame.w;
-    oColor = closestFrame < closestAcc ? frame : acc;
+    float invn = 1.0 / uFrameNumber;
+    oColor = acc + (frame - acc) * invn;
 }
 
 %%MCSRender:vertex
@@ -126,25 +130,13 @@ void main() {
 precision mediump float;
 
 uniform mediump sampler2D uAccumulator;
-uniform vec3 uLight;
-uniform vec3 uDiffuse;
 
 in vec2 vPosition;
 out vec4 oColor;
 
 void main() {
     vec4 acc = texture(uAccumulator, vPosition);
-    vec3 grad = (acc.xyz - 0.5) * 2.0;
-    float closest = acc.w;
-
-    if (closest < 1.0) {
-        vec3 normal = normalize(grad);
-        vec3 light = normalize(uLight);
-        float lambert = max(dot(normal, light), 0.0);
-        oColor = vec4(uDiffuse * lambert, 1.0);
-    } else {
-        oColor = vec4(1.0);
-    }
+    oColor = acc;
 }
 
 %%MCSReset:vertex
