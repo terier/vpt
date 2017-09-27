@@ -18,7 +18,8 @@ function MCSRendererDialog(container, renderer, options) {
 }
 
 Class.defaults = {
-    sigmaMax : 1
+    sigmaMax        : 1,
+    alphaCorrection : 1
 };
 
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
@@ -29,6 +30,7 @@ _._nullify = function() {
     this._$resizeHandle          = null;
     this._$closeButton           = null;
     this._$sigmaMax              = null;
+    this._$alphaCorrection       = null;
     this._transferFunctionWidget = null;
 };
 
@@ -41,6 +43,7 @@ _._init = function() {
     this._$closeButton = this._$html.find('.close');
 
     this._$sigmaMax = this._$html.find('[name="sigma-max"]');
+    this._$alphaCorrection = this._$html.find('[name="alpha-correction"]');
 
     this._$html.hide();
     this._$container.append(this._$html);
@@ -59,6 +62,11 @@ _._init = function() {
     this._$sigmaMax.val(this.sigmaMax);
     this._$sigmaMax.change(function() {
         this._renderer._sigmaMax = parseFloat(this._$sigmaMax.val());
+    }.bind(this));
+
+    this._$alphaCorrection.val(this.alphaCorrection);
+    this._$alphaCorrection.change(function() {
+        this._renderer._alphaCorrection = parseFloat(this._$alphaCorrection.val());
     }.bind(this));
 
     var tfwContainer = this._$html.find('.tfw-container');

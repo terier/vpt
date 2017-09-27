@@ -31,6 +31,7 @@ uniform mediump sampler2D uEnvironment;
 uniform mediump sampler2D uRandom;
 uniform float uOffset;
 uniform float uSigmaMax;
+uniform float uAlphaCorrection;
 
 in vec3 vRayFrom;
 in vec3 vRayTo;
@@ -68,18 +69,18 @@ void main() {
             vec4 transferSample = texture(uTransferFunction, vec2(volumeSample, 0.5));
             float alphaSample = transferSample.a;
             alphaAccumulation += alphaSample * stepLength;
-            //if (rand.g < alphaSample / uSigmaMax) {
-            //    break;
-            //}
+            if (rand.g < alphaSample / uSigmaMax) {
+                break;
+            }
         } while (true);
 
-        float extinction = exp(-alphaAccumulation * 1.0);
+        float extinction = exp(-alphaAccumulation * uAlphaCorrection);
         oColor = vec4(extinction, extinction, extinction, 1.0);
         /*if (t > 1.0) {
             // sample environment map
             oColor = vec4(extinction, 0.0, 1.0, 1.0);
         } else {
-            // sample emission
+            // sample scattering
             oColor = vec4(0.0, alphaAccumulation, 1.0, 1.0);
         }*/
     }

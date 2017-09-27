@@ -19,10 +19,11 @@ function MCSRenderer(gl, volumeTexture, environmentTexture, options) {
 };
 
 Class.defaults = {
-    _lightPosition : [2, 2, 2],
-    _lightColor    : [1, 1, 1],
-    _lightSize     : 2,
-    _sigmaMax      : 1
+    _lightPosition   : [2, 2, 2],
+    _lightColor      : [1, 1, 1],
+    _lightSize       : 2,
+    _sigmaMax        : 1,
+    _alphaCorrection : 1,
 };
 
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
@@ -114,6 +115,7 @@ _._generateFrame = function() {
     gl.uniformMatrix4fv(program.uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
     gl.uniform1f(program.uniforms.uOffset, Math.random());
     gl.uniform1f(program.uniforms.uSigmaMax, this._sigmaMax);
+    gl.uniform1f(program.uniforms.uAlphaCorrection, this._alphaCorrection);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 };
