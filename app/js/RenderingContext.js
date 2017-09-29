@@ -22,6 +22,8 @@ function RenderingContext(options) {
     $.extend(this, Class.defaults, options);
 
     this._render = this._render.bind(this);
+    this._webglcontextlostHandler = this._webglcontextlostHandler.bind(this);
+    this._webglcontextrestoredHandler = this._webglcontextrestoredHandler.bind(this);
 
     _._init.call(this);
 };
