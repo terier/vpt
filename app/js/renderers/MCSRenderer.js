@@ -117,6 +117,19 @@ _._generateFrame = function() {
     gl.uniform1f(program.uniforms.uSigmaMax, this._sigmaMax);
     gl.uniform1f(program.uniforms.uAlphaCorrection, this._alphaCorrection);
 
+    // scattering direction
+    var x, y, z, length;
+    do {
+        x = Math.random() * 2 - 1;
+        y = Math.random() * 2 - 1;
+        z = Math.random() * 2 - 1;
+        length = Math.sqrt(x * x + y * y + z * z);
+    } while (length > 1);
+    x /= length;
+    y /= length;
+    z /= length;
+    gl.uniform3f(program.uniforms.uScatteringDirection, x, y, z);
+
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 };
 
