@@ -18,6 +18,7 @@ Class.defaults = {
     onOpenFileDialog           : null,
     onOpenEnvironmentMapDialog : null,
     onResetRenderer            : null,
+    onRenderingContextDialog   : null,
     onMipRendererDialog        : null,
     onIsoRendererDialog        : null,
     onEamRendererDialog        : null,
@@ -41,6 +42,7 @@ _._init = function() {
     this._$html.find('[name="open-file-dialog-button"]').click(this.onOpenFileDialog);
     this._$html.find('[name="open-environment-map-dialog-button"]').click(this.onOpenEnvironmentMapDialog);
     this._$html.find('[name="reset-renderer-button"]').click(this.onResetRenderer);
+    this._$html.find('[name="rendering-context-dialog-button"]').click(this.onRenderingContextDialog);
     this._$html.find('[name="mip-renderer-dialog-button"]').click(this.onMipRendererDialog);
     this._$html.find('[name="iso-renderer-dialog-button"]').click(this.onIsoRendererDialog);
     this._$html.find('[name="eam-renderer-dialog-button"]').click(this.onEamRendererDialog);

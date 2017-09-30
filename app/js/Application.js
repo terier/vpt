@@ -3,6 +3,7 @@
 //@@Volume.js
 //@@dialogs/OpenFileDialog.js
 //@@dialogs/OpenEnvironmentMapDialog.js
+//@@dialogs/RenderingContextDialog.js
 //@@dialogs/MIPRendererDialog.js
 //@@dialogs/ISORendererDialog.js
 //@@dialogs/EAMRendererDialog.js
@@ -35,6 +36,7 @@ _._nullify = function() {
     this._navbar                   = null;
     this._openFileDialog           = null;
     this._openEnvironmentMapDialog = null;
+    this._renderingContextDialog   = null;
     this._mipRendererDialog        = null;
     this._isoRendererDialog        = null;
     this._eamRendererDialog        = null;
@@ -73,6 +75,11 @@ _._init = function() {
             this._renderingContext.setEnvironmentMap(image);
             this._renderingContext.getRenderer().reset();
         }.bind(this)
+    });
+
+    this._renderingContextDialog = new RenderingContextDialog(
+        document.body,
+        this._renderingContext, {
     });
 
     // TODO: instantiate correct dialog with an abstract factory
@@ -116,6 +123,9 @@ _._init = function() {
         }.bind(this),
         onResetRenderer: function() {
             this._renderingContext._renderer.reset();
+        }.bind(this),
+        onRenderingContextDialog: function() {
+            this._renderingContextDialog.show();
         }.bind(this),
         onMipRendererDialog: function() {
             this._mipRendererDialog.show();

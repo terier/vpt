@@ -9,6 +9,7 @@
 //@@tonemappers/ReinhardToneMapper.js
 //@@tonemappers/RangeToneMapper.js
 //@@math/Matrix.js
+//@@math/Vector.js
 
 (function(global) {
 'use strict';
@@ -34,11 +35,14 @@ Class.defaults = {
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
 
 _._nullify = function() {
-    this._canvas           = null;
-    this._camera           = null;
-    this._cameraController = null;
-    this._renderer         = null;
-    this._toneMapper       = null;
+    this._canvas                = null;
+    this._camera                = null;
+    this._cameraController      = null;
+    this._renderer              = null;
+    this._toneMapper            = null;
+    this._scale                 = null;
+    this._translation           = null;
+    this._isTransformationDirty = null;
 
     this._nullifyGL();
 };
@@ -59,13 +63,16 @@ _._init = function() {
     this._canvas.addEventListener('webglcontextlost', this._webglcontextlostHandler);
     this._canvas.addEventListener('webglcontextrestored', this._webglcontextrestoredHandler);
 
+    this._scale = new Vector(1, 1, 1);
+    this._translation = new Vector(0, 0, 0);
+    this._isTransformationDirty = true;
+
     this._camera.position.z = 1.5;
     this._camera.fovX = 0.3;
     this._camera.fovY = 0.3;
 
     this._camera.updateMatrices();
-    var mvpi = this._camera.transformationMatrix.clone().inverse().transpose();
-    this._renderer.setMvpInverseMatrix(mvpi);
+    this._updateMvpInverseMatrix();
 };
 
 _.destroy = function() {
@@ -235,24 +242,35 @@ _.getToneMapper = function() {
     return this._toneMapper;
 };
 
+_._updateMvpInverseMatrix = function() {
+    if (this._camera.isDirty || this._isTransformationDirty) {
+        this._camera.isDirty = false;
+        this._isTransformationDirty = false;
+        this._camera.updateMatrices();
+
+        var centerTranslation = new Matrix().fromTranslation(-0.5, -0.5, -0.5);
+        var volumeTranslation = new Matrix().fromTranslation(this._translation.x, this._translation.y, this._translation.z);
+        var volumeScale = new Matrix().fromScale(this._scale.x, this._scale.y, this._scale.z);
+
+        var tr = new Matrix();
+        tr.multiply(volumeScale, centerTranslation);
+        tr.multiply(volumeTranslation, tr);
+        tr.multiply(this._camera.transformationMatrix, tr);
+
+        tr.inverse().transpose();
+        this._renderer.setMvpInverseMatrix(tr);
+        this._renderer.reset();
+    }
+};
+
 _._render = function() {
     var gl = this._gl;
     if (!gl) {
         return;
     }
 
-    if (this._camera.isDirty) {
-        this._camera.isDirty = false;
-        this._camera.updateMatrices();
-        var tr = new Matrix();
-        var centerTranslation = new Matrix().fromTranslation(-0.5, -0.5, -0.5);
-        tr.multiply(this._camera.transformationMatrix, centerTranslation);
-        tr.inverse().transpose();
-        this._renderer.setMvpInverseMatrix(tr);
-        this._renderer.reset();
-    }
+    this._updateMvpInverseMatrix();
 
-    // TODO: pipeline goes here
     this._renderer.render();
     this._toneMapper.render();
 
@@ -272,6 +290,24 @@ _._render = function() {
     gl.disableVertexAttribArray(aPosition);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.bindTexture(gl.TEXTURE_2D, null);
+};
+
+_.getScale = function() {
+    return this._scale;
+};
+
+_.setScale = function(x, y, z) {
+    this._scale.set(x, y, z);
+    this._isTransformationDirty = true;
+};
+
+_.getTranslation = function() {
+    return this._translation;
+};
+
+_.setTranslation = function(x, y, z) {
+    this._translation.set(x, y, z);
+    this._isTransformationDirty = true;
 };
 
 _.startRendering = function() {
