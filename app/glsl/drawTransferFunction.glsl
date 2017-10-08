@@ -25,5 +25,5 @@ out vec4 oColor;
 
 void main() {
     float r = length((uPosition - vPosition) / uSize);
-    oColor = uColor * exp(-r * r);
+    oColor = vec4(uColor.rgb, uColor.a * exp(-r * r));
 }
