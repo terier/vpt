@@ -51,7 +51,7 @@ $(OUTPUT_TEMPLATES): $(INPUT_TEMPLATES)
 	@echo "Building $@"
 	@echo "TEMPLATES={" > $@
 	@for file in $^; do \
-        echo -n "'$$(basename $$file)':'" >> $@ ; \
+        printf %s "'$$(basename $$file)':'" >> $@ ; \
         cat $$file | tr -s '[:space:]' ' ' >> $@ ; \
         echo "'," >> $@ ; \
     done
