@@ -68,7 +68,7 @@ _.getTexture = function() {
 };
 
 _._renderFrame = function() {
-    throw Util.noimpl;
+    throw CommonUtils.noimpl;
 };
 
 _._getRenderBufferOptions = function() {

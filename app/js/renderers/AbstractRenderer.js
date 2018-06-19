@@ -126,27 +126,27 @@ _.setMvpInverseMatrix = function(matrix) {
 };
 
 _._resetFrame = function() {
-    throw Util.noimpl;
+    throw CommonUtils.noimpl;
 };
 
 _._generateFrame = function() {
-    throw Util.noimpl;
+    throw CommonUtils.noimpl;
 };
 
 _._integrateFrame = function() {
-    throw Util.noimpl;
+    throw CommonUtils.noimpl;
 };
 
 _._renderFrame = function() {
-    throw Util.noimpl;
+    throw CommonUtils.noimpl;
 };
 
 _._getFrameBufferOptions = function() {
-    throw Util.noimpl;
+    throw CommonUtils.noimpl;
 };
 
 _._getAccumulationBufferOptions = function() {
-    throw Util.noimpl;
+    throw CommonUtils.noimpl;
 };
 
 _._getRenderBufferOptions = function() {
