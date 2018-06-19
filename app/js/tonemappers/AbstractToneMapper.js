@@ -10,7 +10,7 @@ var _ = Class.prototype;
 // ========================== CLASS DECLARATION ============================ //
 
 function AbstractToneMapper(gl, texture, options) {
-    $.extend(this, Class.defaults, options);
+    CommonUtils.extend(this, Class.defaults, options);
 
     this._gl = gl;
     this._texture = texture;

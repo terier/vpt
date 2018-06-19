@@ -7,7 +7,7 @@ var _ = Class.prototype;
 // ========================== CLASS DECLARATION ============================ //
 
 function RenderingContextDialog(container, renderingContext, options) {
-    $.extend(this, Class.defaults, options);
+    CommonUtils.extend(this, Class.defaults, options);
 
     this._$container = $(container);
     this._renderingContext = renderingContext;

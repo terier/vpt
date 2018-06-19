@@ -13,7 +13,7 @@ var _ = Class.prototype;
 // ========================== CLASS DECLARATION ============================ //
 
 function AbstractRenderer(gl, volumeTexture, environmentTexture, options) {
-    $.extend(this, Class.defaults, options);
+    CommonUtils.extend(this, Class.defaults, options);
 
     this._gl = gl;
     this._volumeTexture = volumeTexture;

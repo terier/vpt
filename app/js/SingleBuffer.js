@@ -9,7 +9,7 @@ var _ = Class.prototype;
 // ========================== CLASS DECLARATION ============================ //
 
 function SingleBuffer(gl, bufferOptions, options) {
-    $.extend(this, Class.defaults, options);
+    CommonUtils.extend(this, Class.defaults, options);
 
     this._gl = gl;
     this._bufferOptions = bufferOptions;

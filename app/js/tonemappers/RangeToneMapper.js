@@ -6,14 +6,14 @@
 'use strict';
 
 var Class = global.RangeToneMapper = RangeToneMapper;
-Util.inherit(Class, AbstractToneMapper);
+CommonUtils.inherit(Class, AbstractToneMapper);
 var _ = Class.prototype;
 
 // ========================== CLASS DECLARATION ============================ //
 
 function RangeToneMapper(gl, texture, options) {
     _.sup.constructor.call(this, gl, texture, options);
-    $.extend(this, Class.defaults, options);
+    CommonUtils.extend(this, Class.defaults, options);
 
     _._init.call(this);
 };

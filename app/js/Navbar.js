@@ -7,7 +7,7 @@ var _ = Class.prototype;
 // ========================== CLASS DECLARATION ============================ //
 
 function Navbar(container, options) {
-    $.extend(this, Class.defaults, options);
+    CommonUtils.extend(this, Class.defaults, options);
 
     this._$container = $(container);
 

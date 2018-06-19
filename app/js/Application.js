@@ -20,7 +20,7 @@ var _ = Class.prototype;
 // ========================== CLASS DECLARATION ============================ //
 
 function Application(options) {
-    $.extend(this, Class.defaults, options);
+    CommonUtils.extend(this, Class.defaults, options);
 
     _._init.call(this);
 };

@@ -20,7 +20,7 @@ var _ = Class.prototype;
 // ========================== CLASS DECLARATION ============================ //
 
 function RenderingContext(options) {
-    $.extend(this, Class.defaults, options);
+    CommonUtils.extend(this, Class.defaults, options);
 
     this._render = this._render.bind(this);
     this._webglcontextlostHandler = this._webglcontextlostHandler.bind(this);

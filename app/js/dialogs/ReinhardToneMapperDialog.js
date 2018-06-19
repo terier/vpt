@@ -7,7 +7,7 @@ var _ = Class.prototype;
 // ========================== CLASS DECLARATION ============================ //
 
 function ReinhardToneMapperDialog(container, toneMapper, options) {
-    $.extend(this, Class.defaults, options);
+    CommonUtils.extend(this, Class.defaults, options);
 
     this._$container = $(container);
     this._toneMapper = toneMapper;

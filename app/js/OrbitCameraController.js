@@ -10,7 +10,7 @@ var _ = Class.prototype;
 // ========================== CLASS DECLARATION ============================ //
 
 function OrbitCameraController(camera, domElement, options) {
-    $.extend(this, Class.defaults, options);
+    CommonUtils.extend(this, Class.defaults, options);
 
     this._camera = camera;
     this._domElement = domElement;
