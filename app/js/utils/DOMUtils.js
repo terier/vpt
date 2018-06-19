@@ -18,10 +18,17 @@ function bind(element) {
     }, {});
 }
 
+function remove(element) {
+    if (element.parentNode) {
+        element.parentNode.removeChild(element);
+    }
+}
+
 return {
     fromString : fromString,
     template   : template,
-    bind       : bind
+    bind       : bind,
+    remove     : remove
 };
 
 })();

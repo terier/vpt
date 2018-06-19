@@ -32,7 +32,7 @@ Class.defaults = {
 
 _._nullify = function() {
     this._renderingContext         = null;
-    this._$canvas                  = null;
+    this._canvas                   = null;
     this._navbar                   = null;
     this._openFileDialog           = null;
     this._openEnvironmentMapDialog = null;
@@ -49,16 +49,16 @@ _._init = function() {
     _._nullify.call(this);
 
     this._renderingContext = new RenderingContext();
-    this._$canvas = $(this._renderingContext.getCanvas());
-    this._$canvas.addClass('renderer');
-    $(document.body).append(this._$canvas);
+    this._canvas = this._renderingContext.getCanvas();
+    this._canvas.className += 'renderer';
+    document.body.appendChild(this._canvas);
 
-    $(window).resize(function() {
+    window.addEventListener('resize', function() {
         var width = window.innerWidth;
         var height = window.innerHeight;
         this._renderingContext.resize(width, height);
     }.bind(this));
-    $(window).resize();
+    CommonUtils.trigger('resize', window);
 
     this._openFileDialog = new OpenFileDialog(
         document.body, {
@@ -161,7 +161,7 @@ _.destroy = function() {
     this._mcsRendererDialog.destroy();
     this._reinhardToneMapperDialog.destroy();
     this._rangeToneMapperDialog.destroy();
-    this._$canvas.remove();
+    DOMUtils.remove(this._canvas);
 
     _._nullify.call(this);
 };

@@ -1,8 +1,5 @@
 //@@Application.js
 
-$(function() {
-'use strict';
-
-var application = new Application();
-
+document.addEventListener('DOMContentLoaded', function() {
+    var application = new Application();
 });
