@@ -4,28 +4,35 @@ var fs = require('fs');
 var path = require('path');
 
 var dependencies = {};
-var queue = process.argv.slice(2).reverse().map(x => path.resolve(x));
+var queue = process.argv.slice(2).reverse().map(x => ({
+    file     : path.resolve(x),
+    includer : null
+}));
 
 while (queue.length > 0) {
-    var file = queue.pop();
-    if (file in dependencies) {
+    var next = queue.pop();
+    if (next.file in dependencies) {
         continue;
     }
 
     // Read file
     try {
-        var content = fs.readFileSync(file, 'utf8');
+        var content = fs.readFileSync(next.file, 'utf8');
     } catch(e) {
-        console.error('Cannot read file: ' + file);
+        console.error('Cannot read file: ' + next.file);
+        console.error('Included by: ' + next.includer);
         process.exit(-1);
     }
 
     // Extract and path-resolve dependencies
     var includeRe = /@@\S+/g;
     var matches = content.match(includeRe) || [];
-    var files = matches.map(x => path.resolve(path.dirname(file), x.substring(2)));
+    var files = matches.map(x => ({
+        file     : path.resolve(path.dirname(next.file), x.substring(2)),
+        includer : next.file
+    }));
     queue = queue.concat(files);
-    dependencies[file] = files;
+    dependencies[next.file] = files.map(x => x.file);
 }
 
 // Topological sort
