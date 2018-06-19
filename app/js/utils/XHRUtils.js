@@ -1,0 +1,6 @@
+var XHRUtils = {
+
+ajax: function() {
+}
+
+};

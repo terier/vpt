@@ -1,4 +1,4 @@
-//@@../Util.js
+//@@../utils/Utils.js
 //@@../WebGLUtils.js
 //@@AbstractRenderer.js
 

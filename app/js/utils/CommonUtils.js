@@ -1,5 +1,4 @@
-var Util = (function() {
-'use strict';
+var CommonUtils = (function() {
 
 function noop() {
 }
@@ -28,6 +27,29 @@ function inherit(sub, sup) {
     sub.sup = sup;
 }
 
+function extend(out) {
+    var out = out || {};
+    for (i = 1; i < arguments.length; i++) {
+        var obj = arguments[i];
+
+        if (!obj) {
+            continue;
+        }
+
+        for (var key in obj) {
+            if (obj.hasOwnProperty(key)) {
+                if (deep && typeof obj[key] === 'object') {
+                    out[key] = extend(out[key], obj[key]);
+                } else {
+                    out[key] = obj[key];
+                }
+            }
+        }
+    }
+
+    return out;
+};
+
 function parseColorHex(str) {
     return {
         r: parseInt(str.substr(1, 2), 16) / 255,
@@ -39,13 +61,14 @@ function parseColorHex(str) {
 var noimpl = new Error('Not implemented!');
 
 return {
-    noop: noop,
-    clamp: clamp,
-    lerp: lerp,
-    downloadJSON: downloadJSON,
-    inherit: inherit,
-    parseColorHex: parseColorHex,
-    noimpl: noimpl
+    noop          : noop,
+    clamp         : clamp,
+    lerp          : lerp,
+    downloadJSON  : downloadJSON,
+    inherit       : inherit,
+    extend        : extend,
+    parseColorHex : parseColorHex,
+    noimpl        : noimpl
 };
 
 })();

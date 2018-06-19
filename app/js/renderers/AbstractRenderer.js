@@ -1,4 +1,4 @@
-//@@../Util.js
+//@@../utils/Utils.js
 //@@../WebGLUtils.js
 //@@../SingleBuffer.js
 //@@../DoubleBuffer.js
