@@ -1,0 +1,9 @@
+#!/bin/sh
+
+echo "TEMPLATES={"
+for file in $@; do
+    printf %s "'$(basename $file)':'"
+    cat $file | tr -s '[:space:]' ' '
+    echo "',"
+done
+echo "};"

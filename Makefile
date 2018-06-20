@@ -15,7 +15,7 @@ INPUT_GLSL       := $(wildcard $(SRC_DIR)/glsl/*.vert) \
                     $(wildcard $(SRC_DIR)/glsl/**/*.vert) \
                     $(wildcard $(SRC_DIR)/glsl/*.frag) \
                     $(wildcard $(SRC_DIR)/glsl/**/*.frag) \
-					$(wildcard $(SRC_DIR)/glsl/*.glsl) \
+                    $(wildcard $(SRC_DIR)/glsl/*.glsl) \
                     $(wildcard $(SRC_DIR)/glsl/**/*.glsl)
 INPUT_LIB_JS     := jquery-3.2.1.min.js \
                     jquery-ui-1.12.1.min.js \
@@ -49,13 +49,7 @@ $(OUTPUT_CSS): $(INPUT_CSS)
 
 $(OUTPUT_TEMPLATES): $(INPUT_TEMPLATES)
 	@echo "Building $@"
-	@echo "TEMPLATES={" > $@
-	@for file in $^; do \
-        printf %s "'$$(basename $$file)':'" >> $@ ; \
-        cat $$file | tr -s '[:space:]' ' ' >> $@ ; \
-        echo "'," >> $@ ; \
-    done
-	@echo "};" >> $@
+	@bin/build-templates $^ > $@
 
 $(OUTPUT_IMAGES): $(INPUT_IMAGES)
 	@echo "Building $@"
