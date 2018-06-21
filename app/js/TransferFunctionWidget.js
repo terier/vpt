@@ -94,6 +94,7 @@ _._init = function() {
             this._bumps = JSON.parse(data);
             this.render();
             this._rebuildHandles();
+            this.onChange && this.onChange();
         }.bind(this));
     }.bind(this));
 
