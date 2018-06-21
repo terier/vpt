@@ -178,14 +178,14 @@ _._destroyGL = function() {
     this._nullifyGL();
 };
 
-_._webglcontextlostHandler = function() {
+_._webglcontextlostHandler = function(e) {
     if (this._contextRestorable) {
         e.preventDefault();
     }
     this._nullifyGL();
 };
 
-_._webglcontextrestoredHandler = function() {
+_._webglcontextrestoredHandler = function(e) {
     this._initGL();
 };
 
