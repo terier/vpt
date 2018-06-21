@@ -63,6 +63,10 @@ _.render = function() {
     this._renderFrame();
 };
 
+_.setTexture = function(texture) {
+    this._texture = texture;
+};
+
 _.getTexture = function() {
     return this._renderBuffer.getTexture();
 };

@@ -144,6 +144,38 @@ _._init = function() {
         }.bind(this),
         onRangeToneMapperDialog: function() {
             this._rangeToneMapperDialog.show();
+        }.bind(this),
+        onChooseMipRenderer: function() {
+            this._renderingContext.chooseRenderer('MIP');
+            this._mipRendererDialog.destroy();
+            this._mipRendererDialog = new MIPRendererDialog(
+                document.body,
+                this._renderingContext.getRenderer(), {
+            });
+        }.bind(this),
+        onChooseIsoRenderer: function() {
+            this._renderingContext.chooseRenderer('ISO');
+            this._isoRendererDialog.destroy();
+            this._isoRendererDialog = new ISORendererDialog(
+                document.body,
+                this._renderingContext.getRenderer(), {
+            });
+        }.bind(this),
+        onChooseEamRenderer: function() {
+            this._renderingContext.chooseRenderer('EAM');
+            this._eamRendererDialog.destroy();
+            this._eamRendererDialog = new EAMRendererDialog(
+                document.body,
+                this._renderingContext.getRenderer(), {
+            });
+        }.bind(this),
+        onChooseMcsRenderer: function() {
+            this._renderingContext.chooseRenderer('MCS');
+            this._mcsRendererDialog.destroy();
+            this._mcsRendererDialog = new MCSRendererDialog(
+                document.body,
+                this._renderingContext.getRenderer(), {
+            });
         }.bind(this)
     });
 

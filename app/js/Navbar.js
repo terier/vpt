@@ -24,7 +24,11 @@ Class.defaults = {
     onEamRendererDialog        : null,
     onMcsRendererDialog        : null,
     onReinhardToneMapperDialog : null,
-    onRangeToneMapperDialog    : null
+    onRangeToneMapperDialog    : null,
+    onChooseMipRenderer        : null,
+    onChooseIsoRenderer        : null,
+    onChooseEamRenderer        : null,
+    onChooseMcsRenderer        : null
 };
 
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
@@ -43,12 +47,19 @@ _._init = function() {
     this._$html.find('[name="open-environment-map-dialog-button"]').click(this.onOpenEnvironmentMapDialog);
     this._$html.find('[name="reset-renderer-button"]').click(this.onResetRenderer);
     this._$html.find('[name="rendering-context-dialog-button"]').click(this.onRenderingContextDialog);
+
     this._$html.find('[name="mip-renderer-dialog-button"]').click(this.onMipRendererDialog);
     this._$html.find('[name="iso-renderer-dialog-button"]').click(this.onIsoRendererDialog);
     this._$html.find('[name="eam-renderer-dialog-button"]').click(this.onEamRendererDialog);
     this._$html.find('[name="mcs-renderer-dialog-button"]').click(this.onMcsRendererDialog);
+
     this._$html.find('[name="reinhard-tone-mapper-dialog-button"]').click(this.onReinhardToneMapperDialog);
     this._$html.find('[name="range-tone-mapper-dialog-button"]').click(this.onRangeToneMapperDialog);
+
+    this._$html.find('[name="choose-mip-renderer-button"]').click(this.onChooseMipRenderer);
+    this._$html.find('[name="choose-iso-renderer-button"]').click(this.onChooseIsoRenderer);
+    this._$html.find('[name="choose-eam-renderer-button"]').click(this.onChooseEamRenderer);
+    this._$html.find('[name="choose-mcs-renderer-button"]').click(this.onChooseMcsRenderer);
 };
 
 _.destroy = function() {
