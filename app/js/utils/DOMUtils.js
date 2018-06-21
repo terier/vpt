@@ -24,11 +24,20 @@ function remove(element) {
     }
 }
 
+function data(element, key, value) {
+    if (typeof value !== 'undefined') {
+        element.setAttribute('data-' + key, value);
+    } else {
+        return element.getAttribute('data-' + key);
+    }
+}
+
 return {
     fromString : fromString,
     template   : template,
     bind       : bind,
-    remove     : remove
+    remove     : remove,
+    data       : data
 };
 
 })();

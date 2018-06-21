@@ -31,14 +31,17 @@ Class.defaults = {
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
 
 _._nullify = function() {
-    this._$html        = null;
-    this._$colorPicker = null;
-    this._$alphaPicker = null;
-    this._canvas       = null;
-    this._gl           = null;
-    this._clipQuad     = null;
-    this._program      = null;
-    this._bumps        = null;
+    this._$html          = null;
+    this._$colorPicker   = null;
+    this._$alphaPicker   = null;
+    this._$addBumpButton = null;
+    this._$loadButton    = null;
+    this._$saveButton    = null;
+    this._canvas         = null;
+    this._gl             = null;
+    this._clipQuad       = null;
+    this._program        = null;
+    this._bumps          = null;
 };
 
 _._init = function() {
@@ -47,6 +50,9 @@ _._init = function() {
     this._$html = $(TEMPLATES['TransferFunctionWidget.html']);
     this._$colorPicker = this._$html.find('[name="color"]');
     this._$alphaPicker = this._$html.find('[name="alpha"]');
+    this._$addBumpButton = this._$html.find('[name="add-bump"]');
+    this._$loadButton = this._$html.find('[name="load"]');
+    this._$saveButton = this._$html.find('[name="save"]');
 
     this._$container.append(this._$html);
     this._canvas = this._$html.find('canvas').get(0);
@@ -76,14 +82,24 @@ _._init = function() {
     gl.vertexAttribPointer(program.attributes.aPosition, 2, gl.FLOAT, false, 0, 0);
 
     this._bumps = [];
-
-    var addBumpButton = this._$html.find('[name="add-bump"]');
-    addBumpButton.click(function() {
+    this._$addBumpButton.click(function() {
         this.addBump();
     }.bind(this));
 
     this._$colorPicker.change(this._onColorChange);
     this._$alphaPicker.change(this._onColorChange);
+
+    this._$loadButton.click(function() {
+        CommonUtils.readTextFile(function(data) {
+            this._bumps = JSON.parse(data);
+            this.render();
+            this._rebuildHandles();
+        }.bind(this));
+    }.bind(this));
+
+    this._$saveButton.click(function() {
+        CommonUtils.downloadJSON(this._bumps, 'TransferFunction.json');
+    }.bind(this));
 };
 
 _.destroy = function() {
@@ -127,10 +143,7 @@ _.render = function() {
 };
 
 _.addBump = function(options) {
-    var $handle = $(TEMPLATES['TransferFunctionWidgetBumpHandle.html']);
     var bumpIndex = this._bumps.length;
-    this._$html.find('.widget').append($handle);
-    $handle.data('index', bumpIndex);
     var newBump = {
         position: {
             x: Math.random(),
@@ -148,9 +161,19 @@ _.addBump = function(options) {
         }
     };
     this._bumps.push(newBump);
+    this._addHandle(bumpIndex);
+    this.selectBump(bumpIndex);
+    this.render();
+    this.onChange && this.onChange();
+};
 
-    var left = (newBump.position.x * this._width) + 'px';
-    var top = ((1 - newBump.position.y) * this._height) + 'px';
+_._addHandle = function(index) {
+    var $handle = $(TEMPLATES['TransferFunctionWidgetBumpHandle.html']);
+    this._$html.find('.widget').append($handle);
+    DOMUtils.data($handle.get(0), 'index', index);
+
+    var left = (this._bumps[index].position.x * this._width) + 'px';
+    var top = ((1 - this._bumps[index].position.y) * this._height) + 'px';
     $handle.css({
         left: left,
         top: top
@@ -160,7 +183,7 @@ _.addBump = function(options) {
         drag: function(e, ui) {
             var x = ui.position.left / this._width;
             var y = 1 - ui.position.top / this._height;
-            var i = parseInt($(e.target).data('index'), 10);
+            var i = parseInt(DOMUtils.data(e.target, 'index'), 10);
             this._bumps[i].position.x = x;
             this._bumps[i].position.y = y;
             this.render();
@@ -168,13 +191,13 @@ _.addBump = function(options) {
         }.bind(this)
     });
     $handle.mousedown(function(e) {
-        var i = parseInt($(e.currentTarget).data('index'), 10);
+        var i = parseInt(DOMUtils.data(e.currentTarget, 'index'), 10);
         this.selectBump(i);
     }.bind(this));
     $handle.on('mousewheel', function(e) {
         var amount = e.originalEvent.deltaY * this.scaleSpeed;
         var scale = Math.exp(-amount);
-        var i = parseInt($(e.currentTarget).data('index'), 10);
+        var i = parseInt(DOMUtils.data(e.currentTarget, 'index'), 10);
         this.selectBump(i);
         if (e.shiftKey) {
             this._bumps[i].size.y *= scale;
@@ -184,15 +207,18 @@ _.addBump = function(options) {
         this.render();
         this.onChange && this.onChange();
     }.bind(this));
+};
 
-    this.selectBump(bumpIndex);
-    this.render();
-    this.onChange && this.onChange();
+_._rebuildHandles = function() {
+    this._$html.find('.bump').remove();
+    for (var i = 0; i < this._bumps.length; i++) {
+        this._addHandle(i);
+    }
 };
 
 _.selectBump = function(index) {
     var handles = this._$html.find('.bump');
-    var correctHandle = handles.eq(index);
+    var correctHandle = handles.filter('[data-index="' + index + '"]');
     handles.removeClass('selected');
     correctHandle.addClass('selected');
 };
@@ -203,7 +229,7 @@ _.getTransferFunction = function() {
 
 _._onColorChange = function() {
     var $selectedBump = this._$html.find('.bump.selected');
-    var i = parseInt($selectedBump.data('index'), 10);
+    var i = parseInt(DOMUtils.data($selectedBump.get(0), 'index'), 10);
     var color = CommonUtils.parseColorHex(this._$colorPicker.val());
     var alpha = parseFloat(this._$alphaPicker.val());
     this._bumps[i].color.r = color.r;

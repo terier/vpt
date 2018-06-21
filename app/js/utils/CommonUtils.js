@@ -20,6 +20,28 @@ function downloadJSON(json, filename) {
     a = null;
 }
 
+function readTextFile(onLoad, onError) {
+    var input = document.createElement('input');
+    input.setAttribute('type', 'file');
+    input.addEventListener('change', function() {
+        var reader = new FileReader();
+        if (onLoad) {
+            reader.addEventListener('load', function() {
+                onLoad(reader.result);
+            });
+        }
+        if (onError) {
+            reader.addEventListener('error', onError);
+        }
+        reader.readAsText(input.files[0]);
+    });
+    input.click();
+}
+
+function trigger(event, element) {
+    element.dispatchEvent(new Event(event));
+}
+
 function inherit(sub, sup) {
     sub.prototype = Object.create(sup.prototype);
     sub.prototype.constructor = sub;
@@ -65,6 +87,8 @@ return {
     clamp         : clamp,
     lerp          : lerp,
     downloadJSON  : downloadJSON,
+    readTextFile  : readTextFile,
+    trigger       : trigger,
     inherit       : inherit,
     extend        : extend,
     parseColorHex : parseColorHex,
