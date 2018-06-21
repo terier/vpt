@@ -46,9 +46,9 @@ _.destroy = function() {
     _.sup.destroy.call(this);
 
     var gl = this._gl;
-    this._programs.forEach(function(program) {
-        gl.deleteProgram(program.program);
-    });
+    Object.keys(this._programs).forEach(function(programName) {
+        gl.deleteProgram(this._programs[programName].program);
+    }.bind(this));
 
     _._nullify.call(this);
 };
