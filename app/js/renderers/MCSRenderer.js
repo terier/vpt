@@ -13,7 +13,7 @@ var _ = Class.prototype;
 
 function MCSRenderer(gl, volumeTexture, environmentTexture, options) {
     _.sup.constructor.call(this, gl, volumeTexture, environmentTexture, options);
-    CommonUtils.extend(true, this, Class.defaults, options);
+    CommonUtils.extend(this, Class.defaults, options);
 
     _._init.call(this);
 };
