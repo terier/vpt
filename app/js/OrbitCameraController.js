@@ -52,22 +52,28 @@ _.destroy = function() {
 
 _._addEventListeners = function() {
     this._domElement.addEventListener('mousedown', this._handleMouseDown);
+    this._domElement.addEventListener('touchstart', this._handleMouseDown);
     this._domElement.addEventListener('mouseup', this._handleMouseUp);
+    this._domElement.addEventListener('touchend', this._handleMouseUp);
     this._domElement.addEventListener('mousemove', this._handleMouseMove);
+    this._domElement.addEventListener('touchmove', this._handleMouseMove);
     this._domElement.addEventListener('mousewheel', this._handleMouseWheel);
 };
 
 _._removeEventListeners = function() {
     this._domElement.removeEventListener('mousedown', this._handleMouseDown);
+    this._domElement.removeEventListener('touchstart', this._handleMouseDown);
     this._domElement.removeEventListener('mouseup', this._handleMouseUp);
+    this._domElement.removeEventListener('touchend', this._handleMouseUp);
     this._domElement.removeEventListener('mousemove', this._handleMouseMove);
+    this._domElement.removeEventListener('touchmove', this._handleMouseMove);
     this._domElement.removeEventListener('mousewheel', this._handleMouseWheel);
 };
 
 _._handleMouseDown = function(e) {
     e.preventDefault();
-    this._startX = e.pageX;
-    this._startY = e.pageY;
+    this._startX = e.pageX || e.touches[0].pageX;
+    this._startY = e.pageY || e.touches[0].pageY;
     this._isMoving = true;
 };
 
@@ -79,8 +85,8 @@ _._handleMouseUp = function(e) {
 _._handleMouseMove = function(e) {
     e.preventDefault();
     if (this._isMoving) {
-        var x = e.pageX;
-        var y = e.pageY;
+        var x = e.pageX || e.touches[0].pageX;
+        var y = e.pageY || e.touches[0].pageY;
         var dx = x - this._startX;
         var dy = y - this._startY;
 
