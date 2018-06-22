@@ -157,7 +157,7 @@ precision mediump float;
 
 uniform mediump sampler2D uAccumulator;
 uniform mediump sampler2D uFrame;
-uniform float uFrameNumber; // float to avoid casting
+uniform float uInvFrameNumber;
 
 in vec2 vPosition;
 out vec4 oColor;
@@ -165,8 +165,7 @@ out vec4 oColor;
 void main() {
     vec4 acc = texture(uAccumulator, vPosition);
     vec4 frame = texture(uFrame, vPosition);
-    float invn = 1.0 / uFrameNumber;
-    oColor = acc + (frame - acc) * invn;
+    oColor = acc + (frame - acc) * uInvFrameNumber;
 }
 
 %%MCSRender:vertex

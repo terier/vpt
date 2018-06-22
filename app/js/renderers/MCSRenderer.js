@@ -146,7 +146,7 @@ _._integrateFrame = function() {
 
     gl.uniform1i(program.uniforms.uAccumulator, 0);
     gl.uniform1i(program.uniforms.uFrame, 1);
-    gl.uniform1f(program.uniforms.uFrameNumber, this._frameNumber);
+    gl.uniform1f(program.uniforms.uInvFrameNumber, 1 / this._frameNumber);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 
