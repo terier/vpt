@@ -175,7 +175,7 @@ _._getFrameBufferOptions = function() {
         min            : gl.NEAREST,
         mag            : gl.NEAREST,
         format         : gl.RGBA,
-        internalFormat : gl.RGBA16F,
+        internalFormat : gl.RGBA32F,
         type           : gl.FLOAT
     };
 };
@@ -188,7 +188,7 @@ _._getAccumulationBufferOptions = function() {
         min            : gl.NEAREST,
         mag            : gl.NEAREST,
         format         : gl.RGBA,
-        internalFormat : gl.RGBA16F,
+        internalFormat : gl.RGBA32F,
         type           : gl.FLOAT
     };
 };
