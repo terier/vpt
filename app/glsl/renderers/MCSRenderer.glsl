@@ -86,33 +86,11 @@ float sampleDistance(vec3 from, vec3 to, vec2 seed) {
     return distance;
 }
 
-float sampleTransmittance(vec3 from, vec3 to, vec2 seed) {
-    float maxDistance = distance(from, to);
-    float distance = 0.0;
-    float invSigmaMax = 1.0 / uSigmaMax;
-    float extinction = 0.0;
-
-    do {
-        seed = rand(seed);
-        float stepLength = -log(1.0 - seed.x) * invSigmaMax;
-        distance += stepLength;
-        if (distance > maxDistance) {
-            break;
-        }
-        vec3 samplingPosition = mix(from, to, distance / maxDistance);
-        vec4 transferSample = sampleVolumeColor(samplingPosition);
-        float alphaSample = transferSample.a * uAlphaCorrection;
-        extinction += alphaSample;
-    } while (true);
-
-    float transmittance = exp(-extinction);
-    return transmittance;
-}
-
 void main() {
     vec3 rayDirection = vRayTo - vRayFrom;
     vec3 rayDirectionUnit = normalize(rayDirection);
     vec2 tbounds = max(intersectCube(vRayFrom, rayDirection), 0.0);
+
     if (tbounds.x >= tbounds.y) {
         oColor = sampleEnvironmentMap(rayDirectionUnit);
     } else {
@@ -121,18 +99,23 @@ void main() {
         float maxDistance = distance(from, to);
 
         vec2 seed = vPosition + rand(vec2(uOffset, uOffset));
-        float distance = sampleDistance(from, to, seed);
+        float dist = sampleDistance(from, to, seed);
 
-        if (distance > maxDistance) {
+        if (dist > maxDistance) {
             oColor = sampleEnvironmentMap(rayDirectionUnit);
         } else {
-            from = mix(from, to, distance / maxDistance);
+            from = mix(from, to, dist / maxDistance);
             tbounds = max(intersectCube(from, uScatteringDirection), 0.0);
             to = mix(from, from + uScatteringDirection, tbounds.y);
-            vec4 diffuseColor = sampleVolumeColor(from);
-            vec4 lightColor = sampleEnvironmentMap(normalize(uScatteringDirection));
-            float transmittance = sampleTransmittance(from, to, seed);
-            oColor = diffuseColor * lightColor * transmittance;
+            maxDistance = distance(from, to);
+            dist = sampleDistance(from, to, seed);
+            if (dist > maxDistance) {
+                vec4 diffuseColor = sampleVolumeColor(from);
+                vec4 lightColor = sampleEnvironmentMap(normalize(uScatteringDirection));
+                oColor = diffuseColor * lightColor;
+            } else {
+                oColor = vec4(0.0, 0.0, 0.0, 1.0);
+            }
         }
     }
 }

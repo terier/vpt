@@ -115,7 +115,7 @@ _._initGL = function() {
         depth                 : false,
         stencil               : false,
         antialias             : false,
-        preserveDrawingBuffer : true
+        preserveDrawingBuffer : true,
     });
     var gl = this._gl;
     this._extLoseContext = gl.getExtension('WEBGL_lose_context');
