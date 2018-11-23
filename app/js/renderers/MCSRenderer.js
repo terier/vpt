@@ -125,7 +125,7 @@ _._generateFrame = function() {
     x /= length;
     y /= length;
     z /= length;
-    gl.uniform3f(program.uniforms.uScatteringDirection, -0.707, -0.707, 1);
+    gl.uniform3f(program.uniforms.uScatteringDirection, x, y, z);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 };
