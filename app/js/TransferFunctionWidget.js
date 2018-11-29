@@ -222,6 +222,10 @@ _.selectBump = function(index) {
     var correctHandle = handles.filter('[data-index="' + index + '"]');
     handles.removeClass('selected');
     correctHandle.addClass('selected');
+
+    var color = this._bumps[index].color;
+    this._$colorPicker.val(CommonUtils.rgb2hex(color.r, color.g, color.b));
+    this._$alphaPicker.val(color.a);
 };
 
 _.getTransferFunction = function() {
@@ -231,7 +235,7 @@ _.getTransferFunction = function() {
 _._onColorChange = function() {
     var $selectedBump = this._$html.find('.bump.selected');
     var i = parseInt(DOMUtils.data($selectedBump.get(0), 'index'), 10);
-    var color = CommonUtils.parseColorHex(this._$colorPicker.val());
+    var color = CommonUtils.hex2rgb(this._$colorPicker.val());
     var alpha = parseFloat(this._$alphaPicker.val());
     this._bumps[i].color.r = color.r;
     this._bumps[i].color.g = color.g;

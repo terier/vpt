@@ -62,12 +62,22 @@ function extend(out) {
     return out;
 }
 
-function parseColorHex(str) {
+function hex2rgb(str) {
     return {
         r: parseInt(str.substr(1, 2), 16) / 255,
         g: parseInt(str.substr(3, 2), 16) / 255,
         b: parseInt(str.substr(5, 2), 16) / 255
     };
+}
+
+function rgb2hex(r, g, b) {
+    r = Number(Math.floor(r * 255)).toString(16);
+    g = Number(Math.floor(g * 255)).toString(16);
+    b = Number(Math.floor(b * 255)).toString(16);
+    r = r.length < 2 ? "0" + r : r;
+    g = g.length < 2 ? "0" + g : g;
+    b = b.length < 2 ? "0" + b : b;
+    return "#" + r + g + b;
 }
 
 var noimpl = new Error('Not implemented!');
@@ -81,7 +91,8 @@ return {
     trigger       : trigger,
     inherit       : inherit,
     extend        : extend,
-    parseColorHex : parseColorHex,
+    hex2rgb       : hex2rgb,
+    rgb2hex       : rgb2hex,
     noimpl        : noimpl
 };
 
