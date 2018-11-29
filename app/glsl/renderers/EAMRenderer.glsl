@@ -47,21 +47,19 @@ void main() {
         vec3 pos;
         float val;
         vec4 colorSample;
-        float alphaSample;
-        vec4 accumulatedColor = vec4(0.0);
-        float accumulatedAlpha = 0.0;
+        vec4 accumulator = vec4(0.0);
 
-        do {
+        while (t < 1.0 && accumulator.a < 0.99) {
             pos = mix(from, to, t);
             val = texture(uVolume, pos).r;
             colorSample = texture(uTransferFunction, vec2(val, 0.5));
-            alphaSample = colorSample.a * rayStepLength * uAlphaCorrection;
-            accumulatedColor += (1.0 - accumulatedAlpha) * colorSample * alphaSample;
-            accumulatedAlpha += alphaSample;
+            colorSample.a *= rayStepLength * uAlphaCorrection;
+            colorSample.rgb *= colorSample.a;
+            accumulator += (1.0 - accumulator.a) * colorSample;
             t += uStepSize;
-        } while (t < 1.0 && accumulatedAlpha < 0.99);
+        }
 
-        oColor = vec4(accumulatedColor.rgb, 1.0);
+        oColor = vec4(accumulator.rgb, 1.0);
     }
 }
 
