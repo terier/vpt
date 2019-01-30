@@ -22,7 +22,11 @@ uniform float uExposure;
 in vec2 vFragmentPosition;
 out vec4 color;
 
+@XYZITU2002
+
 void main() {
     vec4 src = texture(uTexture, vFragmentPosition);
-    color = src / (1.0 / uExposure + src);
+    vec3 xyY = xyz2xyY(rgb2xyz(src.rgb));
+    xyY.z /= 1.0 / uExposure + xyY.z;
+    color = vec4(xyz2rgb(xyY2xyz(xyY)), 1.0);
 }
