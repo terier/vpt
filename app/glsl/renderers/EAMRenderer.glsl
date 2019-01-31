@@ -59,6 +59,10 @@ void main() {
             t += uStepSize;
         }
 
+        if (accumulator.a > 1.0) {
+            accumulator.rgb /= accumulator.a;
+        }
+
         oColor = vec4(accumulator.rgb, 1.0);
     }
 }
