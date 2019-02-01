@@ -1,5 +1,5 @@
 //@@../utils/Utils.js
-//@@../WebGLUtils.js
+//@@../WebGL.js
 //@@../SingleBuffer.js
 //@@../DoubleBuffer.js
 //@@../math/Matrix.js
@@ -47,7 +47,7 @@ _._init = function() {
     this._accumulationBuffer = new DoubleBuffer(gl, this._getAccumulationBufferOptions());
     this._renderBuffer = new SingleBuffer(gl, this._getRenderBufferOptions());
 
-    this._transferFunction = WebGLUtils.createTexture(gl, {
+    this._transferFunction = WebGL.createTexture(gl, {
         width  : 2,
         height : 1,
         data   : new Uint8Array([255, 0, 0, 0, 255, 0, 0, 255]),
@@ -59,8 +59,8 @@ _._init = function() {
 
     this._mvpInverseMatrix = new Matrix();
 
-    this._clipQuad = WebGLUtils.createClipQuad(gl);
-    this._clipQuadProgram = WebGLUtils.compileShaders(gl, {
+    this._clipQuad = WebGL.createClipQuad(gl);
+    this._clipQuadProgram = WebGL.buildPrograms(gl, {
         quad: SHADERS.quad
     }).quad;
 };

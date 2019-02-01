@@ -1,4 +1,4 @@
-//@@WebGLUtils.js
+//@@WebGL.js
 //@@Ticker.js
 //@@Camera.js
 //@@OrbitCameraController.js
@@ -110,7 +110,7 @@ _._nullifyGL = function() {
 _._initGL = function() {
     this._nullifyGL();
 
-    this._gl = WebGLUtils.getContext(this._canvas, ['webgl2'], {
+    this._gl = WebGL.getContext(this._canvas, ['webgl2'], {
         alpha                 : false,
         depth                 : false,
         stencil               : false,
@@ -125,7 +125,7 @@ _._initGL = function() {
         console.error('EXT_color_buffer_float not supported!');
     }
 
-    this._volumeTexture = WebGLUtils.createTexture(gl, {
+    this._volumeTexture = WebGL.createTexture(gl, {
         target         : gl.TEXTURE_3D,
         width          : 1,
         height         : 1,
@@ -141,7 +141,7 @@ _._initGL = function() {
         mag            : gl.LINEAR
     });
 
-    this._environmentTexture = WebGLUtils.createTexture(gl, {
+    this._environmentTexture = WebGL.createTexture(gl, {
         width          : 1,
         height         : 1,
         data           : new Uint8Array([255, 255, 255, 255]),
@@ -154,11 +154,11 @@ _._initGL = function() {
         max            : gl.LINEAR
     });
 
-    this._program = WebGLUtils.compileShaders(gl, {
+    this._program = WebGL.buildPrograms(gl, {
         quad: SHADERS.quad
     }, MIXINS).quad;
 
-    this._clipQuad = WebGLUtils.createClipQuad(gl);
+    this._clipQuad = WebGL.createClipQuad(gl);
 };
 
 _._destroyGL = function() {

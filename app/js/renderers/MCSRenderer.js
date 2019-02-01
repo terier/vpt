@@ -1,5 +1,5 @@
 //@@../utils/Utils.js
-//@@../WebGLUtils.js
+//@@../WebGL.js
 //@@AbstractRenderer.js
 
 (function(global) {
@@ -36,7 +36,7 @@ _._init = function() {
 
     var gl = this._gl;
 
-    this._programs = WebGLUtils.compileShaders(gl, {
+    this._programs = WebGL.buildPrograms(gl, {
         generate  : SHADERS.MCSGenerate,
         integrate : SHADERS.MCSIntegrate,
         render    : SHADERS.MCSRender,
@@ -48,7 +48,7 @@ _._init = function() {
     for (var i = 0; i < nRandomValues * 4; i++) {
         randomValues[i] = Math.random();
     }
-    this._randomTexture = WebGLUtils.createTexture(gl, {
+    this._randomTexture = WebGL.createTexture(gl, {
         data           : randomValues,
         width          : nRandomValues,
         height         : 1,

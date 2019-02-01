@@ -1,5 +1,5 @@
 //@@../utils/Utils.js
-//@@../WebGLUtils.js
+//@@../WebGL.js
 //@@AbstractToneMapper.js
 
 (function(global) {
@@ -31,7 +31,7 @@ _._nullify = function() {
 _._init = function() {
     _._nullify.call(this);
 
-    this._program = WebGLUtils.compileShaders(this._gl, {
+    this._program = WebGL.buildPrograms(this._gl, {
         ReinhardToneMapper : SHADERS.ReinhardToneMapper
     }, MIXINS).ReinhardToneMapper;
 };

@@ -1,4 +1,4 @@
-//@@WebGLUtils.js
+//@@WebGL.js
 
 (function(global) {
 'use strict';
@@ -23,19 +23,19 @@ Class.defaults = {
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
 
 _._nullify = function() {
-    this._target = null;
+    this._writeBuffer = null;
 };
 
 _._init = function() {
     _._nullify.call(this);
 
-    this._target = WebGLUtils.createSimpleRenderTarget(this._gl, this._bufferOptions);
+    this._writeBuffer = WebGL.createFramebuffer(this._gl, this._bufferOptions);
 };
 
 _.destroy = function() {
     var gl = this._gl;
-    gl.deleteTexture(this._target.texture);
-    gl.deleteFramebuffer(this._target.framebuffer);
+    gl.deleteTexture(this._writeBuffer.texture);
+    gl.deleteFramebuffer(this._writeBuffer.framebuffer);
 
     _._nullify.call(this);
 };
@@ -44,12 +44,12 @@ _.destroy = function() {
 
 _.use = function() {
     var gl = this._gl;
-    gl.bindFramebuffer(gl.FRAMEBUFFER, this._target.framebuffer);
-    gl.viewport(0, 0, this._target.width, this._target.height);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this._writeBuffer.framebuffer);
+    gl.viewport(0, 0, this._writeBuffer.width, this._writeBuffer.height);
 };
 
 _.getTexture = function() {
-    return this._target.texture;
+    return this._writeBuffer.texture;
 };
 
 // ============================ STATIC METHODS ============================= //

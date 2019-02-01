@@ -1,5 +1,5 @@
 //@@../utils/Utils.js
-//@@../WebGLUtils.js
+//@@../WebGL.js
 
 (function(global) {
 'use strict';
@@ -36,8 +36,8 @@ _._init = function() {
     var gl = this._gl;
     this._renderBuffer = new SingleBuffer(gl, this._getRenderBufferOptions());
 
-    this._clipQuad = WebGLUtils.createClipQuad(gl);
-    this._clipQuadProgram = WebGLUtils.compileShaders(gl, {
+    this._clipQuad = WebGL.createClipQuad(gl);
+    this._clipQuadProgram = WebGL.buildPrograms(gl, {
         quad: SHADERS.quad
     }).quad;
 };

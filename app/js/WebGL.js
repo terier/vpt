@@ -1,4 +1,4 @@
-var WebGLUtils = (function() {
+var WebGL = (function() {
 'use strict';
 
 /*
@@ -94,9 +94,9 @@ function createProgram(gl, shaders) {
     }
 
     return {
-        program: program,
-        attributes: attributes,
-        uniforms: uniforms
+        program    : program,
+        attributes : attributes,
+        uniforms   : uniforms
     };
 }
 
@@ -115,7 +115,7 @@ function createProgram(gl, shaders) {
  * Returns:
  *  - String (program name) -> WebGLProgram
  */
-function compileShaders(gl, shaders, mixins) {
+function buildPrograms(gl, shaders, mixins) {
     var cooked = {};
     Object.keys(shaders).forEach(function(name) {
         cooked[name] = {};
@@ -144,18 +144,20 @@ function compileShaders(gl, shaders, mixins) {
 
 /*
  * Receives a set of options and (optionally) some data and creates
- * a texture in the TEXTURE_2D target of the active texture unit.
+ * a texture in the specified target of the specified texture unit.
  * An image can be supplied or a typed array, or data may be missing to
  * just allocate with the given dimensions.
  *
  * Receives:
  *  - WebGLRenderingContext
  *  - String (option name) -> * (option value)
+ *     - target (binding target)
+ *     - unit (integer, texturing unit index)
  *     - internalFormat (internal texel format)
  *     - format (texel format)
  *     - type (texel datatype)
  *     - image or data (image, video, canvas, typed array etc.)
- *     - texture (existing texture object)
+ *     - texture (optional existing texture object)
  *     - width (only when data is present or both image and data are missing)
  *     - height (only when data is present or both image and data are missing)
  *     - wrapS (texture wrapping mode for the S coordinate)
@@ -174,6 +176,9 @@ function createTexture(gl, options) {
     var type = options.type || gl.UNSIGNED_BYTE;
     var texture = options.texture || gl.createTexture();
 
+    if (options.unit) {
+        gl.activeTexture(gl.TEXTURE0 + options.unit);
+    }
     gl.bindTexture(target, texture);
     if (options.image) {
         gl.texImage2D(target, 0, internalFormat, format, type, options.image);
@@ -213,18 +218,45 @@ function createTexture(gl, options) {
  *  - width:       Number
  *  - height:      Number
  */
-function createSimpleRenderTarget(gl, options) {
+function createFramebuffer(gl, options) {
     var texture = createTexture(gl, options);
     var framebuffer = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     return {
-        framebuffer: framebuffer,
-        texture: texture,
-        width: options.width,
-        height: options.height
+        framebuffer : framebuffer,
+        texture     : texture,
+        width       : options.width,
+        height      : options.height
     };
+}
+
+/*
+ * Receives a set of options and data and creates
+ * a buffer with the specified data.
+ *
+ * Receives:
+ *  - WebGLRenderingContext
+ *  - String (option name) -> * (option value)
+ *     - data (typed array)
+ *     - buffer (optional existing buffer object)
+ *     - target (binding target)
+ *     - hint (data storage hint)
+ *
+ * Returns:
+ *  - WebGLBuffer
+ */
+function createBuffer(gl, options) {
+    var target = options.target || gl.ARRAY_BUFFER;
+    var hint = options.hint || gl.STATIC_DRAW;
+    var buffer = options.buffer || gl.createBuffer();
+
+    gl.bindBuffer(target, buffer);
+    gl.bufferData(target, options.data, hint);
+    gl.bindBuffer(target, null);
+
+    return buffer;
 }
 
 /*
@@ -238,12 +270,9 @@ function createSimpleRenderTarget(gl, options) {
  *  - WebGLBuffer
  */
 function createUnitQuad(gl) {
-    var buffer = gl.createBuffer();
-    var data = new Float32Array([0, 0, 1, 0, 1, 1, 0, 1]);
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
-    return buffer;
+    return createBuffer(gl, {
+        data: new Float32Array([0, 0, 1, 0, 1, 1, 0, 1])
+    });
 }
 
 /*
@@ -257,23 +286,20 @@ function createUnitQuad(gl) {
  *  - WebGLBuffer
  */
 function createClipQuad(gl) {
-    var buffer = gl.createBuffer();
-    var data = new Float32Array([-1, -1, 1, -1, 1, 1, -1, 1]);
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
-    return buffer;
+    return createBuffer(gl, {
+        data: new Float32Array([-1, -1, 1, -1, 1, 1, -1, 1])
+    });
 }
 
 return {
-    getContext: getContext,
-    createShader: createShader,
-    createProgram: createProgram,
-    compileShaders: compileShaders,
-    createTexture: createTexture,
-    createSimpleRenderTarget: createSimpleRenderTarget,
-    createUnitQuad: createUnitQuad,
-    createClipQuad: createClipQuad
+    getContext        : getContext,
+    createShader      : createShader,
+    createProgram     : createProgram,
+    buildPrograms     : buildPrograms,
+    createTexture     : createTexture,
+    createFramebuffer : createFramebuffer,
+    createUnitQuad    : createUnitQuad,
+    createClipQuad    : createClipQuad
 };
 
 })();

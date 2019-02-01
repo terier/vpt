@@ -1,5 +1,5 @@
 //@@../utils/Utils.js
-//@@../WebGLUtils.js
+//@@../WebGL.js
 //@@AbstractRenderer.js
 
 (function(global) {
@@ -32,7 +32,7 @@ _._nullify = function() {
 _._init = function() {
     _._nullify.call(this);
 
-    this._programs = WebGLUtils.compileShaders(this._gl, {
+    this._programs = WebGL.buildPrograms(this._gl, {
         generate  : SHADERS.EAMGenerate,
         integrate : SHADERS.EAMIntegrate,
         render    : SHADERS.EAMRender,

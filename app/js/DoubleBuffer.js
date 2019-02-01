@@ -1,4 +1,4 @@
-//@@WebGLUtils.js
+//@@WebGL.js
 
 (function(global) {
 'use strict';
@@ -23,23 +23,23 @@ Class.defaults = {
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
 
 _._nullify = function() {
-    this._readTarget = null;
-    this._writeTarget = null;
+    this._readBuffer = null;
+    this._writeBuffer = null;
 }
 
 _._init = function() {
     _._nullify.call(this);
 
-    this._readTarget = WebGLUtils.createSimpleRenderTarget(this._gl, this._bufferOptions);
-    this._writeTarget = WebGLUtils.createSimpleRenderTarget(this._gl, this._bufferOptions);
+    this._readBuffer = WebGL.createFramebuffer(this._gl, this._bufferOptions);
+    this._writeBuffer = WebGL.createFramebuffer(this._gl, this._bufferOptions);
 };
 
 _.destroy = function() {
     var gl = this._gl;
-    gl.deleteTexture(this._readTarget.texture);
-    gl.deleteFramebuffer(this._readTarget.framebuffer);
-    gl.deleteTexture(this._writeTarget.texture);
-    gl.deleteFramebuffer(this._writeTarget.framebuffer);
+    gl.deleteTexture(this._readBuffer.texture);
+    gl.deleteFramebuffer(this._readBuffer.framebuffer);
+    gl.deleteTexture(this._writeBuffer.texture);
+    gl.deleteFramebuffer(this._writeBuffer.framebuffer);
 
     _._nullify.call(this);
 };
@@ -48,26 +48,26 @@ _.destroy = function() {
 
 _.use = function() {
     var gl = this._gl;
-    gl.bindFramebuffer(gl.FRAMEBUFFER, this._writeTarget.framebuffer);
-    gl.viewport(0, 0, this._writeTarget.width, this._writeTarget.height);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this._writeBuffer.framebuffer);
+    gl.viewport(0, 0, this._writeBuffer.width, this._writeBuffer.height);
 };
 
 _.swap = function() {
-    var tmp = this._readTarget;
-    this._readTarget = this._writeTarget;
-    this._writeTarget = tmp;
+    var tmp = this._readBuffer;
+    this._readBuffer = this._writeBuffer;
+    this._writeBuffer = tmp;
 };
 
 _.getTexture = function() {
-    return this._readTarget.texture;
+    return this._readBuffer.texture;
 };
 
 _.getReadTexture = function() {
-    return this._readTarget.texture;
+    return this._readBuffer.texture;
 };
 
 _.getWriteTexture = function() {
-    return this._writeTarget.texture;
+    return this._writeBuffer.texture;
 };
 
 // ============================ STATIC METHODS ============================= //

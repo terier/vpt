@@ -1,5 +1,5 @@
 //@@utils/Utils.js
-//@@WebGLUtils.js
+//@@WebGL.js
 
 (function(global) {
 'use strict';
@@ -60,7 +60,7 @@ _._init = function() {
     this._canvas.height = this._transferFunctionHeight;
     this.resize(this._width, this._height);
 
-    this._gl = WebGLUtils.getContext(this._canvas, ['webgl2'], {
+    this._gl = WebGL.getContext(this._canvas, ['webgl2'], {
         depth                 : false,
         stencil               : false,
         antialias             : false,
@@ -71,8 +71,8 @@ _._init = function() {
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-    this._clipQuad = WebGLUtils.createClipQuad(gl);
-    this._program = WebGLUtils.compileShaders(gl, {
+    this._clipQuad = WebGL.createClipQuad(gl);
+    this._program = WebGL.buildPrograms(gl, {
         drawTransferFunction: SHADERS.drawTransferFunction
     }, MIXINS).drawTransferFunction;
     var program = this._program;
