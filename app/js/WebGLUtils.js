@@ -155,12 +155,14 @@ function compileShaders(gl, shaders, mixins) {
  *     - format (texel format)
  *     - type (texel datatype)
  *     - image or data (image, video, canvas, typed array etc.)
+ *     - texture (existing texture object)
  *     - width (only when data is present or both image and data are missing)
  *     - height (only when data is present or both image and data are missing)
  *     - wrapS (texture wrapping mode for the S coordinate)
  *     - wrapT (texture wrapping mode for the T coordinate)
  *     - min (minification filter)
  *     - mag (magnification filter)
+ *     - mip (generate mipmaps)
  *
  * Returns:
  *  - WebGLTexture
@@ -170,7 +172,7 @@ function createTexture(gl, options) {
     var internalFormat = options.internalFormat || gl.RGBA;
     var format = options.format || gl.RGBA;
     var type = options.type || gl.UNSIGNED_BYTE;
-    var texture = gl.createTexture();
+    var texture = options.texture || gl.createTexture();
 
     gl.bindTexture(target, texture);
     if (options.image) {
@@ -187,6 +189,7 @@ function createTexture(gl, options) {
     if (options.wrapR) { gl.texParameteri(target, gl.TEXTURE_WRAP_R, options.wrapR); }
     if (options.min) { gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, options.min); }
     if (options.mag) { gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, options.mag); }
+    if (options.mip) { gl.generateMipmap(target); }
     gl.bindTexture(target, null);
 
     return texture;
