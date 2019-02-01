@@ -72,9 +72,15 @@ _._removeEventListeners = function() {
 
 _._handleMouseDown = function(e) {
     e.preventDefault();
-    this._startX = e.pageX || e.touches[0].pageX;
-    this._startY = e.pageY || e.touches[0].pageY;
-    this._isMoving = true;
+    if (typeof e.touches === 'object') {
+        this._startX = e.touches[0].pageX;
+        this._startY = e.touches[0].pageY;
+        this._isMoving = true;
+    } else if (e.button === 0) {
+        this._startX = e.pageX;
+        this._startY = e.pageY;
+        this._isMoving = true;
+    }
 };
 
 _._handleMouseUp = function(e) {
