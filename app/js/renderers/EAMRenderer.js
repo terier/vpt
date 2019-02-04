@@ -90,9 +90,9 @@ _._integrateFrame = function() {
     gl.useProgram(program.program);
 
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getTexture());
+    gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[0]);
     gl.activeTexture(gl.TEXTURE1);
-    gl.bindTexture(gl.TEXTURE_2D, this._frameBuffer.getTexture());
+    gl.bindTexture(gl.TEXTURE_2D, this._frameBuffer.getAttachments().color[0]);
 
     gl.uniform1i(program.uniforms.uAccumulator, 0);
     gl.uniform1i(program.uniforms.uFrame, 1);
@@ -107,16 +107,16 @@ _._renderFrame = function() {
     gl.useProgram(program.program);
 
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getTexture());
+    gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[0]);
 
     gl.uniform1i(program.uniforms.uAccumulator, 0);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 };
 
-_._getFrameBufferOptions = function() {
+_._getFrameBufferSpec = function() {
     var gl = this._gl;
-    return {
+    return [{
         width          : this._bufferSize,
         height         : this._bufferSize,
         min            : gl.NEAREST,
@@ -124,12 +124,12 @@ _._getFrameBufferOptions = function() {
         format         : gl.RGBA,
         internalFormat : gl.RGBA,
         type           : gl.UNSIGNED_BYTE
-    };
+    }];
 };
 
-_._getAccumulationBufferOptions = function() {
+_._getAccumulationBufferSpec = function() {
     var gl = this._gl;
-    return {
+    return [{
         width          : this._bufferSize,
         height         : this._bufferSize,
         min            : gl.NEAREST,
@@ -137,7 +137,7 @@ _._getAccumulationBufferOptions = function() {
         format         : gl.RGBA,
         internalFormat : gl.RGBA,
         type           : gl.UNSIGNED_BYTE
-    };
+    }];
 };
 
 // ============================ STATIC METHODS ============================= //

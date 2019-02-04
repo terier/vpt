@@ -34,7 +34,7 @@ _._init = function() {
     _._nullify.call(this);
 
     var gl = this._gl;
-    this._renderBuffer = new SingleBuffer(gl, this._getRenderBufferOptions());
+    this._renderBuffer = new SingleBuffer(gl, this._getRenderBufferSpec());
 
     this._clipQuad = WebGL.createClipQuad(gl);
     this._clipQuadProgram = WebGL.buildPrograms(gl, {
@@ -68,16 +68,16 @@ _.setTexture = function(texture) {
 };
 
 _.getTexture = function() {
-    return this._renderBuffer.getTexture();
+    return this._renderBuffer.getAttachments().color[0];
 };
 
 _._renderFrame = function() {
     throw CommonUtils.noimpl;
 };
 
-_._getRenderBufferOptions = function() {
+_._getRenderBufferSpec = function() {
     var gl = this._gl;
-    return {
+    return [{
         width          : this._bufferSize,
         height         : this._bufferSize,
         min            : gl.LINEAR,
@@ -87,7 +87,7 @@ _._getRenderBufferOptions = function() {
         format         : gl.RGBA,
         internalFormat : gl.RGBA,
         type           : gl.UNSIGNED_BYTE
-    };
+    }];
 };
 
 // ============================ STATIC METHODS ============================= //

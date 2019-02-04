@@ -43,9 +43,9 @@ _._init = function() {
 
     var gl = this._gl;
 
-    this._frameBuffer = new SingleBuffer(gl, this._getFrameBufferOptions());
-    this._accumulationBuffer = new DoubleBuffer(gl, this._getAccumulationBufferOptions());
-    this._renderBuffer = new SingleBuffer(gl, this._getRenderBufferOptions());
+    this._frameBuffer = new SingleBuffer(gl, this._getFrameBufferSpec());
+    this._accumulationBuffer = new DoubleBuffer(gl, this._getAccumulationBufferSpec());
+    this._renderBuffer = new SingleBuffer(gl, this._getRenderBufferSpec());
 
     this._transferFunction = WebGL.createTexture(gl, {
         width  : 2,
@@ -118,7 +118,7 @@ _.setTransferFunction = function(transferFunction) {
 };
 
 _.getTexture = function() {
-    return this._renderBuffer.getTexture();
+    return this._renderBuffer.getAttachments().color[0];
 };
 
 _.setMvpInverseMatrix = function(matrix) {
@@ -141,17 +141,17 @@ _._renderFrame = function() {
     throw CommonUtils.noimpl;
 };
 
-_._getFrameBufferOptions = function() {
+_._getFrameBufferSpec = function() {
     throw CommonUtils.noimpl;
 };
 
-_._getAccumulationBufferOptions = function() {
+_._getAccumulationBufferSpec = function() {
     throw CommonUtils.noimpl;
 };
 
-_._getRenderBufferOptions = function() {
+_._getRenderBufferSpec = function() {
     var gl = this._gl;
-    return {
+    return [{
         width          : this._bufferSize,
         height         : this._bufferSize,
         min            : gl.LINEAR,
@@ -161,7 +161,7 @@ _._getRenderBufferOptions = function() {
         format         : gl.RGBA,
         internalFormat : gl.RGBA16F,
         type           : gl.FLOAT
-    };
+    }];
 };
 
 // ============================ STATIC METHODS ============================= //
