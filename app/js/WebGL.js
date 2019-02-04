@@ -201,35 +201,49 @@ function createTexture(gl, options) {
 }
 
 /*
- * Receives a set of options and dimensions and creates a framebuffer with
- * just a color attachment (without depth and stencil attachments).
- * Useful for e.g. simulating compute shaders.
+ * Receives a set of attachments and creates a framebuffer.
  *
  * Receives:
  *  - WebGLRenderingContext
  *  - String (option name) -> * (option value)
- *    - texture creation options (see createTexture)
- *    - width
- *    - height
+ *    - color: Array<WebGLTexture|WebGLRenderbuffer>
+ *    - depth: WebGLTexture|WebGLRenderbuffer
+ *    - stencil: WebGLTexture|WebGLRenderbuffer
  *
  * Returns:
- *  - framebuffer: WebGLFramebuffer
- *  - texture:     WebGLTexture (color attachment)
- *  - width:       Number
- *  - height:      Number
+ *  - WebGLFramebuffer
  */
-function createFramebuffer(gl, options) {
-    var texture = createTexture(gl, options);
+function createFramebuffer(gl, attachments) {
+    function attach(attachmentPoint, object) {
+        if (object instanceof WebGLTexture) {
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, object, 0);
+        } else if (object instanceof WebGLRenderbuffer) {
+            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, attachmentPoint, gl.RENDERBUFFER, object);
+        }
+    }
+
     var framebuffer = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+
+    if (attachments.color) {
+        for (var i = 0; i < attachments.color.length; i++) {
+            attach(gl.COLOR_ATTACHMENT0 + i, attachments.color[i]);
+        }
+    }
+    if (attachments.depth) {
+        attach(gl.DEPTH_ATTACHMENT, attachments.depth);
+    }
+    if (attachments.stencil) {
+        attach(gl.STENCIL_ATTACHMENT, attachments.stencil);
+    }
+
+    var status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+    if (status !== gl.FRAMEBUFFER_COMPLETE) {
+        throw new Error('Cannot create framebuffer: ' + status);
+    }
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    return {
-        framebuffer : framebuffer,
-        texture     : texture,
-        width       : options.width,
-        height      : options.height
-    };
+
+    return framebuffer;
 }
 
 /*
