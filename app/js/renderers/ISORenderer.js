@@ -71,9 +71,12 @@ _._generateFrame = function() {
     gl.useProgram(program.program);
 
     gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[0]);
+    gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_3D, this._volumeTexture);
 
-    gl.uniform1i(program.uniforms.uVolume, 0);
+    gl.uniform1i(program.uniforms.uClosest, 0);
+    gl.uniform1i(program.uniforms.uVolume, 1);
     gl.uniform1f(program.uniforms.uStepSize, this._stepSize);
     gl.uniform1f(program.uniforms.uOffset, Math.random());
     gl.uniform1f(program.uniforms.uIsovalue, this._isovalue);
@@ -107,8 +110,11 @@ _._renderFrame = function() {
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[0]);
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_3D, this._volumeTexture);
 
-    gl.uniform1i(program.uniforms.uAccumulator, 0);
+    gl.uniform1i(program.uniforms.uClosest, 0);
+    gl.uniform1i(program.uniforms.uVolume, 1);
     gl.uniform3fv(program.uniforms.uLight, this._light);
     gl.uniform3fv(program.uniforms.uDiffuse, this._diffuse);
 
@@ -123,8 +129,8 @@ _._getFrameBufferSpec = function() {
         min            : gl.NEAREST,
         mag            : gl.NEAREST,
         format         : gl.RGBA,
-        internalFormat : gl.RGBA,
-        type           : gl.UNSIGNED_BYTE
+        internalFormat : gl.RGBA16F,
+        type           : gl.FLOAT
     }];
 };
 
@@ -136,8 +142,8 @@ _._getAccumulationBufferSpec = function() {
         min            : gl.NEAREST,
         mag            : gl.NEAREST,
         format         : gl.RGBA,
-        internalFormat : gl.RGBA,
-        type           : gl.UNSIGNED_BYTE
+        internalFormat : gl.RGBA16F,
+        type           : gl.FLOAT
     }];
 };
 
