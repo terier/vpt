@@ -28,7 +28,6 @@ Class.defaults = {
 _._nullify = function() {
     this._programs      = null;
     this._frameNumber   = null;
-    this._randomTexture = null;
 };
 
 _._init = function() {
@@ -43,24 +42,6 @@ _._init = function() {
         reset     : SHADERS.MCSReset
     }, MIXINS);
 
-    var nRandomValues = 100;
-    var randomValues = new Float32Array(nRandomValues * 4);
-    for (var i = 0; i < nRandomValues * 4; i++) {
-        randomValues[i] = Math.random();
-    }
-    this._randomTexture = WebGL.createTexture(gl, {
-        data           : randomValues,
-        width          : nRandomValues,
-        height         : 1,
-        format         : gl.RGBA,
-        internalFormat : gl.RGBA16F,
-        type           : gl.FLOAT,
-        wrapS          : gl.CLAMP_TO_EDGE,
-        wrapT          : gl.CLAMP_TO_EDGE,
-        min            : gl.NEAREST,
-        max            : gl.NEAREST
-    });
-
     this._frameNumber = 1;
 };
 
@@ -71,8 +52,6 @@ _.destroy = function() {
     Object.keys(this._programs).forEach(function(programName) {
         gl.deleteProgram(this._programs[programName].program);
     }.bind(this));
-
-    gl.deleteTexture(this._randomTexture);
 
     _._nullify.call(this);
 };
@@ -102,13 +81,10 @@ _._generateFrame = function() {
     gl.bindTexture(gl.TEXTURE_2D, this._environmentTexture);
     gl.activeTexture(gl.TEXTURE2);
     gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
-    gl.activeTexture(gl.TEXTURE3);
-    gl.bindTexture(gl.TEXTURE_2D, this._randomTexture);
 
     gl.uniform1i(program.uniforms.uVolume, 0);
     gl.uniform1i(program.uniforms.uEnvironment, 1);
     gl.uniform1i(program.uniforms.uTransferFunction, 2);
-    gl.uniform1i(program.uniforms.uRandom, 3);
     gl.uniformMatrix4fv(program.uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
     gl.uniform1f(program.uniforms.uOffset, Math.random());
     gl.uniform1f(program.uniforms.uSigmaMax, this._sigmaMax);
