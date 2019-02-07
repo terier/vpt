@@ -6,6 +6,7 @@
 //@@renderers/ISORenderer.js
 //@@renderers/EAMRenderer.js
 //@@renderers/MCSRenderer.js
+//@@renderers/MultipleScatteringRenderer.js
 //@@tonemappers/ReinhardToneMapper.js
 //@@tonemappers/RangeToneMapper.js
 //@@math/Matrix.js
@@ -55,7 +56,7 @@ _._init = function() {
 
     this._camera = new Camera();
     this._cameraController = new OrbitCameraController(this._camera, this._canvas);
-    this._renderer = new MCSRenderer(this._gl, this._volumeTexture, this._environmentTexture);
+    this._renderer = new MultipleScatteringRenderer(this._gl, this._volumeTexture, this._environmentTexture);
     this._toneMapper = new ReinhardToneMapper(this._gl, this._renderer.getTexture());
 
     this._contextRestorable = true;
@@ -244,6 +245,9 @@ _.chooseRenderer = function(renderer) {
             break;
         case 'MCS':
             this._renderer = new MCSRenderer(this._gl, this._volumeTexture, this._environmentTexture);
+            break;
+        case 'Multiple Scattering':
+            this._renderer = new MultipleScatteringRenderer(this._gl, this._volumeTexture, this._environmentTexture);
             break;
     }
     this._toneMapper.setTexture(this._renderer.getTexture());

@@ -15,20 +15,22 @@ function Navbar(container, options) {
 }
 
 Class.defaults = {
-    onOpenFileDialog           : null,
-    onOpenEnvironmentMapDialog : null,
-    onResetRenderer            : null,
-    onRenderingContextDialog   : null,
-    onMipRendererDialog        : null,
-    onIsoRendererDialog        : null,
-    onEamRendererDialog        : null,
-    onMcsRendererDialog        : null,
-    onReinhardToneMapperDialog : null,
-    onRangeToneMapperDialog    : null,
-    onChooseMipRenderer        : null,
-    onChooseIsoRenderer        : null,
-    onChooseEamRenderer        : null,
-    onChooseMcsRenderer        : null
+    onOpenFileDialog                   : null,
+    onOpenEnvironmentMapDialog         : null,
+    onResetRenderer                    : null,
+    onRenderingContextDialog           : null,
+    onMipRendererDialog                : null,
+    onIsoRendererDialog                : null,
+    onEamRendererDialog                : null,
+    onMcsRendererDialog                : null,
+    onMultipleScatteringRendererDialog : null,
+    onReinhardToneMapperDialog         : null,
+    onRangeToneMapperDialog            : null,
+    onChooseMipRenderer                : null,
+    onChooseIsoRenderer                : null,
+    onChooseEamRenderer                : null,
+    onChooseMcsRenderer                : null,
+    onChooseMultipleScatteringRenderer : null
 };
 
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
@@ -52,6 +54,7 @@ _._init = function() {
     this._$html.find('[name="iso-renderer-dialog-button"]').click(this.onIsoRendererDialog);
     this._$html.find('[name="eam-renderer-dialog-button"]').click(this.onEamRendererDialog);
     this._$html.find('[name="mcs-renderer-dialog-button"]').click(this.onMcsRendererDialog);
+    this._$html.find('[name="multiple-scattering-renderer-dialog-button"]').click(this.onMultipleScatteringRendererDialog);
 
     this._$html.find('[name="reinhard-tone-mapper-dialog-button"]').click(this.onReinhardToneMapperDialog);
     this._$html.find('[name="range-tone-mapper-dialog-button"]').click(this.onRangeToneMapperDialog);
@@ -60,6 +63,7 @@ _._init = function() {
     this._$html.find('[name="choose-iso-renderer-button"]').click(this.onChooseIsoRenderer);
     this._$html.find('[name="choose-eam-renderer-button"]').click(this.onChooseEamRenderer);
     this._$html.find('[name="choose-mcs-renderer-button"]').click(this.onChooseMcsRenderer);
+    this._$html.find('[name="choose-multiple-scattering-renderer-button"]').click(this.onChooseMultipleScatteringRenderer);
 };
 
 _.destroy = function() {

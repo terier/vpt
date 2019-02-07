@@ -8,6 +8,7 @@
 //@@dialogs/ISORendererDialog.js
 //@@dialogs/EAMRendererDialog.js
 //@@dialogs/MCSRendererDialog.js
+//@@dialogs/MultipleScatteringRendererDialog.js
 //@@dialogs/ReinhardToneMapperDialog.js
 //@@dialogs/RangeToneMapperDialog.js
 
@@ -31,18 +32,19 @@ Class.defaults = {
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
 
 _._nullify = function() {
-    this._renderingContext         = null;
-    this._canvas                   = null;
-    this._navbar                   = null;
-    this._openFileDialog           = null;
-    this._openEnvironmentMapDialog = null;
-    this._renderingContextDialog   = null;
-    this._mipRendererDialog        = null;
-    this._isoRendererDialog        = null;
-    this._eamRendererDialog        = null;
-    this._mcsRendererDialog        = null;
-    this._reinhardToneMapperDialog = null;
-    this._rangeToneMapperDialog    = null;
+    this._renderingContext                 = null;
+    this._canvas                           = null;
+    this._navbar                           = null;
+    this._openFileDialog                   = null;
+    this._openEnvironmentMapDialog         = null;
+    this._renderingContextDialog           = null;
+    this._mipRendererDialog                = null;
+    this._isoRendererDialog                = null;
+    this._eamRendererDialog                = null;
+    this._mcsRendererDialog                = null;
+    this._multipleScatteringRendererDialog = null;
+    this._reinhardToneMapperDialog         = null;
+    this._rangeToneMapperDialog            = null;
 };
 
 _._init = function() {
@@ -103,6 +105,11 @@ _._init = function() {
         this._renderingContext.getRenderer(), {
     });
 
+    this._multipleScatteringRendererDialog = new MultipleScatteringRendererDialog(
+        document.body,
+        this._renderingContext.getRenderer(), {
+    });
+
     this._reinhardToneMapperDialog = new ReinhardToneMapperDialog(
         document.body,
         this._renderingContext.getToneMapper(), {
@@ -138,6 +145,9 @@ _._init = function() {
         }.bind(this),
         onMcsRendererDialog: function() {
             this._mcsRendererDialog.show();
+        }.bind(this),
+        onMultipleScatteringRendererDialog: function() {
+            this._multipleScatteringRendererDialog.show();
         }.bind(this),
         onReinhardToneMapperDialog: function() {
             this._reinhardToneMapperDialog.show();
@@ -176,6 +186,14 @@ _._init = function() {
                 document.body,
                 this._renderingContext.getRenderer(), {
             });
+        }.bind(this),
+        onChooseMultipleScatteringRenderer: function() {
+            this._renderingContext.chooseRenderer('Multiple Scattering');
+            this._multipleScatteringRendererDialog.destroy();
+            this._multipleScatteringRendererDialog = new MultipleScatteringRendererDialog(
+                document.body,
+                this._renderingContext.getRenderer(), {
+            });
         }.bind(this)
     });
 
@@ -191,6 +209,7 @@ _.destroy = function() {
     this._isoRendererDialog.destroy();
     this._eamRendererDialog.destroy();
     this._mcsRendererDialog.destroy();
+    this._multipleScatteringRendererDialog.destroy();
     this._reinhardToneMapperDialog.destroy();
     this._rangeToneMapperDialog.destroy();
     DOMUtils.remove(this._canvas);

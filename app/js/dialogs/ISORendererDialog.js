@@ -75,7 +75,6 @@ _._init = function() {
     this._$color.val(this.diffuseColor);
     this._$color.change(function() {
         var color = this._$color.val();
-        console.log(color);
         this._renderer._diffuse[0] = parseInt(color.substr(1, 2), 16) / 255;
         this._renderer._diffuse[1] = parseInt(color.substr(3, 2), 16) / 255;
         this._renderer._diffuse[2] = parseInt(color.substr(5, 2), 16) / 255;
