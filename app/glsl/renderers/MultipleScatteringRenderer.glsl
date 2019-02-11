@@ -140,9 +140,10 @@ void main() {
             resetPhoton(position, direction, radianceAndWeight);
         } else if (r.y < PAbsorption) {
             // absorption
-            colorAndNumber.w += 1.0;
-            colorAndNumber.rgb -= colorAndNumber.rgb / colorAndNumber.w;
-            resetPhoton(position, direction, radianceAndWeight);
+            //colorAndNumber.w += 1.0;
+            //colorAndNumber.rgb -= colorAndNumber.rgb / colorAndNumber.w;
+            //resetPhoton(position, direction, radianceAndWeight);
+            radianceAndWeight.rgb *= 1.0 - (muAbsorption / muMajorant);
         } else if (r.y < PScattering) {
             // scattering
             r = rand(r * RAND_MAGIC);
