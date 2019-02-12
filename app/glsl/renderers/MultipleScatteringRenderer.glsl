@@ -144,7 +144,7 @@ void main() {
             //colorAndNumber.rgb -= colorAndNumber.rgb / colorAndNumber.w;
             //resetPhoton(position, direction, radianceAndWeight);
             radianceAndWeight.rgb *= 1.0 - (muAbsorption / muMajorant);
-        } else if (r.y < PScattering) {
+        } else if (r.y < PAbsorption + PScattering) {
             // scattering
             r = rand(r * RAND_MAGIC);
             radianceAndWeight.rgb *= volumeSample.rgb;
