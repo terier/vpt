@@ -68,12 +68,13 @@ layout (location = 3) out vec4 oColor;
 @unproject
 @intersectCube
 
-void resetPhoton(out vec3 position, out vec3 direction, out vec4 radianceAndWeight) {
+void resetPhoton(out vec3 position, out vec4 directionAndBounces, out vec4 radianceAndWeight) {
     vec3 from, to;
     unproject(vPosition, uMvpInverseMatrix, from, to);
-    direction = normalize(to - from);
-    vec2 tbounds = max(intersectCube(from, direction), 0.0);
-    position = from + tbounds.x * direction;
+    directionAndBounces.xyz = normalize(to - from);
+    directionAndBounces.w = 0.0;
+    vec2 tbounds = max(intersectCube(from, directionAndBounces.xyz), 0.0);
+    position = from + tbounds.x * directionAndBounces.xyz;
     radianceAndWeight = vec4(1);
 }
 
@@ -115,7 +116,7 @@ vec3 sampleHenyeyGreenstein(float g, vec2 U, vec3 direction) {
 void main() {
     vec2 mappedPosition = vPosition * 0.5 + 0.5;
     vec3 position = texture(uPosition, mappedPosition).xyz;
-    vec3 direction = texture(uDirection, mappedPosition).xyz;
+    vec4 directionAndBounces = texture(uDirection, mappedPosition);
     vec4 radianceAndWeight = texture(uRadiance, mappedPosition);
     vec4 colorAndNumber = texture(uColor, mappedPosition);
 
@@ -123,7 +124,7 @@ void main() {
     for (int i = 0; i < 1; i++) {
         r = rand(r * RAND_MAGIC);
         float t = -log(r.x) / uMajorant;
-        position += t * direction;
+        position += t * directionAndBounces.xyz;
 
         vec4 volumeSample = sampleVolumeColor(position);
         float muAbsorption = volumeSample.a * uAbsorptionCoefficient;
@@ -134,28 +135,29 @@ void main() {
         float PAbsorption = muAbsorption / muMajorant;
         float PScattering = muScattering / muMajorant;
 
-        //if (bounces > uMaxBounces) {
-        //    // max depth -> bias!
-        //    resetPhoton(position, direction, radianceAndWeight);
-        //} else
         if (any(greaterThan(position, vec3(1))) || any(lessThan(position, vec3(0)))) {
             // out of bounds
-            vec4 envSample = sampleEnvironmentMap(direction);
+            vec4 envSample = sampleEnvironmentMap(directionAndBounces.xyz);
             colorAndNumber.w += 1.0;
             colorAndNumber.rgb += (radianceAndWeight.w * radianceAndWeight.rgb * envSample.rgb - colorAndNumber.rgb) / colorAndNumber.w;
-            resetPhoton(position, direction, radianceAndWeight);
+            resetPhoton(position, directionAndBounces, radianceAndWeight);
+        } else if (directionAndBounces.w >= uMaxBounces) {
+            // max bounces achieved -> only estimate transmittance
+            radianceAndWeight.rgb *= 1.0 - (muAbsorption + muScattering) / muMajorant;
         } else if (r.y < PAbsorption) {
             // absorption
+            //vec3 emission = vec3(0);
             //colorAndNumber.w += 1.0;
-            //colorAndNumber.rgb -= colorAndNumber.rgb / colorAndNumber.w;
-            //resetPhoton(position, direction, radianceAndWeight);
-            radianceAndWeight.rgb *= 1.0 - (muAbsorption / muMajorant);
+            //colorAndNumber.rgb += (radianceAndWeight.w * radianceAndWeight.rgb * emission - colorAndNumber.rgb) / colorAndNumber.w;
+            //resetPhoton(position, directionAndBounces, radianceAndWeight);
+            radianceAndWeight.rgb *= 1.0 - (muAbsorption + muScattering) / muMajorant;
         } else if (r.y < PAbsorption + PScattering) {
             // scattering
             r = rand(r * RAND_MAGIC);
             radianceAndWeight.rgb *= volumeSample.rgb;
             radianceAndWeight.w *= muScattering / (muMajorant * PScattering);
-            direction = sampleHenyeyGreenstein(uScatteringBias, r, direction);
+            directionAndBounces.xyz = sampleHenyeyGreenstein(uScatteringBias, r, directionAndBounces.xyz);
+            directionAndBounces.w += 1.0;
         } else {
             // null collision
             radianceAndWeight.w *= muNull / (muMajorant * PNull);
@@ -163,7 +165,7 @@ void main() {
     }
 
     oPosition = vec4(position, 0);
-    oDirection = vec4(direction, 0);
+    oDirection = directionAndBounces;
     oRadiance = radianceAndWeight;
     oColor = colorAndNumber;
 }
@@ -230,12 +232,13 @@ layout (location = 3) out vec4 oColor;
 @intersectCube
 @unproject
 
-void resetPhoton(out vec3 position, out vec3 direction, out vec4 radianceAndWeight) {
+void resetPhoton(out vec3 position, out vec4 directionAndBounces, out vec4 radianceAndWeight) {
     vec3 from, to;
     unproject(vPosition, uMvpInverseMatrix, from, to);
-    direction = normalize(to - from);
-    vec2 tbounds = max(intersectCube(from, direction), 0.0);
-    position = from + tbounds.x * direction;
+    directionAndBounces.xyz = normalize(to - from);
+    directionAndBounces.w = 0.0;
+    vec2 tbounds = max(intersectCube(from, directionAndBounces.xyz), 0.0);
+    position = from + tbounds.x * directionAndBounces.xyz;
     radianceAndWeight = vec4(1);
 }
 
@@ -246,13 +249,12 @@ vec4 sampleEnvironmentMap(vec3 d) {
 
 void main() {
     vec3 position;
-    vec3 direction;
-    vec4 radiance;
-    resetPhoton(position, direction, radiance);
+    vec4 directionAndBounces;
+    vec4 radianceAndWeight;
+    resetPhoton(position, directionAndBounces, radianceAndWeight);
 
     oPosition = vec4(position, 0.0);
-    oDirection = vec4(direction, 0.0);
-    oRadiance = radiance;
-    //oColor = sampleEnvironmentMap(direction);
+    oDirection = directionAndBounces;
+    oRadiance = radianceAndWeight;
     oColor = vec4(1, 1, 1, 0);
 }

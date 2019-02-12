@@ -22,7 +22,7 @@ Class.defaults = {
     absorptionCoefficient : 1,
     scatteringCoefficient : 1,
     scatteringBias        : 0,
-    majorant              : 1,
+    majorant              : 2,
     maxBounces            : 8
 };
 
