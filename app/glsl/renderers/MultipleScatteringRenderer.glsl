@@ -36,6 +36,7 @@ precision mediump float;
 
 #define M_INVPI 0.31830988618
 #define M_2PI 6.28318530718
+#define EPS 1e-5
 #define RAND_MAGIC 123.4567
 
 uniform mediump sampler2D uPosition;
@@ -87,23 +88,28 @@ vec4 sampleVolumeColor(vec3 position) {
     return transferSample;
 }
 
-float sampleHenyeyGreensteinAngle(float g, float U) {
-    float s = U * 2.0 - 1.0;
-    float g2 = g * g;
-    float c = (1.0 - g2) / (1.0 + g * s);
-    return (1.0 + g2 + c * c) / (2.0 * g);
-}
-
-vec3 sampleHenyeyGreenstein(float g, float U, vec3 direction) {
-    // TODO: implement
-    return vec3(0);
-}
-
-vec3 randomDirection(vec2 r) {
-    float phi = r.x * M_2PI;
-    float z = r.y * 2.0 - 1.0;
+vec3 randomDirection(vec2 U) {
+    float phi = U.x * M_2PI;
+    float z = U.y * 2.0 - 1.0;
     float k = sqrt(1.0 - z * z);
     return vec3(k * cos(phi), k * sin(phi), z);
+}
+
+float sampleHenyeyGreensteinAngleCosine(float g, float U) {
+    float g2 = g * g;
+    float c = (1.0 - g2) / (1.0 - g + 2.0 * g * U);
+    return (1.0 + g2 - c * c) / (2.0 * g);
+}
+
+vec3 sampleHenyeyGreenstein(float g, vec2 U, vec3 direction) {
+    // generate random direction and adjust it so that the angle is HG-sampled
+    vec3 u = randomDirection(U);
+    if (abs(g) < EPS) {
+        return u;
+    }
+    float hgcos = sampleHenyeyGreensteinAngleCosine(g, fract(sin(U.x * 12345.6789) + 0.816723));
+    float lambda = hgcos - dot(direction, u);
+    return normalize(u + lambda * direction);
 }
 
 void main() {
@@ -149,7 +155,7 @@ void main() {
             r = rand(r * RAND_MAGIC);
             radianceAndWeight.rgb *= volumeSample.rgb;
             radianceAndWeight.w *= muScattering / (muMajorant * PScattering);
-            direction = randomDirection(r);
+            direction = sampleHenyeyGreenstein(uScatteringBias, r, direction);
         } else {
             // null collision
             radianceAndWeight.w *= muNull / (muMajorant * PNull);
