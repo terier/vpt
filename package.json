@@ -5,7 +5,6 @@
   "main": "bin/server-express",
   "scripts": {
     "build": "make",
-    "postinstall": "make",
     "start": "bin/server-express",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -18,5 +17,6 @@
   "homepage": "https://bitbucket.org/terier/vpt#readme",
   "dependencies": {
     "express": "latest"
-  }
+  },
+  "heroku-run-build-script": true
 }
