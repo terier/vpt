@@ -200,7 +200,7 @@ _._addHandle = function(index) {
         var scale = Math.exp(-amount);
         var i = parseInt(DOMUtils.data(e.currentTarget, 'index'), 10);
         this.selectBump(i);
-        if (e.shiftKey) {
+        if (e.originalEvent.shiftKey) {
             this._bumps[i].size.y *= scale;
         } else {
             this._bumps[i].size.x *= scale;
