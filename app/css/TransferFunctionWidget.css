@@ -6,7 +6,7 @@
 }
 
 .transfer-function-widget canvas {
-    background: url('images/alpha-checkerboard.png') repeat;
+    background: url('../images/alpha-checkerboard.png') repeat;
 }
 
 .transfer-function-widget .bump {
