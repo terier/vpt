@@ -8,8 +8,10 @@ var _ = Class.prototype;
 
 // ========================== CLASS DECLARATION ============================ //
 
-function AbstractReader(options) {
+function AbstractReader(loader, options) {
     CommonUtils.extend(this, Class.defaults, options);
+
+    this._loader = loader;
 
     _._init.call(this);
 };
@@ -24,19 +26,21 @@ _._nullify = function() {
 
 _._init = function() {
     _._nullify.call(this);
-
-    // init here
 };
 
 _.destroy = function() {
-    // destroy here
-
     _._nullify.call(this);
 };
 
 // =========================== INSTANCE METHODS ============================ //
 
+_.readMetadata = function(handlers) {
+    throw CommonUtils.noimpl;
+};
 
+_.readBlock = function(block, handlers) {
+    throw CommonUtils.noimpl;
+};
 
 // ============================ STATIC METHODS ============================= //
 

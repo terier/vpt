@@ -1,18 +1,55 @@
-var Volume = (function() {
+(function(global) {
 'use strict';
 
-function Volume(data, width, height, depth, bitdepth) {
-    if (bitdepth === 8) {
-        this.data = new Float32Array(new Uint8Array(data)).map(function(x) { return x / (1 << 8); });
-    } else if (bitdepth === 16) {
-        this.data = new Float32Array(new Uint16Array(data)).map(function(x) { return x / (1 << 16); });
-    }
-    this.width = width;
-    this.height = height;
-    this.depth = depth;
-    this.bitdepth = bitdepth;
-}
+var Class = global.Volume = Volume;
+var _ = Class.prototype;
 
-return Volume;
+// ========================== CLASS DECLARATION ============================ //
 
-})();
+function Volume(reader, options) {
+    CommonUtils.extend(this, Class.defaults, options);
+
+    this._reader = reader;
+
+    _._init.call(this);
+};
+
+Class.defaults = {
+};
+
+// ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
+
+_._nullify = function() {
+    this.meta       = null;
+    this.modalities = null;
+    this.blocks     = null;
+};
+
+_._init = function() {
+    _._nullify.call(this);
+};
+
+_.destroy = function() {
+    _._nullify.call(this);
+};
+
+// =========================== INSTANCE METHODS ============================ //
+
+_.readMetadata = function(handlers) {
+    this._reader.readMetadata({
+        onData: function(data) {
+            this.meta = data.meta;
+            this.modalities = data.modalities;
+            this.blocks = data.blocks;
+            handlers.onData && handlers.onData();
+        }.bind(this)
+    });
+};
+
+_.readBlock = function(block, handlers) {
+    this._reader.readBlock(block, handlers);
+};
+
+// ============================ STATIC METHODS ============================= //
+
+})(this);

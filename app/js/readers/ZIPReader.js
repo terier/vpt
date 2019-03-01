@@ -5,13 +5,13 @@
 'use strict';
 
 var Class = global.ZIPReader = ZIPReader;
-CommonUtils.inherit(Class, AbstractLoader);
+CommonUtils.inherit(Class, AbstractReader);
 var _ = Class.prototype;
 
 // ========================== CLASS DECLARATION ============================ //
 
-function ZIPReader(options) {
-    _.sup.constructor.call(this, options);
+function ZIPReader(loader, options) {
+    _.sup.constructor.call(this, loader, options);
     CommonUtils.extend(this, Class.defaults, options);
 
     _._init.call(this);
@@ -27,20 +27,22 @@ _._nullify = function() {
 
 _._init = function() {
     _._nullify.call(this);
-
-    // init here
 };
 
 _.destroy = function() {
-    // destroy here
-
     _._nullify.call(this);
     _.sup.destroy.call(this);
 };
 
 // =========================== INSTANCE METHODS ============================ //
 
+_.readMetadata = function(handlers) {
+    throw CommonUtils.noimpl;
+};
 
+_.readBlock = function(block, handlers) {
+    throw CommonUtils.noimpl;
+};
 
 // ============================ STATIC METHODS ============================= //
 

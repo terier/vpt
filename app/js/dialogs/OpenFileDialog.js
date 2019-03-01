@@ -34,7 +34,8 @@ _._init = function() {
     _._nullify.call(this);
 
     this._$html  = $(TEMPLATES['OpenFileDialog.html']);
-    this._$input = this._$html.find('[name="file"]')[0];
+    this._$drop  = this._$html.find('.drop');
+    this._$input = this._$html.find('[name="file"]');
     this._$size  = this._$html.find('[name="size"]');
     this._$bits  = this._$html.find('[name="bits"]');
     this._$open  = this._$html.find('[name="open"]');
@@ -45,21 +46,17 @@ _._init = function() {
     });
     this._$container.append(this._$html);
     this._$open.click(function() {
-        if (this._$input.files.length > 0) {
-            var file = this._$input.files[0];
-            var size = {
-                x: parseInt(this._$size.filter('[data-axis="x"]').val()),
-                y: parseInt(this._$size.filter('[data-axis="y"]').val()),
-                z: parseInt(this._$size.filter('[data-axis="z"]').val())
-            };
-            var bits = parseInt(this._$bits.filter(':checked').val());
-            var reader = new FileReader();
-            reader.addEventListener('load', function(e) {
-                this.onLoad(e.target.result, size, bits);
-            }.bind(this));
-            reader.addEventListener('error', this.onError);
-            reader.readAsArrayBuffer(file);
+        if (this._$input[0].files.length > 0) {
+
         }
+    }.bind(this));
+
+    this._$drop.on('dragover', function(e) {
+        e.preventDefault();
+    }.bind(this));
+    this._$drop.on('drop', function(e) {
+        e.preventDefault();
+        this._$input[0].files = e.originalEvent.dataTransfer.files;
     }.bind(this));
 };
 

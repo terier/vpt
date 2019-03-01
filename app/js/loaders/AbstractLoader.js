@@ -24,24 +24,20 @@ _._nullify = function() {
 
 _._init = function() {
     _._nullify.call(this);
-
-    // init here
 };
 
 _.destroy = function() {
-    // destroy here
-
     _._nullify.call(this);
 };
 
 // =========================== INSTANCE METHODS ============================ //
 
-_.getLength = function(callback) {
+_.createMetaRequest = function() {
     throw CommonUtils.noimpl;
 };
 
 
-_.read = function(start, end, callback) {
+_.createDataRequest = function() {
     throw CommonUtils.noimpl;
 };
 

@@ -1,6 +1,13 @@
+//@@utils/Utils.js
 //@@RenderingContext.js
 //@@Navbar.js
 //@@Volume.js
+//@@readers/BVPReader.js
+//@@readers/JSONReader.js
+//@@readers/RAWReader.js
+//@@readers/ZIPReader.js
+//@@loaders/BlobLoader.js
+//@@loaders/AjaxLoader.js
 //@@dialogs/OpenFileDialog.js
 //@@dialogs/OpenEnvironmentMapDialog.js
 //@@dialogs/RenderingContextDialog.js
@@ -62,12 +69,32 @@ _._init = function() {
     }.bind(this));
     CommonUtils.trigger('resize', window);
 
+    document.body.addEventListener('dragover', function(e) {
+        e.preventDefault();
+    });
+
+    document.body.addEventListener('drop', function(e) {
+        e.preventDefault();
+        var files = e.dataTransfer.files;
+        if (files.length > 0) {
+            var file = files[0];
+            var readerClass = this._getReaderForURL(file.name);
+            if (readerClass) {
+                var loader = new BlobLoader(file);
+                var reader = new readerClass(loader);
+                var volume = new Volume(reader);
+                this._renderingContext.stopRendering();
+                this._renderingContext.setVolume(volume);
+            }
+        }
+    }.bind(this));
+
     this._openFileDialog = new OpenFileDialog(
         document.body, {
         onLoad: function(data, size, bits) {
-            var volume = new Volume(data, size.x, size.y, size.z, bits);
-            this._renderingContext.setVolume(volume);
-            this._renderingContext.getRenderer().reset();
+            //var volume = new Volume(data, size.x, size.y, size.z, bits);
+            //this._renderingContext.setVolume(volume);
+            //this._renderingContext.getRenderer().reset();
         }.bind(this)
     });
 
@@ -218,6 +245,22 @@ _.destroy = function() {
 };
 
 // =========================== INSTANCE METHODS ============================ //
+
+_._getReaderForURL = function(url) {
+    var lastDot = url.lastIndexOf('.');
+    if (lastDot === -1) {
+        return null;
+    }
+
+    var ext = url.substr(lastDot + 1).toLowerCase();
+    switch (ext) {
+        case 'bvp'  : return BVPReader;
+        case 'json' : return JSONReader;
+        case 'raw'  : return RAWReader;
+        case 'zip'  : return ZIPReader;
+        default     : return null;
+    }
+};
 
 // ============================ STATIC METHODS ============================= //
 

@@ -209,12 +209,19 @@ _.setVolume = function(volume) {
         return;
     }
 
+    volume.readMetadata({
+        onData: function() {
+            console.log(volume.modalities);
+            this.startRendering();
+        }.bind(this)
+    });
+
     // TODO: texture class, to avoid duplicating texture specs
-    gl.bindTexture(gl.TEXTURE_3D, this._volumeTexture);
-    gl.texImage3D(gl.TEXTURE_3D, 0, gl.R16F,
-        volume.width, volume.height, volume.depth,
-        0, gl.RED, gl.FLOAT, volume.data);
-    gl.bindTexture(gl.TEXTURE_3D, null);
+    //gl.bindTexture(gl.TEXTURE_3D, this._volumeTexture);
+    //gl.texImage3D(gl.TEXTURE_3D, 0, gl.R16F,
+    //    volume.width, volume.height, volume.depth,
+    //    0, gl.RED, gl.FLOAT, volume.data);
+    //gl.bindTexture(gl.TEXTURE_3D, null);
 };
 
 _.setEnvironmentMap = function(image) {
