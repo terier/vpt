@@ -37,12 +37,11 @@ _._init = function() {
 };
 
 _.destroy = function() {
-    _.sup.destroy.call(this);
-
     var gl = this._gl;
     gl.deleteProgram(this._program.program);
 
     _._nullify.call(this);
+    _.sup.destroy.call(this);
 };
 
 // =========================== INSTANCE METHODS ============================ //
