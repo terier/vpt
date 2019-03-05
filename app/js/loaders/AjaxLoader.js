@@ -38,38 +38,26 @@ _.destroy = function() {
 
 // =========================== INSTANCE METHODS ============================ //
 
-_.getLength = function(callback) {
+_.readLength = function(handlers) {
     var xhr = new XMLHttpRequest();
     xhr.addEventListener('load', function(e) {
         var contentLength = e.target.getResponseHeader('Content-Length');
-        callback(parseInt(contentLength, 10));
-    });
-    xhr.addEventListener('abort', function(e) {
-        callback(null);
-    });
-    xhr.addEventListener('error', function(e) {
-        callback(null);
+        handlers.onData && handler.onData(parseInt(contentLength, 10));
     });
     xhr.open('HEAD', this.url);
-    xhr.responseType = 'blob';
+    xhr.responseType = 'arraybuffer';
     xhr.send();
 };
 
 
-_.read = function(start, end, callback) {
+_.readData = function(start, end, handlers) {
     var xhr = new XMLHttpRequest();
     xhr.addEventListener('load', function(e) {
-        callback(e.target.result);
-    });
-    xhr.addEventListener('abort', function(e) {
-        callback(null);
-    });
-    xhr.addEventListener('error', function(e) {
-        callback(null);
+        handlers.onData && handler.onData(e.target.result);
     });
     xhr.open('GET', this.url);
     xhr.setRequestHeader('Range', 'bytes=' + start + '-' + (end - 1));
-    xhr.responseType = 'blob';
+    xhr.responseType = 'arraybuffer';
     xhr.send();
 };
 

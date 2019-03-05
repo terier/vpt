@@ -32,12 +32,12 @@ _.destroy = function() {
 
 // =========================== INSTANCE METHODS ============================ //
 
-_.createMetaRequest = function() {
+_.readLength = function(handlers) {
     throw CommonUtils.noimpl;
 };
 
 
-_.createDataRequest = function() {
+_.readData = function(start, end, handlers) {
     throw CommonUtils.noimpl;
 };
 

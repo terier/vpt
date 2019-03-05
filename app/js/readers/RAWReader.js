@@ -48,7 +48,7 @@ _.readMetadata = function(handlers) {
         modalities: [
             {
                 name: 'default',
-                dimentions: {
+                dimensions: {
                     width: this.width,
                     height: this.height,
                     depth: this.depth
@@ -90,6 +90,11 @@ _.readMetadata = function(handlers) {
 };
 
 _.readBlock = function(block, handlers) {
+    this._loader.readData(0, this.width * this.height * this.depth * (this.bits / 8), {
+        onData: function(data) {
+            handlers.onData && handlers.onData(data);
+        }
+    });
 };
 
 // ============================ STATIC METHODS ============================= //

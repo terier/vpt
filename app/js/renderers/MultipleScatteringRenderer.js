@@ -11,8 +11,8 @@
 
 // ========================== CLASS DECLARATION ============================ //
 
-function MultipleScatteringRenderer(gl, volumeTexture, environmentTexture, options) {
-    _.sup.constructor.call(this, gl, volumeTexture, environmentTexture, options);
+function MultipleScatteringRenderer(gl, volume, environmentTexture, options) {
+    _.sup.constructor.call(this, gl, volume, environmentTexture, options);
     CommonUtils.extend(this, Class.defaults, options);
 
     _._init.call(this);
@@ -99,7 +99,7 @@ _._integrateFrame = function() {
     gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[3]);
 
     gl.activeTexture(gl.TEXTURE4);
-    gl.bindTexture(gl.TEXTURE_3D, this._volumeTexture);
+    gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
     gl.activeTexture(gl.TEXTURE5);
     gl.bindTexture(gl.TEXTURE_2D, this._environmentTexture);
     gl.activeTexture(gl.TEXTURE6);

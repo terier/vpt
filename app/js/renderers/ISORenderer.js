@@ -11,8 +11,8 @@ var _ = Class.prototype;
 
 // ========================== CLASS DECLARATION ============================ //
 
-function ISORenderer(gl, volumeTexture, environmentTexture, options) {
-    _.sup.constructor.call(this, gl, volumeTexture, environmentTexture, options);
+function ISORenderer(gl, volume, environmentTexture, options) {
+    _.sup.constructor.call(this, gl, volume, environmentTexture, options);
     CommonUtils.extend(this, Class.defaults, options);
 
     _._init.call(this);
@@ -72,7 +72,7 @@ _._generateFrame = function() {
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[0]);
     gl.activeTexture(gl.TEXTURE1);
-    gl.bindTexture(gl.TEXTURE_3D, this._volumeTexture);
+    gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
 
     gl.uniform1i(program.uniforms.uClosest, 0);
     gl.uniform1i(program.uniforms.uVolume, 1);
@@ -110,7 +110,7 @@ _._renderFrame = function() {
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[0]);
     gl.activeTexture(gl.TEXTURE1);
-    gl.bindTexture(gl.TEXTURE_3D, this._volumeTexture);
+    gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
 
     gl.uniform1i(program.uniforms.uClosest, 0);
     gl.uniform1i(program.uniforms.uVolume, 1);

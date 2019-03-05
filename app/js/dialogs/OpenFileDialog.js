@@ -47,7 +47,14 @@ _._init = function() {
     this._$container.append(this._$html);
     this._$open.click(function() {
         if (this._$input[0].files.length > 0) {
-
+            var data = this._$input[0].files[0];
+            var size = {
+                x: parseInt(this._$size.filter('[data-axis="x"]').val()),
+                y: parseInt(this._$size.filter('[data-axis="y"]').val()),
+                z: parseInt(this._$size.filter('[data-axis="z"]').val())
+            };
+            var bits = parseInt(this._$bits.filter(':checked').val());
+            this.onLoad && this.onLoad(data, size, bits);
         }
     }.bind(this));
 

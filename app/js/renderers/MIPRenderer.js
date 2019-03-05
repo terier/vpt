@@ -11,8 +11,8 @@ var _ = Class.prototype;
 
 // ========================== CLASS DECLARATION ============================ //
 
-function MIPRenderer(gl, volumeTexture, environmentTexture, options) {
-    _.sup.constructor.call(this, gl, volumeTexture, environmentTexture, options);
+function MIPRenderer(gl, volume, environmentTexture, options) {
+    _.sup.constructor.call(this, gl, volume, environmentTexture, options);
     CommonUtils.extend(this, Class.defaults, options);
 
     _._init.call(this);
@@ -67,7 +67,7 @@ _._generateFrame = function() {
     gl.useProgram(program.program);
 
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_3D, this._volumeTexture);
+    gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
 
     gl.uniform1i(program.uniforms.uVolume, 0);
     gl.uniform1f(program.uniforms.uStepSize, this._stepSize);

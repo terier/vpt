@@ -2,6 +2,7 @@
 //@@Ticker.js
 //@@Camera.js
 //@@OrbitCameraController.js
+//@@Volume.js
 //@@renderers/MIPRenderer.js
 //@@renderers/ISORenderer.js
 //@@renderers/EAMRenderer.js
@@ -56,7 +57,11 @@ _._init = function() {
 
     this._camera = new Camera();
     this._cameraController = new OrbitCameraController(this._camera, this._canvas);
-    this._renderer = new MultipleScatteringRenderer(this._gl, this._volumeTexture, this._environmentTexture);
+
+    var loader = new BlobLoader();
+    this._volume = new Volume(this._gl);
+
+    this._renderer = new MultipleScatteringRenderer(this._gl, this._volume, this._environmentTexture);
     this._toneMapper = new ReinhardToneMapper(this._gl, this._renderer.getTexture());
 
     this._contextRestorable = true;
@@ -78,6 +83,13 @@ _._init = function() {
 
 _.destroy = function() {
     this.stopRendering();
+
+    this._toneMapper.destroy();
+    this._volume.destroy();
+    this._renderer.destroy();
+    this._cameraController.destroy();
+    this._camera.destroy();
+
     this._destroyGL();
 
     this._canvas.removeEventListener('webglcontextlost', this._webglcontextlostHandler);
@@ -87,11 +99,6 @@ _.destroy = function() {
         this._canvas.parentNode.removeChild(this._canvas);
     }
 
-    this._toneMapper.destroy();
-    this._renderer.destroy();
-    this._cameraController.destroy();
-    this._camera.destroy();
-
     _._nullify.call(this);
 };
 
@@ -99,7 +106,7 @@ _.destroy = function() {
 
 _._nullifyGL = function() {
     this._gl                  = null;
-    this._volumeTexture       = null;
+    this._volume              = null;
     this._environmentTexture  = null;
     this._transferFunction    = null;
     this._program             = null;
@@ -125,22 +132,6 @@ _._initGL = function() {
     if (!this._extColorBufferFloat) {
         console.error('EXT_color_buffer_float not supported!');
     }
-
-    this._volumeTexture = WebGL.createTexture(gl, {
-        target         : gl.TEXTURE_3D,
-        width          : 1,
-        height         : 1,
-        depth          : 1,
-        data           : new Float32Array([1]),
-        format         : gl.RED,
-        internalFormat : gl.R16F,
-        type           : gl.FLOAT,
-        wrapS          : gl.CLAMP_TO_EDGE,
-        wrapT          : gl.CLAMP_TO_EDGE,
-        wrapR          : gl.CLAMP_TO_EDGE,
-        min            : gl.LINEAR,
-        mag            : gl.LINEAR
-    });
 
     this._environmentTexture = WebGL.createTexture(gl, {
         width          : 1,
@@ -170,7 +161,6 @@ _._destroyGL = function() {
 
     gl.deleteProgram(this._program.program);
     gl.deleteBuffer(this._clipQuad);
-    gl.deleteTexture(this._volumeTexture);
 
     this._contextRestorable = false;
     if (this._extLoseContext) {
@@ -203,25 +193,24 @@ _.resize = function(width, height) {
     this._camera.resize(width, height);
 };
 
-_.setVolume = function(volume) {
+_.setVolume = function(reader) {
     var gl = this._gl;
     if (!gl) {
         return;
     }
 
+    var volume = this._volume = new Volume(this._gl, reader);
+
     volume.readMetadata({
         onData: function() {
-            console.log(volume.modalities);
-            this.startRendering();
+            volume.readModality('default', {
+                onLoad: function() {
+                    this._renderer.setVolume(volume);
+                    this.startRendering();
+                }.bind(this)
+            });
         }.bind(this)
     });
-
-    // TODO: texture class, to avoid duplicating texture specs
-    //gl.bindTexture(gl.TEXTURE_3D, this._volumeTexture);
-    //gl.texImage3D(gl.TEXTURE_3D, 0, gl.R16F,
-    //    volume.width, volume.height, volume.depth,
-    //    0, gl.RED, gl.FLOAT, volume.data);
-    //gl.bindTexture(gl.TEXTURE_3D, null);
 };
 
 _.setEnvironmentMap = function(image) {
@@ -242,19 +231,19 @@ _.chooseRenderer = function(renderer) {
     this._renderer.destroy();
     switch (renderer) {
         case 'MIP':
-            this._renderer = new MIPRenderer(this._gl, this._volumeTexture, this._environmentTexture);
+            this._renderer = new MIPRenderer(this._gl, this._volume, this._environmentTexture);
             break;
         case 'ISO':
-            this._renderer = new ISORenderer(this._gl, this._volumeTexture, this._environmentTexture);
+            this._renderer = new ISORenderer(this._gl, this._volume, this._environmentTexture);
             break;
         case 'EAM':
-            this._renderer = new EAMRenderer(this._gl, this._volumeTexture, this._environmentTexture);
+            this._renderer = new EAMRenderer(this._gl, this._volume, this._environmentTexture);
             break;
         case 'MCS':
-            this._renderer = new MCSRenderer(this._gl, this._volumeTexture, this._environmentTexture);
+            this._renderer = new MCSRenderer(this._gl, this._volume, this._environmentTexture);
             break;
         case 'Multiple Scattering':
-            this._renderer = new MultipleScatteringRenderer(this._gl, this._volumeTexture, this._environmentTexture);
+            this._renderer = new MultipleScatteringRenderer(this._gl, this._volume, this._environmentTexture);
             break;
     }
     this._toneMapper.setTexture(this._renderer.getTexture());

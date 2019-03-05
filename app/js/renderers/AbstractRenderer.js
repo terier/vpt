@@ -12,11 +12,11 @@ var _ = Class.prototype;
 
 // ========================== CLASS DECLARATION ============================ //
 
-function AbstractRenderer(gl, volumeTexture, environmentTexture, options) {
+function AbstractRenderer(gl, volume, environmentTexture, options) {
     CommonUtils.extend(this, Class.defaults, options);
 
     this._gl = gl;
-    this._volumeTexture = volumeTexture;
+    this._volume = volume;
     this._environmentTexture = environmentTexture;
 
     _._init.call(this);
@@ -107,6 +107,11 @@ _.reset = function() {
     this._accumulationBuffer.use();
     this._resetFrame();
     this._accumulationBuffer.swap();
+};
+
+_.setVolume = function(volume) {
+    this._volume = volume;
+    this.reset();
 };
 
 _.setTransferFunction = function(transferFunction) {

@@ -38,17 +38,17 @@ _.destroy = function() {
 
 // =========================== INSTANCE METHODS ============================ //
 
-_.createMetadataRequest = function(handlers) {
-    handlers.loadstart && handlers.loadstart();
-    handlers.progress && handlers.progress(0);
-    handlers.load && (this.blob.size);
-    handlers.progress && handlers.progress(0);
-    handlers.loadend && handlers.loadend();
+_.readLength = function(handlers) {
+    handlers.onData && handlers.onData(this.blob.size);
 };
 
 
-_.createDataRequest = function(start, end, handlers) {
-    callback(this.blob.slice(start, end));
+_.readData = function(start, end, handlers) {
+    var fileReader = new FileReader();
+    fileReader.addEventListener('load', function(e) {
+        handlers.onData && handlers.onData(e.target.result);
+    });
+    fileReader.readAsArrayBuffer(this.blob.slice(start, end));
 };
 
 // ============================ STATIC METHODS ============================= //

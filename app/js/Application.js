@@ -82,9 +82,8 @@ _._init = function() {
             if (readerClass) {
                 var loader = new BlobLoader(file);
                 var reader = new readerClass(loader);
-                var volume = new Volume(reader);
                 this._renderingContext.stopRendering();
-                this._renderingContext.setVolume(volume);
+                this._renderingContext.setVolume(reader);
             }
         }
     }.bind(this));
@@ -92,9 +91,15 @@ _._init = function() {
     this._openFileDialog = new OpenFileDialog(
         document.body, {
         onLoad: function(data, size, bits) {
-            //var volume = new Volume(data, size.x, size.y, size.z, bits);
-            //this._renderingContext.setVolume(volume);
-            //this._renderingContext.getRenderer().reset();
+            var loader = new BlobLoader(data);
+            var reader = new RAWReader(loader, {
+                width: size.x,
+                height: size.y,
+                depth: size.z,
+                bits: bits
+            });
+            this._renderingContext.stopRendering();
+            this._renderingContext.setVolume(reader);
         }.bind(this)
     });
 
@@ -223,8 +228,6 @@ _._init = function() {
             });
         }.bind(this)
     });
-
-    this._renderingContext.startRendering();
 };
 
 _.destroy = function() {
