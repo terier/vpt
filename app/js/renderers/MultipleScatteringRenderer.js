@@ -75,7 +75,7 @@ _._resetFrame = function() {
         gl.COLOR_ATTACHMENT1,
         gl.COLOR_ATTACHMENT2,
         gl.COLOR_ATTACHMENT3
-        ]);
+    ]);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 };
@@ -128,7 +128,7 @@ _._integrateFrame = function() {
         gl.COLOR_ATTACHMENT1,
         gl.COLOR_ATTACHMENT2,
         gl.COLOR_ATTACHMENT3
-        ]);
+    ]);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 };
@@ -204,10 +204,10 @@ _._getAccumulationBufferSpec = function() {
     };
 
     return [
-    positionBufferSpec,
-    directionBufferSpec,
-    radianceBufferSpec,
-    colorBufferSpec
+        positionBufferSpec,
+        directionBufferSpec,
+        radianceBufferSpec,
+        colorBufferSpec
     ];
 };
 
