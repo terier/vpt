@@ -159,8 +159,8 @@ _._getRenderBufferSpec = function() {
     return [{
         width          : this._bufferSize,
         height         : this._bufferSize,
-        min            : gl.LINEAR,
-        mag            : gl.LINEAR,
+        min            : gl.NEAREST,
+        mag            : gl.NEAREST,
         wrapS          : gl.CLAMP_TO_EDGE,
         wrapT          : gl.CLAMP_TO_EDGE,
         format         : gl.RGBA,
