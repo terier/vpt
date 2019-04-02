@@ -14,30 +14,32 @@ function MultipleScatteringRendererDialog(container, renderer, options) {
     this._$container = $(container);
     this._renderer = renderer;
 
+    this._changeHandler = this._changeHandler.bind(this);
+
     _._init.call(this);
 }
 
 Class.defaults = {
-    absorptionCoefficient : 1,
-    scatteringCoefficient : 1,
-    scatteringBias        : 0,
-    majorant              : 2,
-    maxBounces            : 8
+    extinction     : 10,
+    albedo         : 0.5,
+    scatteringBias : 0,
+    majorantRatio  : 1,
+    maxBounces     : 8
 };
 
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
 
 _._nullify = function() {
-    this._$html                  = null;
-    this._$heading               = null;
-    this._$resizeHandle          = null;
-    this._$closeButton           = null;
+    this._$html           = null;
+    this._$heading        = null;
+    this._$resizeHandle   = null;
+    this._$closeButton    = null;
 
-    this._$absorptionCoefficient = null;
-    this._$scatteringCoefficient = null;
-    this._$scatteringBias        = null;
-    this._$majorant              = null;
-    this._$maxBounces            = null;
+    this._$extinction     = null;
+    this._$albedo         = null;
+    this._$scatteringBias = null;
+    this._$majorantRatio  = null;
+    this._$maxBounces     = null;
 
     this._transferFunctionWidget = null;
 };
@@ -50,10 +52,10 @@ _._init = function() {
     this._$resizeHandle = this._$html.find('.resize-handle');
     this._$closeButton = this._$html.find('.close');
 
-    this._$absorptionCoefficient = this._$html.find('[name="absorption-coefficient"]');
-    this._$scatteringCoefficient = this._$html.find('[name="scattering-coefficient"]');
+    this._$extinction = this._$html.find('[name="extinction"]');
+    this._$albedo = this._$html.find('[name="albedo"]');
     this._$scatteringBias = this._$html.find('[name="scattering-bias"]');
-    this._$majorant = this._$html.find('[name="majorant"]');
+    this._$majorantRatio = this._$html.find('[name="majorant-ratio"]');
     this._$maxBounces = this._$html.find('[name="max-bounces"]');
 
     this._$html.hide();
@@ -70,29 +72,25 @@ _._init = function() {
         this._$html.hide();
     }.bind(this));
 
-    this._$absorptionCoefficient.val(this.absorptionCoefficient);
-    this._$absorptionCoefficient.change(function() {
-        this._renderer.absorptionCoefficient = parseFloat(this._$absorptionCoefficient.val());
-    }.bind(this));
+    this._$extinction.val(this.extinction);
+    this._$extinction.change(this._changeHandler);
 
-    this._$scatteringCoefficient.val(this.scatteringCoefficient);
-    this._$scatteringCoefficient.change(function() {
-        this._renderer.scatteringCoefficient = parseFloat(this._$scatteringCoefficient.val());
-    }.bind(this));
+    this._$albedo.val(this.albedo);
+    this._$albedo.change(this._changeHandler);
+
+    this._$majorantRatio.val(this.majorantRatio);
+    this._$majorantRatio.change(this._changeHandler);
 
     this._$scatteringBias.val(this.scatteringBias);
     this._$scatteringBias.change(function() {
         this._renderer.scatteringBias = parseFloat(this._$scatteringBias.val());
-    }.bind(this));
-
-    this._$majorant.val(this.majorant);
-    this._$majorant.change(function() {
-        this._renderer.majorant = parseFloat(this._$majorant.val());
+        this._renderer.reset();
     }.bind(this));
 
     this._$maxBounces.val(this.maxBounces);
     this._$maxBounces.change(function() {
         this._renderer.maxBounces = parseFloat(this._$maxBounces.val());
+        this._renderer.reset();
     }.bind(this));
 
     var tfwContainer = this._$html.find('.tfw-container');
@@ -115,6 +113,17 @@ _.destroy = function() {
 
 _.show = function() {
     this._$html.show();
+};
+
+_._changeHandler = function() {
+    var extinction = parseFloat(this._$extinction.val());
+    var albedo = parseFloat(this._$albedo.val());
+    var majorantRatio = parseFloat(this._$majorantRatio.val());
+
+    this._renderer.absorptionCoefficient = extinction * (1 - albedo);
+    this._renderer.scatteringCoefficient = extinction * albedo;
+    this._renderer.majorant = extinction * majorantRatio;
+    this._renderer.reset();
 };
 
 // ============================ STATIC METHODS ============================= //
