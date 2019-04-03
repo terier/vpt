@@ -18,6 +18,7 @@
 //@@dialogs/MultipleScatteringRendererDialog.js
 //@@dialogs/ReinhardToneMapperDialog.js
 //@@dialogs/RangeToneMapperDialog.js
+//@@dialogs/ArtisticToneMapperDialog.js
 
 (function(global) {
 'use strict';
@@ -52,6 +53,7 @@ _._nullify = function() {
     this._multipleScatteringRendererDialog = null;
     this._reinhardToneMapperDialog         = null;
     this._rangeToneMapperDialog            = null;
+    this._artisticToneMapperDialog         = null;
 };
 
 _._init = function() {
@@ -152,6 +154,11 @@ _._init = function() {
         this._renderingContext.getToneMapper(), {
     });
 
+    this._artisticToneMapperDialog = new ArtisticToneMapperDialog(
+        document.body,
+        this._renderingContext.getToneMapper(), {
+    });
+
     this._navbar = new Navbar(
         document.body, {
         onOpenFileDialog: function() {
@@ -186,6 +193,9 @@ _._init = function() {
         }.bind(this),
         onRangeToneMapperDialog: function() {
             this._rangeToneMapperDialog.show();
+        }.bind(this),
+        onArtisticToneMapperDialog: function() {
+            this._artisticToneMapperDialog.show();
         }.bind(this),
         onChooseMipRenderer: function() {
             this._renderingContext.chooseRenderer('MIP');
@@ -242,6 +252,7 @@ _.destroy = function() {
     this._multipleScatteringRendererDialog.destroy();
     this._reinhardToneMapperDialog.destroy();
     this._rangeToneMapperDialog.destroy();
+    this._artisticToneMapperDialog.destroy();
     DOMUtils.remove(this._canvas);
 
     _._nullify.call(this);
