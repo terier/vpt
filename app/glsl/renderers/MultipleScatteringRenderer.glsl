@@ -56,6 +56,7 @@ uniform float uScatteringCoefficient;
 uniform float uScatteringBias;
 uniform float uMajorant;
 uniform float uMaxBounces;
+uniform int uSteps;
 
 in vec2 vPosition;
 
@@ -121,7 +122,7 @@ void main() {
     vec4 colorAndNumber = texture(uColor, mappedPosition);
 
     vec2 r = vPosition * uOffset;
-    for (int i = 0; i < 1; i++) {
+    for (int i = 0; i < uSteps; i++) {
         r = rand(r * RAND_MAGIC);
         float t = -log(r.x) / uMajorant;
         position += t * directionAndBounces.xyz;

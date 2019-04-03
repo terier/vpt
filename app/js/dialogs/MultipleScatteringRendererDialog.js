@@ -24,7 +24,8 @@ Class.defaults = {
     albedo         : 0.5,
     scatteringBias : 0,
     majorantRatio  : 1,
-    maxBounces     : 8
+    maxBounces     : 8,
+    steps          : 1
 };
 
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
@@ -57,6 +58,7 @@ _._init = function() {
     this._$scatteringBias = this._$html.find('[name="scattering-bias"]');
     this._$majorantRatio = this._$html.find('[name="majorant-ratio"]');
     this._$maxBounces = this._$html.find('[name="max-bounces"]');
+    this._$steps = this._$html.find('[name="steps"]');
 
     this._$html.hide();
     this._$container.append(this._$html);
@@ -91,6 +93,11 @@ _._init = function() {
     this._$maxBounces.change(function() {
         this._renderer.maxBounces = parseFloat(this._$maxBounces.val());
         this._renderer.reset();
+    }.bind(this));
+
+    this._$steps.val(this.steps);
+    this._$steps.change(function() {
+        this._renderer.steps = parseInt(this._$steps.val());
     }.bind(this));
 
     var tfwContainer = this._$html.find('.tfw-container');

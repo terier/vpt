@@ -23,7 +23,8 @@ Class.defaults = {
     scatteringCoefficient : 1,
     scatteringBias        : 0,
     majorant              : 2,
-    maxBounces            : 8
+    maxBounces            : 8,
+    steps                 : 1
 };
 
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
@@ -122,6 +123,7 @@ _._integrateFrame = function() {
     gl.uniform1f(program.uniforms.uScatteringBias, this.scatteringBias);
     gl.uniform1f(program.uniforms.uMajorant, this.majorant);
     gl.uniform1f(program.uniforms.uMaxBounces, this.maxBounces);
+    gl.uniform1i(program.uniforms.uSteps, this.steps);
 
     gl.drawBuffers([
         gl.COLOR_ATTACHMENT0,
