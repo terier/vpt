@@ -27,7 +27,6 @@ precision mediump float;
 #define M_INVPI 0.31830988618
 #define M_2PI 6.28318530718
 #define EPS 1e-5
-#define RAND_MAGIC 123.4567
 
 uniform mediump sampler2D uPosition;
 uniform mediump sampler2D uDirection;
@@ -111,9 +110,9 @@ void main() {
     vec4 radianceAndWeight = texture(uRadiance, mappedPosition);
     vec4 colorAndNumber = texture(uColor, mappedPosition);
 
-    vec2 r = vPosition * uRandSeed;
+    vec2 r = rand(vPosition * uRandSeed);
     for (int i = 0; i < uSteps; i++) {
-        r = rand(r * RAND_MAGIC);
+        r = rand(r);
         float t = -log(r.x) / uMajorant;
         position += t * directionAndBounces.xyz;
 
@@ -144,7 +143,7 @@ void main() {
             radianceAndWeight.rgb *= 1.0 - (muAbsorption + muScattering) / muMajorant;
         } else if (r.y < PAbsorption + PScattering) {
             // scattering
-            r = rand(r * RAND_MAGIC);
+            r = rand(r);
             radianceAndWeight.rgb *= volumeSample.rgb;
             radianceAndWeight.w *= muScattering / (muMajorant * PScattering);
             directionAndBounces.xyz = sampleHenyeyGreenstein(uScatteringBias, r, directionAndBounces.xyz);
