@@ -133,6 +133,8 @@ _._initGL = function() {
         console.error('EXT_color_buffer_float not supported!');
     }
 
+    gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+
     this._environmentTexture = WebGL.createTexture(gl, {
         width          : 1,
         height         : 1,
