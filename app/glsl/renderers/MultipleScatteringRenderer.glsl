@@ -1,20 +1,10 @@
 %%MultipleScatteringGenerate:vertex
 
-#version 300 es
-
-layout (location = 0) in vec2 aPosition;
-
-void main() {
-    gl_Position = vec4(aPosition, 0.0, 1.0);
-}
+void main() {}
 
 %%MultipleScatteringGenerate:fragment
 
-#version 300 es
-precision mediump float;
-
-void main() {
-}
+void main() {}
 
 %%MultipleScatteringIntegrate:vertex
 
@@ -49,7 +39,7 @@ uniform mediump sampler2D uTransferFunction;
 uniform mediump sampler2D uEnvironment;
 
 uniform mat4 uMvpInverseMatrix;
-uniform float uOffset;
+uniform float uRandSeed;
 
 uniform float uAbsorptionCoefficient;
 uniform float uScatteringCoefficient;
@@ -121,7 +111,7 @@ void main() {
     vec4 radianceAndWeight = texture(uRadiance, mappedPosition);
     vec4 colorAndNumber = texture(uColor, mappedPosition);
 
-    vec2 r = vPosition * uOffset;
+    vec2 r = vPosition * uRandSeed;
     for (int i = 0; i < uSteps; i++) {
         r = rand(r * RAND_MAGIC);
         float t = -log(r.x) / uMajorant;
@@ -205,8 +195,6 @@ layout (location = 0) in vec2 aPosition;
 
 out vec2 vPosition;
 
-@unproject
-
 void main() {
     vPosition = aPosition;
     gl_Position = vec4(aPosition, 0.0, 1.0);
@@ -216,10 +204,6 @@ void main() {
 
 #version 300 es
 precision mediump float;
-
-#define M_INVPI 0.31830988618
-
-uniform mediump sampler2D uEnvironment;
 
 uniform mat4 uMvpInverseMatrix;
 
@@ -241,11 +225,6 @@ void resetPhoton(out vec3 position, out vec4 directionAndBounces, out vec4 radia
     vec2 tbounds = max(intersectCube(from, directionAndBounces.xyz), 0.0);
     position = from + tbounds.x * directionAndBounces.xyz;
     radianceAndWeight = vec4(1);
-}
-
-vec4 sampleEnvironmentMap(vec3 d) {
-    vec2 texCoord = vec2(atan(d.x, -d.z), asin(-d.y) * 2.0) * M_INVPI * 0.5 + 0.5;
-    return texture(uEnvironment, texCoord);
 }
 
 void main() {
