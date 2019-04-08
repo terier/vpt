@@ -56,6 +56,11 @@ _._init = function() {
     this._initGL();
 
     this._camera = new Camera();
+    this._camera.position.z = 1.5;
+    this._camera.fovX = 0.3;
+    this._camera.fovY = 0.3;
+    this._camera.updateMatrices();
+
     this._cameraController = new OrbitCameraController(this._camera, this._canvas);
 
     var loader = new BlobLoader();
@@ -73,11 +78,6 @@ _._init = function() {
     this._translation = new Vector(0, 0, 0);
     this._isTransformationDirty = true;
 
-    this._camera.position.z = 1.5;
-    this._camera.fovX = 0.3;
-    this._camera.fovY = 0.3;
-
-    this._camera.updateMatrices();
     this._updateMvpInverseMatrix();
 };
 
