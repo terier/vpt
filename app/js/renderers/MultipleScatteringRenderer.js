@@ -65,6 +65,9 @@ _._resetFrame = function() {
     gl.useProgram(program.program);
 
     gl.uniformMatrix4fv(program.uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
+    gl.uniform2f(program.uniforms.uInverseResolution, 1 / this._bufferSize, 1 / this._bufferSize);
+    gl.uniform1f(program.uniforms.uRandSeed, Math.random());
+    gl.uniform1f(program.uniforms.uBlur, 0);
 
     gl.drawBuffers([
         gl.COLOR_ATTACHMENT0,
@@ -111,7 +114,9 @@ _._integrateFrame = function() {
     gl.uniform1i(program.uniforms.uTransferFunction, 6);
 
     gl.uniformMatrix4fv(program.uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
+    gl.uniform2f(program.uniforms.uInverseResolution, 1 / this._bufferSize, 1 / this._bufferSize);
     gl.uniform1f(program.uniforms.uRandSeed, Math.random());
+    gl.uniform1f(program.uniforms.uBlur, 0);
 
     gl.uniform1f(program.uniforms.uAbsorptionCoefficient, this.absorptionCoefficient);
     gl.uniform1f(program.uniforms.uScatteringCoefficient, this.scatteringCoefficient);

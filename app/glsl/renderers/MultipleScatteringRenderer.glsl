@@ -38,7 +38,9 @@ uniform mediump sampler2D uTransferFunction;
 uniform mediump sampler2D uEnvironment;
 
 uniform mat4 uMvpInverseMatrix;
+uniform vec2 uInverseResolution;
 uniform float uRandSeed;
+uniform float uBlur;
 
 uniform float uAbsorptionCoefficient;
 uniform float uScatteringCoefficient;
@@ -55,12 +57,12 @@ layout (location = 2) out vec4 oRadiance;
 layout (location = 3) out vec4 oColor;
 
 @rand
-@unproject
+@unprojectRand
 @intersectCube
 
-void resetPhoton(out vec3 position, out vec4 directionAndBounces, out vec4 radianceAndWeight) {
+void resetPhoton(inout vec2 randState, out vec3 position, out vec4 directionAndBounces, out vec4 radianceAndWeight) {
     vec3 from, to;
-    unproject(vPosition, uMvpInverseMatrix, from, to);
+    unprojectRand(randState, vPosition, uMvpInverseMatrix, uInverseResolution, uBlur, from, to);
     directionAndBounces.xyz = normalize(to - from);
     directionAndBounces.w = 0.0;
     vec2 tbounds = max(intersectCube(from, directionAndBounces.xyz), 0.0);
@@ -130,7 +132,7 @@ void main() {
             vec4 envSample = sampleEnvironmentMap(directionAndBounces.xyz);
             colorAndNumber.w += 1.0;
             colorAndNumber.rgb += (radianceAndWeight.w * radianceAndWeight.rgb * envSample.rgb - colorAndNumber.rgb) / colorAndNumber.w;
-            resetPhoton(position, directionAndBounces, radianceAndWeight);
+            resetPhoton(r, position, directionAndBounces, radianceAndWeight);
         } else if (directionAndBounces.w >= uMaxBounces) {
             // max bounces achieved -> only estimate transmittance
             radianceAndWeight.rgb *= 1.0 - (muAbsorption + muScattering) / muMajorant;
@@ -139,7 +141,7 @@ void main() {
             //vec3 emission = vec3(0);
             //colorAndNumber.w += 1.0;
             //colorAndNumber.rgb += (radianceAndWeight.w * radianceAndWeight.rgb * emission - colorAndNumber.rgb) / colorAndNumber.w;
-            //resetPhoton(position, directionAndBounces, radianceAndWeight);
+            //resetPhoton(r, position, directionAndBounces, radianceAndWeight);
             radianceAndWeight.rgb *= 1.0 - (muAbsorption + muScattering) / muMajorant;
         } else if (r.y < PAbsorption + PScattering) {
             // scattering
@@ -205,6 +207,9 @@ void main() {
 precision mediump float;
 
 uniform mat4 uMvpInverseMatrix;
+uniform vec2 uInverseResolution;
+uniform float uRandSeed;
+uniform float uBlur;
 
 in vec2 vPosition;
 
@@ -213,12 +218,13 @@ layout (location = 1) out vec4 oDirection;
 layout (location = 2) out vec4 oRadiance;
 layout (location = 3) out vec4 oColor;
 
+@rand
+@unprojectRand
 @intersectCube
-@unproject
 
-void resetPhoton(out vec3 position, out vec4 directionAndBounces, out vec4 radianceAndWeight) {
+void resetPhoton(inout vec2 randState, out vec3 position, out vec4 directionAndBounces, out vec4 radianceAndWeight) {
     vec3 from, to;
-    unproject(vPosition, uMvpInverseMatrix, from, to);
+    unprojectRand(randState, vPosition, uMvpInverseMatrix, uInverseResolution, uBlur, from, to);
     directionAndBounces.xyz = normalize(to - from);
     directionAndBounces.w = 0.0;
     vec2 tbounds = max(intersectCube(from, directionAndBounces.xyz), 0.0);
@@ -230,7 +236,8 @@ void main() {
     vec3 position;
     vec4 directionAndBounces;
     vec4 radianceAndWeight;
-    resetPhoton(position, directionAndBounces, radianceAndWeight);
+    vec2 randState = rand(vPosition * uRandSeed);
+    resetPhoton(randState, position, directionAndBounces, radianceAndWeight);
 
     oPosition = vec4(position, 0.0);
     oDirection = directionAndBounces;
