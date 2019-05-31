@@ -132,6 +132,7 @@ void main() {
             vec4 envSample = sampleEnvironmentMap(directionAndBounces.xyz);
             colorAndNumber.w += 1.0;
             colorAndNumber.rgb += (radianceAndWeight.w * radianceAndWeight.rgb * envSample.rgb - colorAndNumber.rgb) / colorAndNumber.w;
+            r = rand(r);
             resetPhoton(r, position, directionAndBounces, radianceAndWeight);
         } else if (directionAndBounces.w >= uMaxBounces) {
             // max bounces achieved -> only estimate transmittance
