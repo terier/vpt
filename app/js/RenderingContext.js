@@ -32,6 +32,7 @@ function RenderingContext(options) {
 };
 
 Class.defaults = {
+    _resolution : 512
 };
 
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
@@ -330,6 +331,16 @@ _.getTranslation = function() {
 _.setTranslation = function(x, y, z) {
     this._translation.set(x, y, z);
     this._isTransformationDirty = true;
+};
+
+_.getResolution = function() {
+    return this._resolution;
+};
+
+_.setResolution = function(resolution) {
+    this._renderer.setResolution(resolution);
+    this._toneMapper.setResolution(resolution);
+    this._toneMapper.setTexture(this._renderer.getTexture());
 };
 
 _.startRendering = function() {

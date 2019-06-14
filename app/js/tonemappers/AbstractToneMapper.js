@@ -34,7 +34,8 @@ _._init = function() {
     _._nullify.call(this);
 
     var gl = this._gl;
-    this._renderBuffer = new SingleBuffer(gl, this._getRenderBufferSpec());
+
+    this._rebuildBuffers();
 
     this._clipQuad = WebGL.createClipQuad(gl);
     this._clipQuadProgram = WebGL.buildPrograms(gl, {
@@ -69,6 +70,21 @@ _.setTexture = function(texture) {
 
 _.getTexture = function() {
     return this._renderBuffer.getAttachments().color[0];
+};
+
+_._rebuildBuffers = function() {
+    if (this._renderBuffer) {
+        this._renderBuffer.destroy();
+    }
+    var gl = this._gl;
+    this._renderBuffer = new SingleBuffer(gl, this._getRenderBufferSpec());
+};
+
+_.setResolution = function(resolution) {
+    if (resolution !== this._bufferSize) {
+        this._bufferSize = resolution;
+        this._rebuildBuffers();
+    }
 };
 
 _._renderFrame = function() {

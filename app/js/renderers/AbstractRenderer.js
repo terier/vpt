@@ -43,9 +43,7 @@ _._init = function() {
 
     var gl = this._gl;
 
-    this._frameBuffer = new SingleBuffer(gl, this._getFrameBufferSpec());
-    this._accumulationBuffer = new DoubleBuffer(gl, this._getAccumulationBufferSpec());
-    this._renderBuffer = new SingleBuffer(gl, this._getRenderBufferSpec());
+    this._rebuildBuffers();
 
     this._transferFunction = WebGL.createTexture(gl, {
         width  : 2,
@@ -109,6 +107,22 @@ _.reset = function() {
     this._accumulationBuffer.swap();
 };
 
+_._rebuildBuffers = function() {
+    if (this._frameBuffer) {
+        this._frameBuffer.destroy();
+    }
+    if (this._accumulationBuffer) {
+        this._accumulationBuffer.destroy();
+    }
+    if (this._renderBuffer) {
+        this._renderBuffer.destroy();
+    }
+    var gl = this._gl;
+    this._frameBuffer = new SingleBuffer(gl, this._getFrameBufferSpec());
+    this._accumulationBuffer = new DoubleBuffer(gl, this._getAccumulationBufferSpec());
+    this._renderBuffer = new SingleBuffer(gl, this._getRenderBufferSpec());
+};
+
 _.setVolume = function(volume) {
     this._volume = volume;
     this.reset();
@@ -120,6 +134,14 @@ _.setTransferFunction = function(transferFunction) {
     gl.texImage2D(gl.TEXTURE_2D, 0,
         gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, transferFunction);
     gl.bindTexture(gl.TEXTURE_2D, null);
+};
+
+_.setResolution = function(resolution) {
+    if (resolution !== this._bufferSize) {
+        this._bufferSize = resolution;
+        this._rebuildBuffers();
+        this.reset();
+    }
 };
 
 _.getTexture = function() {
