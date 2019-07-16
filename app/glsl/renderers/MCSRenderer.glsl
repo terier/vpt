@@ -58,8 +58,8 @@ vec4 sampleEnvironmentMap(vec3 d) {
 }
 
 vec4 sampleVolumeColor(vec3 position) {
-    float volumeSample = texture(uVolume, position).r;
-    vec4 transferSample = texture(uTransferFunction, vec2(volumeSample, 0.5));
+    vec2 volumeSample = texture(uVolume, position).rg;
+    vec4 transferSample = texture(uTransferFunction, volumeSample);
     return transferSample;
 }
 
