@@ -26,6 +26,7 @@ Class.defaults = {
     onMultipleScatteringRendererDialog : null,
     onReinhardToneMapperDialog         : null,
     onRangeToneMapperDialog            : null,
+    onArtisticToneMapperDialog         : null,
     onChooseMipRenderer                : null,
     onChooseIsoRenderer                : null,
     onChooseEamRenderer                : null,
@@ -58,6 +59,7 @@ _._init = function() {
 
     this._$html.find('[name="reinhard-tone-mapper-dialog-button"]').click(this.onReinhardToneMapperDialog);
     this._$html.find('[name="range-tone-mapper-dialog-button"]').click(this.onRangeToneMapperDialog);
+    this._$html.find('[name="artistic-tone-mapper-dialog-button"]').click(this.onArtisticToneMapperDialog);
 
     this._$html.find('[name="choose-mip-renderer-button"]').click(this.onChooseMipRenderer);
     this._$html.find('[name="choose-iso-renderer-button"]').click(this.onChooseIsoRenderer);

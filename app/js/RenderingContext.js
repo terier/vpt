@@ -10,6 +10,7 @@
 //@@renderers/MultipleScatteringRenderer.js
 //@@tonemappers/ReinhardToneMapper.js
 //@@tonemappers/RangeToneMapper.js
+//@@tonemappers/ArtisticToneMapper.js
 //@@math/Matrix.js
 //@@math/Vector.js
 
@@ -68,7 +69,7 @@ _._init = function() {
     this._volume = new Volume(this._gl);
 
     this._renderer = new MultipleScatteringRenderer(this._gl, this._volume, this._environmentTexture);
-    this._toneMapper = new ReinhardToneMapper(this._gl, this._renderer.getTexture());
+    this._toneMapper = new ArtisticToneMapper(this._gl, this._renderer.getTexture());
 
     this._contextRestorable = true;
 
