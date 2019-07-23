@@ -1,3 +1,6 @@
+//@@../utils/Utils.js
+//@@../Draggable.js
+
 (function(global) {
 'use strict';
 
@@ -9,7 +12,7 @@ var _ = Class.prototype;
 function ReinhardToneMapperDialog(container, toneMapper, options) {
     CommonUtils.extend(this, Class.defaults, options);
 
-    this._$container = $(container);
+    this._$container = container;
     this._toneMapper = toneMapper;
 
     _._init.call(this);
@@ -32,35 +35,33 @@ _._nullify = function() {
 _._init = function() {
     _._nullify.call(this);
 
-    this._$html = $(TEMPLATES['ReinhardToneMapperDialog.html']);
-    this._$heading = this._$html.find('.panel-heading');
-    this._$resizeHandle = this._$html.find('.resize-handle');
-    this._$closeButton = this._$html.find('.close');
+    this._$html = DOMUtils.instantiate(TEMPLATES['ReinhardToneMapperDialog.html']);
+    this._$heading = this._$html.querySelector('.panel-heading');
+    this._$resizeHandle = this._$html.querySelector('.resize-handle');
+    this._$closeButton = this._$html.querySelector('.close');
 
-    this._$exposure = this._$html.find('[name="exposure"]');
+    this._$exposure = this._$html.querySelector('[name="exposure"]');
 
-    this._$html.hide();
-    this._$container.append(this._$html);
-    this._$html.draggable({
-        handle: this._$heading
-    });
-    this._$html.resizable({
+    DOMUtils.hide(this._$html);
+    this._$container.appendChild(this._$html);
+    new Draggable(this._$html, this._$heading);
+    /*this._$html.resizable({
         handles: {
             se: this._$resizeHandle
         }
-    });
-    this._$closeButton.click(function() {
-        this._$html.hide();
+    });*/
+    this._$closeButton.addEventListener('click', function() {
+        DOMUtils.hide(this._$html);
     }.bind(this));
 
-    this._$exposure.val(this.exposure);
-    this._$exposure.change(function() {
-        this._toneMapper._exposure = parseFloat(this._$exposure.val());
+    this._$exposure.value = this.exposure;
+    this._$exposure.addEventListener('change', function() {
+        this._toneMapper._exposure = parseFloat(this._$exposure.value);
     }.bind(this));
 };
 
 _.destroy = function() {
-    this._$html.remove();
+    DOMUtils.remove(this._$html);
 
     _._nullify.call(this);
 };
@@ -68,7 +69,7 @@ _.destroy = function() {
 // =========================== INSTANCE METHODS ============================ //
 
 _.show = function() {
-    this._$html.show();
+    DOMUtils.show(this._$html);
 };
 
 // ============================ STATIC METHODS ============================= //

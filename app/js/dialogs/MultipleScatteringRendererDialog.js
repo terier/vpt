@@ -1,3 +1,5 @@
+//@@../utils/Utils.js
+//@@../Draggable.js
 //@@../TransferFunctionWidget.js
 
 (function(global) {
@@ -11,7 +13,7 @@
 function MultipleScatteringRendererDialog(container, renderer, options) {
     CommonUtils.extend(this, Class.defaults, options);
 
-    this._$container = $(container);
+    this._$container = container;
     this._renderer = renderer;
 
     this._changeHandler = this._changeHandler.bind(this);
@@ -48,59 +50,57 @@ _._nullify = function() {
 _._init = function() {
     _._nullify.call(this);
 
-    this._$html = $(TEMPLATES['MultipleScatteringRendererDialog.html']);
-    this._$heading = this._$html.find('.panel-heading');
-    this._$resizeHandle = this._$html.find('.resize-handle');
-    this._$closeButton = this._$html.find('.close');
+    this._$html = DOMUtils.instantiate(TEMPLATES['MultipleScatteringRendererDialog.html']);
+    this._$heading = this._$html.querySelector('.panel-heading');
+    this._$resizeHandle = this._$html.querySelector('.resize-handle');
+    this._$closeButton = this._$html.querySelector('.close');
 
-    this._$extinction = this._$html.find('[name="extinction"]');
-    this._$albedo = this._$html.find('[name="albedo"]');
-    this._$scatteringBias = this._$html.find('[name="scattering-bias"]');
-    this._$majorantRatio = this._$html.find('[name="majorant-ratio"]');
-    this._$maxBounces = this._$html.find('[name="max-bounces"]');
-    this._$steps = this._$html.find('[name="steps"]');
+    this._$extinction = this._$html.querySelector('[name="extinction"]');
+    this._$albedo = this._$html.querySelector('[name="albedo"]');
+    this._$scatteringBias = this._$html.querySelector('[name="scattering-bias"]');
+    this._$majorantRatio = this._$html.querySelector('[name="majorant-ratio"]');
+    this._$maxBounces = this._$html.querySelector('[name="max-bounces"]');
+    this._$steps = this._$html.querySelector('[name="steps"]');
 
-    this._$html.hide();
-    this._$container.append(this._$html);
-    this._$html.draggable({
-        handle: this._$heading
-    });
-    this._$html.resizable({
+    DOMUtils.hide(this._$html);
+    this._$container.appendChild(this._$html);
+    new Draggable(this._$html, this._$heading);
+    /*this._$html.resizable({
         handles: {
             se: this._$resizeHandle
         }
-    });
-    this._$closeButton.click(function() {
-        this._$html.hide();
+    });*/
+    this._$closeButton.addEventListener('click', function() {
+        DOMUtils.hide(this._$html);
     }.bind(this));
 
-    this._$extinction.val(this.extinction);
-    this._$extinction.change(this._changeHandler);
+    this._$extinction.value = this.extinction;
+    this._$extinction.addEventListener('change', this._changeHandler);
 
-    this._$albedo.val(this.albedo);
-    this._$albedo.change(this._changeHandler);
+    this._$albedo.value = this.albedo;
+    this._$albedo.addEventListener('change', this._changeHandler);
 
-    this._$majorantRatio.val(this.majorantRatio);
-    this._$majorantRatio.change(this._changeHandler);
+    this._$majorantRatio.value = this.majorantRatio;
+    this._$majorantRatio.addEventListener('change', this._changeHandler);
 
-    this._$scatteringBias.val(this.scatteringBias);
-    this._$scatteringBias.change(function() {
-        this._renderer.scatteringBias = parseFloat(this._$scatteringBias.val());
+    this._$scatteringBias.value = this.scatteringBias;
+    this._$scatteringBias.addEventListener('change', function() {
+        this._renderer.scatteringBias = parseFloat(this._$scatteringBias.value);
         this._renderer.reset();
     }.bind(this));
 
-    this._$maxBounces.val(this.maxBounces);
-    this._$maxBounces.change(function() {
-        this._renderer.maxBounces = parseFloat(this._$maxBounces.val());
+    this._$maxBounces.value = this.maxBounces;
+    this._$maxBounces.addEventListener('change', function() {
+        this._renderer.maxBounces = parseFloat(this._$maxBounces.value);
         this._renderer.reset();
     }.bind(this));
 
-    this._$steps.val(this.steps);
-    this._$steps.change(function() {
-        this._renderer.steps = parseInt(this._$steps.val());
+    this._$steps.value = this.steps;
+    this._$steps.addEventListener('change', function() {
+        this._renderer.steps = parseInt(this._$steps.value);
     }.bind(this));
 
-    var tfwContainer = this._$html.find('.tfw-container');
+    var tfwContainer = this._$html.querySelector('.tfw-container');
     this._transferFunctionWidget = new TransferFunctionWidget(tfwContainer, {
         onChange: function() {
             this._renderer.reset();
@@ -111,7 +111,7 @@ _._init = function() {
 
 _.destroy = function() {
     this._transferFunctionWidget.destroy();
-    this._$html.remove();
+    DOMUtils.remove(this._$html);
 
     _._nullify.call(this);
 };
@@ -119,13 +119,13 @@ _.destroy = function() {
 // =========================== INSTANCE METHODS ============================ //
 
 _.show = function() {
-    this._$html.show();
+    DOMUtils.show(this._$html);
 };
 
 _._changeHandler = function() {
-    var extinction = parseFloat(this._$extinction.val());
-    var albedo = parseFloat(this._$albedo.val());
-    var majorantRatio = parseFloat(this._$majorantRatio.val());
+    var extinction = parseFloat(this._$extinction.value);
+    var albedo = parseFloat(this._$albedo.value);
+    var majorantRatio = parseFloat(this._$majorantRatio.value);
 
     this._renderer.absorptionCoefficient = extinction * (1 - albedo);
     this._renderer.scatteringCoefficient = extinction * albedo;

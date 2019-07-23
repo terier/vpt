@@ -1,3 +1,5 @@
+//@@../utils/Utils.js
+
 (function(global) {
 'use strict';
 
@@ -9,7 +11,7 @@ var _ = Class.prototype;
 function OpenFileDialog(container, options) {
     CommonUtils.extend(this, Class.defaults, options);
 
-    this._$container = $(container);
+    this._$container = container;
 
     _._init.call(this);
 }
@@ -33,42 +35,42 @@ _._nullify = function() {
 _._init = function() {
     _._nullify.call(this);
 
-    this._$html  = $(TEMPLATES['OpenFileDialog.html']);
-    this._$drop  = this._$html.find('.drop');
-    this._$input = this._$html.find('[name="file"]');
-    this._$size  = this._$html.find('[name="size"]');
-    this._$bits  = this._$html.find('[name="bits"]');
-    this._$open  = this._$html.find('[name="open"]');
-    this._$close = this._$html.find('[name="close"]');
+    this._$html  = DOMUtils.instantiate(TEMPLATES['OpenFileDialog.html']);
+    this._$drop  = this._$html.querySelector('.drop');
+    this._$input = this._$html.querySelector('[name="file"]');
+    this._$size  = this._$html.querySelector('[name="size"]');
+    this._$bits  = this._$html.querySelector('[name="bits"]');
+    this._$open  = this._$html.querySelector('[name="open"]');
+    this._$close = this._$html.querySelector('[name="close"]');
 
-    this._$html.modal({
+    /*this._$html.modal({
         show: false
-    });
-    this._$container.append(this._$html);
-    this._$open.click(function() {
+    });*/
+    this._$container.appendChild(this._$html);
+    this._$open.addEventListener('click', function() {
         if (this._$input[0].files.length > 0) {
             var data = this._$input[0].files[0];
             var size = {
-                x: parseInt(this._$size.filter('[data-axis="x"]').val()),
-                y: parseInt(this._$size.filter('[data-axis="y"]').val()),
-                z: parseInt(this._$size.filter('[data-axis="z"]').val())
+                x: parseInt(this._$size.querySelector('[data-axis="x"]').value),
+                y: parseInt(this._$size.querySelector('[data-axis="y"]').value),
+                z: parseInt(this._$size.querySelector('[data-axis="z"]').value)
             };
-            var bits = parseInt(this._$bits.filter(':checked').val());
+            var bits = parseInt(this._$bits.querySelector(':checked').value);
             this.onLoad && this.onLoad(data, size, bits);
         }
     }.bind(this));
 
-    this._$drop.on('dragover', function(e) {
+    this._$drop.addEventListener('dragover', function(e) {
         e.preventDefault();
     }.bind(this));
-    this._$drop.on('drop', function(e) {
+    this._$drop.addEventListener('drop', function(e) {
         e.preventDefault();
-        this._$input[0].files = e.originalEvent.dataTransfer.files;
+        this._$input[0].files = e.dataTransfer.files;
     }.bind(this));
 };
 
 _.destroy = function() {
-    this._$html.remove();
+    DOMUtils.remove(this._$html);
 
     _._nullify.call(this);
 };
@@ -76,7 +78,7 @@ _.destroy = function() {
 // =========================== INSTANCE METHODS ============================ //
 
 _.show = function() {
-    this._$html.modal('show');
+    //this._$html.modal('show');
 };
 
 // ============================ STATIC METHODS ============================= //

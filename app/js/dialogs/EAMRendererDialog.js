@@ -1,3 +1,5 @@
+//@@../utils/Utils.js
+//@@../Draggable.js
 //@@../TransferFunctionWidget.js
 
 (function(global) {
@@ -11,7 +13,7 @@ var _ = Class.prototype;
 function EAMRendererDialog(container, renderer, options) {
     CommonUtils.extend(this, Class.defaults, options);
 
-    this._$container = $(container);
+    this._$container = container;
     this._renderer = renderer;
 
     _._init.call(this);
@@ -37,39 +39,37 @@ _._nullify = function() {
 _._init = function() {
     _._nullify.call(this);
 
-    this._$html = $(TEMPLATES['EAMRendererDialog.html']);
-    this._$heading = this._$html.find('.panel-heading');
-    this._$resizeHandle = this._$html.find('.resize-handle');
-    this._$closeButton = this._$html.find('.close');
+    this._$html = DOMUtils.instatiate(TEMPLATES['EAMRendererDialog.html']);
+    this._$heading = this._$html.querySelector('.panel-heading');
+    this._$resizeHandle = this._$html.querySelector('.resize-handle');
+    this._$closeButton = this._$html.querySelector('.close');
 
-    this._$steps = this._$html.find('[name="steps"]');
-    this._$alphaCorrection = this._$html.find('[name="alpha-correction"]');
+    this._$steps = this._$html.querySelector('[name="steps"]');
+    this._$alphaCorrection = this._$html.querySelector('[name="alpha-correction"]');
 
-    this._$html.hide();
-    this._$container.append(this._$html);
-    this._$html.draggable({
-        handle: this._$heading
-    });
-    this._$html.resizable({
+    DOMUtils.hide(this._$html);
+    this._$container.appendChild(this._$html);
+    newDraggable(this._$html, this._$heading);
+    /*this._$html.resizable({
         handles: {
             se: this._$resizeHandle
         }
-    });
-    this._$closeButton.click(function() {
-        this._$html.hide();
+    });*/
+    this._$closeButton.addEventListener('click', function() {
+        DOMUtils.hide(this._$html);
     }.bind(this));
 
-    this._$steps.val(this.steps);
-    this._$steps.change(function() {
-        this._renderer._stepSize = 1 / parseInt(this._$steps.val(), 10);
+    this._$steps.value = this.steps;
+    this._$steps.addEventListener('change', function() {
+        this._renderer._stepSize = 1 / parseInt(this._$steps.value);
     }.bind(this));
 
-    this._$alphaCorrection.val(this.alphaCorrection);
-    this._$alphaCorrection.change(function() {
-        this._renderer._alphaCorrection = parseFloat(this._$alphaCorrection.val());
+    this._$alphaCorrection.value = this.alphaCorrection;
+    this._$alphaCorrection.addEventListener('change', function() {
+        this._renderer._alphaCorrection = parseFloat(this._$alphaCorrection.value);
     }.bind(this));
 
-    var tfwContainer = this._$html.find('.tfw-container');
+    var tfwContainer = this._$html.querySelector('.tfw-container');
     this._transferFunctionWidget = new TransferFunctionWidget(tfwContainer, {
         onChange: function() {
             this._renderer.reset();
@@ -80,7 +80,7 @@ _._init = function() {
 
 _.destroy = function() {
     this._transferFunctionWidget.destroy();
-    this._$html.remove();
+    DOMUtils.remove(this._$html);
 
     _._nullify.call(this);
 };
@@ -88,7 +88,7 @@ _.destroy = function() {
 // =========================== INSTANCE METHODS ============================ //
 
 _.show = function() {
-    this._$html.show();
+    DOMUtils.show(this._$html);
 };
 
 // ============================ STATIC METHODS ============================= //

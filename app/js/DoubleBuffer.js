@@ -27,7 +27,7 @@ _._nullify = function() {
     this._readAttachments = null;
     this._writeFramebuffer = null;
     this._writeAttachments = null;
-}
+};
 
 _._init = function() {
     _._nullify.call(this);

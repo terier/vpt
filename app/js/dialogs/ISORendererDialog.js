@@ -1,3 +1,6 @@
+//@@../utils/Utils.js
+//@@../Draggable.js
+
 (function(global) {
 'use strict';
 
@@ -9,7 +12,7 @@ var _ = Class.prototype;
 function ISORendererDialog(container, renderer, options) {
     CommonUtils.extend(this, Class.defaults, options);
 
-    this._$container = $(container);
+    this._$container = container;
     this._renderer = renderer;
 
     _._init.call(this);
@@ -39,42 +42,40 @@ _._nullify = function() {
 _._init = function() {
     _._nullify.call(this);
 
-    this._$html = $(TEMPLATES['ISORendererDialog.html']);
-    this._$heading = this._$html.find('.panel-heading');
-    this._$resizeHandle = this._$html.find('.resize-handle');
-    this._$closeButton = this._$html.find('.close');
+    this._$html = DOMUtils.instantiate(TEMPLATES['ISORendererDialog.html']);
+    this._$heading = this._$html.querySelector('.panel-heading');
+    this._$resizeHandle = this._$html.querySelector('.resize-handle');
+    this._$closeButton = this._$html.querySelector('.close');
 
-    this._$steps = this._$html.find('[name="steps"]');
-    this._$isovalue = this._$html.find('[name="isovalue"]');
-    this._$color = this._$html.find('[name="color"]');
+    this._$steps = this._$html.querySelector('[name="steps"]');
+    this._$isovalue = this._$html.querySelector('[name="isovalue"]');
+    this._$color = this._$html.querySelector('[name="color"]');
 
-    this._$html.hide();
-    this._$container.append(this._$html);
-    this._$html.draggable({
-        handle: this._$heading
-    });
-    this._$html.resizable({
+    DOMUtils.hide(this._$html);
+    this._$container.appendChild(this._$html);
+    new Draggable(this._$html, this._$heading);
+    /*this._$html.resizable({
         handles: {
             se: this._$resizeHandle
         }
-    });
-    this._$closeButton.click(function() {
-        this._$html.hide();
+    });*/
+    this._$closeButton.addEventListener('click', function() {
+        DOMUtils.hide(this._$html);
     }.bind(this));
 
-    this._$steps.val(this.steps);
-    this._$steps.change(function() {
-        this._renderer._stepSize = 1 / parseInt(this._$steps.val(), 10);
+    this._$steps.value = this.steps;
+    this._$steps.addEventListener('change', function() {
+        this._renderer._stepSize = 1 / parseInt(this._$steps.value);
     }.bind(this));
 
-    this._$isovalue.val(this.isovalue);
-    this._$isovalue.change(function() {
-        this._renderer._isovalue = parseFloat(this._$isovalue.val());
+    this._$isovalue.value = this.isovalue;
+    this._$isovalue.addEventListener('change', function() {
+        this._renderer._isovalue = parseFloat(this._$isovalue.value);
     }.bind(this));
 
-    this._$color.val(this.diffuseColor);
-    this._$color.change(function() {
-        var color = this._$color.val();
+    this._$color.value = this.diffuseColor;
+    this._$color.addEventListener('change', function() {
+        var color = this._$color.value;
         this._renderer._diffuse[0] = parseInt(color.substr(1, 2), 16) / 255;
         this._renderer._diffuse[1] = parseInt(color.substr(3, 2), 16) / 255;
         this._renderer._diffuse[2] = parseInt(color.substr(5, 2), 16) / 255;
@@ -82,7 +83,7 @@ _._init = function() {
 };
 
 _.destroy = function() {
-    this._$html.remove();
+    DOMUtils.remove(this._$html);
 
     _._nullify.call(this);
 };
@@ -90,7 +91,7 @@ _.destroy = function() {
 // =========================== INSTANCE METHODS ============================ //
 
 _.show = function() {
-    this._$html.show();
+    DOMUtils.show(this._$html);
 };
 
 // ============================ STATIC METHODS ============================= //

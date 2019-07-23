@@ -1,3 +1,6 @@
+//@@../utils/Utils.js
+//@@../Draggable.js
+
 (function(global) {
 'use strict';
 
@@ -9,7 +12,7 @@ var _ = Class.prototype;
 function RangeToneMapperDialog(container, toneMapper, options) {
     CommonUtils.extend(this, Class.defaults, options);
 
-    this._$container = $(container);
+    this._$container = container;
     this._toneMapper = toneMapper;
 
     _._init.call(this);
@@ -34,41 +37,39 @@ _._nullify = function() {
 _._init = function() {
     _._nullify.call(this);
 
-    this._$html = $(TEMPLATES['RangeToneMapperDialog.html']);
-    this._$heading = this._$html.find('.panel-heading');
-    this._$resizeHandle = this._$html.find('.resize-handle');
-    this._$closeButton = this._$html.find('.close');
+    this._$html = DOMUtils.instantiate(TEMPLATES['RangeToneMapperDialog.html']);
+    this._$heading = this._$html.querySelector('.panel-heading');
+    this._$resizeHandle = this._$html.querySelector('.resize-handle');
+    this._$closeButton = this._$html.querySelector('.close');
 
-    this._$min = this._$html.find('[name="min"]');
-    this._$max = this._$html.find('[name="max"]');
+    this._$min = this._$html.querySelector('[name="min"]');
+    this._$max = this._$html.querySelector('[name="max"]');
 
-    this._$html.hide();
-    this._$container.append(this._$html);
-    this._$html.draggable({
-        handle: this._$heading
-    });
-    this._$html.resizable({
+    DOMUtils.hide(this._$html);
+    this._$container.appendChild(this._$html);
+    new Draggable(this._$html, this._$heading);
+    /*this._$html.resizable({
         handles: {
             se: this._$resizeHandle
         }
-    });
-    this._$closeButton.click(function() {
-        this._$html.hide();
+    });*/
+    this._$closeButton.addEventListener('click', function() {
+        DOMUtils.hide(this._$html);
     }.bind(this));
 
     this._$min.val(this.min);
-    this._$min.change(function() {
-        this._toneMapper._min = parseFloat(this._$min.val());
+    this._$min.addEventListener('change', function() {
+        this._toneMapper._min = parseFloat(this._$min.value);
     }.bind(this));
 
     this._$max.val(this.max);
-    this._$max.change(function() {
-        this._toneMapper._max = parseFloat(this._$max.val());
+    this._$max.addEventListener('change', function() {
+        this._toneMapper._max = parseFloat(this._$max.value);
     }.bind(this));
 };
 
 _.destroy = function() {
-    this._$html.remove();
+    DOMUtils.remove(this._$html);
 
     _._nullify.call(this);
 };
@@ -76,7 +77,7 @@ _.destroy = function() {
 // =========================== INSTANCE METHODS ============================ //
 
 _.show = function() {
-    this._$html.show();
+    DOMUtils.show(this._$html);
 };
 
 // ============================ STATIC METHODS ============================= //

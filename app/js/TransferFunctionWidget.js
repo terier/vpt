@@ -12,7 +12,7 @@ var _ = Class.prototype;
 function TransferFunctionWidget(container, options) {
     CommonUtils.extend(this, Class.defaults, options);
 
-    this._$container = $(container);
+    this._$container = container;
 
     this._onColorChange = this._onColorChange.bind(this);
 
@@ -37,6 +37,7 @@ _._nullify = function() {
     this._$addBumpButton = null;
     this._$loadButton    = null;
     this._$saveButton    = null;
+
     this._canvas         = null;
     this._gl             = null;
     this._clipQuad       = null;
@@ -47,15 +48,15 @@ _._nullify = function() {
 _._init = function() {
     _._nullify.call(this);
 
-    this._$html = $(TEMPLATES['TransferFunctionWidget.html']);
-    this._$colorPicker = this._$html.find('[name="color"]');
-    this._$alphaPicker = this._$html.find('[name="alpha"]');
-    this._$addBumpButton = this._$html.find('[name="add-bump"]');
-    this._$loadButton = this._$html.find('[name="load"]');
-    this._$saveButton = this._$html.find('[name="save"]');
+    this._$html = DOMUtils.instantiate(TEMPLATES['TransferFunctionWidget.html']);
+    this._$colorPicker   = this._$html.querySelector('[name="color"]');
+    this._$alphaPicker   = this._$html.querySelector('[name="alpha"]');
+    this._$addBumpButton = this._$html.querySelector('[name="add-bump"]');
+    this._$loadButton    = this._$html.querySelector('[name="load"]');
+    this._$saveButton    = this._$html.querySelector('[name="save"]');
 
     this._$container.append(this._$html);
-    this._canvas = this._$html.find('canvas').get(0);
+    this._canvas = this._$html.querySelector('canvas');
     this._canvas.width = this._transferFunctionWidth;
     this._canvas.height = this._transferFunctionHeight;
     this.resize(this._width, this._height);
@@ -82,14 +83,14 @@ _._init = function() {
     gl.vertexAttribPointer(program.attributes.aPosition, 2, gl.FLOAT, false, 0, 0);
 
     this._bumps = [];
-    this._$addBumpButton.click(function() {
+    this._$addBumpButton.addEventListener('click', function() {
         this.addBump();
     }.bind(this));
 
-    this._$colorPicker.change(this._onColorChange);
-    this._$alphaPicker.change(this._onColorChange);
+    this._$colorPicker.addEventListener('change', this._onColorChange);
+    this._$alphaPicker.addEventListener('change', this._onColorChange);
 
-    this._$loadButton.click(function() {
+    this._$loadButton.addEventListener('click', function() {
         CommonUtils.readTextFile(function(data) {
             this._bumps = JSON.parse(data);
             this.render();
@@ -98,7 +99,7 @@ _._init = function() {
         }.bind(this));
     }.bind(this));
 
-    this._$saveButton.click(function() {
+    this._$saveButton.addEventListener('click', function() {
         CommonUtils.downloadJSON(this._bumps, 'TransferFunction.json');
     }.bind(this));
 };
@@ -169,38 +170,35 @@ _.addBump = function(options) {
 };
 
 _._addHandle = function(index) {
-    var $handle = $(TEMPLATES['TransferFunctionWidgetBumpHandle.html']);
-    this._$html.find('.widget').append($handle);
-    DOMUtils.data($handle.get(0), 'index', index);
+    var $handle = DOMUtils.instantiate(TEMPLATES['TransferFunctionWidgetBumpHandle.html']);
+    this._$html.querySelector('.widget').appendChild($handle);
+    DOMUtils.data($handle, 'index', index);
 
-    var left = (this._bumps[index].position.x * this._width) + 'px';
-    var top = ((1 - this._bumps[index].position.y) * this._height) + 'px';
-    $handle.css({
-        left: left,
-        top: top
-    });
-    $handle.draggable({
-        handle: $handle.find('.bump-handle'),
-        drag: function(e, ui) {
-            var x = ui.position.left / this._width;
-            var y = 1 - ui.position.top / this._height;
-            var i = parseInt(DOMUtils.data(e.target, 'index'), 10);
-            this._bumps[i].position.x = x;
-            this._bumps[i].position.y = y;
-            this.render();
-            this.onChange && this.onChange();
-        }.bind(this)
-    });
-    $handle.mousedown(function(e) {
-        var i = parseInt(DOMUtils.data(e.currentTarget, 'index'), 10);
+    var left = this._bumps[index].position.x * this._width;
+    var top = (1 - this._bumps[index].position.y) * this._height;
+    $handle.style.left = Math.round(left) + 'px';
+    $handle.style.top = Math.round(top) + 'px';
+
+    new Draggable($handle, $handle.querySelector('.bump-handle'));
+    $handle.addEventListener('draggable', function(e) {
+        var x = e.currentTarget.offsetLeft / this._width;
+        var y = 1 - (e.currentTarget.offsetTop / this._height);
+        var i = parseInt(DOMUtils.data(e.currentTarget, 'index'));
+        this._bumps[i].position.x = x;
+        this._bumps[i].position.y = y;
+        this.render();
+        this.onChange && this.onChange();
+    }.bind(this));
+    $handle.addEventListener('mousedown', function(e) {
+        var i = parseInt(DOMUtils.data(e.currentTarget, 'index'));
         this.selectBump(i);
     }.bind(this));
-    $handle.on('mousewheel', function(e) {
-        var amount = e.originalEvent.deltaY * this.scaleSpeed;
+    $handle.addEventListener('mousewheel', function(e) {
+        var amount = e.deltaY * this.scaleSpeed;
         var scale = Math.exp(-amount);
-        var i = parseInt(DOMUtils.data(e.currentTarget, 'index'), 10);
+        var i = parseInt(DOMUtils.data(e.currentTarget, 'index'));
         this.selectBump(i);
-        if (e.originalEvent.shiftKey) {
+        if (e.shiftKey) {
             this._bumps[i].size.y *= scale;
         } else {
             this._bumps[i].size.x *= scale;
@@ -211,21 +209,26 @@ _._addHandle = function(index) {
 };
 
 _._rebuildHandles = function() {
-    this._$html.find('.bump').remove();
+    this._$html.querySelector('.bump').remove();
     for (var i = 0; i < this._bumps.length; i++) {
         this._addHandle(i);
     }
 };
 
 _.selectBump = function(index) {
-    var handles = this._$html.find('.bump');
-    var correctHandle = handles.filter('[data-index="' + index + '"]');
-    handles.removeClass('selected');
-    correctHandle.addClass('selected');
+    var handles = this._$html.querySelectorAll('.bump');
+    handles.forEach(function(handle) {
+        var i = parseInt(DOMUtils.data(handle, 'index'));
+        if (i === index) {
+            handle.classList.add('selected');
+        } else {
+            handle.classList.remove('selected');
+        }
+    });
 
     var color = this._bumps[index].color;
-    this._$colorPicker.val(CommonUtils.rgb2hex(color.r, color.g, color.b));
-    this._$alphaPicker.val(color.a);
+    this._$colorPicker.value = CommonUtils.rgb2hex(color.r, color.g, color.b);
+    this._$alphaPicker.value = color.a;
 };
 
 _.getTransferFunction = function() {
@@ -233,10 +236,10 @@ _.getTransferFunction = function() {
 };
 
 _._onColorChange = function() {
-    var $selectedBump = this._$html.find('.bump.selected');
-    var i = parseInt(DOMUtils.data($selectedBump.get(0), 'index'), 10);
-    var color = CommonUtils.hex2rgb(this._$colorPicker.val());
-    var alpha = parseFloat(this._$alphaPicker.val());
+    var $selectedBump = this._$html.querySelector('.bump.selected');
+    var i = parseInt(DOMUtils.data($selectedBump, 'index'));
+    var color = CommonUtils.hex2rgb(this._$colorPicker.value);
+    var alpha = parseFloat(this._$alphaPicker.value);
     this._bumps[i].color.r = color.r;
     this._bumps[i].color.g = color.g;
     this._bumps[i].color.b = color.b;

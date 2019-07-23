@@ -42,7 +42,7 @@ _.readLength = function(handlers) {
     var xhr = new XMLHttpRequest();
     xhr.addEventListener('load', function(e) {
         var contentLength = e.target.getResponseHeader('Content-Length');
-        handlers.onData && handler.onData(parseInt(contentLength, 10));
+        handlers.onData && handler.onData(parseInt(contentLength));
     });
     xhr.open('HEAD', this.url);
     xhr.responseType = 'arraybuffer';

@@ -1,3 +1,5 @@
+//@@../utils/Utils.js
+
 (function(global) {
 'use strict';
 
@@ -9,7 +11,7 @@ var _ = Class.prototype;
 function OpenEnvironmentMapDialog(container, options) {
     CommonUtils.extend(this, Class.defaults, options);
 
-    this._$container = $(container);
+    this._$container = container;
 
     _._init.call(this);
 }
@@ -31,16 +33,16 @@ _._nullify = function() {
 _._init = function() {
     _._nullify.call(this);
 
-    this._$html  = $(TEMPLATES['OpenEnvironmentMapDialog.html']);
-    this._$input = this._$html.find('[name="file"]')[0];
-    this._$open  = this._$html.find('[name="open"]');
-    this._$close = this._$html.find('[name="close"]');
+    this._$html  = DOMUtils.instantiate(TEMPLATES['OpenEnvironmentMapDialog.html']);
+    this._$input = this._$html.querySelector('[name="file"]')[0];
+    this._$open  = this._$html.querySelector('[name="open"]');
+    this._$close = this._$html.querySelector('[name="close"]');
 
-    this._$html.modal({
+    /*this._$html.modal({
         show: false
-    });
-    this._$container.append(this._$html);
-    this._$open.click(function() {
+    });*/
+    this._$container.appendChild(this._$html);
+    this._$open.addEventListener('click', function() {
         if (this._$input.files.length > 0) {
             var file = this._$input.files[0];
             var image = new Image();
@@ -64,7 +66,7 @@ _._init = function() {
 };
 
 _.destroy = function() {
-    this._$html.remove();
+    DOMUtils.remove(this._$html);
 
     _._nullify.call(this);
 };
@@ -72,7 +74,7 @@ _.destroy = function() {
 // =========================== INSTANCE METHODS ============================ //
 
 _.show = function() {
-    this._$html.modal('show');
+    //this._$html.modal('show');
 };
 
 // ============================ STATIC METHODS ============================= //

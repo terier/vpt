@@ -1,13 +1,19 @@
 var DOMUtils = (function() {
 
-function fromString(tmpl) {
-    var templateElement = document.createElement('template');
-    templateElement.innerHTML = tmpl;
-    return templateElement.content;
+function template(tmpl) {
+    var div = document.createElement('div');
+    div.innerHTML = tmpl;
+    var child = div.firstChild;
+    div.removeChild(child);
+    return child;
 }
 
-function template(tmpl) {
-    return document.importNode(tmpl.content, true);
+function instantiate(tmpl) {
+    if (typeof tmpl === 'string') {
+        return template(tmpl);
+    } else {
+        return tmpl.cloneNode(true);
+    }
 }
 
 function bind(element) {
@@ -32,12 +38,27 @@ function data(element, key, value) {
     }
 }
 
+function show(element) {
+    element.classList.remove('invisible');
+}
+
+function hide(element) {
+    element.classList.add('invisible');
+}
+
+function toggle(element) {
+    element.classList.toggle('invisible');
+}
+
 return {
-    fromString : fromString,
-    template   : template,
-    bind       : bind,
-    remove     : remove,
-    data       : data
+    template    : template,
+    instantiate : instantiate,
+    bind        : bind,
+    remove      : remove,
+    data        : data,
+    show        : show,
+    hide        : hide,
+    toggle      : toggle
 };
 
 })();

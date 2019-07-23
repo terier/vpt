@@ -1,3 +1,6 @@
+//@@../utils/Utils.js
+//@@../Draggable.js
+
 (function(global) {
 'use strict';
 
@@ -9,7 +12,7 @@ var _ = Class.prototype;
 function ArtisticToneMapperDialog(container, toneMapper, options) {
     CommonUtils.extend(this, Class.defaults, options);
 
-    this._$container = $(container);
+    this._$container = container;
     this._toneMapper = toneMapper;
 
     this._updateToneMapper = this._updateToneMapper.bind(this);
@@ -40,42 +43,40 @@ _._nullify = function() {
 _._init = function() {
     _._nullify.call(this);
 
-    this._$html = $(TEMPLATES['ArtisticToneMapperDialog.html']);
-    this._$heading = this._$html.find('.panel-heading');
-    this._$resizeHandle = this._$html.find('.resize-handle');
-    this._$closeButton = this._$html.find('.close');
+    this._$html = DOMUtils.instantiate(TEMPLATES['ArtisticToneMapperDialog.html']);
+    this._$heading = this._$html.querySelector('.panel-heading');
+    this._$resizeHandle = this._$html.querySelector('.resize-handle');
+    this._$closeButton = this._$html.querySelector('.close');
 
-    this._$low = this._$html.find('[name="low"]');
-    this._$mid = this._$html.find('[name="mid"]');
-    this._$high = this._$html.find('[name="high"]');
-    this._$saturation = this._$html.find('[name="saturation"]');
+    this._$low = this._$html.querySelector('[name="low"]');
+    this._$mid = this._$html.querySelector('[name="mid"]');
+    this._$high = this._$html.querySelector('[name="high"]');
+    this._$saturation = this._$html.querySelector('[name="saturation"]');
 
-    this._$html.hide();
-    this._$container.append(this._$html);
-    this._$html.draggable({
-        handle: this._$heading
-    });
-    this._$html.resizable({
+    this._$container.appendChild(this._$html);
+    DOMUtils.hide(this._$html);
+    new Draggable(this._$html, this._$heading);
+    /*this._$html.resizable({
         handles: {
             se: this._$resizeHandle
         }
-    });
-    this._$closeButton.click(function() {
-        this._$html.hide();
+    });*/
+    this._$closeButton.addEventListener('click', function() {
+        DOMUtils.hide(this._$html);
     }.bind(this));
 
-    this._$low.val(this.low);
-    this._$low.change(this._updateToneMapper);
-    this._$mid.val(this.mid);
-    this._$mid.change(this._updateToneMapper);
-    this._$high.val(this.high);
-    this._$high.change(this._updateToneMapper);
-    this._$saturation.val(this.saturation);
-    this._$saturation.change(this._updateToneMapper);
+    this._$low.value = this.low;
+    this._$mid.value = this.mid;
+    this._$high.value = this.high;
+    this._$saturation.value = this.saturation;
+    this._$low.addEventListener('change', this._updateToneMapper);
+    this._$mid.addEventListener('change', this._updateToneMapper);
+    this._$high.addEventListener('change', this._updateToneMapper);
+    this._$saturation.addEventListener('change', this._updateToneMapper);
 };
 
 _.destroy = function() {
-    this._$html.remove();
+    DOMUtils.remove(this._$html);
 
     _._nullify.call(this);
 };
@@ -83,14 +84,14 @@ _.destroy = function() {
 // =========================== INSTANCE METHODS ============================ //
 
 _.show = function() {
-    this._$html.show();
+    DOMUtils.show(this._$html);
 };
 
 _._updateToneMapper = function() {
-    this._toneMapper.low = parseFloat(this._$low.val());
-    this._toneMapper.mid = parseFloat(this._$mid.val());
-    this._toneMapper.high = parseFloat(this._$high.val());
-    this._toneMapper.saturation = parseFloat(this._$saturation.val());
+    this._toneMapper.low = parseFloat(this._$low.value);
+    this._toneMapper.mid = parseFloat(this._$mid.value);
+    this._toneMapper.high = parseFloat(this._$high.value);
+    this._toneMapper.saturation = parseFloat(this._$saturation.value);
 };
 
 // ============================ STATIC METHODS ============================= //
