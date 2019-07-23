@@ -1,20 +1,10 @@
 %%MultipleScatteringGenerate:vertex
 
-#version 300 es
-
-layout (location = 0) in vec2 aPosition;
-
-void main() {
-    gl_Position = vec4(aPosition, 0.0, 1.0);
-}
+void main() {}
 
 %%MultipleScatteringGenerate:fragment
 
-#version 300 es
-precision mediump float;
-
-void main() {
-}
+void main() {}
 
 %%MultipleScatteringIntegrate:vertex
 
@@ -37,7 +27,6 @@ precision mediump float;
 #define M_INVPI 0.31830988618
 #define M_2PI 6.28318530718
 #define EPS 1e-5
-#define RAND_MAGIC 123.4567
 
 uniform mediump sampler2D uPosition;
 uniform mediump sampler2D uDirection;
@@ -49,7 +38,9 @@ uniform mediump sampler2D uTransferFunction;
 uniform mediump sampler2D uEnvironment;
 
 uniform mat4 uMvpInverseMatrix;
-uniform float uOffset;
+uniform vec2 uInverseResolution;
+uniform float uRandSeed;
+uniform float uBlur;
 
 uniform float uAbsorptionCoefficient;
 uniform float uScatteringCoefficient;
@@ -66,12 +57,12 @@ layout (location = 2) out vec4 oRadiance;
 layout (location = 3) out vec4 oColor;
 
 @rand
-@unproject
+@unprojectRand
 @intersectCube
 
-void resetPhoton(out vec3 position, out vec4 directionAndBounces, out vec4 radianceAndWeight) {
+void resetPhoton(inout vec2 randState, out vec3 position, out vec4 directionAndBounces, out vec4 radianceAndWeight) {
     vec3 from, to;
-    unproject(vPosition, uMvpInverseMatrix, from, to);
+    unprojectRand(randState, vPosition, uMvpInverseMatrix, uInverseResolution, uBlur, from, to);
     directionAndBounces.xyz = normalize(to - from);
     directionAndBounces.w = 0.0;
     vec2 tbounds = max(intersectCube(from, directionAndBounces.xyz), 0.0);
@@ -85,8 +76,8 @@ vec4 sampleEnvironmentMap(vec3 d) {
 }
 
 vec4 sampleVolumeColor(vec3 position) {
-    float volumeSample = texture(uVolume, position).r;
-    vec4 transferSample = texture(uTransferFunction, vec2(volumeSample, 0.5));
+    vec2 volumeSample = texture(uVolume, position).rg;
+    vec4 transferSample = texture(uTransferFunction, volumeSample);
     return transferSample;
 }
 
@@ -121,9 +112,9 @@ void main() {
     vec4 radianceAndWeight = texture(uRadiance, mappedPosition);
     vec4 colorAndNumber = texture(uColor, mappedPosition);
 
-    vec2 r = vPosition * uOffset;
+    vec2 r = rand(vPosition * uRandSeed);
     for (int i = 0; i < uSteps; i++) {
-        r = rand(r * RAND_MAGIC);
+        r = rand(r);
         float t = -log(r.x) / uMajorant;
         position += t * directionAndBounces.xyz;
 
@@ -141,7 +132,8 @@ void main() {
             vec4 envSample = sampleEnvironmentMap(directionAndBounces.xyz);
             colorAndNumber.w += 1.0;
             colorAndNumber.rgb += (radianceAndWeight.w * radianceAndWeight.rgb * envSample.rgb - colorAndNumber.rgb) / colorAndNumber.w;
-            resetPhoton(position, directionAndBounces, radianceAndWeight);
+            r = rand(r);
+            resetPhoton(r, position, directionAndBounces, radianceAndWeight);
         } else if (directionAndBounces.w >= uMaxBounces) {
             // max bounces achieved -> only estimate transmittance
             radianceAndWeight.rgb *= 1.0 - (muAbsorption + muScattering) / muMajorant;
@@ -150,11 +142,11 @@ void main() {
             //vec3 emission = vec3(0);
             //colorAndNumber.w += 1.0;
             //colorAndNumber.rgb += (radianceAndWeight.w * radianceAndWeight.rgb * emission - colorAndNumber.rgb) / colorAndNumber.w;
-            //resetPhoton(position, directionAndBounces, radianceAndWeight);
+            //resetPhoton(r, position, directionAndBounces, radianceAndWeight);
             radianceAndWeight.rgb *= 1.0 - (muAbsorption + muScattering) / muMajorant;
         } else if (r.y < PAbsorption + PScattering) {
             // scattering
-            r = rand(r * RAND_MAGIC);
+            r = rand(r);
             radianceAndWeight.rgb *= volumeSample.rgb;
             radianceAndWeight.w *= muScattering / (muMajorant * PScattering);
             directionAndBounces.xyz = sampleHenyeyGreenstein(uScatteringBias, r, directionAndBounces.xyz);
@@ -205,8 +197,6 @@ layout (location = 0) in vec2 aPosition;
 
 out vec2 vPosition;
 
-@unproject
-
 void main() {
     vPosition = aPosition;
     gl_Position = vec4(aPosition, 0.0, 1.0);
@@ -217,11 +207,10 @@ void main() {
 #version 300 es
 precision mediump float;
 
-#define M_INVPI 0.31830988618
-
-uniform mediump sampler2D uEnvironment;
-
 uniform mat4 uMvpInverseMatrix;
+uniform vec2 uInverseResolution;
+uniform float uRandSeed;
+uniform float uBlur;
 
 in vec2 vPosition;
 
@@ -230,12 +219,13 @@ layout (location = 1) out vec4 oDirection;
 layout (location = 2) out vec4 oRadiance;
 layout (location = 3) out vec4 oColor;
 
+@rand
+@unprojectRand
 @intersectCube
-@unproject
 
-void resetPhoton(out vec3 position, out vec4 directionAndBounces, out vec4 radianceAndWeight) {
+void resetPhoton(inout vec2 randState, out vec3 position, out vec4 directionAndBounces, out vec4 radianceAndWeight) {
     vec3 from, to;
-    unproject(vPosition, uMvpInverseMatrix, from, to);
+    unprojectRand(randState, vPosition, uMvpInverseMatrix, uInverseResolution, uBlur, from, to);
     directionAndBounces.xyz = normalize(to - from);
     directionAndBounces.w = 0.0;
     vec2 tbounds = max(intersectCube(from, directionAndBounces.xyz), 0.0);
@@ -243,16 +233,12 @@ void resetPhoton(out vec3 position, out vec4 directionAndBounces, out vec4 radia
     radianceAndWeight = vec4(1);
 }
 
-vec4 sampleEnvironmentMap(vec3 d) {
-    vec2 texCoord = vec2(atan(d.x, -d.z), asin(-d.y) * 2.0) * M_INVPI * 0.5 + 0.5;
-    return texture(uEnvironment, texCoord);
-}
-
 void main() {
     vec3 position;
     vec4 directionAndBounces;
     vec4 radianceAndWeight;
-    resetPhoton(position, directionAndBounces, radianceAndWeight);
+    vec2 randState = rand(vPosition * uRandSeed);
+    resetPhoton(randState, position, directionAndBounces, radianceAndWeight);
 
     oPosition = vec4(position, 0.0);
     oDirection = directionAndBounces;

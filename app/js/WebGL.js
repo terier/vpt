@@ -312,6 +312,7 @@ return {
     buildPrograms     : buildPrograms,
     createTexture     : createTexture,
     createFramebuffer : createFramebuffer,
+    createBuffer      : createBuffer,
     createUnitQuad    : createUnitQuad,
     createClipQuad    : createClipQuad
 };

@@ -25,6 +25,7 @@ _._nullify = function() {
     this._$heading      = null;
     this._$resizeHandle = null;
     this._$closeButton  = null;
+    this._$resolution   = null;
     this._$scale        = null;
     this._$translation  = null;
 };
@@ -37,6 +38,7 @@ _._init = function() {
     this._$resizeHandle = this._$html.find('.resize-handle');
     this._$closeButton = this._$html.find('.close');
 
+    this._$resolution = this._$html.find('[name="resolution"]');
     this._$scale = this._$html.find('[name="scale"]');
     this._$translation = this._$html.find('[name="translation"]');
 
@@ -52,6 +54,13 @@ _._init = function() {
     });
     this._$closeButton.click(function() {
         this._$html.hide();
+    }.bind(this));
+
+    var resolution = this._renderingContext.getResolution();
+    this._$resolution.val(resolution);
+    this._$resolution.change(function() {
+        var resolution = parseInt(this._$resolution.val());
+        this._renderingContext.setResolution(resolution);
     }.bind(this));
 
     var translation = this._renderingContext.getTranslation();

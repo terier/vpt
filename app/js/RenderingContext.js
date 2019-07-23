@@ -33,6 +33,7 @@ function RenderingContext(options) {
 };
 
 Class.defaults = {
+    _resolution : 512
 };
 
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
@@ -57,6 +58,11 @@ _._init = function() {
     this._initGL();
 
     this._camera = new Camera();
+    this._camera.position.z = 1.5;
+    this._camera.fovX = 0.3;
+    this._camera.fovY = 0.3;
+    this._camera.updateMatrices();
+
     this._cameraController = new OrbitCameraController(this._camera, this._canvas);
 
     var loader = new BlobLoader();
@@ -74,11 +80,6 @@ _._init = function() {
     this._translation = new Vector(0, 0, 0);
     this._isTransformationDirty = true;
 
-    this._camera.position.z = 1.5;
-    this._camera.fovX = 0.3;
-    this._camera.fovY = 0.3;
-
-    this._camera.updateMatrices();
     this._updateMvpInverseMatrix();
 };
 
@@ -133,6 +134,8 @@ _._initGL = function() {
     if (!this._extColorBufferFloat) {
         console.error('EXT_color_buffer_float not supported!');
     }
+
+    gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
 
     this._environmentTexture = WebGL.createTexture(gl, {
         width          : 1,
@@ -329,6 +332,16 @@ _.getTranslation = function() {
 _.setTranslation = function(x, y, z) {
     this._translation.set(x, y, z);
     this._isTransformationDirty = true;
+};
+
+_.getResolution = function() {
+    return this._resolution;
+};
+
+_.setResolution = function(resolution) {
+    this._renderer.setResolution(resolution);
+    this._toneMapper.setResolution(resolution);
+    this._toneMapper.setTexture(this._renderer.getTexture());
 };
 
 _.startRendering = function() {

@@ -147,18 +147,18 @@ _.addBump = function(options) {
     var bumpIndex = this._bumps.length;
     var newBump = {
         position: {
-            x: Math.random(),
-            y: Math.random()
+            x: 0.5,
+            y: 0.5
         },
         size: {
-            x: Math.random() * 0.5,
-            y: Math.random() * 0.5
+            x: 0.2,
+            y: 0.2
         },
         color: {
-            r: Math.random(),
-            g: Math.random(),
-            b: Math.random(),
-            a: Math.random()
+            r: 1,
+            g: 0,
+            b: 0,
+            a: 1
         }
     };
     this._bumps.push(newBump);
