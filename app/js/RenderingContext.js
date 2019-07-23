@@ -107,6 +107,7 @@ _.destroy = function() {
 
 _._nullifyGL = function() {
     this._gl                  = null;
+    this._hasCompute          = null;
     this._volume              = null;
     this._environmentTexture  = null;
     this._transferFunction    = null;
@@ -119,7 +120,7 @@ _._nullifyGL = function() {
 _._initGL = function() {
     this._nullifyGL();
 
-    this._gl = WebGL.getContext(this._canvas, ['webgl2'], {
+    this._gl = WebGL.getContext(this._canvas, ['webgl2-compute', 'webgl2'], {
         alpha                 : false,
         depth                 : false,
         stencil               : false,
@@ -127,6 +128,7 @@ _._initGL = function() {
         preserveDrawingBuffer : true,
     });
     var gl = this._gl;
+    this._hasCompute = gl instanceof WebGL2ComputeRenderingContext;
     this._extLoseContext = gl.getExtension('WEBGL_lose_context');
     this._extColorBufferFloat = gl.getExtension('EXT_color_buffer_float');
 
@@ -349,6 +351,10 @@ _.startRendering = function() {
 
 _.stopRendering = function() {
     Ticker.remove(this._render);
+};
+
+_.hasComputeCapabilities = function() {
+    return this._hasCompute;
 };
 
 // ============================ STATIC METHODS ============================= //
