@@ -1,3 +1,6 @@
+//@@utils/Utils.js
+//@@EventEmitter.js
+
 (function(global) {
 'use strict';
 
@@ -8,6 +11,7 @@ var _ = Class.prototype;
 
 function Navbar(container, options) {
     CommonUtils.extend(this, Class.defaults, options);
+    CommonUtils.extend(this, EventEmitter);
 
     this._$container = $(container);
 
@@ -15,29 +19,13 @@ function Navbar(container, options) {
 }
 
 Class.defaults = {
-    onOpenFileDialog                   : null,
-    onOpenEnvironmentMapDialog         : null,
-    onResetRenderer                    : null,
-    onRenderingContextDialog           : null,
-    onMipRendererDialog                : null,
-    onIsoRendererDialog                : null,
-    onEamRendererDialog                : null,
-    onMcsRendererDialog                : null,
-    onMultipleScatteringRendererDialog : null,
-    onReinhardToneMapperDialog         : null,
-    onRangeToneMapperDialog            : null,
-    onArtisticToneMapperDialog         : null,
-    onChooseMipRenderer                : null,
-    onChooseIsoRenderer                : null,
-    onChooseEamRenderer                : null,
-    onChooseMcsRenderer                : null,
-    onChooseMultipleScatteringRenderer : null
 };
 
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
 
 _._nullify = function() {
     this._$html = null;
+    this._eventHandlers = {};
 };
 
 _._init = function() {
@@ -46,26 +34,51 @@ _._init = function() {
     this._$html = $(TEMPLATES['Navbar.html']);
     this._$container.append(this._$html);
 
-    this._$html.find('[name="open-file-dialog-button"]').click(this.onOpenFileDialog);
-    this._$html.find('[name="open-environment-map-dialog-button"]').click(this.onOpenEnvironmentMapDialog);
-    this._$html.find('[name="reset-renderer-button"]').click(this.onResetRenderer);
-    this._$html.find('[name="rendering-context-dialog-button"]').click(this.onRenderingContextDialog);
+    this._$html.find('[name="open-file-dialog"]').click(function() {
+        this.trigger('open-file-dialog');
+    }.bind(this));
+    this._$html.find('[name="open-environment-map-dialog"]').click(function() {
+        this.trigger('open-environment-map-dialog');
+    }.bind(this));
 
-    this._$html.find('[name="mip-renderer-dialog-button"]').click(this.onMipRendererDialog);
-    this._$html.find('[name="iso-renderer-dialog-button"]').click(this.onIsoRendererDialog);
-    this._$html.find('[name="eam-renderer-dialog-button"]').click(this.onEamRendererDialog);
-    this._$html.find('[name="mcs-renderer-dialog-button"]').click(this.onMcsRendererDialog);
-    this._$html.find('[name="multiple-scattering-renderer-dialog-button"]').click(this.onMultipleScatteringRendererDialog);
+    this._$html.find('[name="reset-renderer"]').click(function() {
+        this.trigger('reset-renderer');
+    }.bind(this));
+    this._$html.find('[name="rendering-context-dialog"]').click(function() {
+        this.trigger('rendering-context-dialog');
+    }.bind(this));
+    this._$html.find('[name="renderer-settings-dialog"]').click(function() {
+        this.trigger('renderer-settings-dialog');
+    }.bind(this));
+    this._$html.find('[name="tone-mapper-settings-dialog"]').click(function() {
+        this.trigger('tone-mapper-settings-dialog');
+    }.bind(this));
 
-    this._$html.find('[name="reinhard-tone-mapper-dialog-button"]').click(this.onReinhardToneMapperDialog);
-    this._$html.find('[name="range-tone-mapper-dialog-button"]').click(this.onRangeToneMapperDialog);
-    this._$html.find('[name="artistic-tone-mapper-dialog-button"]').click(this.onArtisticToneMapperDialog);
+    this._$html.find('[name="choose-mip-renderer"]').click(function() {
+        this.trigger('choose-renderer', 'MIP');
+    }.bind(this));
+    this._$html.find('[name="choose-iso-renderer"]').click(function() {
+        this.trigger('choose-renderer', 'ISO');
+    }.bind(this));
+    this._$html.find('[name="choose-eam-renderer"]').click(function() {
+        this.trigger('choose-renderer', 'EAM');
+    }.bind(this));
+    this._$html.find('[name="choose-mcs-renderer"]').click(function() {
+        this.trigger('choose-renderer', 'MCS');
+    }.bind(this));
+    this._$html.find('[name="choose-multiple-scattering-renderer"]').click(function() {
+        this.trigger('choose-renderer', 'Multiple Scattering');
+    }.bind(this));
 
-    this._$html.find('[name="choose-mip-renderer-button"]').click(this.onChooseMipRenderer);
-    this._$html.find('[name="choose-iso-renderer-button"]').click(this.onChooseIsoRenderer);
-    this._$html.find('[name="choose-eam-renderer-button"]').click(this.onChooseEamRenderer);
-    this._$html.find('[name="choose-mcs-renderer-button"]').click(this.onChooseMcsRenderer);
-    this._$html.find('[name="choose-multiple-scattering-renderer-button"]').click(this.onChooseMultipleScatteringRenderer);
+    this._$html.find('[name="choose-range-tone-mapper"]').click(function() {
+        this.trigger('choose-tone-mapper', 'Range');
+    }.bind(this));
+    this._$html.find('[name="choose-reinhard-tone-mapper"]').click(function() {
+        this.trigger('choose-tone-mapper', 'Reinhard');
+    }.bind(this));
+    this._$html.find('[name="choose-artistic-tone-mapper"]').click(function() {
+        this.trigger('choose-tone-mapper', 'Artistic');
+    }.bind(this));
 };
 
 _.destroy = function() {

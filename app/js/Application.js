@@ -40,20 +40,15 @@ Class.defaults = {
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
 
 _._nullify = function() {
-    this._renderingContext                 = null;
-    this._canvas                           = null;
-    this._navbar                           = null;
-    this._openFileDialog                   = null;
-    this._openEnvironmentMapDialog         = null;
-    this._renderingContextDialog           = null;
-    this._mipRendererDialog                = null;
-    this._isoRendererDialog                = null;
-    this._eamRendererDialog                = null;
-    this._mcsRendererDialog                = null;
-    this._multipleScatteringRendererDialog = null;
-    this._reinhardToneMapperDialog         = null;
-    this._rangeToneMapperDialog            = null;
-    this._artisticToneMapperDialog         = null;
+    this._renderingContext         = null;
+    this._canvas                   = null;
+    this._navbar                   = null;
+
+    this._openFileDialog           = null;
+    this._openEnvironmentMapDialog = null;
+    this._renderingContextDialog   = null;
+    this._rendererDialog           = null;
+    this._toneMapperDialog         = null;
 };
 
 _._init = function() {
@@ -115,129 +110,79 @@ _._init = function() {
 
     this._renderingContextDialog = new RenderingContextDialog(
         document.body,
-        this._renderingContext, {
-    });
+        this._renderingContext);
 
-    // TODO: instantiate correct dialog with an abstract factory
-    this._mipRendererDialog = new MIPRendererDialog(
-        document.body,
-        this._renderingContext.getRenderer(), {
-    });
+    this._rendererDialog = new MultipleScatteringRendererDialog(
+            document.body,
+            this._renderingContext.getRenderer());
 
-    this._isoRendererDialog = new ISORendererDialog(
-        document.body,
-        this._renderingContext.getRenderer(), {
-    });
+    this._toneMapperDialog = new ArtisticToneMapperDialog(
+            document.body,
+            this._renderingContext.getToneMapper());
 
-    this._eamRendererDialog = new EAMRendererDialog(
-        document.body,
-        this._renderingContext.getRenderer(), {
-    });
+    var navbar = this._navbar = new Navbar(document.body);
 
-    this._mcsRendererDialog = new MCSRendererDialog(
-        document.body,
-        this._renderingContext.getRenderer(), {
-    });
+    navbar.on('open-file-dialog', function() {
+        this._openFileDialog.show();
+    }.bind(this));
 
-    this._multipleScatteringRendererDialog = new MultipleScatteringRendererDialog(
-        document.body,
-        this._renderingContext.getRenderer(), {
-    });
+    navbar.on('open-environment-map-dialog', function() {
+        this._openEnvironmentMapDialog.show();
+    }.bind(this));
 
-    this._reinhardToneMapperDialog = new ReinhardToneMapperDialog(
-        document.body,
-        this._renderingContext.getToneMapper(), {
-    });
+    navbar.on('reset-renderer', function() {
+        this._renderingContext.getRenderer().reset();
+    }.bind(this));
 
-    this._rangeToneMapperDialog = new RangeToneMapperDialog(
-        document.body,
-        this._renderingContext.getToneMapper(), {
-    });
+    navbar.on('rendering-context-dialog', function() {
+        this._renderingContextDialog.show();
+    }.bind(this));
 
-    this._artisticToneMapperDialog = new ArtisticToneMapperDialog(
-        document.body,
-        this._renderingContext.getToneMapper(), {
-    });
+    navbar.on('renderer-settings-dialog', function() {
+        if (this._rendererDialog) {
+            this._rendererDialog.show();
+        }
+    }.bind(this));
 
-    this._navbar = new Navbar(
-        document.body, {
-        onOpenFileDialog: function() {
-            this._openFileDialog.show();
-        }.bind(this),
-        onOpenEnvironmentMapDialog: function() {
-            this._openEnvironmentMapDialog.show();
-        }.bind(this),
-        onResetRenderer: function() {
-            this._renderingContext._renderer.reset();
-        }.bind(this),
-        onRenderingContextDialog: function() {
-            this._renderingContextDialog.show();
-        }.bind(this),
-        onMipRendererDialog: function() {
-            this._mipRendererDialog.show();
-        }.bind(this),
-        onIsoRendererDialog: function() {
-            this._isoRendererDialog.show();
-        }.bind(this),
-        onEamRendererDialog: function() {
-            this._eamRendererDialog.show();
-        }.bind(this),
-        onMcsRendererDialog: function() {
-            this._mcsRendererDialog.show();
-        }.bind(this),
-        onMultipleScatteringRendererDialog: function() {
-            this._multipleScatteringRendererDialog.show();
-        }.bind(this),
-        onReinhardToneMapperDialog: function() {
-            this._reinhardToneMapperDialog.show();
-        }.bind(this),
-        onRangeToneMapperDialog: function() {
-            this._rangeToneMapperDialog.show();
-        }.bind(this),
-        onArtisticToneMapperDialog: function() {
-            this._artisticToneMapperDialog.show();
-        }.bind(this),
-        onChooseMipRenderer: function() {
-            this._renderingContext.chooseRenderer('MIP');
-            this._mipRendererDialog.destroy();
-            this._mipRendererDialog = new MIPRendererDialog(
-                document.body,
-                this._renderingContext.getRenderer(), {
-            });
-        }.bind(this),
-        onChooseIsoRenderer: function() {
-            this._renderingContext.chooseRenderer('ISO');
-            this._isoRendererDialog.destroy();
-            this._isoRendererDialog = new ISORendererDialog(
-                document.body,
-                this._renderingContext.getRenderer(), {
-            });
-        }.bind(this),
-        onChooseEamRenderer: function() {
-            this._renderingContext.chooseRenderer('EAM');
-            this._eamRendererDialog.destroy();
-            this._eamRendererDialog = new EAMRendererDialog(
-                document.body,
-                this._renderingContext.getRenderer(), {
-            });
-        }.bind(this),
-        onChooseMcsRenderer: function() {
-            this._renderingContext.chooseRenderer('MCS');
-            this._mcsRendererDialog.destroy();
-            this._mcsRendererDialog = new MCSRendererDialog(
-                document.body,
-                this._renderingContext.getRenderer(), {
-            });
-        }.bind(this),
-        onChooseMultipleScatteringRenderer: function() {
-            this._renderingContext.chooseRenderer('Multiple Scattering');
-            this._multipleScatteringRendererDialog.destroy();
-            this._multipleScatteringRendererDialog = new MultipleScatteringRendererDialog(
-                document.body,
-                this._renderingContext.getRenderer(), {
-            });
-        }.bind(this)
-    });
+    navbar.on('tone-mapper-settings-dialog', function() {
+        if (this._toneMapperDialog) {
+            this._toneMapperDialog.show();
+        }
+    }.bind(this));
+
+    navbar.on('choose-renderer', function(renderer) {
+        this._renderingContext.chooseRenderer(renderer);
+        if (this._rendererDialog) {
+            this._rendererDialog.destroy();
+        }
+        var dialogClass;
+        switch (renderer) {
+            case 'MIP': dialogClass = MIPRendererDialog; break;
+            case 'ISO': dialogClass = ISORendererDialog; break;
+            case 'EAM': dialogClass = EAMRendererDialog; break;
+            case 'MCS': dialogClass = MCSRendererDialog; break;
+            case 'Multiple Scattering': dialogClass = MultipleScatteringRendererDialog; break;
+        }
+        this._rendererDialog = new dialogClass(
+            document.body,
+            this._renderingContext.getRenderer());
+    }.bind(this));
+
+    navbar.on('choose-tone-mapper', function(toneMapper) {
+        this._renderingContext.chooseToneMapper(toneMapper);
+        if (this._toneMapperDialog) {
+            this._toneMapperDialog.destroy();
+        }
+        var dialogClass;
+        switch (toneMapper) {
+            case 'Range'   : dialogClass = RangeToneMapperDialog; break;
+            case 'Reinhard': dialogClass = ReinhardToneMapperDialog; break;
+            case 'Artistic': dialogClass = ArtisticToneMapperDialog; break;
+        }
+        this._toneMapperDialog = new dialogClass(
+            document.body,
+            this._renderingContext.getToneMapper());
+    }.bind(this));
 };
 
 _.destroy = function() {
@@ -245,14 +190,16 @@ _.destroy = function() {
     this._navbar.destroy();
     this._openFileDialog.destroy();
     this._openEnvironmentMapDialog.destroy();
-    this._mipRendererDialog.destroy();
-    this._isoRendererDialog.destroy();
-    this._eamRendererDialog.destroy();
-    this._mcsRendererDialog.destroy();
-    this._multipleScatteringRendererDialog.destroy();
-    this._reinhardToneMapperDialog.destroy();
-    this._rangeToneMapperDialog.destroy();
-    this._artisticToneMapperDialog.destroy();
+    this._renderingContextDialog.destroy();
+
+    if (this._rendererDialog) {
+        this._rendererDialog.destroy();
+    }
+
+    if (this._toneMapperDialog) {
+        this._toneMapperDialog.destroy();
+    }
+
     DOMUtils.remove(this._canvas);
 
     _._nullify.call(this);

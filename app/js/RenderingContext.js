@@ -233,25 +233,29 @@ _.setEnvironmentMap = function(image) {
 
 _.chooseRenderer = function(renderer) {
     this._renderer.destroy();
+    var gl = this._gl;
+    var volume = this._volume;
+    var env = this._environmentTexture;
     switch (renderer) {
-        case 'MIP':
-            this._renderer = new MIPRenderer(this._gl, this._volume, this._environmentTexture);
-            break;
-        case 'ISO':
-            this._renderer = new ISORenderer(this._gl, this._volume, this._environmentTexture);
-            break;
-        case 'EAM':
-            this._renderer = new EAMRenderer(this._gl, this._volume, this._environmentTexture);
-            break;
-        case 'MCS':
-            this._renderer = new MCSRenderer(this._gl, this._volume, this._environmentTexture);
-            break;
-        case 'Multiple Scattering':
-            this._renderer = new MultipleScatteringRenderer(this._gl, this._volume, this._environmentTexture);
-            break;
+        case 'MIP': this._renderer = new MIPRenderer(gl, volume, env); break;
+        case 'ISO': this._renderer = new ISORenderer(gl, volume, env); break;
+        case 'EAM': this._renderer = new EAMRenderer(gl, volume, env); break;
+        case 'MCS': this._renderer = new MCSRenderer(gl, volume, env); break;
+        case 'Multiple Scattering': this._renderer = new MultipleScatteringRenderer(gl, volume, env); break;
     }
     this._toneMapper.setTexture(this._renderer.getTexture());
     this._isTransformationDirty = true;
+};
+
+_.chooseToneMapper = function(toneMapper) {
+    this._toneMapper.destroy();
+    var gl = this._gl;
+    var texture = this._renderer.getTexture();
+    switch (toneMapper) {
+        case 'Range'   : this._toneMapper = new RangeToneMapper(gl, texture); break;
+        case 'Reinhard': this._toneMapper = new ReinhardToneMapper(gl, texture); break;
+        case 'Artistic': this._toneMapper = new ArtisticToneMapper(gl, texture); break;
+    }
 };
 
 _.getCanvas = function() {
