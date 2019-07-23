@@ -121,8 +121,8 @@ _._handleMouseUp = function(e) {
 _._handleMouseMove = function(e) {
     e.preventDefault();
 
-    var x = e.pageX || e.touches[0].pageX;
-    var y = e.pageY || e.touches[0].pageY;
+    var x = typeof e.pageX !== 'undefined' ? e.pageX : e.touches[0].pageX;
+    var y = typeof e.pageY !== 'undefined' ? e.pageY : e.touches[0].pageY;
     var dx = x - this._startX;
     var dy = y - this._startY;
 
