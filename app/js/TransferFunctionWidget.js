@@ -209,7 +209,10 @@ _._addHandle = function(index) {
 };
 
 _._rebuildHandles = function() {
-    this._$html.querySelector('.bump').remove();
+    var handles = this._$html.querySelectorAll('.bump');
+    handles.forEach(function(handle) {
+        DOMUtils.remove(handle);
+    });
     for (var i = 0; i < this._bumps.length; i++) {
         this._addHandle(i);
     }
