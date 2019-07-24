@@ -25,28 +25,26 @@ http.createServer(function(request, response) {
         '.png': 'image/png',
         '.jpg': 'image/jpg',
         '.gif': 'image/gif',
+        '.svg': 'image/svg+xml',
         '.wav': 'audio/wav',
         '.mp4': 'video/mp4',
         '.woff': 'application/font-woff',
         '.ttf': 'application/font-ttf',
-        '.eot': 'application/vnd.ms-fontobject',
-        '.otf': 'application/font-otf',
-        '.svg': 'application/image/svg+xml'
+        '.otf': 'application/font-otf'
     };
 
     contentType = mimeTypes[extname] || 'application/octet-stream';
 
     fs.readFile(basedir + filePath, function(error, content) {
         if (error) {
-            if (error.code == 'ENOENT'){
-                fs.readFile(basedir + '/404.html', function(error, content) {
-                    response.writeHead(200, { 'Content-Type': contentType });
-                    response.end(content, 'utf-8');
-                });
-            } else {
-                response.writeHead(500);
-                response.end('Server error: ' + error.code + '\n');
+            if (error.code == 'ENOENT') {
+                console.log('404: ' + filePath);
+                response.writeHead(404);
                 response.end();
+            } else {
+                console.log('500: ' + filePath);
+                response.writeHead(500);
+                response.end('Server error: ' + error.code);
             }
         } else {
             response.writeHead(200, { 'Content-Type': contentType });
