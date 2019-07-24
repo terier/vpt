@@ -1,0 +1,19 @@
+.field {
+    display: flex;
+    align-items: center;
+
+    margin: 2px 10px 2px 0px;
+}
+
+.field > label {
+    flex: 0 0 100px;
+    padding: 0px 7px;
+
+    font: italic 12px sans-serif;
+    text-align: right;
+    color: #333;
+}
+
+.field > .container {
+    flex: 1;
+}

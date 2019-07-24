@@ -1,0 +1,44 @@
+//@@../utils/Utils.js
+//@@UIObject.js
+
+(function(global) {
+'use strict';
+
+var Class = global.Panel = Panel;
+CommonUtils.inherit(Class, UIObject);
+var _ = Class.prototype;
+
+// ========================== CLASS DECLARATION ============================ //
+
+function Panel(container, options) {
+    _.sup.constructor.call(this, container, TEMPLATES['Panel.html'], options);
+    CommonUtils.extend(this, Class.defaults, options);
+
+    _._init.call(this);
+};
+
+Class.defaults = {
+};
+
+// ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
+
+_._nullify = function() {
+};
+
+_._init = function() {
+    _._nullify.call(this);
+};
+
+_.destroy = function() {
+    _._nullify.call(this);
+};
+
+// =========================== INSTANCE METHODS ============================ //
+
+_.getContainer = function() {
+    return this._element;
+};
+
+// ============================ STATIC METHODS ============================= //
+
+})(this);

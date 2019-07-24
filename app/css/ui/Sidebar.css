@@ -1,0 +1,41 @@
+.sidebar {
+    display: flex;
+
+    position: absolute;
+    width: 300px;
+    height: 100vh;
+
+    overflow: hidden;
+    transition: width 100ms;
+}
+
+.sidebar.contracted {
+    width: 10px;
+}
+
+.sidebar > .header {
+    flex: 0 0 10px;
+    background-color: #ccc;
+
+    background-image: url(../images/icons/left-arrow-angle-big-gross-symbol.svg);
+    background-position: 50% 10px;
+    background-repeat: no-repeat;
+    background-size: 100%;
+    box-sizing: border-box;
+    border-right: 1px solid #aaa;
+    user-select: none;
+}
+
+.sidebar > .header:hover {
+    background-color: #bcd;
+}
+
+.sidebar.contracted > .header {
+    background-image: url(../images/icons/arrow-angle-pointing-to-right.svg);
+}
+
+.sidebar > .container {
+    flex: 1;
+    background-color: #eee;
+    overflow: hidden;
+}

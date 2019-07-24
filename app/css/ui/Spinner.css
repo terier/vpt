@@ -1,0 +1,17 @@
+.spinner {
+    width: 100%;
+    height: 18px;
+}
+
+.spinner > input {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    padding-left: 3px;
+    line-height: 18px;
+    font-size: 12px;
+    border: 1px solid #aaa;
+    box-sizing: border-box;
+    display: block;
+}

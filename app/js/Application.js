@@ -1,13 +1,23 @@
 //@@utils/Utils.js
-//@@RenderingContext.js
+
+//@@ui/Panel.js
+//@@ui/Sidebar.js
+//@@ui/Field.js
+//@@ui/Checkbox.js
+//@@ui/Spinner.js
+
 //@@Navbar.js
+
+//@@RenderingContext.js
 //@@Volume.js
+
 //@@readers/BVPReader.js
 //@@readers/JSONReader.js
 //@@readers/RAWReader.js
 //@@readers/ZIPReader.js
 //@@loaders/BlobLoader.js
 //@@loaders/AjaxLoader.js
+
 //@@dialogs/OpenFileDialog.js
 //@@dialogs/OpenEnvironmentMapDialog.js
 //@@dialogs/RenderingContextDialog.js
@@ -85,7 +95,9 @@ _._init = function() {
         }
     }.bind(this));
 
-    this._openFileDialog = new OpenFileDialog(
+    this._createUI();
+
+    /*this._openFileDialog = new OpenFileDialog(
         document.body, {
         onLoad: function(data, size, bits) {
             var loader = new BlobLoader(data);
@@ -182,7 +194,7 @@ _._init = function() {
         this._toneMapperDialog = new dialogClass(
             document.body,
             this._renderingContext.getToneMapper());
-    }.bind(this));
+    }.bind(this));*/
 };
 
 _.destroy = function() {
@@ -221,6 +233,22 @@ _._getReaderForURL = function(url) {
         case 'zip'  : return ZIPReader;
         default     : return null;
     }
+};
+
+_._createUI = function() {
+    var sidebar = new Sidebar(document.body);
+    var panel = new Panel(sidebar.getContainer());
+    var field1 = new Field(panel.getContainer(), 'Coordinates');
+    var checkbox = new Checkbox(field1.getContainer());
+    var field2 = new Field(panel.getContainer(), 'A bit longer label this time');
+    var spinner = new Spinner(field2.getContainer());
+    spinner.addEventListener('changeall', function() {
+        console.log(spinner.getValue());
+    });
+
+    spinner.addEventListener('change', function(e) {
+        console.log('change', spinner.getValue());
+    });
 };
 
 // ============================ STATIC METHODS ============================= //
