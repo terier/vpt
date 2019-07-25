@@ -1,11 +1,11 @@
 .checkbox {
-    --color-disabled  : #ccc;
-    --color-checked   : #2196f3;
-    --color-unchecked : #666;
-    --color-handle    : #fff;
     --width           : 40px;
     --height          : 18px;
     --padding         : 1px;
+    --disabled-color  : #ccc;
+    --checked-color   : #2196f3;
+    --unchecked-color : #666;
+    --handle-color    : #fff;
 }
 
 .checkbox {
@@ -16,7 +16,7 @@
 
     box-sizing: border-box;
     transition: 100ms;
-    background-color: var(--color-unchecked);
+    background-color: var(--unchecked-color);
     cursor: pointer;
     user-select: none;
 }
@@ -26,14 +26,14 @@
     height: calc(var(--height) - 2 * var(--padding));
     border-radius: 50%;
 
-    background-color: var(--color-handle);
+    background-color: var(--handle-color);
 }
 
 .checkbox.checked {
     padding-left: calc(var(--width) - var(--height) + var(--padding));
-    background-color: var(--color-checked);
+    background-color: var(--checked-color);
 }
 
 .checkbox.disabled, .checkbox.checked.disabled {
-    background-color: var(--color-disabled);
+    background-color: var(--disabled-color);
 }

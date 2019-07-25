@@ -1,17 +1,17 @@
 .sidebar {
-    --width        : 300px;
-    --width-handle : 10px;
-    --color        : #eee;
-    --color-handle : #ccc;
-    --color-border : #aaa;
-    --color-hover  : #bcd;
+    --sidebar-width    : 300px;
+    --handle-width     : 10px;
+    --background-color : #eee;
+    --handle-color     : #ccc;
+    --border-color     : #aaa;
+    --hover-color      : #bcd;
 }
 
 .sidebar {
     display: flex;
 
     position: absolute;
-    width: var(--width);
+    width: var(--sidebar-width);
     height: 100vh;
 
     overflow: hidden;
@@ -19,24 +19,25 @@
 }
 
 .sidebar.contracted {
-    width: var(--width-handle);
+    width: var(--handle-width);
 }
 
 .sidebar > .handle {
-    flex: 0 0 var(--width-handle);
-    background-color: var(--color-handle);
+    flex: 0 0 var(--handle-width);
+    background-color: var(--handle-color);
 
     background-image: url(../images/icons/left-arrow-angle-big-gross-symbol.svg);
     background-position: 50% 10px;
     background-repeat: no-repeat;
     background-size: 100%;
     box-sizing: border-box;
-    border-right: 1px solid var(--color-border);
+    border-right: 1px solid var(--border-color);
     user-select: none;
+    z-index: 1;
 }
 
 .sidebar > .handle:hover {
-    background-color: var(--color-hover);
+    background-color: var(--hover-color);
 }
 
 .sidebar.contracted > .handle {
@@ -45,6 +46,6 @@
 
 .sidebar > .container {
     flex: 1;
-    background-color: var(--color);
+    background-color: var(--background-color);
     overflow: hidden;
 }

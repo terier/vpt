@@ -238,19 +238,30 @@ _._getReaderForURL = function(url) {
 
 _._createUI = function() {
     var sidebar = new Sidebar();
-    var panel = new Panel();
+
+    var panel1 = new Panel();
     var field1 = new Field('Coordinates');
-    var checkbox = new Checkbox();
+    var checkbox1 = new Checkbox();
     var field2 = new Field('A bit longer label this time');
     var spinner = new Spinner();
 
+    var panel2 = new Panel();
+    var field3 = new Field('Enabled');
+    var checkbox2 = new Checkbox();
+
+    var tabs = new Tabs();
+
     sidebar.appendTo(document.body);
 
-    sidebar.add(panel);
-    panel.add(field1);
-    panel.add(field2);
-    field1.add(checkbox);
+    sidebar.add(tabs);
+    tabs.add(panel1);
+    tabs.add(panel2);
+    panel1.add(field1);
+    panel1.add(field2);
+    field1.add(checkbox1);
     field2.add(spinner);
+    panel2.add(field3);
+    field3.add(checkbox2);
 
     spinner.addEventListener('changeall', function() {
         console.log(spinner.getValue());

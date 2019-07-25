@@ -1,0 +1,59 @@
+.tabs {
+    --header-height     : 20px;
+    --header-padding    : 3px;
+    --border-radius     : 7px;
+    --border-color      : #aaa;
+    --selected-color    : #eee;
+    --unselected-color  : #ddd;
+    --hover-color       : #eee;
+    --text-color        : #333;
+}
+
+.tabs > .headers {
+    display: flex;
+    overflow: hidden;
+}
+
+.tabs > .headers > .header {
+    height: var(--header-height);
+    padding: var(--header-padding);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius) var(--border-radius) 0px 0px;
+    box-sizing: border-box;
+
+    background-color: var(--unselected-color);
+    font-family: sans-serif;
+    font-size: 12px;
+    font-style: italic;
+    color: var(--text-color);
+    user-select: none;
+    overflow: hidden;
+}
+
+.tabs > .headers > .header.selected {
+    background-color: var(--selected-color);
+    border-bottom: 0px;
+}
+
+.tabs > .headers > .header:not(.selected):hover {
+    background-color: var(--hover-color);
+    cursor: pointer;
+}
+
+.tabs > .headers > .filler {
+    flex: 1;
+    order: 99999;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.tabs > .container {
+    display: flex;
+    overflow: hidden;
+}
+
+.tabs > .container > * {
+    position: relative;
+    flex: 0 0 100%;
+    overflow: hidden;
+    transition: left 100ms;
+}
