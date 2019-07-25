@@ -1,6 +1,7 @@
 .sidebar {
     --sidebar-width    : 300px;
     --handle-width     : 10px;
+    --icon-size        : 10px;
     --background-color : #ffffff;
     --handle-color     : #f3f3f3;
     --border-color     : #cccccc;
@@ -29,7 +30,7 @@
     background-image: url(../images/icons/left-arrow-angle-big-gross-symbol.svg);
     background-position: 50% 10px;
     background-repeat: no-repeat;
-    background-size: 100%;
+    background-size: var(--icon-size);
     box-sizing: border-box;
     border-right: 1px solid var(--border-color);
     user-select: none;

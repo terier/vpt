@@ -214,37 +214,60 @@ _._getReaderForURL = function(url) {
 
 _._createUI = function() {
     var sidebar = new Sidebar();
+    sidebar.appendTo(document.body);
 
+    var tabs = new Tabs();
+    sidebar.add(tabs);
+
+    // first tab
+
+    var tab1 = new Panel();
+    tabs.add(tab1, 'Settings');
+
+    // first panel
     var panel1 = new Panel();
-    var field1 = new Field('Coordinates');
+    tab1.add(panel1);
     var checkbox1 = new Checkbox({ checked: false });
-    var field2 = new Field('A bit longer label this time', { enabled: false });
+    var field1 = new Field('Coordinates');
+    field1.add(checkbox1);
     var spinner = new Spinner({
         step: 0.1,
         logarithmic: true
     });
-
-    var panel2 = new Panel();
-    var field3 = new Field('Enabled', { enabled: false });
-    var checkbox2 = new Checkbox();
-
-    var tabs = new Tabs();
-
-    sidebar.appendTo(document.body);
-
-    sidebar.add(tabs);
-    tabs.add(panel1, 'Settings');
-    tabs.add(panel2, 'Renderer');
-    panel1.add(new Spacer({ height: '5px' }));
+    var field2 = new Field('A bit longer label this time', { enabled: false });
+    field2.add(spinner);
     panel1.add(field1);
     panel1.add(field2);
-    field1.add(checkbox1);
-    field2.add(spinner);
-    panel2.add(new Spacer({ height: '5px' }));
-    panel2.add(field3);
-    field3.add(checkbox2);
 
-    tabs.selectTab(panel1);
+    var dropdown = new Dropdown([
+        { value: 'first',  label: 'First item'  },
+        { value: 'second', label: 'Second item' },
+    ]);
+    var field3 = new Field('Renderer');
+    field3.add(dropdown);
+    panel1.add(field3);
+
+    var accordion = new Accordion('Name');
+    var accordionPanel = new Panel();
+    var field5 = new Field('Test text');
+    field5.add(new Spinner());
+    accordionPanel.add(field5);
+    accordion.add(accordionPanel);
+    tab1.add(accordion);
+
+    // second tab
+
+    var tab2 = new Panel();
+    tabs.add(tab2, 'Renderer');
+
+    var checkbox2 = new Checkbox();
+    var field4 = new Field('Enabled', { enabled: false });
+    field4.add(checkbox2);
+    tab2.add(field4);
+
+    // events
+
+    tabs.selectTab(tab1);
 
     checkbox1.addEventListener('change', function() {
         field2.setEnabled(checkbox1.isChecked());
