@@ -10,8 +10,8 @@ var _ = Class.prototype;
 
 // ========================== CLASS DECLARATION ============================ //
 
-function Spinner(container, options) {
-    _.sup.constructor.call(this, container, TEMPLATES['Spinner.html'], options);
+function Spinner(options) {
+    _.sup.constructor.call(this, TEMPLATES['Spinner.html'], options);
     CommonUtils.extend(this, Class.defaults, options);
 
     this._handleInput = this._handleInput.bind(this);

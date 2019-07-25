@@ -10,8 +10,8 @@ var _ = Class.prototype;
 // ========================== CLASS DECLARATION ============================ //
 
 function Navbar(container, options) {
+    CommonUtils.extend(_, EventEmitter);
     CommonUtils.extend(this, Class.defaults, options);
-    CommonUtils.extend(this, EventEmitter);
 
     this._$container = container;
 

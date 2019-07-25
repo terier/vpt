@@ -10,8 +10,8 @@ var _ = Class.prototype;
 
 // ========================== CLASS DECLARATION ============================ //
 
-function Field(container, label, options) {
-    _.sup.constructor.call(this, container, TEMPLATES['Field.html'], options);
+function Field(label, options) {
+    _.sup.constructor.call(this, TEMPLATES['Field.html'], options);
     CommonUtils.extend(this, Class.defaults, options);
 
     this._label = label;
@@ -38,6 +38,10 @@ _.destroy = function() {
 };
 
 // =========================== INSTANCE METHODS ============================ //
+
+_.add = function(object) {
+    object.appendTo(this.getContainer());
+};
 
 _.getContainer = function() {
     return this._binds.container;

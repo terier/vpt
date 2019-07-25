@@ -5,6 +5,7 @@
 //@@ui/Field.js
 //@@ui/Checkbox.js
 //@@ui/Spinner.js
+//@@ui/Tabs.js
 
 //@@Navbar.js
 
@@ -236,12 +237,21 @@ _._getReaderForURL = function(url) {
 };
 
 _._createUI = function() {
-    var sidebar = new Sidebar(document.body);
-    var panel = new Panel(sidebar.getContainer());
-    var field1 = new Field(panel.getContainer(), 'Coordinates');
-    var checkbox = new Checkbox(field1.getContainer());
-    var field2 = new Field(panel.getContainer(), 'A bit longer label this time');
-    var spinner = new Spinner(field2.getContainer());
+    var sidebar = new Sidebar();
+    var panel = new Panel();
+    var field1 = new Field('Coordinates');
+    var checkbox = new Checkbox();
+    var field2 = new Field('A bit longer label this time');
+    var spinner = new Spinner();
+
+    sidebar.appendTo(document.body);
+
+    sidebar.add(panel);
+    panel.add(field1);
+    panel.add(field2);
+    field1.add(checkbox);
+    field2.add(spinner);
+
     spinner.addEventListener('changeall', function() {
         console.log(spinner.getValue());
     });

@@ -10,8 +10,8 @@ var _ = Class.prototype;
 
 // ========================== CLASS DECLARATION ============================ //
 
-function Checkbox(container, options) {
-    _.sup.constructor.call(this, container, TEMPLATES['Checkbox.html'], options);
+function Checkbox(options) {
+    _.sup.constructor.call(this, TEMPLATES['Checkbox.html'], options);
     CommonUtils.extend(this, Class.defaults, options);
 
     this._handleClick = this._handleClick.bind(this);

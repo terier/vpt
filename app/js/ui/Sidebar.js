@@ -10,8 +10,8 @@ var _ = Class.prototype;
 
 // ========================== CLASS DECLARATION ============================ //
 
-function Sidebar(container, options) {
-    _.sup.constructor.call(this, container, TEMPLATES['Sidebar.html'], options);
+function Sidebar(options) {
+    _.sup.constructor.call(this, TEMPLATES['Sidebar.html'], options);
     CommonUtils.extend(this, Class.defaults, options);
 
     this._handleClick = this._handleClick.bind(this);
@@ -40,6 +40,10 @@ _.destroy = function() {
 };
 
 // =========================== INSTANCE METHODS ============================ //
+
+_.add = function(object) {
+    object.appendTo(this.getContainer());
+};
 
 _.setContracted = function(contracted) {
     this.contracted = contracted;

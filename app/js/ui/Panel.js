@@ -10,8 +10,8 @@ var _ = Class.prototype;
 
 // ========================== CLASS DECLARATION ============================ //
 
-function Panel(container, options) {
-    _.sup.constructor.call(this, container, TEMPLATES['Panel.html'], options);
+function Panel(options) {
+    _.sup.constructor.call(this, TEMPLATES['Panel.html'], options);
     CommonUtils.extend(this, Class.defaults, options);
 
     _._init.call(this);
@@ -34,6 +34,10 @@ _.destroy = function() {
 };
 
 // =========================== INSTANCE METHODS ============================ //
+
+_.add = function(object) {
+    object.appendTo(this.getContainer());
+};
 
 _.getContainer = function() {
     return this._element;

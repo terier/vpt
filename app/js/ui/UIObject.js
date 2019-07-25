@@ -8,10 +8,9 @@ var _ = Class.prototype;
 
 // ========================== CLASS DECLARATION ============================ //
 
-function UIObject(container, template, options) {
+function UIObject(template, options) {
     CommonUtils.extend(this, Class.defaults, options);
 
-    this._container = container;
     this._template = template;
 
     _._init.call(this);
@@ -32,15 +31,15 @@ _._init = function() {
     _._nullify.call(this);
 
     this._element = DOMUtils.instantiate(this._template);
-    this._container.appendChild(this._element);
     this._binds = DOMUtils.bind(this._element);
 
     this._element.classList.toggle('disabled', !this.enabled);
 };
 
 _.destroy = function() {
-    this._container = null;
     this._template = null;
+
+    DOMUtils.remove(this._element);
 
     _._nullify.call(this);
 };
@@ -66,6 +65,14 @@ _.enable = function() {
 
 _.disable = function() {
     this.setEnabled(false);
+};
+
+_.appendTo = function(container) {
+    container.appendChild(this._element);
+};
+
+_.detach = function() {
+    DOMUtils.remove(this._element);
 };
 
 _.addEventListener = function(event, listener, options) {
