@@ -202,7 +202,7 @@ _._getReaderForURL = function(url) {
         return null;
     }
 
-    var ext = url.substr(lastDot + 1).toLowerCase();
+    var ext = url.substring(lastDot + 1).toLowerCase();
     switch (ext) {
         case 'bvp'  : return BVPReader;
         case 'json' : return JSONReader;

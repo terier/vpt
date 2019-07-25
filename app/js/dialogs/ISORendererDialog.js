@@ -76,9 +76,9 @@ _._init = function() {
     this._$color.value = this.diffuseColor;
     this._$color.addEventListener('change', function() {
         var color = this._$color.value;
-        this._renderer._diffuse[0] = parseInt(color.substr(1, 2), 16) / 255;
-        this._renderer._diffuse[1] = parseInt(color.substr(3, 2), 16) / 255;
-        this._renderer._diffuse[2] = parseInt(color.substr(5, 2), 16) / 255;
+        this._renderer._diffuse[0] = parseInt(color.substr(1, 3), 16) / 255;
+        this._renderer._diffuse[1] = parseInt(color.substr(3, 5), 16) / 255;
+        this._renderer._diffuse[2] = parseInt(color.substr(5, 7), 16) / 255;
     }.bind(this));
 };
 

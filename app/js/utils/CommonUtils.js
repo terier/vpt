@@ -64,9 +64,9 @@ function extend(out) {
 
 function hex2rgb(str) {
     return {
-        r: parseInt(str.substr(1, 2), 16) / 255,
-        g: parseInt(str.substr(3, 2), 16) / 255,
-        b: parseInt(str.substr(5, 2), 16) / 255
+        r: parseInt(str.substr(1, 3), 16) / 255,
+        g: parseInt(str.substr(3, 5), 16) / 255,
+        b: parseInt(str.substr(5, 7), 16) / 255
     };
 }
 
