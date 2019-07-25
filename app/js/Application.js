@@ -255,6 +255,14 @@ _._createUI = function() {
     accordion.add(accordionPanel);
     tab1.add(accordion);
 
+    var radio = new Radio([
+        { value: 8,  label: '8-bit', selected: true },
+        { value: 16, label: '16-bit' }
+    ]);
+    var field6 = new Field('Precision');
+    field6.add(radio);
+    accordionPanel.add(field6);
+
     // second tab
 
     var tab2 = new Panel();
