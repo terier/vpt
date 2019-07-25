@@ -17,6 +17,8 @@ function Radio(_options, options) {
     this._options = _options;
     this._radioName = 'radio' + Radio._nextId++;
 
+    this._handleClick = this._handleClick.bind(this);
+
     _._init.call(this);
 };
 
@@ -54,6 +56,7 @@ _.addOption = function(value, label, selected) {
         binds.input.checked = true;
     }
     binds.label.textContent = label;
+    binds.label.addEventListener('click', this._handleClick);
     this._element.appendChild(option);
 };
 
@@ -69,6 +72,10 @@ _.setValue = function(value) {
     if (input) {
         input.select();
     }
+};
+
+_._handleClick = function(e) {
+    e.currentTarget.parentNode.querySelector('input').checked = true;
 };
 
 // ============================ STATIC METHODS ============================= //
