@@ -1,17 +1,30 @@
 .field {
+    --label-width       : 100px;
+    --label-margin      : 7px;
+    --vertical-margin   : 2px;
+    --horizontal-margin : 10px;
+    --enabled-color     : #333333;
+    --disabled-color    : #cccccc;
+}
+
+.field {
     display: flex;
     align-items: center;
 
-    margin: 2px 10px 2px 0px;
+    margin: var(--vertical-margin) var(--horizontal-margin);
 }
 
 .field > label {
-    flex: 0 0 100px;
-    padding: 0px 7px;
+    flex: 0 0 var(--label-width);
+    padding: 0 var(--label-margin);
 
     font: italic 12px sans-serif;
     text-align: right;
-    color: #333;
+    color: var(--enabled-color);
+}
+
+.field.disabled > label {
+    color: var(--disabled-color);
 }
 
 .field > .container {
