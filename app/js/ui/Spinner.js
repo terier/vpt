@@ -25,7 +25,9 @@ Class.defaults = {
     min   : 0,
     max   : 100,
     step  : 1,
-    unit  : null // TODO: add a label with units at the end of input
+    unit  : null, // TODO: add a label with units at the end of input
+    // If logarithmic, step size is proportional to value * this.step
+    logarithmic : false
 };
 
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
@@ -54,16 +56,15 @@ _.destroy = function() {
 // =========================== INSTANCE METHODS ============================ //
 
 _.setEnabled = function(enabled) {
-    if (enabled) {
-        this._binds.input.removeAttribute('disabled');
-    } else {
-        this._binds.input.setAttribute('disabled', 'disabled');
-    }
+    this._binds.input.disabled = !enabled;
     _.sup.setEnabled.call(this, enabled);
 };
 
 _._setValue = function(value) {
     this.value = Math.min(Math.max(value, this.min), this.max);
+    if (this.logarithmic) {
+        this._binds.input.step = this.value * this.step;
+    }
 };
 
 _.setValue = function(value) {
@@ -81,7 +82,7 @@ _._handleInput = function(e) {
         return;
     }
 
-    var parsedValue = parseInt(this._binds.input.value, 10);
+    var parsedValue = parseFloat(this._binds.input.value);
     if (!isNaN(parsedValue)) {
         this._setValue(parsedValue);
         this.trigger('changeall');
@@ -93,7 +94,7 @@ _._handleInput = function(e) {
 _._handleChange = function(e) {
     e.stopPropagation();
 
-    var parsedValue = parseInt(this._binds.input.value, 10);
+    var parsedValue = parseFloat(this._binds.input.value);
     if (!isNaN(parsedValue)) {
         this._setValue(parsedValue, 'change');
         if (this._binds.input.value !== this.value) {

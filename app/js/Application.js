@@ -219,7 +219,10 @@ _._createUI = function() {
     var field1 = new Field('Coordinates');
     var checkbox1 = new Checkbox({ checked: false });
     var field2 = new Field('A bit longer label this time', { enabled: false });
-    var spinner = new Spinner();
+    var spinner = new Spinner({
+        step: 0.1,
+        logarithmic: true
+    });
 
     var panel2 = new Panel();
     var field3 = new Field('Enabled', { enabled: false });
