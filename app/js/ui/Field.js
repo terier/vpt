@@ -35,6 +35,7 @@ _._init = function() {
 
 _.destroy = function() {
     _._nullify.call(this);
+    _.sup.destroy.call(this);
 };
 
 // =========================== INSTANCE METHODS ============================ //
