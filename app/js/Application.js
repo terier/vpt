@@ -254,8 +254,8 @@ _._createUI = function() {
     sidebar.appendTo(document.body);
 
     sidebar.add(tabs);
-    tabs.add(panel1);
-    tabs.add(panel2);
+    tabs.add(panel1, 'Settings');
+    tabs.add(panel2, 'Renderer');
     panel1.add(field1);
     panel1.add(field2);
     field1.add(checkbox1);

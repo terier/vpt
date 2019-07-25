@@ -1,12 +1,12 @@
 .tabs {
-    --header-height     : 20px;
-    --header-padding    : 3px;
-    --border-radius     : 7px;
-    --border-color      : #aaa;
-    --selected-color    : #eee;
-    --unselected-color  : #ddd;
-    --hover-color       : #eee;
-    --text-color        : #333;
+    --header-height    : 26px;
+    --header-padding   : 12px;
+    --border-color     : #cccccc;
+    --selected-color   : #1a73e8;
+    --unselected-color : #f3f3f3;
+    --hover-color      : #eaeaea;
+    --text-color       : #555555;
+    --text-high-color  : #000000;
 }
 
 .tabs > .headers {
@@ -16,33 +16,34 @@
 
 .tabs > .headers > .header {
     height: var(--header-height);
-    padding: var(--header-padding);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius) var(--border-radius) 0px 0px;
+    line-height: var(--header-height);
+    padding: 0 var(--header-padding);
     box-sizing: border-box;
+    border-bottom: 1px solid var(--border-color);
 
     background-color: var(--unselected-color);
     font-family: sans-serif;
     font-size: 12px;
-    font-style: italic;
     color: var(--text-color);
+    cursor: pointer;
     user-select: none;
     overflow: hidden;
 }
 
 .tabs > .headers > .header.selected {
-    background-color: var(--selected-color);
-    border-bottom: 0px;
+    border-bottom: 2px solid var(--selected-color);
+    color: var(--text-high-color);
 }
 
 .tabs > .headers > .header:not(.selected):hover {
     background-color: var(--hover-color);
-    cursor: pointer;
+    color: var(--text-high-color);
 }
 
 .tabs > .headers > .filler {
     flex: 1;
-    order: 99999;
+    order: 999999;
+    background-color: var(--unselected-color);
     border-bottom: 1px solid var(--border-color);
 }
 

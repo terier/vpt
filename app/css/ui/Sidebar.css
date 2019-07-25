@@ -1,10 +1,10 @@
 .sidebar {
     --sidebar-width    : 300px;
     --handle-width     : 10px;
-    --background-color : #eee;
-    --handle-color     : #ccc;
-    --border-color     : #aaa;
-    --hover-color      : #bcd;
+    --background-color : #ffffff;
+    --handle-color     : #f3f3f3;
+    --border-color     : #cccccc;
+    --hover-color      : #eaeaea;
 }
 
 .sidebar {
@@ -47,5 +47,6 @@
 .sidebar > .container {
     flex: 1;
     background-color: var(--background-color);
+    border-right: 1px solid var(--border-color);
     overflow: hidden;
 }

@@ -2,10 +2,10 @@
     --width           : 40px;
     --height          : 18px;
     --padding         : 1px;
-    --disabled-color  : #ccc;
+    --disabled-color  : #cccccc;
     --checked-color   : #2196f3;
-    --unchecked-color : #666;
-    --handle-color    : #fff;
+    --unchecked-color : #666666;
+    --handle-color    : #ffffff;
 }
 
 .checkbox {
