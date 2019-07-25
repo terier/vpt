@@ -25,6 +25,7 @@ Class.defaults = {
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
 
 _._nullify = function() {
+    this._content = null;
 };
 
 _._init = function() {
@@ -34,18 +35,30 @@ _._init = function() {
 };
 
 _.destroy = function() {
+    if (this._content) {
+        this._content.detach();
+    }
+
     _._nullify.call(this);
     _.sup.destroy.call(this);
 };
 
 // =========================== INSTANCE METHODS ============================ //
 
-_.add = function(object) {
-    object.appendTo(this.getContainer());
+_.setEnabled = function(enabled) {
+    if (this._content) {
+        this._content.setEnabled(enabled);
+    }
+
+    _.sup.setEnabled.call(this, enabled);
 };
 
-_.getContainer = function() {
-    return this._binds.container;
+_.add = function(object) {
+    if (!this._content) {
+        this._content = object;
+        object.appendTo(this._binds.container);
+        object.setEnabled(this.enabled);
+    }
 };
 
 // ============================ STATIC METHODS ============================= //

@@ -37,11 +37,7 @@ _.destroy = function() {
 // =========================== INSTANCE METHODS ============================ //
 
 _.add = function(object) {
-    object.appendTo(this.getContainer());
-};
-
-_.getContainer = function() {
-    return this._element;
+    object.appendTo(this._element);
 };
 
 // ============================ STATIC METHODS ============================= //

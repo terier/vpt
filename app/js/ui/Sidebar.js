@@ -43,7 +43,7 @@ _.destroy = function() {
 // =========================== INSTANCE METHODS ============================ //
 
 _.add = function(object) {
-    object.appendTo(this.getContainer());
+    object.appendTo(this._binds.container);
 };
 
 _.setContracted = function(contracted) {
@@ -69,10 +69,6 @@ _.contract = function() {
 
 _.toggleContracted = function() {
     this.setContracted(!this.contracted);
-};
-
-_.getContainer = function() {
-    return this._binds.container;
 };
 
 _._handleClick = function() {

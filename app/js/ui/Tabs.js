@@ -123,10 +123,6 @@ _._handleClick = function(e) {
     }
 };
 
-_.getContainer = function() {
-    return this._binds.container;
-};
-
 // ============================ STATIC METHODS ============================= //
 
 })(this);

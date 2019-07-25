@@ -247,7 +247,7 @@ _._createUI = function() {
     var spinner = new Spinner();
 
     var panel2 = new Panel();
-    var field3 = new Field('Enabled');
+    var field3 = new Field('Enabled', { enabled: false });
     var checkbox2 = new Checkbox();
 
     var tabs = new Tabs();
@@ -257,14 +257,15 @@ _._createUI = function() {
     sidebar.add(tabs);
     tabs.add(panel1, 'Settings');
     tabs.add(panel2, 'Renderer');
-    panel1.add(new Spacer({ height: '10px' }));
+    panel1.add(new Spacer({ height: '5px' }));
     panel1.add(field1);
     panel1.add(field2);
     field1.add(checkbox1);
     field2.add(spinner);
-    panel2.add(new Spacer({ height: '10px' }));
+    panel2.add(new Spacer({ height: '5px' }));
     panel2.add(field3);
     field3.add(checkbox2);
+    //field3.disable();
 
     spinner.addEventListener('changeall', function() {
         console.log(spinner.getValue());
