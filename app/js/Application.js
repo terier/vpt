@@ -6,6 +6,7 @@
 //@@ui/Checkbox.js
 //@@ui/Spinner.js
 //@@ui/Tabs.js
+//@@ui/Spacer.js
 
 //@@Navbar.js
 
@@ -256,10 +257,12 @@ _._createUI = function() {
     sidebar.add(tabs);
     tabs.add(panel1, 'Settings');
     tabs.add(panel2, 'Renderer');
+    panel1.add(new Spacer({ height: '10px' }));
     panel1.add(field1);
     panel1.add(field2);
     field1.add(checkbox1);
     field2.add(spinner);
+    panel2.add(new Spacer({ height: '10px' }));
     panel2.add(field3);
     field3.add(checkbox2);
 
