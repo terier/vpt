@@ -31,7 +31,7 @@ _._nullify = function() {
 _._init = function() {
     _._nullify.call(this);
 
-    this._binds.header.addEventListener('click', this._handleClick);
+    this._binds.handle.addEventListener('click', this._handleClick);
     this.setContracted(this.contracted);
 };
 

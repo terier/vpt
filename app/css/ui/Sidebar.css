@@ -1,8 +1,17 @@
 .sidebar {
+    --width        : 300px;
+    --width-handle : 10px;
+    --color        : #eee;
+    --color-handle : #ccc;
+    --color-border : #aaa;
+    --color-hover  : #bcd;
+}
+
+.sidebar {
     display: flex;
 
     position: absolute;
-    width: 300px;
+    width: var(--width);
     height: 100vh;
 
     overflow: hidden;
@@ -10,32 +19,32 @@
 }
 
 .sidebar.contracted {
-    width: 10px;
+    width: var(--width-handle);
 }
 
-.sidebar > .header {
-    flex: 0 0 10px;
-    background-color: #ccc;
+.sidebar > .handle {
+    flex: 0 0 var(--width-handle);
+    background-color: var(--color-handle);
 
     background-image: url(../images/icons/left-arrow-angle-big-gross-symbol.svg);
     background-position: 50% 10px;
     background-repeat: no-repeat;
     background-size: 100%;
     box-sizing: border-box;
-    border-right: 1px solid #aaa;
+    border-right: 1px solid var(--color-border);
     user-select: none;
 }
 
-.sidebar > .header:hover {
-    background-color: #bcd;
+.sidebar > .handle:hover {
+    background-color: var(--color-hover);
 }
 
-.sidebar.contracted > .header {
+.sidebar.contracted > .handle {
     background-image: url(../images/icons/arrow-angle-pointing-to-right.svg);
 }
 
 .sidebar > .container {
     flex: 1;
-    background-color: #eee;
+    background-color: var(--color);
     overflow: hidden;
 }
