@@ -1,6 +1,4 @@
-//@@math/Matrix.js
-//@@math/Vector.js
-//@@math/Quaternion.js
+//@@math
 
 (function(global) {
 'use strict';

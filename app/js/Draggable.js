@@ -1,4 +1,4 @@
-//@@utils/Utils.js
+//@@utils
 
 (function(global) {
 'use strict';

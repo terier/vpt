@@ -1,5 +1,4 @@
-//@@math/Vector.js
-//@@math/Quaternion.js
+//@@math
 //@@Ticker.js
 
 (function(global) {

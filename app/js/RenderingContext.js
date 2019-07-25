@@ -1,18 +1,12 @@
+//@@utils
+//@@math
 //@@WebGL.js
 //@@Ticker.js
 //@@Camera.js
 //@@OrbitCameraController.js
 //@@Volume.js
-//@@renderers/MIPRenderer.js
-//@@renderers/ISORenderer.js
-//@@renderers/EAMRenderer.js
-//@@renderers/MCSRenderer.js
-//@@renderers/MultipleScatteringRenderer.js
-//@@tonemappers/ReinhardToneMapper.js
-//@@tonemappers/RangeToneMapper.js
-//@@tonemappers/ArtisticToneMapper.js
-//@@math/Matrix.js
-//@@math/Vector.js
+//@@renderers
+//@@tonemappers
 
 (function(global) {
 'use strict';

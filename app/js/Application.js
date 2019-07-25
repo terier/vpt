@@ -1,36 +1,11 @@
-//@@utils/Utils.js
-
-//@@ui/Panel.js
-//@@ui/Sidebar.js
-//@@ui/Field.js
-//@@ui/Checkbox.js
-//@@ui/Spinner.js
-//@@ui/Tabs.js
-//@@ui/Spacer.js
-
+//@@utils
+//@@readers
+//@@loaders
+//@@dialogs
+//@@ui
 //@@Navbar.js
-
 //@@RenderingContext.js
 //@@Volume.js
-
-//@@readers/BVPReader.js
-//@@readers/JSONReader.js
-//@@readers/RAWReader.js
-//@@readers/ZIPReader.js
-//@@loaders/BlobLoader.js
-//@@loaders/AjaxLoader.js
-
-//@@dialogs/OpenFileDialog.js
-//@@dialogs/OpenEnvironmentMapDialog.js
-//@@dialogs/RenderingContextDialog.js
-//@@dialogs/MIPRendererDialog.js
-//@@dialogs/ISORendererDialog.js
-//@@dialogs/EAMRendererDialog.js
-//@@dialogs/MCSRendererDialog.js
-//@@dialogs/MultipleScatteringRendererDialog.js
-//@@dialogs/ReinhardToneMapperDialog.js
-//@@dialogs/RangeToneMapperDialog.js
-//@@dialogs/ArtisticToneMapperDialog.js
 
 (function(global) {
 'use strict';

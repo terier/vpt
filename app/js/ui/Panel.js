@@ -1,4 +1,4 @@
-//@@../utils/Utils.js
+//@@../utils
 //@@UIObject.js
 
 (function(global) {

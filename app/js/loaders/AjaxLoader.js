@@ -1,4 +1,4 @@
-//@@../utils/Utils.js
+//@@../utils
 //@@AbstractLoader.js
 
 (function(global) {

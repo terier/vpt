@@ -1,4 +1,4 @@
-//@@../utils/Utils.js
+//@@../utils
 //@@../Draggable.js
 
 (function(global) {
