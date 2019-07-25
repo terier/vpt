@@ -242,8 +242,8 @@ _._createUI = function() {
 
     var panel1 = new Panel();
     var field1 = new Field('Coordinates');
-    var checkbox1 = new Checkbox();
-    var field2 = new Field('A bit longer label this time');
+    var checkbox1 = new Checkbox({ checked: false });
+    var field2 = new Field('A bit longer label this time', { enabled: false });
     var spinner = new Spinner();
 
     var panel2 = new Panel();
@@ -265,7 +265,12 @@ _._createUI = function() {
     panel2.add(new Spacer({ height: '5px' }));
     panel2.add(field3);
     field3.add(checkbox2);
-    //field3.disable();
+
+    tabs.selectTab(panel1);
+
+    checkbox1.addEventListener('change', function() {
+        field2.setEnabled(checkbox1.isChecked());
+    });
 
     spinner.addEventListener('changeall', function() {
         console.log(spinner.getValue());

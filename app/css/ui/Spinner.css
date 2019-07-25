@@ -1,4 +1,13 @@
 .spinner {
+    --enabled-background-color  : #ffffff;
+    --disabled-background-color : #f3f3f3;
+    --enabled-border-color      : #aaaaaa;
+    --disabled-border-color     : #cccccc;
+    --enabled-text-color        : #333333;
+    --disabled-text-color       : #aaaaaa;
+}
+
+.spinner {
     width: 100%;
     height: 18px;
 }
@@ -10,7 +19,15 @@
     padding: 0;
     padding-left: 3px;
     font-size: 12px;
-    border: 1px solid #aaa;
+    background-color: var(--enabled-background-color);
+    border: 1px solid var(--enabled-border-color);
+    color: var(--enabled-text-color);
     box-sizing: border-box;
     display: block;
+}
+
+.spinner > input:disabled {
+    background-color: var(--disabled-background-color);
+    border-color: var(--disabled-border-color);
+    color: var(--disabled-text-color);
 }

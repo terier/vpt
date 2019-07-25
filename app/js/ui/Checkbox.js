@@ -42,6 +42,10 @@ _.destroy = function() {
 
 // =========================== INSTANCE METHODS ============================ //
 
+_.isChecked = function() {
+    return this.checked;
+};
+
 _.setChecked = function(checked) {
     if (this.checked !== checked) {
         this.checked = checked;

@@ -17,8 +17,11 @@
     box-sizing: border-box;
     transition: 100ms;
     background-color: var(--unchecked-color);
-    cursor: pointer;
     user-select: none;
+}
+
+.checkbox:not(.disabled) {
+    cursor: pointer;
 }
 
 .checkbox > .handle {

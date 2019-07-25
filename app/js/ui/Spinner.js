@@ -53,6 +53,15 @@ _.destroy = function() {
 
 // =========================== INSTANCE METHODS ============================ //
 
+_.setEnabled = function(enabled) {
+    if (enabled) {
+        this._binds.input.removeAttribute('disabled');
+    } else {
+        this._binds.input.setAttribute('disabled', 'disabled');
+    }
+    _.sup.setEnabled.call(this, enabled);
+};
+
 _._setValue = function(value) {
     this.value = Math.min(Math.max(value, this.min), this.max);
 };
