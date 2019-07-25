@@ -74,10 +74,10 @@ _.destroy = function() {
 _._addEventListeners = function() {
     this._domElement.addEventListener('mousedown', this._handleMouseDown);
     this._domElement.addEventListener('touchstart', this._handleMouseDown);
-    this._domElement.addEventListener('mouseup', this._handleMouseUp);
-    this._domElement.addEventListener('touchend', this._handleMouseUp);
-    this._domElement.addEventListener('mousemove', this._handleMouseMove);
-    this._domElement.addEventListener('touchmove', this._handleMouseMove);
+    document.addEventListener('mouseup', this._handleMouseUp);
+    document.addEventListener('touchend', this._handleMouseUp);
+    document.addEventListener('mousemove', this._handleMouseMove);
+    document.addEventListener('touchmove', this._handleMouseMove);
     this._domElement.addEventListener('mousewheel', this._handleMouseWheel);
     document.addEventListener('keydown', this._handleKeyDown);
     document.addEventListener('keyup', this._handleKeyUp);
@@ -86,10 +86,10 @@ _._addEventListeners = function() {
 _._removeEventListeners = function() {
     this._domElement.removeEventListener('mousedown', this._handleMouseDown);
     this._domElement.removeEventListener('touchstart', this._handleMouseDown);
-    this._domElement.removeEventListener('mouseup', this._handleMouseUp);
-    this._domElement.removeEventListener('touchend', this._handleMouseUp);
-    this._domElement.removeEventListener('mousemove', this._handleMouseMove);
-    this._domElement.removeEventListener('touchmove', this._handleMouseMove);
+    document.removeEventListener('mouseup', this._handleMouseUp);
+    document.removeEventListener('touchend', this._handleMouseUp);
+    document.removeEventListener('mousemove', this._handleMouseMove);
+    document.removeEventListener('touchmove', this._handleMouseMove);
     this._domElement.removeEventListener('mousewheel', this._handleMouseWheel);
     document.removeEventListener('keydown', this._handleKeyDown);
     document.removeEventListener('keyup', this._handleKeyUp);
