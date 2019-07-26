@@ -32,7 +32,7 @@
     appearance: none;
     box-sizing: border-box;
     border-radius: 50%;
-    border: 2px solid var(--unchecked-border-color);
+    border: 5px solid var(--unchecked-border-color);
     background-color: var(--unchecked-background-color);
     transition: 200ms;
     cursor: pointer;
