@@ -268,6 +268,11 @@ _._createUI = function() {
     field7.add(color);
     accordionPanel.add(field7);
 
+    var slider = new Slider();
+    var field8 = new Field('Extinction');
+    field8.add(slider);
+    accordionPanel.add(field8);
+
     // second tab
 
     var tab2 = new Panel();

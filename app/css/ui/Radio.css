@@ -34,6 +34,7 @@
     background-color: var(--unchecked-background-color);
     transition: 200ms;
     cursor: pointer;
+    outline: none;
 }
 
 .radio-option > input:checked {
