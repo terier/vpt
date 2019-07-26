@@ -263,6 +263,11 @@ _._createUI = function() {
     field6.add(radio);
     accordionPanel.add(field6);
 
+    var color = new ColorChooser();
+    var field7 = new Field('Color');
+    field7.add(color);
+    accordionPanel.add(field7);
+
     // second tab
 
     var tab2 = new Panel();
