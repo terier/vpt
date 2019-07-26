@@ -18,7 +18,7 @@
     flex: 0 0 var(--label-width);
     padding: 0 var(--label-margin);
 
-    font: italic 12px sans-serif;
+    font-style: italic;
     text-align: right;
     color: var(--enabled-color);
 }

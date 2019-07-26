@@ -22,8 +22,6 @@
     border-bottom: 1px solid var(--border-color);
 
     background-color: var(--unselected-color);
-    font-family: sans-serif;
-    font-size: 12px;
     color: var(--text-color);
     cursor: pointer;
     user-select: none;

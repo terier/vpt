@@ -28,8 +28,6 @@
     margin: 0;
     width: 16px;
     height: 16px;
-    -webkit-appearance: none;
-    appearance: none;
     box-sizing: border-box;
     border-radius: 50%;
     border: 5px solid var(--unchecked-border-color);
@@ -44,8 +42,6 @@
 }
 
 .radio-option > label {
-    font-family: sans-serif;
-    font-size: 12px;
     line-height: 18px;
     padding: 0 var(--radio-margin);
     color: #333;

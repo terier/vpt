@@ -17,16 +17,11 @@
     height: 100%;
     margin: 0;
     padding: 0;
-    padding-left: 3px;
-    font-size: 12px;
     background-color: var(--enabled-background-color);
     border: 1px solid var(--enabled-border-color);
     color: var(--enabled-text-color);
     box-sizing: border-box;
     display: block;
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
 }
 
 .dropdown > select:disabled {

@@ -16,8 +16,6 @@
     height: var(--handle-height);
     padding-left: 20px;
 
-    font-family: sans-serif;
-    font-size: 12px;
     line-height: var(--handle-height);
 
     background-color: var(--handle-color);
