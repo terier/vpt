@@ -47,4 +47,8 @@
     padding: 0 var(--radio-margin);
     color: #333;
     cursor: pointer;
+
+    overflow: hidden;
+    text-overflow: clip;
+    white-space: nowrap;
 }
