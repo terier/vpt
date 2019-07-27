@@ -273,6 +273,11 @@ _._createUI = function() {
     field8.add(slider);
     accordionPanel.add(field8);
 
+    var filechooser = new FileChooser();
+    var field9 = new Field('File');
+    field9.add(filechooser);
+    accordionPanel.add(field9);
+
     // second tab
 
     var tab2 = new Panel();
