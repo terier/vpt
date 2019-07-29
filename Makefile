@@ -1,9 +1,6 @@
 SRC_DIR          := app
-LIB_DIR          := lib
 DST_DIR          := build
 
-# TODO: automatic dependency resolution tool should generate a
-#       makefile dependency, so that it does not run on every make call
 INPUT_JS         := $(shell bin/list-dependencies $(SRC_DIR)/js/main.js)
 INPUT_HTML       := $(wildcard $(SRC_DIR)/*.html)
 INPUT_CSS        := $(wildcard $(SRC_DIR)/css/*.css) \
