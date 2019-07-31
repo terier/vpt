@@ -43,7 +43,7 @@ _._nullify = function() {
 _._init = function() {
     _._nullify.call(this);
 
-    this._$html = DOMUtils.instantiate(TEMPLATES['RenderingContextDialog.html']);
+    this._$html = DOMUtils.instantiate(TEMPLATES.RenderingContextDialog);
     this._$heading = this._$html.querySelector('.panel-heading');
     this._$resizeHandle = this._$html.querySelector('.resize-handle');
     this._$closeButton = this._$html.querySelector('.close');

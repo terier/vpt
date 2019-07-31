@@ -11,7 +11,7 @@ var _ = Class.prototype;
 // ========================== CLASS DECLARATION ============================ //
 
 function ColorChooser(options) {
-    _.sup.constructor.call(this, TEMPLATES['ColorChooser.html'], options);
+    _.sup.constructor.call(this, TEMPLATES.ColorChooser, options);
     CommonUtils.extend(this, Class.defaults, options);
 
     this._handleInput = this._handleInput.bind(this);

@@ -11,7 +11,7 @@ var _ = Class.prototype;
 // ========================== CLASS DECLARATION ============================ //
 
 function Radio(options) {
-    _.sup.constructor.call(this, TEMPLATES['Radio.html'], options);
+    _.sup.constructor.call(this, TEMPLATES.Radio, options);
     CommonUtils.extend(this, Class.defaults, options);
 
     this._radioName = 'radio' + Radio._nextId++;
@@ -36,7 +36,7 @@ _._init = function() {
 
     this._element.classList.toggle('vertical', this.vertical);
     if (this.options) {
-        this._options.forEach(function(option) {
+        this.options.forEach(function(option) {
             this.addOption(option.value, option.label, option.selected);
         }, this);
     }
@@ -50,7 +50,7 @@ _.destroy = function() {
 // =========================== INSTANCE METHODS ============================ //
 
 _.addOption = function(value, label, selected) {
-    var option = DOMUtils.instantiate(TEMPLATES['RadioOption.html']);
+    var option = DOMUtils.instantiate(TEMPLATES.RadioOption);
     var binds = DOMUtils.bind(option);
     binds.input.name = this._radioName;
     binds.input.value = value;

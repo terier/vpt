@@ -35,7 +35,7 @@ _._nullify = function() {
 _._init = function() {
     _._nullify.call(this);
 
-    this._$html  = DOMUtils.instantiate(TEMPLATES['OpenFileDialog.html']);
+    this._$html  = DOMUtils.instantiate(TEMPLATES.OpenFileDialog);
     this._$drop  = this._$html.querySelector('.drop');
     this._$input = this._$html.querySelector('[name="file"]');
     this._$size  = this._$html.querySelector('[name="size"]');

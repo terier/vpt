@@ -50,7 +50,7 @@ _._nullify = function() {
 _._init = function() {
     _._nullify.call(this);
 
-    this._$html = DOMUtils.instantiate(TEMPLATES['MultipleScatteringRendererDialog.html']);
+    this._$html = DOMUtils.instantiate(TEMPLATES.MultipleScatteringRendererDialog);
     this._$heading = this._$html.querySelector('.panel-heading');
     this._$resizeHandle = this._$html.querySelector('.resize-handle');
     this._$closeButton = this._$html.querySelector('.close');

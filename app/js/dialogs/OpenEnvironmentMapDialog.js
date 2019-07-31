@@ -33,7 +33,7 @@ _._nullify = function() {
 _._init = function() {
     _._nullify.call(this);
 
-    this._$html  = DOMUtils.instantiate(TEMPLATES['OpenEnvironmentMapDialog.html']);
+    this._$html  = DOMUtils.instantiate(TEMPLATES.OpenEnvironmentMapDialog);
     this._$input = this._$html.querySelector('[name="file"]')[0];
     this._$open  = this._$html.querySelector('[name="open"]');
     this._$close = this._$html.querySelector('[name="close"]');

@@ -11,7 +11,7 @@ var _ = Class.prototype;
 // ========================== CLASS DECLARATION ============================ //
 
 function FileChooser(options) {
-    _.sup.constructor.call(this, TEMPLATES['FileChooser.html'], options);
+    _.sup.constructor.call(this, TEMPLATES.FileChooser, options);
     CommonUtils.extend(this, Class.defaults, options);
 
     this._handleChange = this._handleChange.bind(this);

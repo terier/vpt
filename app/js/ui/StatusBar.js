@@ -11,7 +11,7 @@ var _ = Class.prototype;
 // ========================== CLASS DECLARATION ============================ //
 
 function StatusBar(options) {
-    _.sup.constructor.call(this, TEMPLATES['StatusBar.html'], options);
+    _.sup.constructor.call(this, TEMPLATES.StatusBar, options);
     CommonUtils.extend(this, Class.defaults, options);
 
     _._init.call(this);
@@ -37,7 +37,7 @@ _.destroy = function() {
 // =========================== INSTANCE METHODS ============================ //
 
 _._log = function(text, level) {
-    var newLog = DOMUtils.instantiate(TEMPLATES['StatusBarLog.html']);
+    var newLog = DOMUtils.instantiate(TEMPLATES.StatusBarLog);
     var binds = DOMUtils.bind(newLog);
     binds.timestamp.textContent = new Date().toISOString();
     binds.content.textContent = text;

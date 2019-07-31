@@ -11,7 +11,7 @@ var _ = Class.prototype;
 // ========================== CLASS DECLARATION ============================ //
 
 function ProgressBar(options) {
-    _.sup.constructor.call(this, TEMPLATES['ProgressBar.html'], options);
+    _.sup.constructor.call(this, TEMPLATES.ProgressBar, options);
     CommonUtils.extend(this, Class.defaults, options);
 
     _._init.call(this);

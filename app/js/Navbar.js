@@ -31,7 +31,7 @@ _._nullify = function() {
 _._init = function() {
     _._nullify.call(this);
 
-    var html = DOMUtils.instantiate(TEMPLATES['Navbar.html']);
+    var html = DOMUtils.instantiate(TEMPLATES.Navbar);
     this._$container.appendChild(html);
 
     var handle = function(query, handler) {

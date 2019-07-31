@@ -11,7 +11,7 @@ var _ = Class.prototype;
 // ========================== CLASS DECLARATION ============================ //
 
 function Panel(options) {
-    _.sup.constructor.call(this, TEMPLATES['Panel.html'], options);
+    _.sup.constructor.call(this, TEMPLATES.Panel, options);
     CommonUtils.extend(this, Class.defaults, options);
 
     _._init.call(this);

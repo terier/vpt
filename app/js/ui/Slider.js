@@ -11,7 +11,7 @@ var _ = Class.prototype;
 // ========================== CLASS DECLARATION ============================ //
 
 function Slider(options) {
-    _.sup.constructor.call(this, TEMPLATES['Slider.html'], options);
+    _.sup.constructor.call(this, TEMPLATES.Slider, options);
     CommonUtils.extend(this, Class.defaults, options);
 
     this._handleMouseDown = this._handleMouseDown.bind(this);

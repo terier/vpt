@@ -11,7 +11,7 @@ var _ = Class.prototype;
 // ========================== CLASS DECLARATION ============================ //
 
 function Dropdown(options) {
-    _.sup.constructor.call(this, TEMPLATES['Dropdown.html'], options);
+    _.sup.constructor.call(this, TEMPLATES.Dropdown, options);
     CommonUtils.extend(this, Class.defaults, options);
 
     _._init.call(this);

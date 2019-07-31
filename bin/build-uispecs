@@ -8,7 +8,7 @@ let json = {};
 let files = process.argv.slice(2);
 for (let file of files) {
     const name = path.basename(file, path.extname(file));
-    json[name] = JSON.parse(fs.readFileSync(file));
+    json[name] = JSON.parse(fs.readFileSync(file, 'utf8'));
 }
 
 process.stdout.write('var UISPECS = ');

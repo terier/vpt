@@ -48,7 +48,7 @@ _._nullify = function() {
 _._init = function() {
     _._nullify.call(this);
 
-    this._$html = DOMUtils.instantiate(TEMPLATES['TransferFunctionWidget.html']);
+    this._$html = DOMUtils.instantiate(TEMPLATES.TransferFunctionWidget);
     this._$colorPicker   = this._$html.querySelector('[name="color"]');
     this._$alphaPicker   = this._$html.querySelector('[name="alpha"]');
     this._$addBumpButton = this._$html.querySelector('[name="add-bump"]');
@@ -170,7 +170,7 @@ _.addBump = function(options) {
 };
 
 _._addHandle = function(index) {
-    var $handle = DOMUtils.instantiate(TEMPLATES['TransferFunctionWidgetBumpHandle.html']);
+    var $handle = DOMUtils.instantiate(TEMPLATES.TransferFunctionWidgetBumpHandle);
     this._$html.querySelector('.widget').appendChild($handle);
     DOMUtils.data($handle, 'index', index);
 

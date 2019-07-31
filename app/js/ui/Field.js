@@ -11,7 +11,7 @@ var _ = Class.prototype;
 // ========================== CLASS DECLARATION ============================ //
 
 function Field(options) {
-    _.sup.constructor.call(this, TEMPLATES['Field.html'], options);
+    _.sup.constructor.call(this, TEMPLATES.Field, options);
     CommonUtils.extend(this, Class.defaults, options);
 
     _._init.call(this);

@@ -11,7 +11,7 @@ var _ = Class.prototype;
 // ========================== CLASS DECLARATION ============================ //
 
 function Accordion(options) {
-    _.sup.constructor.call(this, TEMPLATES['Accordion.html'], options);
+    _.sup.constructor.call(this, TEMPLATES.Accordion, options);
     CommonUtils.extend(this, Class.defaults, options);
 
     this._handleClick = this._handleClick.bind(this);
