@@ -1,46 +1,19 @@
-# VOLUMETRIC PATH TRACING
+# [VPT: The Volumetric Path Tracing Framework](http://lgm.fri.uni-lj.si/portfolio-view/volumetric-path-tracing-framework/)
 
-## Building the app
+VPT is a volumetric path tracing framework targeted towards interactive
+real-time data exploration. It works in both desktop and mobile environments.
+It is built on top of WebGL 2 with no external dependencies.
 
-* make
+## Building and running
 
-## Running the app
+You need `node` and `make` to build the framework, and `node` to run it.
 
-* Featurefull server:
-  * bin/server-express
-* Fast static file servers:
-  * bin/server-node
-  * bin/server-python
+```bash
+make
+bin/server-node
+```
 
-## Adding dialogs
+## License
 
-1. Add js/dialogs/_____Dialog.js
-2. Add css/dialogs/_____Dialog.css
-3. Add templates/dialogs/_____Dialog.html
-4. Add button in Navbar.html
-5. Add instance in Application.js
-6. Add handling in Navbar.js
-
-## TODO
-
-High priority:
-
-* VPTRenderer
-* AbstractToneMapper
-
-Normal priority:
-
-* Input ownership (volume for renderers, frame for tone mappers)
-* Dialog abstraction layer
-* Revisit inheritance
-
-Low priority:
-
-* Automatic dependency resolution tool
-* Non-blocking file processing
-* Remove dependencies:
-  * Create own draggable
-  * Create own stylesheet
-* Clean up unused code
-* Shader compiler
-* Scaffolding scripts
+This project is licensed under the **GNU General Public License, version 3**.
+See [LICENSE](LICENSE) for details.
