@@ -50,7 +50,6 @@ function inherit(sub, sup) {
 }
 
 function extend(out) {
-    var out = out || {};
     for (i = 1; i < arguments.length; i++) {
         var obj = arguments[i];
         for (var key in obj) {
