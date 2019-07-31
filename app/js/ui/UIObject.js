@@ -17,7 +17,8 @@ function UIObject(template, options) {
 };
 
 Class.defaults = {
-    enabled: true
+    enabled: true,
+    visible: true
 };
 
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
@@ -34,6 +35,7 @@ _._init = function() {
     this._binds = DOMUtils.bind(this._element);
 
     this._element.classList.toggle('disabled', !this.enabled);
+    this._element.classList.toggle('invisible', !this.visible);
 };
 
 _.destroy = function() {
@@ -65,6 +67,27 @@ _.enable = function() {
 
 _.disable = function() {
     this.setEnabled(false);
+};
+
+_.isVisible = function() {
+    return this.visible;
+};
+
+_.setVisible = function(visible) {
+    if (this.visible !== visible) {
+        this.visible = visible;
+        this._element.classList.toggle('invisible', !visible);
+        this.trigger('visiblechange');
+        this.trigger(visible ? 'show' : 'hide');
+    }
+};
+
+_.show = function() {
+    this.setVisible(true);
+};
+
+_.hide = function() {
+    this.setVisible(false);
 };
 
 _.appendTo = function(container) {

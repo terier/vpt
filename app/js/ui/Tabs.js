@@ -47,7 +47,7 @@ _.destroy = function() {
 
 // =========================== INSTANCE METHODS ============================ //
 
-_.add = function(object, name) {
+_.add = function(name, object) {
     var panel = document.createElement('div');
     var header = document.createElement('div');
     var index = this._tabs.length;
