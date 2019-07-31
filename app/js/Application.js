@@ -3,7 +3,6 @@
 //@@loaders
 //@@dialogs
 //@@ui
-//@@Navbar.js
 //@@RenderingContext.js
 //@@Volume.js
 
@@ -27,15 +26,10 @@ Class.defaults = {
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
 
 _._nullify = function() {
-    this._renderingContext         = null;
-    this._canvas                   = null;
-    this._navbar                   = null;
-
-    this._openFileDialog           = null;
-    this._openEnvironmentMapDialog = null;
-    this._renderingContextDialog   = null;
-    this._rendererDialog           = null;
-    this._toneMapperDialog         = null;
+    this._renderingContext = null;
+    this._canvas           = null;
+    this._mainDialog       = null;
+    this._statusBar        = null;
 };
 
 _._init = function() {
@@ -72,7 +66,9 @@ _._init = function() {
         }
     }.bind(this));
 
-    this._createUI();
+    this._mainDialog = new MainDialog();
+    this._statusBar = new StatusBar();
+    this._statusBar.appendTo(document.body);
 
     /*this._openFileDialog = new OpenFileDialog(
         document.body, {
@@ -176,18 +172,7 @@ _._init = function() {
 
 _.destroy = function() {
     this._renderingContext.destroy();
-    this._navbar.destroy();
-    this._openFileDialog.destroy();
-    this._openEnvironmentMapDialog.destroy();
-    this._renderingContextDialog.destroy();
-
-    if (this._rendererDialog) {
-        this._rendererDialog.destroy();
-    }
-
-    if (this._toneMapperDialog) {
-        this._toneMapperDialog.destroy();
-    }
+    this._mainDialog.destroy();
 
     DOMUtils.remove(this._canvas);
 
@@ -210,99 +195,6 @@ _._getReaderForURL = function(url) {
         case 'zip'  : return ZIPReader;
         default     : return null;
     }
-};
-
-_._createUI = function() {
-    var sidebar = new Sidebar();
-    sidebar.appendTo(document.body);
-
-    var tabs = new Tabs();
-    sidebar.add(tabs);
-
-    // first tab
-
-    var tab1 = new Panel();
-    tabs.add(tab1, 'Settings');
-
-    // first panel
-    var panel1 = new Panel();
-    tab1.add(panel1);
-    var checkbox1 = new Checkbox({ checked: false });
-    var field1 = new Field('Coordinates');
-    field1.add(checkbox1);
-    var spinner = new Spinner({
-        step: 0.1,
-        logarithmic: true
-    });
-    var field2 = new Field('A bit longer label this time', { enabled: false });
-    field2.add(spinner);
-    panel1.add(field1);
-    panel1.add(field2);
-
-    var dropdown = new Dropdown([
-        { value: 'first',  label: 'First item'  },
-        { value: 'second', label: 'Second item' },
-    ]);
-    var field3 = new Field('Renderer');
-    field3.add(dropdown);
-    panel1.add(field3);
-
-    var accordion = new Accordion('Name');
-    var accordionPanel = new Panel();
-    var field5 = new Field('Test text');
-    field5.add(new Spinner());
-    accordionPanel.add(field5);
-    accordion.add(accordionPanel);
-    tab1.add(accordion);
-
-    var radio = new Radio([
-        { value: 8,  label: '8-bit', selected: true },
-        { value: 16, label: '16-bit' }
-    ]);
-    var field6 = new Field('Precision');
-    field6.add(radio);
-    accordionPanel.add(field6);
-
-    var color = new ColorChooser();
-    var field7 = new Field('Color');
-    field7.add(color);
-    accordionPanel.add(field7);
-
-    var slider = new Slider();
-    var field8 = new Field('Extinction');
-    field8.add(slider);
-    accordionPanel.add(field8);
-
-    var filechooser = new FileChooser();
-    var field9 = new Field('File');
-    field9.add(filechooser);
-    accordionPanel.add(field9);
-
-    // second tab
-
-    var tab2 = new Panel();
-    tabs.add(tab2, 'Renderer');
-
-    var checkbox2 = new Checkbox();
-    var field4 = new Field('Enabled', { enabled: false });
-    field4.add(checkbox2);
-    tab2.add(field4);
-
-    // events
-
-    tabs.selectTab(tab1);
-
-    checkbox1.addEventListener('change', function() {
-        field2.setEnabled(checkbox1.isChecked());
-    });
-
-    spinner.addEventListener('changeall', function() {
-        console.log(spinner.getValue());
-    });
-
-    spinner.addEventListener('change', function(e) {
-        console.log('change', spinner.getValue());
-    });
 };
 
 // ============================ STATIC METHODS ============================= //

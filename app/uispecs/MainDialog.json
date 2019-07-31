@@ -1,32 +1,199 @@
 {
-    "type": "panel",
-    "children": [
-        {
-            "type": "accordion",
-            "label": "Renderer",
-            "children": [
+  "type": "sidebar",
+  "bind": "sidebar",
+  "children": [
+    {
+      "type": "tabs",
+      "children": {
+        "Data": {
+          "type": "panel",
+          "children": [
+            {
+              "type": "accordion",
+              "label": "Volume",
+              "children": [
                 {
-                    "type": "panel"
+                  "type": "field",
+                  "label": "Type:",
+                  "children": [
+                    {
+                      "type": "dropdown",
+                      "options": [
+                        {
+                          "value": "file",
+                          "label": "File"
+                        },
+                        {
+                          "value": "url",
+                          "label": "URL"
+                        },
+                        {
+                          "value": "demo",
+                          "label": "Demo"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "panel",
+                  "comment": "File upload panel",
+                  "visible": true,
+                  "children": [
+                    {
+                      "type": "field",
+                      "label": "File:",
+                      "children": [
+                        {
+                          "type": "file-chooser"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "field",
+                      "label": "Precision:",
+                      "children": [
+                        {
+                          "type": "radio",
+                          "options": [
+                            {
+                              "value": 8,
+                              "label": "8-bit",
+                              "selected": true
+                            },
+                            {
+                              "value": 16,
+                              "label": "16-bit"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "panel",
+                  "comment": "URL load panel",
+                  "visible": true,
+                  "children": [
+                    {
+                      "type": "field",
+                      "label": "URL:",
+                      "children": [
+                        {
+                          "type": "spacer",
+                          "comment": "TODO: textbox"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "panel",
+                  "comment": "Demo file load panel",
+                  "visible": true,
+                  "children": [
+                    {
+                      "type": "field",
+                      "label": "File:",
+                      "children": [
+                        {
+                          "type": "dropdown",
+                          "options": [
+                            {
+                              "value": "tooth",
+                              "label": "Tooth (1.5 MB)"
+                            },
+                            {
+                              "value": "frog",
+                              "label": "Frog (2.8 MB)"
+                            },
+                            {
+                              "value": "baby",
+                              "label": "Baby (6.2 MB)"
+                            },
+                            {
+                              "value": "bruce",
+                              "label": "Bruce (9.8 MB)"
+                            },
+                            {
+                              "value": "foot",
+                              "label": "Foot (17 MB)"
+                            },
+                            {
+                              "value": "skull",
+                              "label": "Skull (17 MB)"
+                            },
+                            {
+                              "value": "mrihead",
+                              "label": "MRI Head (17 MB)"
+                            },
+                            {
+                              "value": "bonsai",
+                              "label": "Bonsai (46 MB)"
+                            },
+                            {
+                              "value": "manix",
+                              "label": "Manix (116 MB)"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
                 }
-            ]
+              ]
+            },
+            {
+              "type": "accordion",
+              "label": "Environment",
+              "children": [
+                {
+                  "type": "field",
+                  "label": "File:",
+                  "children": [
+                    {
+                      "type": "file-chooser"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
         },
-        {
-            "type": "accordion",
-            "label": "Tone mapper",
-            "children": [
+        "Settings": {
+          "type": "panel",
+          "children": [
+            {
+              "type": "accordion",
+              "label": "Renderer",
+              "children": [
                 {
-                    "type": "panel"
+                  "type": "panel"
                 }
-            ]
-        },
-        {
-            "type": "accordion",
-            "label": "Context",
-            "children": [
+              ]
+            },
+            {
+              "type": "accordion",
+              "label": "Tone mapper",
+              "children": [
                 {
-                    "type": "panel"
+                  "type": "panel"
                 }
-            ]
+              ]
+            },
+            {
+              "type": "accordion",
+              "label": "Context",
+              "children": [
+                {
+                  "type": "panel"
+                }
+              ]
+            }
+          ]
         }
-    ]
+      }
+    }
+  ]
 }
