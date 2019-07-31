@@ -66,9 +66,7 @@ _.add = function(name, object) {
     header.classList.add('header');
     header.addEventListener('click', this._handleClick);
 
-    if (this._tabs.length === 1) {
-        this.selectTab(0);
-    }
+    this._updateStyle();
 };
 
 _._indexOfTab = function(tab) {
