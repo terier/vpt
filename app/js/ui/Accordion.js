@@ -10,11 +10,9 @@ var _ = Class.prototype;
 
 // ========================== CLASS DECLARATION ============================ //
 
-function Accordion(name, options) {
+function Accordion(options) {
     _.sup.constructor.call(this, TEMPLATES['Accordion.html'], options);
     CommonUtils.extend(this, Class.defaults, options);
-
-    this._name = name;
 
     this._handleClick = this._handleClick.bind(this);
 
@@ -22,7 +20,8 @@ function Accordion(name, options) {
 };
 
 Class.defaults = {
-    contracted: false
+    label      : '',
+    contracted : false
 };
 
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
@@ -33,7 +32,7 @@ _._nullify = function() {
 _._init = function() {
     _._nullify.call(this);
 
-    this._binds.handle.textContent = this._name;
+    this._binds.handle.textContent = this.label;
     this._binds.handle.addEventListener('click', this._handleClick);
     this.setContracted(this.contracted);
 };

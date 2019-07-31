@@ -10,11 +10,10 @@ var _ = Class.prototype;
 
 // ========================== CLASS DECLARATION ============================ //
 
-function Radio(_options, options) {
+function Radio(options) {
     _.sup.constructor.call(this, TEMPLATES['Radio.html'], options);
     CommonUtils.extend(this, Class.defaults, options);
 
-    this._options = _options;
     this._radioName = 'radio' + Radio._nextId++;
 
     this._handleClick = this._handleClick.bind(this);
@@ -23,7 +22,8 @@ function Radio(_options, options) {
 };
 
 Class.defaults = {
-    vertical: false
+    options  : null,
+    vertical : false
 };
 
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
@@ -35,9 +35,11 @@ _._init = function() {
     _._nullify.call(this);
 
     this._element.classList.toggle('vertical', this.vertical);
-    this._options.forEach(function(option) {
-        this.addOption(option.value, option.label, option.selected);
-    }, this);
+    if (this.options) {
+        this._options.forEach(function(option) {
+            this.addOption(option.value, option.label, option.selected);
+        }, this);
+    }
 };
 
 _.destroy = function() {

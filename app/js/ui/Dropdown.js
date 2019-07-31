@@ -10,16 +10,15 @@ var _ = Class.prototype;
 
 // ========================== CLASS DECLARATION ============================ //
 
-function Dropdown(_options, options) {
+function Dropdown(options) {
     _.sup.constructor.call(this, TEMPLATES['Dropdown.html'], options);
     CommonUtils.extend(this, Class.defaults, options);
-
-    this._options = _options;
 
     _._init.call(this);
 };
 
 Class.defaults = {
+    options: null
 };
 
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
@@ -30,9 +29,11 @@ _._nullify = function() {
 _._init = function() {
     _._nullify.call(this);
 
-    this._options.forEach(function(option) {
-        this.addOption(option.value, option.label);
-    }, this);
+    if (this.options) {
+        this.options.forEach(function(option) {
+            this.addOption(option.value, option.label);
+        }, this);
+    }
 };
 
 _.destroy = function() {

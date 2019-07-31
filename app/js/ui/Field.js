@@ -10,16 +10,15 @@ var _ = Class.prototype;
 
 // ========================== CLASS DECLARATION ============================ //
 
-function Field(label, options) {
+function Field(options) {
     _.sup.constructor.call(this, TEMPLATES['Field.html'], options);
     CommonUtils.extend(this, Class.defaults, options);
-
-    this._label = label;
 
     _._init.call(this);
 };
 
 Class.defaults = {
+    label: ''
 };
 
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
@@ -31,7 +30,7 @@ _._nullify = function() {
 _._init = function() {
     _._nullify.call(this);
 
-    this._binds.label.textContent = this._label;
+    this._binds.label.textContent = this.label;
 };
 
 _.destroy = function() {
