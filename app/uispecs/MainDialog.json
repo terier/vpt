@@ -57,8 +57,8 @@
                       "children": [
                         {
                           "type": "textbox",
-                          "pattern": "([0-9]+)x([0-9]+)x([0-9]+)",
-                          "placeholder": "128x128x128"
+                          "pattern": "([0-9]+)[ ]*x[ ]*([0-9]+)[ ]*x[ ]*([0-9]+)",
+                          "placeholder": "128 x 128 x 128"
                         }
                       ]
                     },
@@ -95,8 +95,8 @@
                       "label": "URL:",
                       "children": [
                         {
-                          "type": "spacer",
-                          "comment": "TODO: textbox"
+                          "type": "textbox",
+                          "placeholder": "http://"
                         }
                       ]
                     }
@@ -195,7 +195,40 @@
               "label": "Renderer",
               "children": [
                 {
-                  "type": "panel"
+                  "type": "field",
+                  "label": "Renderer:",
+                  "children": [
+                    {
+                      "type": "dropdown",
+                      "bind": "rendererSelect",
+                      "options": [
+                        {
+                          "value": "mip",
+                          "label": "Maximum intensity projection"
+                        },
+                        {
+                          "value": "iso",
+                          "label": "Isosurface extraction"
+                        },
+                        {
+                          "value": "eam",
+                          "label": "Emission-absorption model"
+                        },
+                        {
+                          "value": "mcs",
+                          "label": "Single scattering"
+                        },
+                        {
+                          "value": "mcm",
+                          "label": "Multiple scattering"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "panel",
+                  "bind": "rendererSettingsContainer"
                 }
               ]
             },
@@ -204,7 +237,32 @@
               "label": "Tone mapper",
               "children": [
                 {
-                  "type": "panel"
+                  "type": "field",
+                  "label": "Tone mapper:",
+                  "children": [
+                    {
+                      "type": "dropdown",
+                      "bind": "toneMapperSelect",
+                      "options": [
+                        {
+                          "value": "range",
+                          "label": "Range"
+                        },
+                        {
+                          "value": "reinhard",
+                          "label": "Reinhard"
+                        },
+                        {
+                          "value": "artistic",
+                          "label": "Artistic"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "panel",
+                  "bind": "toneMapperSettingsContainer"
                 }
               ]
             },
@@ -213,7 +271,43 @@
               "label": "Context",
               "children": [
                 {
-                  "type": "panel"
+                  "type": "field",
+                  "label": "Resolution:",
+                  "children": [
+                    {
+                      "type": "spinner",
+                      "bind": "contextResolution",
+                      "min": 1,
+                      "max": 4096,
+                      "value": 512
+                    }
+                  ]
+                },
+                {
+                  "type": "field",
+                  "label": "Scale:",
+                  "children": [
+                    {
+                      "type": "textbox",
+                      "bind": "volumeScale",
+                      "placeholder": "1 x 1 x 1",
+                      "value": "1 x 1 x 1",
+                      "pattern": "([0-9]+)[ ]*x[ ]*([0-9]+)[ ]*x[ ]*([0-9]+)"
+                    }
+                  ]
+                },
+                {
+                  "type": "field",
+                  "label": "Translation:",
+                  "children": [
+                    {
+                      "type": "textbox",
+                      "bind": "volumeTranslation",
+                      "placeholder": "0, 0, 0",
+                      "value": "0, 0, 0",
+                      "pattern": "(-?[0-9]+)[ ]*,[ ]*(-?[0-9]+)[ ]*,[ ]*(-?[0-9]+)"
+                    }
+                  ]
                 }
               ]
             }

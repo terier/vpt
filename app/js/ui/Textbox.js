@@ -18,7 +18,7 @@ function Textbox(options) {
 };
 
 Class.defaults = {
-    label       : '',
+    value       : '',
     pattern     : '',
     placeholder : ''
 };
@@ -31,7 +31,7 @@ _._nullify = function() {
 _._init = function() {
     _._nullify.call(this);
 
-    this._binds.input.value = this.label;
+    this._binds.input.value = this.value;
     this._binds.input.pattern = this.pattern;
     this._binds.input.placeholder = this.placeholder;
 };
