@@ -15,6 +15,7 @@
 //@@Spinner.js
 //@@StatusBar.js
 //@@Tabs.js
+//@@Textbox.js
 
 var UI = (function() {
 'use strict';
@@ -36,6 +37,7 @@ var CLASS_FROM_TYPE = {
     'spinner'       : Spinner,
     'status-bar'    : StatusBar,
     'tabs'          : Tabs,
+    'textbox'       : Textbox,
 };
 
 function create(spec) {
