@@ -1,0 +1,32 @@
+{
+    "type": "panel",
+    "children": [
+        {
+            "type": "accordion",
+            "label": "Renderer",
+            "children": [
+                {
+                    "type": "panel"
+                }
+            ]
+        },
+        {
+            "type": "accordion",
+            "label": "Tone mapper",
+            "children": [
+                {
+                    "type": "panel"
+                }
+            ]
+        },
+        {
+            "type": "accordion",
+            "label": "Context",
+            "children": [
+                {
+                    "type": "panel"
+                }
+            ]
+        }
+    ]
+}

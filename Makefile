@@ -7,6 +7,8 @@ INPUT_CSS        := $(wildcard $(SRC_DIR)/css/*.css) \
                     $(wildcard $(SRC_DIR)/css/**/*.css)
 INPUT_TEMPLATES  := $(wildcard $(SRC_DIR)/templates/*.html) \
                     $(wildcard $(SRC_DIR)/templates/**/*.html)
+INPUT_UISPECS    := $(wildcard $(SRC_DIR)/uispecs/*.json) \
+                    $(wildcard $(SRC_DIR)/uispecs/**/*.json)
 INPUT_IMAGES     := $(SRC_DIR)/images
 INPUT_GLSL       := $(wildcard $(SRC_DIR)/glsl/*.vert) \
                     $(wildcard $(SRC_DIR)/glsl/**/*.vert) \
@@ -19,6 +21,7 @@ OUTPUT_HTML      := $(INPUT_HTML:$(SRC_DIR)%=$(DST_DIR)%)
 OUTPUT_JS        := $(DST_DIR)/js/main.js
 OUTPUT_CSS       := $(DST_DIR)/css/main.css
 OUTPUT_TEMPLATES := $(DST_DIR)/js/templates.js
+OUTPUT_UISPECS   := $(DST_DIR)/js/uispecs.js
 OUTPUT_IMAGES    := $(DST_DIR)/images
 OUTPUT_GLSL      := $(DST_DIR)/js/shaders.js
 
@@ -40,6 +43,10 @@ $(OUTPUT_TEMPLATES): $(INPUT_TEMPLATES)
 	@echo "Building $@"
 	@bin/build-templates $^ > $@
 
+$(OUTPUT_UISPECS): $(INPUT_UISPECS)
+	@echo "Building $@"
+	@bin/build-uispecs $^ > $@
+
 $(OUTPUT_IMAGES): $(INPUT_IMAGES)
 	@echo "Building $@"
 	@cp -r $^ $@
@@ -55,6 +62,7 @@ all: $(OUTPUT_HTML) \
      $(OUTPUT_JS) \
      $(OUTPUT_CSS) \
      $(OUTPUT_TEMPLATES) \
+     $(OUTPUT_UISPECS) \
      $(OUTPUT_IMAGES) \
      $(OUTPUT_GLSL)
 
