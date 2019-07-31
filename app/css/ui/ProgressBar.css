@@ -17,6 +17,7 @@
 
 .progress-bar .label {
     font-style: italic;
+    user-select: none;
     z-index: 1;
 }
 
