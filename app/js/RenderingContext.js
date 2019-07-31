@@ -121,15 +121,25 @@ _._nullifyGL = function() {
 _._initGL = function() {
     this._nullifyGL();
 
-    this._gl = WebGL.getContext(this._canvas, ['webgl2-compute', 'webgl2'], {
+    var contextSettings = {
         alpha                 : false,
         depth                 : false,
         stencil               : false,
         antialias             : false,
         preserveDrawingBuffer : true,
-    });
+    };
+
+    try {
+        this._gl = WebGL.getContext(this._canvas, ['webgl2-compute'], contextSettings);
+    } catch (err) {
+    }
+    if (this._gl) {
+        this._hasCompute = true;
+    } else {
+        this._hasCompute = false;
+        this._gl = WebGL.getContext(this._canvas, ['webgl2'], contextSettings);
+    }
     var gl = this._gl;
-    this._hasCompute = gl instanceof WebGL2ComputeRenderingContext;
     this._extLoseContext = gl.getExtension('WEBGL_lose_context');
     this._extColorBufferFloat = gl.getExtension('EXT_color_buffer_float');
 
