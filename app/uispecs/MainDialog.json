@@ -18,6 +18,7 @@
                   "children": [
                     {
                       "type": "dropdown",
+                      "bind": "volumeType",
                       "options": [
                         {
                           "value": "file",
@@ -37,8 +38,9 @@
                 },
                 {
                   "type": "panel",
+                  "bind": "volumeTypeFile",
                   "comment": "File upload panel",
-                  "visible": true,
+                  "visible": false,
                   "children": [
                     {
                       "type": "field",
@@ -73,8 +75,9 @@
                 },
                 {
                   "type": "panel",
+                  "bind": "volumeTypeURL",
                   "comment": "URL load panel",
-                  "visible": true,
+                  "visible": false,
                   "children": [
                     {
                       "type": "field",
@@ -90,8 +93,9 @@
                 },
                 {
                   "type": "panel",
+                  "bind": "volumeTypeDemo",
                   "comment": "Demo file load panel",
-                  "visible": true,
+                  "visible": false,
                   "children": [
                     {
                       "type": "field",

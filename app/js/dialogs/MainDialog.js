@@ -31,6 +31,27 @@ _._init = function() {
 
     var ui = UI.create(UISPECS['MainDialog']).binds;
     ui.sidebar.appendTo(document.body);
+
+    ui.volumeType.addEventListener('change', function() {
+        // TODO: switching panel
+        switch (ui.volumeType.getValue()) {
+            case 'file':
+                ui.volumeTypeFile.show();
+                ui.volumeTypeURL.hide();
+                ui.volumeTypeDemo.hide();
+                break;
+            case 'url':
+                ui.volumeTypeFile.hide();
+                ui.volumeTypeURL.show();
+                ui.volumeTypeDemo.hide();
+                break;
+            case 'demo':
+                ui.volumeTypeFile.hide();
+                ui.volumeTypeURL.hide();
+                ui.volumeTypeDemo.show();
+                break;
+        }
+    });
 };
 
 _.destroy = function() {
