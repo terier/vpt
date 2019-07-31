@@ -1,5 +1,6 @@
 //@@../utils
 //@@Accordion.js
+//@@Button.js
 //@@Checkbox.js
 //@@ColorChooser.js
 //@@Dropdown.js
@@ -20,6 +21,7 @@ var UI = (function() {
 
 var CLASS_FROM_TYPE = {
     'accordion'     : Accordion,
+    'button'        : Button,
     'checkbox'      : Checkbox,
     'color-chooser' : ColorChooser,
     'dropdown'      : Dropdown,

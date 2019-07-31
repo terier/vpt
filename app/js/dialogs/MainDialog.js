@@ -51,6 +51,8 @@ _._init = function() {
                 ui.volumeTypeDemo.show();
                 break;
         }
+        ui.loadButton.show();
+        ui.loadProgress.show();
     });
 };
 

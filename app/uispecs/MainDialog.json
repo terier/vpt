@@ -53,6 +53,12 @@
                     },
                     {
                       "type": "field",
+                      "label": "Dimensions:",
+                      "children": [
+                      ]
+                    },
+                    {
+                      "type": "field",
                       "label": "Precision:",
                       "children": [
                         {
@@ -145,6 +151,17 @@
                       ]
                     }
                   ]
+                },
+                {
+                  "type": "button",
+                  "bind": "loadButton",
+                  "label": "Load",
+                  "visible": false
+                },
+                {
+                  "type": "progress-bar",
+                  "bind": "loadProgress",
+                  "visible": false
                 }
               ]
             },
