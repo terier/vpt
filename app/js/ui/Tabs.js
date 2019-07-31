@@ -25,8 +25,6 @@ Class.defaults = {
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
 
 _._nullify = function() {
-    this._panels = [];
-    this._headers = [];
     this._tabs = [];
 };
 
