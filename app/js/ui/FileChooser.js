@@ -53,6 +53,10 @@ _._handleClick = function() {
     this._binds.input.click();
 };
 
+_.getFiles = function() {
+    return this._binds.input.files;
+};
+
 // ============================ STATIC METHODS ============================= //
 
 })(this);

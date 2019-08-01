@@ -2,14 +2,14 @@ var EventEmitter = {
 
     _eventHandlers: {},
 
-    on: function(event, handler) {
+    addEventListener: function(event, handler) {
         if (!this._eventHandlers[event]) {
             this._eventHandlers[event] = [];
         }
         this._eventHandlers[event].push(handler);
     },
 
-    off: function(event, handler) {
+    removeEventListener: function(event, handler) {
         var handlers = this._eventHandlers[event];
         if (!handlers) {
             return;
