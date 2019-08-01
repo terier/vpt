@@ -31,7 +31,7 @@ _._init = function() {
 
     if (this.options) {
         this.options.forEach(function(option) {
-            this.addOption(option.value, option.label);
+            this.addOption(option.value, option.label, option.selected);
         }, this);
     }
 };
@@ -43,11 +43,14 @@ _.destroy = function() {
 
 // =========================== INSTANCE METHODS ============================ //
 
-_.addOption = function(value, label) {
+_.addOption = function(value, label, selected) {
     var option = document.createElement('option');
     option.value = value;
     option.text = label;
     this._binds.input.add(option);
+    if (selected) {
+        this._binds.input.value = value;
+    }
 };
 
 _.setValue = function(value) {

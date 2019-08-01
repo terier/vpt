@@ -18,9 +18,9 @@ function Textbox(options) {
 };
 
 Class.defaults = {
-    value       : '',
-    pattern     : '',
-    placeholder : ''
+    value       : null,
+    pattern     : null,
+    placeholder : null
 };
 
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
@@ -32,9 +32,15 @@ _._nullify = function() {
 _._init = function() {
     _._nullify.call(this);
 
-    this._binds.input.value = this.value;
-    this._binds.input.pattern = this.pattern;
-    this._binds.input.placeholder = this.placeholder;
+    if (this.value !== null) {
+        this._binds.input.value = this.value;
+    }
+    if (this.pattern !== null) {
+        this._binds.input.pattern = this.pattern;
+    }
+    if (this.placeholder !== null) {
+        this._binds.input.placeholder = this.placeholder;
+    }
 
     this._regex = new RegExp(this.pattern);
 };
@@ -55,11 +61,11 @@ _.isValid = function() {
     return this._regex.test(this._binds.input.value);
 };
 
-_.getText = function() {
+_.getValue = function() {
     return this._binds.input.value;
 };
 
-_.getMatchedText = function() {
+_.getMatch = function() {
     return this._binds.input.value.match(this._regex);
 };
 

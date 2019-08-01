@@ -19,9 +19,9 @@ function VectorSpinner(options) {
 };
 
 Class.defaults = {
-    value : 10,
-    min   : 0,
-    max   : 100,
+    value : 0,
+    min   : null,
+    max   : null,
     step  : 1
 };
 

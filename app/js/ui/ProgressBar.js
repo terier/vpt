@@ -18,7 +18,7 @@ function ProgressBar(options) {
 };
 
 Class.defaults = {
-    progress: 10
+    progress: 0
 };
 
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //

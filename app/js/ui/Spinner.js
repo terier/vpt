@@ -21,9 +21,9 @@ function Spinner(options) {
 };
 
 Class.defaults = {
-    value : 10,
-    min   : 0,
-    max   : 100,
+    value : 0,
+    min   : null,
+    max   : null,
     step  : 1,
     unit  : null, // TODO: add a label with units at the end of input
     // If logarithmic, step size is proportional to value * this.step
@@ -68,15 +68,17 @@ _.setEnabled = function(enabled) {
     _.sup.setEnabled.call(this, enabled);
 };
 
-_._setValue = function(value) {
-    this.value = Math.min(Math.max(value, this.min), this.max);
+_.setValue = function(value) {
+    this.value = value;
+    if (this.min !== null) {
+        this.value = Math.max(this.value, this.min);
+    }
+    if (this.max !== null) {
+        this.value = Math.min(this.value, this.max);
+    }
     if (this.logarithmic) {
         this._binds.input.step = this.value * this.step;
     }
-};
-
-_.setValue = function(value) {
-    this._setValue(value);
 };
 
 _.getValue = function() {
@@ -92,7 +94,7 @@ _._handleInput = function(e) {
 
     var parsedValue = parseFloat(this._binds.input.value);
     if (!isNaN(parsedValue)) {
-        this._setValue(parsedValue);
+        this.setValue(parsedValue);
         this.trigger('changeall');
     } else {
         this._binds.input.value = parsedValue;
@@ -104,7 +106,7 @@ _._handleChange = function(e) {
 
     var parsedValue = parseFloat(this._binds.input.value);
     if (!isNaN(parsedValue)) {
-        this._setValue(parsedValue, 'change');
+        this.setValue(parsedValue);
         if (this._binds.input.value !== this.value) {
             this._binds.input.value = this.value;
             this.trigger('change');

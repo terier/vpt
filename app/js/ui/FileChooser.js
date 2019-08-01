@@ -46,6 +46,8 @@ _._handleChange = function() {
     if (this._binds.input.files.length > 0) {
         var fileName = this._binds.input.files[0].name;
         this._binds.label.textContent = fileName;
+    } else {
+        this._binds.label.textContent = '';
     }
 };
 
