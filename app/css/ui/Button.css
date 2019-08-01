@@ -1,10 +1,10 @@
 .button {
-    --enabled-background-color  : #2196f3;
-    --hover-background-color    : #58b0f5;
+    --enabled-background-color  : #f3f3f3;
+    --hover-background-color    : #eaeaea;
     --disabled-background-color : #f3f3f3;
     --enabled-border-color      : #aaaaaa;
     --disabled-border-color     : #cccccc;
-    --enabled-text-color        : #ffffff;
+    --enabled-text-color        : #333333;
     --disabled-text-color       : #aaaaaa;
 }
 
