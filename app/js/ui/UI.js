@@ -16,6 +16,7 @@
 //@@StatusBar.js
 //@@Tabs.js
 //@@Textbox.js
+//@@VectorSpinner.js
 
 var UI = (function() {
 'use strict';
@@ -38,6 +39,7 @@ var CLASS_FROM_TYPE = {
     'status-bar'    : StatusBar,
     'tabs'          : Tabs,
     'textbox'       : Textbox,
+    'vector'        : VectorSpinner,
 };
 
 function create(spec) {

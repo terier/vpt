@@ -39,10 +39,18 @@ _._init = function() {
     _._nullify.call(this);
 
     var input = this._binds.input;
-    input.value = this.value;
-    input.min = this.min;
-    input.max = this.max;
-    input.step = this.step;
+    if (this.value !== null) {
+        input.value = this.value;
+    }
+    if (this.min !== null) {
+        input.min = this.min;
+    }
+    if (this.max !== null) {
+        input.max = this.max;
+    }
+    if (this.step !== null) {
+        input.step = this.step;
+    }
 
     input.addEventListener('input', this._handleInput);
     input.addEventListener('change', this._handleChange);
