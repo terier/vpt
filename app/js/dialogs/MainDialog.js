@@ -1,17 +1,17 @@
 //@@../utils
-//@@../ui
-//@@../EventEmitter.js
+//@@AbstractDialog.js
 
 (function(global) {
 'use strict';
 
 var Class = global.MainDialog = MainDialog;
+CommonUtils.inherit(Class, AbstractDialog);
 var _ = Class.prototype;
 
 // ========================== CLASS DECLARATION ============================ //
 
 function MainDialog(options) {
-    CommonUtils.extend(_, EventEmitter);
+    _.sup.constructor.call(this, UISPECS.MainDialog, options);
     CommonUtils.extend(this, Class.defaults, options);
 
     _._init.call(this);
@@ -28,41 +28,19 @@ _._nullify = function() {
 _._init = function() {
     _._nullify.call(this);
 
-
-    var ui = UI.create(UISPECS['MainDialog']).binds;
-    ui.sidebar.appendTo(document.body);
-
-    ui.volumeType.addEventListener('change', function() {
-        // TODO: switching panel
-        switch (ui.volumeType.getValue()) {
-            case 'file':
-                ui.volumeTypeFile.show();
-                ui.volumeTypeURL.hide();
-                ui.volumeTypeDemo.hide();
-                break;
-            case 'url':
-                ui.volumeTypeFile.hide();
-                ui.volumeTypeURL.show();
-                ui.volumeTypeDemo.hide();
-                break;
-            case 'demo':
-                ui.volumeTypeFile.hide();
-                ui.volumeTypeURL.hide();
-                ui.volumeTypeDemo.show();
-                break;
-        }
-        ui.loadButton.show();
-        ui.loadProgress.show();
-    });
+    this._binds.sidebar.appendTo(document.body);
 };
 
 _.destroy = function() {
     _._nullify.call(this);
+    _.sup.destroy.call(this);
 };
 
 // =========================== INSTANCE METHODS ============================ //
 
-
+_.getVolumeLoadContainer = function() {
+    return this._binds.volumeLoadContainer;
+};
 
 // ============================ STATIC METHODS ============================= //
 

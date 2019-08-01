@@ -28,8 +28,10 @@ Class.defaults = {
 _._nullify = function() {
     this._renderingContext = null;
     this._canvas           = null;
-    this._mainDialog       = null;
     this._statusBar        = null;
+
+    this._mainDialog       = null;
+    this._volumeLoadDialog = null;
 };
 
 _._init = function() {
@@ -70,21 +72,34 @@ _._init = function() {
     this._statusBar = new StatusBar();
     this._statusBar.appendTo(document.body);
 
-    /*this._openFileDialog = new OpenFileDialog(
-        document.body, {
-        onLoad: function(data, size, bits) {
-            var loader = new BlobLoader(data);
-            var reader = new RAWReader(loader, {
-                width: size.x,
-                height: size.y,
-                depth: size.z,
-                bits: bits
+    this._volumeLoadDialog = new VolumeLoadDialog();
+    this._volumeLoadDialog.appendTo(this._mainDialog.getVolumeLoadContainer());
+    this._volumeLoadDialog.addEventListener('loadfile', function(options) {
+        var readerClass = this._getReaderForURL(options.file.name);
+        if (readerClass) {
+            var loader = new BlobLoader(options.file);
+            var reader = new readerClass(loader, {
+                width  : options.dimensions.x,
+                height : options.dimensions.y,
+                depth  : options.dimensions.z,
+                bits   : options.precision
             });
             this._renderingContext.stopRendering();
             this._renderingContext.setVolume(reader);
-        }.bind(this)
-    });
+        }
+    }.bind(this));
 
+    this._volumeLoadDialog.addEventListener('loadurl', function(options) {
+        var readerClass = this._getReaderForURL(options.url);
+        if (readerClass) {
+            var loader = new AjaxLoader(options.url);
+            var reader = new readerClass(loader);
+            this._renderingContext.stopRendering();
+            this._renderingContext.setVolume(reader);
+        }
+    }.bind(this));
+
+    /*
     this._openEnvironmentMapDialog = new OpenEnvironmentMapDialog(
         document.body, {
         onLoad: function(image) {
