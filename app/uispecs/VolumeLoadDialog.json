@@ -115,45 +115,7 @@
           "children": [
             {
               "type": "dropdown",
-              "bind": "volumeDemo",
-              "options": [
-                {
-                  "value": "tooth",
-                  "label": "Tooth (1.5 MB)"
-                },
-                {
-                  "value": "frog",
-                  "label": "Frog (2.8 MB)"
-                },
-                {
-                  "value": "baby",
-                  "label": "Baby (6.2 MB)"
-                },
-                {
-                  "value": "bruce",
-                  "label": "Bruce (9.8 MB)"
-                },
-                {
-                  "value": "foot",
-                  "label": "Foot (17 MB)"
-                },
-                {
-                  "value": "skull",
-                  "label": "Skull (17 MB)"
-                },
-                {
-                  "value": "mrihead",
-                  "label": "MRI Head (17 MB)"
-                },
-                {
-                  "value": "bonsai",
-                  "label": "Bonsai (46 MB)"
-                },
-                {
-                  "value": "manix",
-                  "label": "Manix (116 MB)"
-                }
-              ]
+              "bind": "volumeDemo"
             }
           ]
         }

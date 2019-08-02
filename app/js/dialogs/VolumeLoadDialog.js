@@ -31,16 +31,16 @@ Class.defaults = {
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
 
 _._nullify = function() {
+    this._demo = null;
 };
 
 _._init = function() {
     _._nullify.call(this);
 
-    this._binds.volumeType.addEventListener('change', this._handleVolumeTypeChange);
-    this._binds.loadButton.addEventListener('click', this._handleLoadClick);
-    this._binds.volumeFile.addEventListener('change', this._handleFileChange);
-    this._binds.volumeURL.addEventListener('input', this._handleURLChange);
-    this._binds.volumeDemo.addEventListener('change', this._handleDemoChange);
+    this._demo = [];
+
+    this._addEventListeners();
+    this._loadDemoJson();
 };
 
 _.destroy = function() {
@@ -49,6 +49,26 @@ _.destroy = function() {
 };
 
 // =========================== INSTANCE METHODS ============================ //
+
+_._addEventListeners = function() {
+    this._binds.volumeType.addEventListener('change', this._handleVolumeTypeChange);
+    this._binds.loadButton.addEventListener('click', this._handleLoadClick);
+    this._binds.volumeFile.addEventListener('change', this._handleFileChange);
+    this._binds.volumeURL.addEventListener('input', this._handleURLChange);
+    this._binds.volumeDemo.addEventListener('change', this._handleDemoChange);
+};
+
+_._loadDemoJson = function() {
+    var xhr = new XMLHttpRequest();
+    xhr.addEventListener('load', function() {
+        this._demo = JSON.parse(xhr.responseText);
+        this._demo.forEach(function(demo) {
+            this._binds.volumeDemo.addOption(demo.value, demo.label);
+        }.bind(this));
+    }.bind(this));
+    xhr.open('GET', 'demo.json');
+    xhr.send();
+};
 
 _._getVolumeTypeFromFileName = function(filename) {
     var exn = filename.split('.').pop().toLowerCase();
@@ -96,7 +116,15 @@ _._handleLoadURL = function() {
 };
 
 _._handleLoadDemo = function() {
-    // TODO
+    var demo = this._binds.volumeDemo.getValue();
+    var found = this._demo.find(function(d) {
+        return d.value === demo;
+    });
+    if (found) {
+        this.trigger('loadurl', {
+            url: found.url
+        });
+    }
 };
 
 _._handleVolumeTypeChange = function() {
