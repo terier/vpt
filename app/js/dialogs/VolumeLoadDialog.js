@@ -39,7 +39,7 @@ _._init = function() {
     this._binds.volumeType.addEventListener('change', this._handleVolumeTypeChange);
     this._binds.loadButton.addEventListener('click', this._handleLoadClick);
     this._binds.volumeFile.addEventListener('change', this._handleFileChange);
-    this._binds.volumeURL.addEventListener('change', this._handleURLChange);
+    this._binds.volumeURL.addEventListener('input', this._handleURLChange);
     this._binds.volumeDemo.addEventListener('change', this._handleDemoChange);
 };
 
