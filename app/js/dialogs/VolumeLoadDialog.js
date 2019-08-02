@@ -68,7 +68,7 @@ _._loadDemoJson = function() {
             }.bind(this));
         }
     }.bind(this));
-    xhr.open('GET', 'demo.json');
+    xhr.open('GET', 'demo-volumes.json');
     xhr.send();
 };
 
