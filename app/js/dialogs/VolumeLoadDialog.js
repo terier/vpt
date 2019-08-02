@@ -16,7 +16,7 @@ function VolumeLoadDialog(options) {
     _.sup.constructor.call(this, UISPECS.VolumeLoadDialog, options);
     CommonUtils.extend(this, Class.defaults, options);
 
-    this._handleVolumeTypeChange = this._handleVolumeTypeChange.bind(this);
+    this._handleTypeChange = this._handleTypeChange.bind(this);
     this._handleLoadClick = this._handleLoadClick.bind(this);
     this._handleFileChange = this._handleFileChange.bind(this);
     this._handleURLChange = this._handleURLChange.bind(this);
@@ -31,13 +31,13 @@ Class.defaults = {
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
 
 _._nullify = function() {
-    this._demo = null;
+    this._demos = null;
 };
 
 _._init = function() {
     _._nullify.call(this);
 
-    this._demo = [];
+    this._demos = [];
 
     this._addEventListeners();
     this._loadDemoJson();
@@ -51,19 +51,19 @@ _.destroy = function() {
 // =========================== INSTANCE METHODS ============================ //
 
 _._addEventListeners = function() {
-    this._binds.volumeType.addEventListener('change', this._handleVolumeTypeChange);
+    this._binds.type.addEventListener('change', this._handleTypeChange);
     this._binds.loadButton.addEventListener('click', this._handleLoadClick);
-    this._binds.volumeFile.addEventListener('change', this._handleFileChange);
-    this._binds.volumeURL.addEventListener('input', this._handleURLChange);
-    this._binds.volumeDemo.addEventListener('change', this._handleDemoChange);
+    this._binds.file.addEventListener('change', this._handleFileChange);
+    this._binds.url.addEventListener('input', this._handleURLChange);
+    this._binds.demo.addEventListener('change', this._handleDemoChange);
 };
 
 _._loadDemoJson = function() {
     var xhr = new XMLHttpRequest();
     xhr.addEventListener('load', function() {
-        this._demo = JSON.parse(xhr.responseText);
-        this._demo.forEach(function(demo) {
-            this._binds.volumeDemo.addOption(demo.value, demo.label);
+        this._demos = JSON.parse(xhr.responseText);
+        this._demos.forEach(function(demo) {
+            this._binds.demo.addOption(demo.value, demo.label);
         }.bind(this));
     }.bind(this));
     xhr.open('GET', 'demo.json');
@@ -81,7 +81,7 @@ _._getVolumeTypeFromFileName = function(filename) {
 };
 
 _._handleLoadClick = function() {
-    switch (this._binds.volumeType.getValue()) {
+    switch (this._binds.type.getValue()) {
         case 'file' : this._handleLoadFile(); break;
         case 'url'  : this._handleLoadURL();  break;
         case 'demo' : this._handleLoadDemo(); break;
@@ -89,7 +89,7 @@ _._handleLoadClick = function() {
 };
 
 _._handleLoadFile = function() {
-    var files = this._binds.volumeFile.getFiles();
+    var files = this._binds.file.getFiles();
     if (files.length === 0) {
         // update status bar?
         return;
@@ -97,8 +97,8 @@ _._handleLoadFile = function() {
 
     var file = files[0];
     var type = this._getVolumeTypeFromFileName(file.name);
-    var dimensions = this._binds.volumeDimensions.getValue();
-    var precision = parseInt(this._binds.volumePrecision.getValue(), 10);
+    var dimensions = this._binds.dimensions.getValue();
+    var precision = parseInt(this._binds.precision.getValue(), 10);
 
     this.trigger('loadfile', {
         file       : file,
@@ -109,15 +109,15 @@ _._handleLoadFile = function() {
 };
 
 _._handleLoadURL = function() {
-    var url = this._binds.volumeURL.getValue();
+    var url = this._binds.url.getValue();
     this.trigger('loadurl', {
         url: url
     });
 };
 
 _._handleLoadDemo = function() {
-    var demo = this._binds.volumeDemo.getValue();
-    var found = this._demo.find(function(d) {
+    var demo = this._binds.demo.getValue();
+    var found = this._demos.find(function(d) {
         return d.value === demo;
     });
     if (found) {
@@ -127,30 +127,30 @@ _._handleLoadDemo = function() {
     }
 };
 
-_._handleVolumeTypeChange = function() {
+_._handleTypeChange = function() {
     // TODO: switching panel
-    switch (this._binds.volumeType.getValue()) {
+    switch (this._binds.type.getValue()) {
         case 'file':
-            this._binds.volumeTypeFile.show();
-            this._binds.volumeTypeURL.hide();
-            this._binds.volumeTypeDemo.hide();
+            this._binds.filePanel.show();
+            this._binds.urlPanel.hide();
+            this._binds.demoPanel.hide();
             break;
         case 'url':
-            this._binds.volumeTypeFile.hide();
-            this._binds.volumeTypeURL.show();
-            this._binds.volumeTypeDemo.hide();
+            this._binds.filePanel.hide();
+            this._binds.urlPanel.show();
+            this._binds.demoPanel.hide();
             break;
         case 'demo':
-            this._binds.volumeTypeFile.hide();
-            this._binds.volumeTypeURL.hide();
-            this._binds.volumeTypeDemo.show();
+            this._binds.filePanel.hide();
+            this._binds.urlPanel.hide();
+            this._binds.demoPanel.show();
             break;
     }
     this._updateLoadButtonAndProgressVisibility();
 };
 
 _._handleFileChange = function() {
-    var files = this._binds.volumeFile.getFiles();
+    var files = this._binds.file.getFiles();
     if (files.length === 0) {
         this._binds.rawSettingsPanel.hide();
     } else {
@@ -170,17 +170,17 @@ _._handleDemoChange = function() {
 };
 
 _._updateLoadButtonAndProgressVisibility = function() {
-    switch (this._binds.volumeType.getValue()) {
+    switch (this._binds.type.getValue()) {
         case 'file':
-            var files = this._binds.volumeFile.getFiles();
+            var files = this._binds.file.getFiles();
             this._binds.loadButtonAndProgress.setVisible(files.length > 0);
             break;
         case 'url':
-            var urlEmpty = this._binds.volumeURL.getValue() === '';
+            var urlEmpty = this._binds.url.getValue() === '';
             this._binds.loadButtonAndProgress.setVisible(!urlEmpty);
             break;
         case 'demo':
-            var demo = this._binds.volumeDemo.getValue();
+            var demo = this._binds.demo.getValue();
             this._binds.loadButtonAndProgress.setVisible(!!demo);
             break;
     }

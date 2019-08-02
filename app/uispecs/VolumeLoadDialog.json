@@ -7,7 +7,7 @@
       "children": [
         {
           "type": "dropdown",
-          "bind": "volumeType",
+          "bind": "type",
           "options": [
             {
               "value": "file",
@@ -28,8 +28,7 @@
     },
     {
       "type": "panel",
-      "bind": "volumeTypeFile",
-      "comment": "File upload panel",
+      "bind": "filePanel",
       "visible": true,
       "children": [
         {
@@ -38,7 +37,7 @@
           "children": [
             {
               "type": "file-chooser",
-              "bind": "volumeFile"
+              "bind": "file"
             }
           ]
         },
@@ -53,7 +52,7 @@
               "children": [
                 {
                   "type": "vector",
-                  "bind": "volumeDimensions",
+                  "bind": "dimensions",
                   "value": 128,
                   "min": 1
                 }
@@ -65,7 +64,7 @@
               "children": [
                 {
                   "type": "radio",
-                  "bind": "volumePrecision",
+                  "bind": "precision",
                   "options": [
                     {
                       "value": 8,
@@ -86,8 +85,7 @@
     },
     {
       "type": "panel",
-      "bind": "volumeTypeURL",
-      "comment": "URL load panel",
+      "bind": "urlPanel",
       "visible": false,
       "children": [
         {
@@ -96,7 +94,7 @@
           "children": [
             {
               "type": "textbox",
-              "bind": "volumeURL",
+              "bind": "url",
               "placeholder": "http://"
             }
           ]
@@ -105,8 +103,7 @@
     },
     {
       "type": "panel",
-      "bind": "volumeTypeDemo",
-      "comment": "Demo file load panel",
+      "bind": "demoPanel",
       "visible": false,
       "children": [
         {
@@ -115,7 +112,7 @@
           "children": [
             {
               "type": "dropdown",
-              "bind": "volumeDemo"
+              "bind": "demo"
             }
           ]
         }
