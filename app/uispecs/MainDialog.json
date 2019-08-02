@@ -15,18 +15,8 @@
             },
             {
               "type": "accordion",
-              "label": "Environment",
-              "children": [
-                {
-                  "type": "field",
-                  "label": "File:",
-                  "children": [
-                    {
-                      "type": "file-chooser"
-                    }
-                  ]
-                }
-              ]
+              "bind": "envmapLoadContainer",
+              "label": "Environment"
             }
           ]
         },

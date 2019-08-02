@@ -42,6 +42,10 @@ _.getVolumeLoadContainer = function() {
     return this._binds.volumeLoadContainer;
 };
 
+_.getEnvmapLoadContainer = function() {
+    return this._binds.envmapLoadContainer;
+};
+
 // ============================ STATIC METHODS ============================= //
 
 })(this);

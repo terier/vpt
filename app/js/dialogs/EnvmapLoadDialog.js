@@ -6,14 +6,14 @@
 (function(global) {
 'use strict';
 
-var Class = global.VolumeLoadDialog = VolumeLoadDialog;
+var Class = global.EnvmapLoadDialog = EnvmapLoadDialog;
 CommonUtils.inherit(Class, AbstractDialog);
 var _ = Class.prototype;
 
 // ========================== CLASS DECLARATION ============================ //
 
-function VolumeLoadDialog(options) {
-    _.sup.constructor.call(this, UISPECS.VolumeLoadDialog, options);
+function EnvmapLoadDialog(options) {
+    _.sup.constructor.call(this, UISPECS.EnvmapLoadDialog, options);
     CommonUtils.extend(this, Class.defaults, options);
 
     this._handleTypeChange = this._handleTypeChange.bind(this);
@@ -68,18 +68,8 @@ _._loadDemoJson = function() {
             }.bind(this));
         }
     }.bind(this));
-    xhr.open('GET', 'demo.json');
+    xhr.open('GET', 'demo-envmaps.json');
     xhr.send();
-};
-
-_._getVolumeTypeFromFileName = function(filename) {
-    var exn = filename.split('.').pop().toLowerCase();
-    var exnToType = {
-        'bvp'  : 'bvp',
-        'json' : 'json',
-        'zip'  : 'zip',
-    };
-    return exnToType[exn] || 'raw';
 };
 
 _._handleLoadClick = function() {
@@ -96,17 +86,10 @@ _._handleLoadFile = function() {
         // update status bar?
         return;
     }
-
     var file = files[0];
-    var type = this._getVolumeTypeFromFileName(file.name);
-    var dimensions = this._binds.dimensions.getValue();
-    var precision = parseInt(this._binds.precision.getValue(), 10);
 
     this.trigger('loadfile', {
-        file       : file,
-        type       : type,
-        dimensions : dimensions,
-        precision  : precision,
+        file: file
     });
 };
 
@@ -152,14 +135,6 @@ _._handleTypeChange = function() {
 };
 
 _._handleFileChange = function() {
-    var files = this._binds.file.getFiles();
-    if (files.length === 0) {
-        this._binds.rawSettingsPanel.hide();
-    } else {
-        var file = files[0];
-        var type = this._getVolumeTypeFromFileName(file.name);
-        this._binds.rawSettingsPanel.setVisible(type === 'raw');
-    }
     this._updateLoadButtonAndProgressVisibility();
 };
 

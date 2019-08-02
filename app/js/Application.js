@@ -32,6 +32,7 @@ _._nullify = function() {
 
     this._mainDialog       = null;
     this._volumeLoadDialog = null;
+    this._envmapLoadDialog = null;
 };
 
 _._init = function() {
@@ -97,6 +98,32 @@ _._init = function() {
             this._renderingContext.stopRendering();
             this._renderingContext.setVolume(reader);
         }
+    }.bind(this));
+
+    this._envmapLoadDialog = new EnvmapLoadDialog();
+    this._envmapLoadDialog.appendTo(this._mainDialog.getEnvmapLoadContainer());
+    this._envmapLoadDialog.addEventListener('loadfile', function(options) {
+        var image = new Image();
+        image.addEventListener('load', function() {
+            this._renderingContext.setEnvironmentMap(image);
+            this._renderingContext.getRenderer().reset();
+        }.bind(this));
+
+        var reader = new FileReader();
+        reader.addEventListener('load', function() {
+            image.src = reader.result;
+        });
+
+        reader.readAsDataURL(options.file);
+    }.bind(this));
+    this._envmapLoadDialog.addEventListener('loadurl', function(options) {
+        var image = new Image();
+        image.addEventListener('load', function() {
+            this._renderingContext.setEnvironmentMap(image);
+            this._renderingContext.getRenderer().reset();
+        }.bind(this));
+
+        image.src = options.url;
     }.bind(this));
 };
 
