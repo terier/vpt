@@ -104,6 +104,7 @@ _._init = function() {
     this._envmapLoadDialog.appendTo(this._mainDialog.getEnvmapLoadContainer());
     this._envmapLoadDialog.addEventListener('loadfile', function(options) {
         var image = new Image();
+        image.crossOrigin = 'anonymous';
         image.addEventListener('load', function() {
             this._renderingContext.setEnvironmentMap(image);
             this._renderingContext.getRenderer().reset();
@@ -118,6 +119,7 @@ _._init = function() {
     }.bind(this));
     this._envmapLoadDialog.addEventListener('loadurl', function(options) {
         var image = new Image();
+        image.crossOrigin = 'anonymous';
         image.addEventListener('load', function() {
             this._renderingContext.setEnvironmentMap(image);
             this._renderingContext.getRenderer().reset();
