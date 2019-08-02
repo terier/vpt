@@ -8,7 +8,12 @@ const basedir = 'build';
 const port = process.env.PORT || 3000;
 
 http.createServer(function(request, response) {
-    console.log(request.method, request.url);
+    const range = request.headers.range;
+    if (range) {
+        console.log(request.method, request.url, range);
+    } else {
+        console.log(request.method, request.url);
+    }
 
     let filePath = request.url;
     if (request.url === '/') {
@@ -48,7 +53,6 @@ http.createServer(function(request, response) {
                     response.end('Server error: ' + error.code);
                 }
             } else {
-                const range = request.headers.range;
                 if (range) {
                     const re = /^bytes=([0-9]+)-([0-9]+)$/;
                     const match = range.match(re);
@@ -60,12 +64,15 @@ http.createServer(function(request, response) {
                 }
                 response.writeHead(200, {
                     'Content-Type'   : contentType,
-                    'Content-Length' : content.length
+                    'Content-Length' : content.length,
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Methods': 'GET',
+                    'Access-Control-Allow-Headers': 'Range'
                 });
                 response.end(content, 'utf-8');
             }
         });
-    } else if (request.method === 'HEAD') {
+    } else if (request.method === 'HEAD' || request.method === 'OPTIONS') {
         fs.lstat(basedir + filePath, function(error, stat) {
             if (error) {
                 if (error.code == 'ENOENT') {
@@ -80,7 +87,10 @@ http.createServer(function(request, response) {
             } else {
                 response.writeHead(200, {
                     'Content-Type'   : contentType,
-                    'Content-Length' : stat.size
+                    'Content-Length' : stat.size,
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Methods': 'GET',
+                    'Access-Control-Allow-Headers': 'Range'
                 });
                 response.end();
             }
