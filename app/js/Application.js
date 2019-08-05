@@ -28,16 +28,17 @@ Class.defaults = {
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
 
 _._nullify = function() {
-    this._renderingContext = null;
-    this._canvas           = null;
-    this._statusBar        = null;
+    this._renderingContext       = null;
+    this._canvas                 = null;
+    this._statusBar              = null;
 
-    this._mainDialog       = null;
-    this._volumeLoadDialog = null;
-    this._envmapLoadDialog = null;
+    this._mainDialog             = null;
+    this._volumeLoadDialog       = null;
+    this._envmapLoadDialog       = null;
+    this._renderingContextDialog = null;
 
-    this._rendererDialog   = null;
-    this._toneMapperDialog = null;
+    this._rendererDialog         = null;
+    this._toneMapperDialog       = null;
 };
 
 _._init = function() {
@@ -133,6 +134,19 @@ _._init = function() {
         image.src = options.url;
     }.bind(this));
 
+    this._renderingContextDialog = new RenderingContextDialog();
+    this._renderingContextDialog.appendTo(
+        this._mainDialog.getRenderingContextSettingsContainer());
+    this._renderingContextDialog.addEventListener('resolution', function(options) {
+        this._renderingContext.setResolution(options.resolution);
+    }.bind(this));
+    this._renderingContextDialog.addEventListener('transformation', function(options) {
+        var s = options.scale;
+        var t = options.translation;
+        this._renderingContext.setScale(s.x, s.y, s.z);
+        this._renderingContext.setTranslation(t.x, t.y, t.z);
+    }.bind(this));
+
     this._mainDialog.addEventListener('rendererchange', function(which) {
         if (this._rendererDialog) {
             this._rendererDialog.destroy();
@@ -164,6 +178,7 @@ _.destroy = function() {
 
     this._volumeLoadDialog.destroy();
     this._envmapLoadDialog.destroy();
+    this._renderingContextDialog.destroy();
 
     if (this._rendererDialog) {
         this._rendererDialog.destroy();

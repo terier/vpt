@@ -59,6 +59,10 @@ _.getToneMapperSettingsContainer = function() {
     return this._binds.toneMapperSettingsContainer;
 };
 
+_.getRenderingContextSettingsContainer = function() {
+    return this._binds.renderingContextSettingsContainer;
+};
+
 _._handleRendererChange = function() {
     var renderer = this._binds.rendererSelect.getValue();
     this.trigger('rendererchange', renderer);
