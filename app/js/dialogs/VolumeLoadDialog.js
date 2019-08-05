@@ -72,7 +72,7 @@ _._loadDemoJson = function() {
     xhr.send();
 };
 
-_._getVolumeTypeFromFileName = function(filename) {
+_._getVolumeTypeFromURL = function(filename) {
     var exn = filename.split('.').pop().toLowerCase();
     var exnToType = {
         'bvp'  : 'bvp',
@@ -98,13 +98,14 @@ _._handleLoadFile = function() {
     }
 
     var file = files[0];
-    var type = this._getVolumeTypeFromFileName(file.name);
+    var filetype = this._getVolumeTypeFromURL(file.name);
     var dimensions = this._binds.dimensions.getValue();
     var precision = parseInt(this._binds.precision.getValue(), 10);
 
-    this.trigger('loadfile', {
+    this.trigger('load', {
+        type       : 'file',
         file       : file,
-        type       : type,
+        filetype   : filetype,
         dimensions : dimensions,
         precision  : precision,
     });
@@ -112,8 +113,11 @@ _._handleLoadFile = function() {
 
 _._handleLoadURL = function() {
     var url = this._binds.url.getValue();
-    this.trigger('loadurl', {
-        url: url
+    var filetype = this._getVolumeTypeFromURL(url);
+    this.trigger('load', {
+        type     : 'url',
+        url      : url,
+        filetype : filetype
     });
 };
 
@@ -122,11 +126,12 @@ _._handleLoadDemo = function() {
     var found = this._demos.find(function(d) {
         return d.value === demo;
     });
-    if (found) {
-        this.trigger('loadurl', {
-            url: found.url
-        });
-    }
+    var filetype = this._getVolumeTypeFromURL(found.url);
+    this.trigger('loadurl', {
+        type     : 'url',
+        url      : found.url,
+        filetype : filetype
+    });
 };
 
 _._handleTypeChange = function() {
@@ -157,7 +162,7 @@ _._handleFileChange = function() {
         this._binds.rawSettingsPanel.hide();
     } else {
         var file = files[0];
-        var type = this._getVolumeTypeFromFileName(file.name);
+        var type = this._getVolumeTypeFromURL(file.name);
         this._binds.rawSettingsPanel.setVisible(type === 'raw');
     }
     this._updateLoadButtonAndProgressVisibility();

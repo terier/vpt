@@ -88,15 +88,17 @@ _._handleLoadFile = function() {
     }
     var file = files[0];
 
-    this.trigger('loadfile', {
-        file: file
+    this.trigger('load', {
+        type : 'file',
+        file : file
     });
 };
 
 _._handleLoadURL = function() {
     var url = this._binds.url.getValue();
-    this.trigger('loadurl', {
-        url: url
+    this.trigger('load', {
+        type : 'url',
+        url  : url
     });
 };
 
@@ -105,11 +107,10 @@ _._handleLoadDemo = function() {
     var found = this._demos.find(function(d) {
         return d.value === demo;
     });
-    if (found) {
-        this.trigger('loadurl', {
-            url: found.url
-        });
-    }
+    this.trigger('load', {
+        type : 'url',
+        url  : found.url
+    });
 };
 
 _._handleTypeChange = function() {

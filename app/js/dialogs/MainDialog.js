@@ -63,6 +63,14 @@ _.getRenderingContextSettingsContainer = function() {
     return this._binds.renderingContextSettingsContainer;
 };
 
+_.getSelectedRenderer = function() {
+    return this._binds.rendererSelect.getValue();
+};
+
+_.getSelectedToneMapper = function() {
+    return this._binds.toneMapperSelect.getValue();
+};
+
 _._handleRendererChange = function() {
     var renderer = this._binds.rendererSelect.getValue();
     this.trigger('rendererchange', renderer);

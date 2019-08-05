@@ -53,7 +53,8 @@
                         },
                         {
                           "value": "mcm",
-                          "label": "Multiple scattering"
+                          "label": "Multiple scattering",
+                          "selected": true
                         }
                       ]
                     }
@@ -87,7 +88,8 @@
                         },
                         {
                           "value": "artistic",
-                          "label": "Artistic"
+                          "label": "Artistic",
+                          "selected": true
                         }
                       ]
                     }
