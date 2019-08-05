@@ -39,9 +39,11 @@ while (queue.length > 0) {
         // If directory, add all files in directory
         if (isDirectory) {
             try {
-                return fs.readdirSync(dependency, { withFileTypes: true })
-                    .filter(dirent => !dirent.isDirectory())
-                    .map(dirent => path.resolve(path.dirname(next), dependency, dirent.name));
+                return fs.readdirSync(dependency)
+                    .map(dirent => path.resolve(path.dirname(next), dependency, dirent))
+                    .filter(function(dirent) {
+                        return !fs.lstatSync(dirent).isDirectory();
+                    });
             } catch (err) {
                 console.error('Cannot read directory: ' + dependency + ', ' + err);
                 console.error('Included by ' + next);
@@ -52,7 +54,8 @@ while (queue.length > 0) {
         }
 
         return [];
-    }).flat();
+    });
+    files = files.reduce((acc, val) => acc.concat(val), []);
     queue = queue.concat(files);
     dependencies[next] = files;
 }
