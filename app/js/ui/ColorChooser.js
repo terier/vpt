@@ -15,13 +15,13 @@ function ColorChooser(options) {
     CommonUtils.extend(this, Class.defaults, options);
 
     this._handleInput = this._handleInput.bind(this);
-    this._handleChange = this._handleChange.bind(this);
     this._handleClick = this._handleClick.bind(this);
 
     _._init.call(this);
 };
 
 Class.defaults = {
+    value: null
 };
 
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
@@ -34,8 +34,10 @@ _._init = function() {
 
     var input = this._binds.input;
     input.addEventListener('input', this._handleInput);
-    input.addEventListener('change', this._handleChange);
 
+    if (this.value !== null) {
+        this._binds.input.value = this.value;
+    }
     this._binds.color.style.backgroundColor = this._binds.input.value /* + alpha */;
     this._element.addEventListener('click', this._handleClick);
 };
@@ -53,17 +55,19 @@ _.setEnabled = function(enabled) {
 };
 
 _._handleInput = function(e) {
-    e.stopPropagation();
-
     this._binds.color.style.backgroundColor = this._binds.input.value /* + alpha */;
-};
-
-_._handleChange = function(e) {
-    e.stopPropagation();
 };
 
 _._handleClick = function() {
     this._binds.input.click();
+};
+
+_.getValue = function() {
+    return this._binds.input.value;
+};
+
+_.setValue = function(value) {
+    this._binds.input.value = value;
 };
 
 // ============================ STATIC METHODS ============================= //

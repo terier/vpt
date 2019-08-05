@@ -56,6 +56,7 @@ _.destroy = function() {
 _.setValue = function(value) {
     this.value = CommonUtils.clamp(value, this.min, this.max);
     this._updateUI();
+    this.trigger('change');
 };
 
 _._updateUI = function() {

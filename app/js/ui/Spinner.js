@@ -95,7 +95,7 @@ _._handleInput = function(e) {
     var parsedValue = parseFloat(this._binds.input.value);
     if (!isNaN(parsedValue)) {
         this.setValue(parsedValue);
-        this.trigger('changeall');
+        this.trigger('input');
     } else {
         this._binds.input.value = parsedValue;
     }

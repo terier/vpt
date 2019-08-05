@@ -2,6 +2,8 @@
 //@@readers
 //@@loaders
 //@@dialogs
+//@@dialogs/renderers
+//@@dialogs/tonemappers
 //@@ui
 //@@RenderingContext.js
 //@@Volume.js
@@ -33,6 +35,9 @@ _._nullify = function() {
     this._mainDialog       = null;
     this._volumeLoadDialog = null;
     this._envmapLoadDialog = null;
+
+    this._rendererDialog   = null;
+    this._toneMapperDialog = null;
 };
 
 _._init = function() {
@@ -127,11 +132,46 @@ _._init = function() {
 
         image.src = options.url;
     }.bind(this));
+
+    this._mainDialog.addEventListener('rendererchange', function(which) {
+        if (this._rendererDialog) {
+            this._rendererDialog.destroy();
+        }
+        this._renderingContext.chooseRenderer(which);
+        var renderer = this._renderingContext.getRenderer();
+        var container = this._mainDialog.getRendererSettingsContainer();
+        var dialogClass = this._getDialogForRenderer(which);
+        this._rendererDialog = new dialogClass(renderer);
+        this._rendererDialog.appendTo(container);
+    }.bind(this));
+
+    this._mainDialog.addEventListener('tonemapperchange', function(which) {
+        if (this._toneMapperDialog) {
+            this._toneMapperDialog.destroy();
+        }
+        this._renderingContext.chooseToneMapper(which);
+        var toneMapper = this._renderingContext.getToneMapper();
+        var container = this._mainDialog.getToneMapperSettingsContainer();
+        var dialogClass = this._getDialogForToneMapper(which);
+        this._toneMapperDialog = new dialogClass(toneMapper);
+        this._toneMapperDialog.appendTo(container);
+    }.bind(this));
 };
 
 _.destroy = function() {
     this._renderingContext.destroy();
     this._mainDialog.destroy();
+
+    this._volumeLoadDialog.destroy();
+    this._envmapLoadDialog.destroy();
+
+    if (this._rendererDialog) {
+        this._rendererDialog.destroy();
+    }
+
+    if (this._toneMapperDialog) {
+        this._toneMapperDialog.destroy();
+    }
 
     DOMUtils.remove(this._canvas);
 
@@ -153,6 +193,24 @@ _._getReaderForURL = function(url) {
         case 'raw'  : return RAWReader;
         case 'zip'  : return ZIPReader;
         default     : return null;
+    }
+};
+
+_._getDialogForRenderer = function(renderer) {
+    switch (renderer) {
+        case 'mip' : return MIPRendererDialog;
+        case 'iso' : return ISORendererDialog;
+        case 'eam' : return EAMRendererDialog;
+        case 'mcs' : return MCSRendererDialog;
+        case 'mcm' : return MCMRendererDialog;
+    }
+};
+
+_._getDialogForToneMapper = function(toneMapper) {
+    switch (toneMapper) {
+        case 'range'    : return RangeToneMapperDialog;
+        case 'reinhard' : return ReinhardToneMapperDialog;
+        case 'artistic' : return ArtisticToneMapperDialog;
     }
 };
 

@@ -15,6 +15,9 @@ function VectorSpinner(options) {
     _.sup.constructor.call(this, TEMPLATES.VectorSpinner, options);
     CommonUtils.extend(this, Class.defaults, options);
 
+    this._handleChange = this._handleChange.bind(this);
+    this._handleInput = this._handleInput.bind(this);
+
     _._init.call(this);
 };
 
@@ -50,6 +53,8 @@ _._init = function() {
     this._spinnerX.appendTo(this._binds.vectorX);
     this._spinnerY.appendTo(this._binds.vectorY);
     this._spinnerZ.appendTo(this._binds.vectorZ);
+
+    this._addEventListeners();
 };
 
 _.destroy = function() {
@@ -89,6 +94,23 @@ _.getValue = function() {
         y: this._spinnerY.getValue(),
         z: this._spinnerZ.getValue(),
     };
+};
+
+_._addEventListeners = function() {
+    this._spinnerX.addEventListener('change', this._handleChange);
+    this._spinnerY.addEventListener('change', this._handleChange);
+    this._spinnerZ.addEventListener('change', this._handleChange);
+    this._spinnerX.addEventListener('input', this._handleInput);
+    this._spinnerY.addEventListener('input', this._handleInput);
+    this._spinnerZ.addEventListener('input', this._handleInput);
+};
+
+_._handleChange = function() {
+    this.trigger('change');
+};
+
+_._handleInput = function() {
+    this.trigger('input');
 };
 
 // ============================ STATIC METHODS ============================= //
