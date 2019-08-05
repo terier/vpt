@@ -16,7 +16,7 @@ while (queue.length > 0) {
     try {
         var content = fs.readFileSync(next, 'utf8');
     } catch (err) {
-        console.error('Cannot read file: ' + next);
+        console.error('Cannot read file: ' + next + ', ' + err);
         process.exit(-1);
     }
 
@@ -31,7 +31,7 @@ while (queue.length > 0) {
             fs.accessSync(dependency, fs.constants.R_OK);
             var isDirectory = fs.lstatSync(dependency).isDirectory();
         } catch (err) {
-            console.error('Cannot read file: ' + dependency);
+            console.error('Cannot read file: ' + dependency + ', ' + err);
             console.error('Included by ' + next);
             process.exit(-1);
         }
@@ -39,10 +39,11 @@ while (queue.length > 0) {
         // If directory, add all files in directory
         if (isDirectory) {
             try {
-                return fs.readdirSync(dependency).map(dirent =>
-                    path.resolve(path.dirname(next), dependency, dirent));
+                return fs.readdirSync(dependency, { withFileTypes: true })
+                    .filter(dirent => !dirent.isDirectory())
+                    .map(dirent => path.resolve(path.dirname(next), dependency, dirent.name));
             } catch (err) {
-                console.error('Cannot read directory: ' + dependency);
+                console.error('Cannot read directory: ' + dependency + ', ' + err);
                 console.error('Included by ' + next);
                 process.exit(-1);
             }

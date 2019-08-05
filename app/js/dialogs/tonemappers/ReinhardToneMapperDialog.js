@@ -1,4 +1,4 @@
-//@@../utils
+//@@../../utils
 //@@../AbstractDialog.js
 
 (function(global) {
