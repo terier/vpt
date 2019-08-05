@@ -62,9 +62,6 @@ _._init = function() {
     var loader = new BlobLoader();
     this._volume = new Volume(this._gl);
 
-    this._renderer = new MultipleScatteringRenderer(this._gl, this._volume, this._environmentTexture);
-    this._toneMapper = new ArtisticToneMapper(this._gl, this._renderer.getTexture());
-
     this._contextRestorable = true;
 
     this._canvas.addEventListener('webglcontextlost', this._webglcontextlostHandler);
@@ -80,9 +77,13 @@ _._init = function() {
 _.destroy = function() {
     this.stopRendering();
 
-    this._toneMapper.destroy();
     this._volume.destroy();
-    this._renderer.destroy();
+    if (this._toneMapper) {
+        this._toneMapper.destroy();
+    }
+    if (this._renderer) {
+        this._renderer.destroy();
+    }
     this._cameraController.destroy();
     this._camera.destroy();
 
@@ -203,8 +204,10 @@ _.setVolume = function(reader) {
         onData: function() {
             volume.readModality('default', {
                 onLoad: function() {
-                    this._renderer.setVolume(volume);
-                    this.startRendering();
+                    if (this._renderer) {
+                        this._renderer.setVolume(volume);
+                        this.startRendering();
+                    }
                 }.bind(this)
             });
         }.bind(this)
@@ -226,29 +229,43 @@ _.setEnvironmentMap = function(image) {
 };
 
 _.chooseRenderer = function(renderer) {
-    this._renderer.destroy();
+    if (this._renderer) {
+        this._renderer.destroy();
+    }
     var gl = this._gl;
     var volume = this._volume;
     var env = this._environmentTexture;
     switch (renderer) {
-        case 'mip': this._renderer = new MIPRenderer(gl, volume, env); break;
-        case 'iso': this._renderer = new ISORenderer(gl, volume, env); break;
-        case 'eam': this._renderer = new EAMRenderer(gl, volume, env); break;
-        case 'mcs': this._renderer = new MCSRenderer(gl, volume, env); break;
-        case 'mcm': this._renderer = new MultipleScatteringRenderer(gl, volume, env); break;
+        case 'mip' : this._renderer = new MIPRenderer(gl, volume, env); break;
+        case 'iso' : this._renderer = new ISORenderer(gl, volume, env); break;
+        case 'eam' : this._renderer = new EAMRenderer(gl, volume, env); break;
+        case 'mcs' : this._renderer = new MCSRenderer(gl, volume, env); break;
+        case 'mcm' : this._renderer = new MultipleScatteringRenderer(gl, volume, env); break;
     }
-    this._toneMapper.setTexture(this._renderer.getTexture());
+    if (this._toneMapper) {
+        this._toneMapper.setTexture(this._renderer.getTexture());
+    }
     this._isTransformationDirty = true;
 };
 
 _.chooseToneMapper = function(toneMapper) {
-    this._toneMapper.destroy();
+    if (this._toneMapper) {
+        this._toneMapper.destroy();
+    }
     var gl = this._gl;
-    var texture = this._renderer.getTexture();
+    if (this._renderer) {
+        var texture = this._renderer.getTexture();
+    } else {
+        var texture = WebGL.createTexture({
+            width  : 1,
+            height : 1,
+            data   : new Uint8Array([255, 255, 255, 255]),
+        });
+    }
     switch (toneMapper) {
-        case 'range'   : this._toneMapper = new RangeToneMapper(gl, texture); break;
-        case 'reinhard': this._toneMapper = new ReinhardToneMapper(gl, texture); break;
-        case 'artistic': this._toneMapper = new ArtisticToneMapper(gl, texture); break;
+        case 'range'    : this._toneMapper = new RangeToneMapper(gl, texture); break;
+        case 'reinhard' : this._toneMapper = new ReinhardToneMapper(gl, texture); break;
+        case 'artistic' : this._toneMapper = new ArtisticToneMapper(gl, texture); break;
     }
 };
 
@@ -280,14 +297,16 @@ _._updateMvpInverseMatrix = function() {
         tr.multiply(this._camera.transformationMatrix, tr);
 
         tr.inverse().transpose();
-        this._renderer.setMvpInverseMatrix(tr);
-        this._renderer.reset();
+        if (this._renderer) {
+            this._renderer.setMvpInverseMatrix(tr);
+            this._renderer.reset();
+        }
     }
 };
 
 _._render = function() {
     var gl = this._gl;
-    if (!gl) {
+    if (!gl || !this._renderer || !this._toneMapper) {
         return;
     }
 
@@ -337,9 +356,15 @@ _.getResolution = function() {
 };
 
 _.setResolution = function(resolution) {
-    this._renderer.setResolution(resolution);
-    this._toneMapper.setResolution(resolution);
-    this._toneMapper.setTexture(this._renderer.getTexture());
+    if (this._renderer) {
+        this._renderer.setResolution(resolution);
+    }
+    if (this._toneMapper) {
+        this._toneMapper.setResolution(resolution);
+        if (this._renderer) {
+            this._toneMapper.setTexture(this._renderer.getTexture());
+        }
+    }
 };
 
 _.startRendering = function() {

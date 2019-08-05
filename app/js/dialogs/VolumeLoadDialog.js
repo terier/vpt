@@ -127,7 +127,7 @@ _._handleLoadDemo = function() {
         return d.value === demo;
     });
     var filetype = this._getVolumeTypeFromURL(found.url);
-    this.trigger('loadurl', {
+    this.trigger('load', {
         type     : 'url',
         url      : found.url,
         filetype : filetype

@@ -94,6 +94,8 @@ _._init = function() {
 
     this._mainDialog.addEventListener('rendererchange', this._handleRendererChange);
     this._mainDialog.addEventListener('tonemapperchange', this._handleToneMapperChange);
+    this._mainDialog.trigger('rendererchange', this._mainDialog.getSelectedRenderer());
+    this._mainDialog.trigger('tonemapperchange', this._mainDialog.getSelectedToneMapper());
 };
 
 _.destroy = function() {
