@@ -1,4 +1,4 @@
-//@@../utils/Utils.js
+//@@../utils
 //@@AbstractLoader.js
 
 (function(global) {
@@ -42,7 +42,7 @@ _.readLength = function(handlers) {
     var xhr = new XMLHttpRequest();
     xhr.addEventListener('load', function(e) {
         var contentLength = e.target.getResponseHeader('Content-Length');
-        handlers.onData && handler.onData(parseInt(contentLength, 10));
+        handlers.onData && handlers.onData(parseInt(contentLength, 10));
     });
     xhr.open('HEAD', this.url);
     xhr.responseType = 'arraybuffer';
@@ -53,7 +53,7 @@ _.readLength = function(handlers) {
 _.readData = function(start, end, handlers) {
     var xhr = new XMLHttpRequest();
     xhr.addEventListener('load', function(e) {
-        handlers.onData && handler.onData(e.target.result);
+        handlers.onData && handlers.onData(e.target.response);
     });
     xhr.open('GET', this.url);
     xhr.setRequestHeader('Range', 'bytes=' + start + '-' + (end - 1));

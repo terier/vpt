@@ -10,8 +10,8 @@
 }
 
 .transfer-function-widget .bump {
-    width: 0px;
-    height: 0px;
+    width: 0;
+    height: 0;
     position: absolute;
 }
 

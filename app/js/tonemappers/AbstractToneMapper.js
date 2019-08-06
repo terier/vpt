@@ -1,4 +1,4 @@
-//@@../utils/Utils.js
+//@@../utils
 //@@../WebGL.js
 
 (function(global) {
@@ -44,6 +44,8 @@ _._init = function() {
 };
 
 _.destroy = function() {
+    var gl = this._gl;
+
     this._renderBuffer.destroy();
     gl.deleteBuffer(this._clipQuad);
     gl.deleteProgram(this._clipQuadProgram.program);

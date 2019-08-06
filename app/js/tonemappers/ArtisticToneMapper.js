@@ -1,4 +1,4 @@
-//@@../utils/Utils.js
+//@@../utils
 //@@../WebGL.js
 //@@AbstractToneMapper.js
 

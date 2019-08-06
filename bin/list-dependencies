@@ -1,50 +1,75 @@
 #!/usr/bin/env node
 
-var fs = require('fs');
-var path = require('path');
+const fs = require('fs');
+const path = require('path');
 
-var dependencies = {};
-var queue = process.argv.slice(2).reverse().map(x => ({
-    file     : path.resolve(x),
-    includer : null
-}));
+let dependencies = {};
+let queue = process.argv.slice(2).reverse().map(x => path.resolve(x));
 
 while (queue.length > 0) {
-    var next = queue.pop();
-    if (next.file in dependencies) {
+    let next = queue.pop();
+    if (next in dependencies) {
         continue;
     }
 
     // Read file
     try {
-        var content = fs.readFileSync(next.file, 'utf8');
-    } catch(e) {
-        console.error('Cannot read file: ' + next.file);
-        console.error('Included by: ' + next.includer);
+        var content = fs.readFileSync(next, 'utf8');
+    } catch (err) {
+        console.error('Cannot read file: ' + next + ', ' + err);
         process.exit(-1);
     }
 
     // Extract and path-resolve dependencies
-    var includeRe = /@@\S+/g;
-    var matches = content.match(includeRe) || [];
-    var files = matches.map(x => ({
-        file     : path.resolve(path.dirname(next.file), x.substring(2)),
-        includer : next.file
-    }));
+    let includeRe = /@@\S+/g;
+    let matches = content.match(includeRe) || [];
+    let files = matches.map(match => {
+        let dependency = path.resolve(path.dirname(next), match.substring(2));
+
+        // Test read access
+        try {
+            fs.accessSync(dependency, fs.constants.R_OK);
+            var isDirectory = fs.lstatSync(dependency).isDirectory();
+        } catch (err) {
+            console.error('Cannot read file: ' + dependency + ', ' + err);
+            console.error('Included by ' + next);
+            process.exit(-1);
+        }
+
+        // If directory, add all files in directory
+        if (isDirectory) {
+            try {
+                return fs.readdirSync(dependency)
+                    .map(dirent => path.resolve(path.dirname(next), dependency, dirent))
+                    .filter(function(dirent) {
+                        return !fs.lstatSync(dirent).isDirectory();
+                    });
+            } catch (err) {
+                console.error('Cannot read directory: ' + dependency + ', ' + err);
+                console.error('Included by ' + next);
+                process.exit(-1);
+            }
+        } else {
+            return [dependency];
+        }
+
+        return [];
+    });
+    files = files.reduce((acc, val) => acc.concat(val), []);
     queue = queue.concat(files);
-    dependencies[next.file] = files.map(x => x.file);
+    dependencies[next] = files;
 }
 
 // Topological sort
 while (Object.keys(dependencies).length > 0) {
-    var standalones = Object.keys(dependencies).filter(x => dependencies[x].length === 0);
+    let standalones = Object.keys(dependencies).filter(x => dependencies[x].length === 0);
     if (standalones.length === 0) {
         console.error('Circular dependencies detected');
         process.exit(-1);
     }
 
     // Pick first standalone file, output it, and remove it from the graph
-    var next = standalones[0];
+    let next = standalones[0];
     console.log(next);
     delete dependencies[next];
     for (key in dependencies) {

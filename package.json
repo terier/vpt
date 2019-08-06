@@ -18,5 +18,8 @@
   "dependencies": {
     "express": "latest"
   },
+  "engines": {
+    "node": "12.x"
+  },
   "heroku-run-build-script": true
 }
