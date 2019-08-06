@@ -82,8 +82,14 @@
       ]
     },
     {
-      "type": "panel",
-      "bind": "tfcontainer"
+      "type": "accordion",
+      "label": "Transfer function",
+      "children": [
+        {
+          "type": "panel",
+          "bind": "tfcontainer"
+        }
+      ]
     }
   ]
 }

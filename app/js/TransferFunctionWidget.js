@@ -1,4 +1,5 @@
 //@@utils
+//@@EventEmitter.js
 //@@WebGL.js
 
 (function(global) {
@@ -9,10 +10,9 @@ var _ = Class.prototype;
 
 // ========================== CLASS DECLARATION ============================ //
 
-function TransferFunctionWidget(container, options) {
+function TransferFunctionWidget(options) {
+    CommonUtils.extend(_, EventEmitter);
     CommonUtils.extend(this, Class.defaults, options);
-
-    this._$container = container;
 
     this._onColorChange = this._onColorChange.bind(this);
 
@@ -24,8 +24,7 @@ Class.defaults = {
     _height                 : 256,
     _transferFunctionWidth  : 256,
     _transferFunctionHeight : 256,
-    scaleSpeed              : 0.003,
-    onChange                : null
+    scaleSpeed              : 0.003
 };
 
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
@@ -55,7 +54,6 @@ _._init = function() {
     this._$loadButton    = this._$html.querySelector('[name="load"]');
     this._$saveButton    = this._$html.querySelector('[name="save"]');
 
-    this._$container.append(this._$html);
     this._canvas = this._$html.querySelector('canvas');
     this._canvas.width = this._transferFunctionWidth;
     this._canvas.height = this._transferFunctionHeight;
@@ -95,7 +93,7 @@ _._init = function() {
             this._bumps = JSON.parse(data);
             this.render();
             this._rebuildHandles();
-            this.onChange && this.onChange();
+            this.trigger('change');
         }.bind(this));
     }.bind(this));
 
@@ -108,7 +106,7 @@ _.destroy = function() {
     var gl = this._gl;
     gl.deleteBuffer(this._clipQuad);
     gl.deleteProgram(this._program.program);
-    this._$html.remove();
+    DOMUtils.remove(this._$html);
 
     _._nullify.call(this);
 };
@@ -166,7 +164,7 @@ _.addBump = function(options) {
     this._addHandle(bumpIndex);
     this.selectBump(bumpIndex);
     this.render();
-    this.onChange && this.onChange();
+    this.trigger('change');
 };
 
 _._addHandle = function(index) {
@@ -187,7 +185,7 @@ _._addHandle = function(index) {
         this._bumps[i].position.x = x;
         this._bumps[i].position.y = y;
         this.render();
-        this.onChange && this.onChange();
+        this.trigger('change');
     }.bind(this));
     $handle.addEventListener('mousedown', function(e) {
         var i = parseInt(DOMUtils.data(e.currentTarget, 'index'));
@@ -204,7 +202,7 @@ _._addHandle = function(index) {
             this._bumps[i].size.x *= scale;
         }
         this.render();
-        this.onChange && this.onChange();
+        this.trigger('change');
     }.bind(this));
 };
 
@@ -248,7 +246,11 @@ _._onColorChange = function() {
     this._bumps[i].color.b = color.b;
     this._bumps[i].color.a = alpha;
     this.render();
-    this.onChange && this.onChange();
+    this.trigger('change');
+};
+
+_.appendTo = function(object) {
+    object.appendChild(this._$html);
 };
 
 // ============================ STATIC METHODS ============================= //

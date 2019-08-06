@@ -3,16 +3,16 @@
     <canvas></canvas>
   </div>
   <div class="controls">
-    <button name="add-bump" class="btn btn-default">Add bump</button>
-    <button name="load" class="btn btn-default">Load</button>
-    <button name="save" class="btn btn-default">Save</button>
-    <div class="input-group input-group-sm">
-      <label class="input-group-addon">Color</label>
-      <input name="color" class="form-control" type="color">
+    <input type="button" class="button" value="Add bump" name="add-bump">
+    <input type="button" class="button" value="Load" name="load">
+    <input type="button" class="button" value="Save" name="save">
+    <div class="panel">
+      <label>Color</label>
+      <input name="color" type="color">
     </div>
-    <div class="input-group input-group-sm">
-      <label class="input-group-addon">Alpha</label>
-      <input name="alpha" class="form-control" type="number" min="0" max="1" step="0.1" value="1">
+    <div>
+      <label>Alpha</label>
+      <input name="alpha" type="number" min="0" max="1" step="0.1" value="1">
     </div>
   </div>
 </div>

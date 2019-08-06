@@ -17,6 +17,7 @@ function MCMRendererDialog(renderer, options) {
     this._renderer = renderer;
 
     this._handleChange = this._handleChange.bind(this);
+    this._handleTFChange = this._handleTFChange.bind(this);
 
     _._init.call(this);
 };
@@ -39,10 +40,15 @@ _._init = function() {
     this._binds.ratio.addEventListener('change', this._handleChange);
     this._binds.bounces.addEventListener('input', this._handleChange);
     this._binds.steps.addEventListener('input', this._handleChange);
+
+    this._tfwidget = new TransferFunctionWidget();
+    this._binds.tfcontainer.add(this._tfwidget);
+    this._tfwidget.addEventListener('change', this._handleTFChange);
 };
 
 _.destroy = function() {
     this._renderer = null;
+    this._tfwidget.destroy();
 
     _._nullify.call(this);
     _.sup.destroy.call(this);
@@ -65,6 +71,11 @@ _._handleChange = function() {
     this._renderer.maxBounces = bounces;
     this._renderer.steps = steps;
 
+    this._renderer.reset();
+};
+
+_._handleTFChange = function() {
+    this._renderer.setTransferFunction(this._tfwidget.getTransferFunction());
     this._renderer.reset();
 };
 
