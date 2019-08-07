@@ -130,10 +130,17 @@ function buildPrograms(gl, shaders, mixins) {
     var programs = {};
     Object.keys(cooked).forEach(function(name) {
         try {
-            programs[name] = createProgram(gl, [
-                createShader(gl, cooked[name].vertex, gl.VERTEX_SHADER),
-                createShader(gl, cooked[name].fragment, gl.FRAGMENT_SHADER)
-            ]);
+            var program = cooked[name];
+            if (program.vertex && program.fragment) {
+                programs[name] = createProgram(gl, [
+                    createShader(gl, program.vertex, gl.VERTEX_SHADER),
+                    createShader(gl, program.fragment, gl.FRAGMENT_SHADER)
+                ]);
+            } else if (program.compute) {
+                programs[name] = createProgram(gl, [
+                    createShader(gl, program.compute, gl.COMPUTE_SHADER)
+                ]);
+            }
         } catch (e) {
             throw new Error('Error compiling ' + name + '\n' + e);
         }
