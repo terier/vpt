@@ -253,6 +253,7 @@ _.chooseRenderer = function(renderer) {
         case 'eam' : this._renderer = new EAMRenderer(gl, volume, env); break;
         case 'mcs' : this._renderer = new MCSRenderer(gl, volume, env); break;
         case 'mcm' : this._renderer = new MultipleScatteringRenderer(gl, volume, env); break;
+        case 'mcc' : this._renderer = new MCCRenderer(gl, volume, env); break;
     }
     if (this._toneMapper) {
         this._toneMapper.setTexture(this._renderer.getTexture());
@@ -268,7 +269,7 @@ _.chooseToneMapper = function(toneMapper) {
     if (this._renderer) {
         var texture = this._renderer.getTexture();
     } else {
-        var texture = WebGL.createTexture({
+        var texture = WebGL.createTexture(gl, {
             width  : 1,
             height : 1,
             data   : new Uint8Array([255, 255, 255, 255]),
