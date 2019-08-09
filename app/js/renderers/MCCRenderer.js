@@ -62,6 +62,10 @@ _._init = function() {
     this._renderBuffer = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, this._renderBuffer);
     gl.texStorage2D(gl.TEXTURE_2D, 1, gl.RGBA32F, this._resolution, this._resolution);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
     this._mvpInverseMatrix = new Matrix();
 
@@ -141,6 +145,9 @@ _.reset = function() {
     gl.bindBuffer(gl.SHADER_STORAGE_BUFFER, this._photonBuffer);
     gl.bindBufferBase(gl.SHADER_STORAGE_BUFFER, 0, this._photonBuffer);
 
+    gl.bindTexture(gl.TEXTURE_2D, this._renderBuffer);
+    gl.bindImageTexture(0, this._renderBuffer, 0, false, 0, gl.WRITE_ONLY, gl.RGBA32F);
+
     var groups = this._resolution / this._workgroup;
     gl.dispatchCompute(groups, groups, 1);
 };
@@ -150,6 +157,17 @@ _.render = function() {
 
     var program = this._programs.render;
     gl.useProgram(program.program);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, this._envmap);
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
+
+    gl.uniform1i(program.uniforms.uVolume, 0);
+    gl.uniform1i(program.uniforms.uEnvironment, 1);
+    gl.uniform1i(program.uniforms.uTransferFunction, 2);
 
     gl.uniformMatrix4fv(program.uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
     gl.uniform2f(program.uniforms.uInverseResolution, 1 / this._resolution, 1 / this._resolution);
@@ -166,6 +184,7 @@ _.render = function() {
     gl.bindBuffer(gl.SHADER_STORAGE_BUFFER, this._photonBuffer);
     gl.bindBufferBase(gl.SHADER_STORAGE_BUFFER, 0, this._photonBuffer);
 
+    gl.bindTexture(gl.TEXTURE_2D, this._renderBuffer);
     gl.bindImageTexture(0, this._renderBuffer, 0, false, 0, gl.WRITE_ONLY, gl.RGBA32F);
 
     var groups = this._resolution / this._workgroup;
