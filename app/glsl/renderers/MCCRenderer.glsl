@@ -42,7 +42,7 @@ uniform uint uSteps;
 @unprojectRand
 @intersectCube
 
-void resetPhoton(inout vec2 randState, out Photon photon) {
+void resetPhoton(inout vec2 randState, inout Photon photon) {
     vec3 from, to;
     vec2 screen = vec2(gl_GlobalInvocationID.xy) * uInverseResolution * 2.0 - 1.0;
     unprojectRand(randState, screen, uMvpInverseMatrix, uInverseResolution, uBlur, from, to);

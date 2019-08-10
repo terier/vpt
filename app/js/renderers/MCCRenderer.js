@@ -76,8 +76,9 @@ _._init = function() {
     //     vec3 color;     // 4 * 4B
     //     uint bounces;   // 4B
     //     uint samples;   // 4B
+    //          padding    // ??
     // };                  //
-    var bufferSize = 18 * 4 * this._resolution * this._resolution;
+    var bufferSize = 20 * 4 * this._resolution * this._resolution;
     this._photonBuffer = gl.createBuffer();
     gl.bindBuffer(gl.SHADER_STORAGE_BUFFER, this._photonBuffer);
     gl.bindBufferBase(gl.SHADER_STORAGE_BUFFER, 0, this._photonBuffer);
