@@ -44,7 +44,7 @@ uniform uint uSteps;
 
 void resetPhoton(inout vec2 randState, out Photon photon) {
     vec3 from, to;
-    vec2 screen = vec2(gl_GlobalInvocationID.xy) * uInverseResolution;
+    vec2 screen = vec2(gl_GlobalInvocationID.xy) * uInverseResolution * 2.0 - 1.0;
     unprojectRand(randState, screen, uMvpInverseMatrix, uInverseResolution, uBlur, from, to);
     photon.direction = normalize(to - from);
     photon.bounces = 0u;
@@ -89,7 +89,9 @@ vec3 sampleHenyeyGreenstein(float g, vec2 U, vec3 direction) {
 }
 
 void main() {
-    Photon photon = sPhotons[gl_LocalInvocationIndex];
+    uvec3 globalSize = gl_WorkGroupSize * gl_NumWorkGroups;
+    uint globalInvocationIndex = gl_GlobalInvocationID.x + gl_GlobalInvocationID.y * globalSize.x;
+    Photon photon = sPhotons[globalInvocationIndex];
 
     vec2 r = rand(vec2(gl_GlobalInvocationID.xy) * uRandSeed);
     for (uint i = 0u; i < uSteps; i++) {
@@ -131,7 +133,7 @@ void main() {
         }
     }
 
-    sPhotons[gl_LocalInvocationIndex] = photon;
+    sPhotons[globalInvocationIndex] = photon;
     imageStore(oColor, ivec2(gl_GlobalInvocationID.xy), vec4(photon.color, 1));
 }
 
@@ -165,7 +167,7 @@ layout (std430, binding = 0) buffer bPhotons {
 void main() {
     Photon photon;
     vec3 from, to;
-    vec2 screen = vec2(gl_GlobalInvocationID.xy) * uInverseResolution;
+    vec2 screen = vec2(gl_GlobalInvocationID.xy) * uInverseResolution * 2.0 - 1.0;
     vec2 randState = rand(screen * uRandSeed);
     unprojectRand(randState, screen, uMvpInverseMatrix, uInverseResolution, uBlur, from, to);
     photon.direction = normalize(to - from);
@@ -175,5 +177,7 @@ void main() {
     photon.color = vec3(0);
     photon.bounces = 0u;
     photon.samples = 0u;
-    sPhotons[gl_LocalInvocationIndex] = photon;
+    uvec3 globalSize = gl_WorkGroupSize * gl_NumWorkGroups;
+    uint globalInvocationIndex = gl_GlobalInvocationID.x + gl_GlobalInvocationID.y * globalSize.x;
+    sPhotons[globalInvocationIndex] = photon;
 }
