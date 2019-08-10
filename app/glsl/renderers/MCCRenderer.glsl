@@ -113,6 +113,7 @@ void main() {
             vec4 envSample = sampleEnvironmentMap(photon.direction);
             photon.samples++;
             photon.color += (photon.radiance * envSample.rgb - photon.color) / float(photon.samples);
+            imageStore(oColor, ivec2(gl_GlobalInvocationID.xy), vec4(photon.color, 1));
             //r = rand(r);
             resetPhoton(r, photon);
         } else if (photon.bounces >= uMaxBounces) {
@@ -134,7 +135,6 @@ void main() {
     }
 
     sPhotons[globalInvocationIndex] = photon;
-    imageStore(oColor, ivec2(gl_GlobalInvocationID.xy), vec4(photon.color, 1));
 }
 
 %%MCCReset:compute

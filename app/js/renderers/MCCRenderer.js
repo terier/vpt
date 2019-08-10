@@ -146,7 +146,6 @@ _.reset = function() {
     gl.bindBuffer(gl.SHADER_STORAGE_BUFFER, this._photonBuffer);
     gl.bindBufferBase(gl.SHADER_STORAGE_BUFFER, 0, this._photonBuffer);
 
-    gl.bindTexture(gl.TEXTURE_2D, this._renderBuffer);
     gl.bindImageTexture(0, this._renderBuffer, 0, false, 0, gl.WRITE_ONLY, gl.RGBA32F);
 
     var groups = this._resolution / this._workgroup;
@@ -185,7 +184,6 @@ _.render = function() {
     gl.bindBuffer(gl.SHADER_STORAGE_BUFFER, this._photonBuffer);
     gl.bindBufferBase(gl.SHADER_STORAGE_BUFFER, 0, this._photonBuffer);
 
-    gl.bindTexture(gl.TEXTURE_2D, this._renderBuffer);
     gl.bindImageTexture(0, this._renderBuffer, 0, false, 0, gl.WRITE_ONLY, gl.RGBA32F);
 
     var groups = this._resolution / this._workgroup;
