@@ -1,5 +1,6 @@
 //@@../../utils
 //@@../AbstractDialog.js
+//@@../../TransferFunctionWidget.js
 
 (function(global) {
 'use strict';
