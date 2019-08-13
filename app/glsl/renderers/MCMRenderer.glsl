@@ -1,12 +1,12 @@
-%%MultipleScatteringGenerate:vertex
+%%MCMGenerate:vertex
 
 void main() {}
 
-%%MultipleScatteringGenerate:fragment
+%%MCMGenerate:fragment
 
 void main() {}
 
-%%MultipleScatteringIntegrate:vertex
+%%MCMIntegrate:vertex
 
 #version 300 es
 
@@ -19,7 +19,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-%%MultipleScatteringIntegrate:fragment
+%%MCMIntegrate:fragment
 
 #version 300 es
 precision mediump float;
@@ -163,7 +163,7 @@ void main() {
     oColor = colorAndNumber;
 }
 
-%%MultipleScatteringRender:vertex
+%%MCMRender:vertex
 
 #version 300 es
 
@@ -175,7 +175,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-%%MultipleScatteringRender:fragment
+%%MCMRender:fragment
 
 #version 300 es
 precision mediump float;
@@ -189,7 +189,7 @@ void main() {
     oColor = vec4(texture(uColor, vPosition).rgb, 1);
 }
 
-%%MultipleScatteringReset:vertex
+%%MCMReset:vertex
 
 #version 300 es
 
@@ -202,7 +202,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-%%MultipleScatteringReset:fragment
+%%MCMReset:fragment
 
 #version 300 es
 precision mediump float;

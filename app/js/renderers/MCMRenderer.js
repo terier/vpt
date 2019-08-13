@@ -5,13 +5,13 @@
 (function(global) {
     'use strict';
 
-    var Class = global.MultipleScatteringRenderer = MultipleScatteringRenderer;
+    var Class = global.MCMRenderer = MCMRenderer;
     CommonUtils.inherit(Class, AbstractRenderer);
     var _ = Class.prototype;
 
 // ========================== CLASS DECLARATION ============================ //
 
-function MultipleScatteringRenderer(gl, volume, environmentTexture, options) {
+function MCMRenderer(gl, volume, environmentTexture, options) {
     _.sup.constructor.call(this, gl, volume, environmentTexture, options);
     CommonUtils.extend(this, Class.defaults, options);
 
@@ -39,10 +39,10 @@ _._init = function() {
     var gl = this._gl;
 
     this._programs = WebGL.buildPrograms(gl, {
-        generate  : SHADERS.MultipleScatteringGenerate,
-        integrate : SHADERS.MultipleScatteringIntegrate,
-        render    : SHADERS.MultipleScatteringRender,
-        reset     : SHADERS.MultipleScatteringReset
+        generate  : SHADERS.MCMGenerate,
+        integrate : SHADERS.MCMIntegrate,
+        render    : SHADERS.MCMRender,
+        reset     : SHADERS.MCMReset
     }, MIXINS);
 };
 

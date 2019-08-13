@@ -252,7 +252,7 @@ _.chooseRenderer = function(renderer) {
         case 'iso' : this._renderer = new ISORenderer(gl, volume, env); break;
         case 'eam' : this._renderer = new EAMRenderer(gl, volume, env); break;
         case 'mcs' : this._renderer = new MCSRenderer(gl, volume, env); break;
-        case 'mcm' : this._renderer = new MultipleScatteringRenderer(gl, volume, env); break;
+        case 'mcm' : this._renderer = new MCMRenderer(gl, volume, env); break;
         case 'mcc' : this._renderer = new MCCRenderer(gl, volume, env); break;
     }
     if (this._toneMapper) {
