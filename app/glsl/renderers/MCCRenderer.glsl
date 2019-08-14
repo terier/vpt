@@ -13,7 +13,7 @@ layout (std430, binding = 0) buffer bPhotons {
     Photon sPhotons[];
 };
 
-layout (rgba32f) writeonly highp uniform image2D oColor;
+layout (rgba32f) restrict writeonly highp uniform image2D oRadiance;
 
 uniform mediump sampler3D uVolume;
 uniform mediump sampler2D uTransferFunction;
@@ -107,7 +107,7 @@ void main() {
             vec3 radiance = photon.transmittance * envSample.rgb;
             photon.samples++;
             photon.radiance += (radiance - photon.radiance) / float(photon.samples);
-            imageStore(oColor, ivec2(gl_GlobalInvocationID.xy), vec4(photon.radiance, 1));
+            imageStore(oRadiance, ivec2(gl_GlobalInvocationID.xy), vec4(photon.radiance, 1));
             resetPhoton(r, photon);
         } else if (photon.bounces >= uMaxBounces) {
             // max bounces achieved -> only estimate transmittance
