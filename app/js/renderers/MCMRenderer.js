@@ -106,8 +106,8 @@ _._integrateFrame = function() {
 
     gl.uniform1i(program.uniforms.uPosition, 0);
     gl.uniform1i(program.uniforms.uDirection, 1);
-    gl.uniform1i(program.uniforms.uRadiance, 2);
-    gl.uniform1i(program.uniforms.uColor, 3);
+    gl.uniform1i(program.uniforms.uTransmittance, 2);
+    gl.uniform1i(program.uniforms.uRadiance, 3);
 
     gl.uniform1i(program.uniforms.uVolume, 4);
     gl.uniform1i(program.uniforms.uEnvironment, 5);
@@ -122,8 +122,8 @@ _._integrateFrame = function() {
     gl.uniform1f(program.uniforms.uScatteringCoefficient, this.scatteringCoefficient);
     gl.uniform1f(program.uniforms.uScatteringBias, this.scatteringBias);
     gl.uniform1f(program.uniforms.uMajorant, this.majorant);
-    gl.uniform1f(program.uniforms.uMaxBounces, this.maxBounces);
-    gl.uniform1i(program.uniforms.uSteps, this.steps);
+    gl.uniform1ui(program.uniforms.uMaxBounces, this.maxBounces);
+    gl.uniform1ui(program.uniforms.uSteps, this.steps);
 
     gl.drawBuffers([
         gl.COLOR_ATTACHMENT0,
@@ -185,7 +185,7 @@ _._getAccumulationBufferSpec = function() {
         type           : gl.FLOAT
     };
 
-    var radianceBufferSpec = {
+    var transmittanceBufferSpec = {
         width          : this._bufferSize,
         height         : this._bufferSize,
         min            : gl.NEAREST,
@@ -195,7 +195,7 @@ _._getAccumulationBufferSpec = function() {
         type           : gl.FLOAT
     };
 
-    var colorBufferSpec = {
+    var radianceBufferSpec = {
         width          : this._bufferSize,
         height         : this._bufferSize,
         min            : gl.NEAREST,
@@ -208,8 +208,8 @@ _._getAccumulationBufferSpec = function() {
     return [
         positionBufferSpec,
         directionBufferSpec,
-        radianceBufferSpec,
-        colorBufferSpec
+        transmittanceBufferSpec,
+        radianceBufferSpec
     ];
 };
 

@@ -7,14 +7,7 @@ layout (local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
 #define M_2PI 6.28318530718
 #define EPS 1e-5
 
-struct Photon {
-    vec3 position;
-    vec3 direction;
-    vec3 radiance;
-    vec3 color;
-    uint bounces;
-    uint samples;
-};
+@Photon
 
 layout (std430, binding = 0) buffer bPhotons {
     Photon sPhotons[];
@@ -50,7 +43,7 @@ void resetPhoton(inout vec2 randState, inout Photon photon) {
     photon.bounces = 0u;
     vec2 tbounds = max(intersectCube(from, photon.direction), 0.0);
     photon.position = from + tbounds.x * photon.direction;
-    photon.radiance = vec3(1);
+    photon.transmittance = vec3(1);
 }
 
 vec4 sampleEnvironmentMap(vec3 d) {
@@ -111,26 +104,30 @@ void main() {
         if (any(greaterThan(photon.position, vec3(1))) || any(lessThan(photon.position, vec3(0)))) {
             // out of bounds
             vec4 envSample = sampleEnvironmentMap(photon.direction);
+            vec3 radiance = photon.transmittance * envSample.rgb;
             photon.samples++;
-            photon.color += (photon.radiance * envSample.rgb - photon.color) / float(photon.samples);
-            imageStore(oColor, ivec2(gl_GlobalInvocationID.xy), vec4(photon.color, 1));
-            //r = rand(r);
+            photon.radiance += (radiance - photon.radiance) / float(photon.samples);
+            imageStore(oColor, ivec2(gl_GlobalInvocationID.xy), vec4(photon.radiance, 1));
             resetPhoton(r, photon);
         } else if (photon.bounces >= uMaxBounces) {
             // max bounces achieved -> only estimate transmittance
-            photon.radiance *= 1.0 - (muAbsorption + muScattering) / muMajorant;
+            float weightAS = (muAbsorption + muScattering) / uMajorant;
+            photon.transmittance *= 1.0 - weightAS;
         } else if (r.y < PAbsorption) {
             // absorption
-            photon.radiance *= 1.0 - (muAbsorption + muScattering) / muMajorant;
+            float weightA = muAbsorption / (uMajorant * PAbsorption);
+            photon.transmittance *= 1.0 - weightA;
         } else if (r.y < PAbsorption + PScattering) {
             // scattering
             r = rand(r);
-            photon.radiance *= volumeSample.rgb * muScattering / (muMajorant * PScattering);
+            float weightS = muScattering / (uMajorant * PScattering);
+            photon.transmittance *= volumeSample.rgb * weightS;
             photon.direction = sampleHenyeyGreenstein(uScatteringBias, r, photon.direction);
             photon.bounces++;
         } else {
             // null collision
-            photon.radiance *= muNull / (muMajorant * PNull);
+            float weightN = muNull / (uMajorant * PNull);
+            photon.transmittance *= weightN;
         }
     }
 
@@ -151,14 +148,7 @@ uniform float uBlur;
 @unprojectRand
 @intersectCube
 
-struct Photon {
-    vec3 position;
-    vec3 direction;
-    vec3 radiance;
-    vec3 color; // image is either writeonly or readonly :(
-    uint bounces;
-    uint samples; // could be in color.a?
-};
+@Photon
 
 layout (std430, binding = 0) buffer bPhotons {
     Photon sPhotons[];
@@ -173,8 +163,8 @@ void main() {
     photon.direction = normalize(to - from);
     vec2 tbounds = max(intersectCube(from, photon.direction), 0.0);
     photon.position = from + tbounds.x * photon.direction;
+    photon.transmittance = vec3(1);
     photon.radiance = vec3(1);
-    photon.color = vec3(0);
     photon.bounces = 0u;
     photon.samples = 0u;
     uvec3 globalSize = gl_WorkGroupSize * gl_NumWorkGroups;
