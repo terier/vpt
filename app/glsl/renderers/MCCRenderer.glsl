@@ -13,7 +13,7 @@ layout (std430, binding = 0) buffer bPhotons {
     Photon sPhotons[];
 };
 
-layout (rgba32f) restrict writeonly highp uniform image2D oRadiance;
+layout (rgba32f, binding = 0) restrict writeonly highp uniform image2D oRadiance;
 
 uniform mediump sampler3D uVolume;
 uniform mediump sampler2D uTransferFunction;
