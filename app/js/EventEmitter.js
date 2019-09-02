@@ -1,8 +1,9 @@
 var EventEmitter = {
 
-    _eventHandlers: {},
-
     addEventListener: function(event, handler) {
+        if (!this._eventHandlers) {
+            this._eventHandlers = {};
+        }
         if (!this._eventHandlers[event]) {
             this._eventHandlers[event] = [];
         }

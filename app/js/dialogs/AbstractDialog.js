@@ -7,11 +7,11 @@
 
 var Class = global.AbstractDialog = AbstractDialog;
 var _ = Class.prototype;
+CommonUtils.extend(_, EventEmitter);
 
 // ========================== CLASS DECLARATION ============================ //
 
 function AbstractDialog(spec, options) {
-    CommonUtils.extend(_, EventEmitter);
     CommonUtils.extend(this, Class.defaults, options);
 
     this._spec = spec;

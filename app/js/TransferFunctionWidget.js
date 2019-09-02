@@ -8,11 +8,11 @@
 
 var Class = global.TransferFunctionWidget = TransferFunctionWidget;
 var _ = Class.prototype;
+CommonUtils.extend(_, EventEmitter);
 
 // ========================== CLASS DECLARATION ============================ //
 
 function TransferFunctionWidget(options) {
-    CommonUtils.extend(_, EventEmitter);
     CommonUtils.extend(this, Class.defaults, options);
 
     this._onColorChange = this._onColorChange.bind(this);
