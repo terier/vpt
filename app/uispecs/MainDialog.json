@@ -53,12 +53,12 @@
                         },
                         {
                           "value": "mcm",
-                          "label": "Multiple scattering"
+                          "label": "Multiple scattering",
+                          "selected": true
                         },
                         {
                           "value": "mcc",
-                          "label": "Multiple scattering (compute)",
-                          "selected": true
+                          "label": "Multiple scattering (compute)"
                         }
                       ]
                     }

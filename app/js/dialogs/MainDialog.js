@@ -81,6 +81,10 @@ _._handleToneMapperChange = function() {
     this.trigger('tonemapperchange', toneMapper);
 };
 
+_.disableMCC = function() {
+    this._binds.rendererSelect.removeOption('mcc');
+};
+
 // ============================ STATIC METHODS ============================= //
 
 })(this);

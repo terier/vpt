@@ -53,6 +53,14 @@ _.addOption = function(value, label, selected) {
     }
 };
 
+_.removeOption = function(value) {
+    var selector = 'option[value="' + value + '"]';
+    var option = this._binds.input.querySelector(selector);
+    if (option) {
+        DOMUtils.remove(option);
+    }
+};
+
 _.setValue = function(value) {
     this._binds.input.value = value;
 };

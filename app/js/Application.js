@@ -68,6 +68,10 @@ _._init = function() {
     document.body.addEventListener('drop', this._handleFileDrop);
 
     this._mainDialog = new MainDialog();
+    if (!this._renderingContext.hasComputeCapabilities()) {
+        this._mainDialog.disableMCC();
+    }
+
     this._statusBar = new StatusBar();
     this._statusBar.appendTo(document.body);
 
