@@ -3,6 +3,17 @@
   "children": [
     {
       "type": "field",
+      "label": "Linear filter:",
+      "children": [
+        {
+          "type": "checkbox",
+          "bind": "filter",
+          "checked": true
+        }
+      ]
+    },
+    {
+      "type": "field",
       "label": "Resolution:",
       "children": [
         {

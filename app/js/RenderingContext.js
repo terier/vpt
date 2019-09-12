@@ -27,7 +27,8 @@ function RenderingContext(options) {
 };
 
 Class.defaults = {
-    _resolution : 512
+    _resolution : 512,
+    _filter     : 'linear'
 };
 
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
@@ -216,6 +217,7 @@ _.setVolume = function(reader) {
         onData: function() {
             volume.readModality('default', {
                 onLoad: function() {
+                    volume.setFilter(this._filter);
                     if (this._renderer) {
                         this._renderer.setVolume(volume);
                         this.startRendering();
@@ -238,6 +240,16 @@ _.setEnvironmentMap = function(image) {
         image.width, image.height,
         0, gl.RGBA, gl.UNSIGNED_BYTE, image);
     gl.bindTexture(gl.TEXTURE_2D, null);
+};
+
+_.setFilter = function(filter) {
+    this._filter = filter;
+    if (this._volume) {
+        this._volume.setFilter(filter);
+        if (this._renderer) {
+            this._renderer.reset();
+        }
+    }
 };
 
 _.chooseRenderer = function(renderer) {

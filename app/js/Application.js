@@ -95,6 +95,9 @@ _._init = function() {
         this._renderingContext.setScale(s.x, s.y, s.z);
         this._renderingContext.setTranslation(t.x, t.y, t.z);
     }.bind(this));
+    this._renderingContextDialog.addEventListener('filter', function(options) {
+        this._renderingContext.setFilter(options.filter);
+    }.bind(this));
 
     this._mainDialog.addEventListener('rendererchange', this._handleRendererChange);
     this._mainDialog.addEventListener('tonemapperchange', this._handleToneMapperChange);
