@@ -28,8 +28,8 @@ function OrbitCameraController(camera, domElement, options) {
 };
 
 Class.defaults = {
-    rotationSpeed    : 0.01,
-    translationSpeed : 0.002,
+    rotationSpeed    : 2,
+    translationSpeed : 2,
     moveSpeed        : 0.01,
     zoomSpeed        : 0.001
 };
@@ -126,8 +126,8 @@ _._handleMouseMove = function(e) {
     var dy = y - this._startY;
 
     if (this._isRotating) {
-        var angleX = dx * this.rotationSpeed;
-        var angleY = dy * this.rotationSpeed;
+        var angleX = dx * this.rotationSpeed * this._focus * this._camera.zoomFactor;
+        var angleY = dy * this.rotationSpeed * this._focus * this._camera.zoomFactor;
 
         if (e.shiftKey) {
             this._rotateAroundSelf(angleX, angleY);
@@ -137,7 +137,8 @@ _._handleMouseMove = function(e) {
     }
 
     if (this._isTranslating) {
-        this._move(-dx * this.translationSpeed * this._focus, dy * this.translationSpeed * this._focus, 0);
+        var speedFactor = this.translationSpeed * this._focus * this._camera.zoomFactor;
+        this._move(-dx * speedFactor, dy * speedFactor, 0);
     }
 
     this._startX = x;
