@@ -111,6 +111,10 @@
               "label": "Context"
             }
           ]
+        },
+        "About": {
+          "type": "panel",
+          "bind": "about"
         }
       }
     }

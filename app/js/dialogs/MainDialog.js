@@ -34,6 +34,9 @@ _._init = function() {
     this._binds.sidebar.appendTo(document.body);
     this._binds.rendererSelect.addEventListener('change', this._handleRendererChange);
     this._binds.toneMapperSelect.addEventListener('change', this._handleToneMapperChange);
+
+    var about = DOMUtils.instantiate(TEMPLATES.AboutText);
+    this._binds.about._element.appendChild(about);
 };
 
 _.destroy = function() {
