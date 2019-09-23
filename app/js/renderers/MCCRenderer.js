@@ -67,8 +67,6 @@ _._init = function() {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
-    this._mvpInverseMatrix = new Matrix();
-
     // struct Photon {     //
     //     vec3 position;  // 4 * 4B
     //     vec3 direction; // 4 * 4B
@@ -115,10 +113,6 @@ _.setTransferFunction = function(transferFunction) {
     gl.texImage2D(gl.TEXTURE_2D, 0,
         gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, transferFunction);
     gl.bindTexture(gl.TEXTURE_2D, null);
-};
-
-_.setMvpInverseMatrix = function(matrix) {
-    this._mvpInverseMatrix.copy(matrix);
 };
 
 _.setResolution = function(resolution) {
