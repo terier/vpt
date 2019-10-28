@@ -61,6 +61,10 @@ _.isValid = function() {
     return this._regex.test(this._binds.input.value);
 };
 
+_.setValue = function(value) {
+    this._binds.input.value = value;
+};
+
 _.getValue = function() {
     return this._binds.input.value;
 };

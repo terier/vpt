@@ -35,19 +35,17 @@ _._nullify = function() {
 _._init = function() {
     _._nullify.call(this);
 
-    this._binds.extinction.addEventListener('input', this._handleChange);
-    this._binds.albedo.addEventListener('change', this._handleChange);
-    this._binds.bias.addEventListener('change', this._handleChange);
-    this._binds.ratio.addEventListener('change', this._handleChange);
-    this._binds.bounces.addEventListener('input', this._handleChange);
-    this._binds.steps.addEventListener('input', this._handleChange);
-
     this._tfwidget = new TransferFunctionWidget();
     this._binds.tfcontainer.add(this._tfwidget);
-    this._tfwidget.addEventListener('change', this._handleTFChange);
+
+    this._fromLocalStorage();
+    this._attachHandlers();
 };
 
 _.destroy = function() {
+    this._detachHandlers();
+    this._toLocalStorage();
+
     this._renderer = null;
     this._tfwidget.destroy();
 
@@ -56,6 +54,38 @@ _.destroy = function() {
 };
 
 // =========================== INSTANCE METHODS ============================ //
+
+_._attachHandlers = function() {
+    if (this._handlersAttached) {
+        return;
+    }
+
+    this._binds.extinction.addEventListener('input', this._handleChange);
+    this._binds.albedo.addEventListener('change', this._handleChange);
+    this._binds.bias.addEventListener('change', this._handleChange);
+    this._binds.ratio.addEventListener('change', this._handleChange);
+    this._binds.bounces.addEventListener('input', this._handleChange);
+    this._binds.steps.addEventListener('input', this._handleChange);
+    this._tfwidget.addEventListener('change', this._handleTFChange);
+
+    this._handlersAttached = true;
+};
+
+_._detachHandlers = function() {
+    if (!this._handlersAttached) {
+        return;
+    }
+
+    this._binds.extinction.removeEventListener('input', this._handleChange);
+    this._binds.albedo.removeEventListener('change', this._handleChange);
+    this._binds.bias.removeEventListener('change', this._handleChange);
+    this._binds.ratio.removeEventListener('change', this._handleChange);
+    this._binds.bounces.removeEventListener('input', this._handleChange);
+    this._binds.steps.removeEventListener('input', this._handleChange);
+    this._tfwidget.removeEventListener('change', this._handleTFChange);
+
+    this._handlersAttached = false;
+};
 
 _._handleChange = function() {
     var extinction = this._binds.extinction.getValue();
@@ -78,6 +108,39 @@ _._handleChange = function() {
 _._handleTFChange = function() {
     this._renderer.setTransferFunction(this._tfwidget.getTransferFunction());
     this._renderer.reset();
+};
+
+// TODO: maybe automate serialization?
+_._toLocalStorage = function() {
+    localStorage.setItem('MCMRendererDialog', JSON.stringify({
+        extinction : this._binds.extinction.getValue(),
+        albedo     : this._binds.albedo.getValue(),
+        bias       : this._binds.bias.getValue(),
+        ratio      : this._binds.ratio.getValue(),
+        bounces    : this._binds.bounces.getValue(),
+        steps      : this._binds.steps.getValue(),
+    }));
+};
+
+_._fromLocalStorage = function() {
+    var data = localStorage.getItem('MCMRendererDialog');
+    if (!data) {
+        return;
+    }
+
+    data = JSON.parse(data);
+
+    this._detachHandlers();
+    this._binds.extinction.setValue(data.extinction);
+    this._binds.albedo.setValue(data.albedo);
+    this._binds.bias.setValue(data.bias);
+    this._binds.ratio.setValue(data.ratio);
+    this._binds.bounces.setValue(data.bounces);
+    this._binds.steps.setValue(data.steps);
+    this._attachHandlers();
+
+    this._handleChange();
+    this._handleTFChange();
 };
 
 // ============================ STATIC METHODS ============================= //
