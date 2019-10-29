@@ -1,36 +1,16 @@
 //@@../utils
 //@@UIObject.js
 
-(function(global) {
-'use strict';
+class Textbox extends UIObject {
 
-var Class = global.Textbox = Textbox;
-CommonUtils.inherit(Class, UIObject);
-var _ = Class.prototype;
+constructor(options) {
+    super(TEMPLATES.Textbox, options);
 
-// ========================== CLASS DECLARATION ============================ //
-
-function Textbox(options) {
-    _.sup.constructor.call(this, TEMPLATES.Textbox, options);
-    CommonUtils.extend(this, Class.defaults, options);
-
-    _._init.call(this);
-};
-
-Class.defaults = {
-    value       : null,
-    pattern     : null,
-    placeholder : null
-};
-
-// ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
-
-_._nullify = function() {
-    this._regex = null;
-};
-
-_._init = function() {
-    _._nullify.call(this);
+    Object.assign(this, {
+        value       : null,
+        pattern     : null,
+        placeholder : null
+    }, options);
 
     if (this.value !== null) {
         this._binds.input.value = this.value;
@@ -43,32 +23,23 @@ _._init = function() {
     }
 
     this._regex = new RegExp(this.pattern);
-};
+}
 
-_.destroy = function() {
-    _._nullify.call(this);
-    _.sup.destroy.call(this);
-};
-
-// =========================== INSTANCE METHODS ============================ //
-
-_.setEnabled = function(enabled) {
+setEnabled(enabled) {
     this._binds.input.disabled = !enabled;
-    _.sup.setEnabled.call(this, enabled);
-};
+    super.setEnabled(enabled);
+}
 
-_.isValid = function() {
+isValid() {
     return this._regex.test(this._binds.input.value);
-};
+}
 
-_.getValue = function() {
+getValue() {
     return this._binds.input.value;
-};
+}
 
-_.getMatch = function() {
+getMatch() {
     return this._binds.input.value.match(this._regex);
-};
+}
 
-// ============================ STATIC METHODS ============================= //
-
-})(this);
+}

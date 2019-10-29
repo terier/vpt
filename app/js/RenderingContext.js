@@ -8,48 +8,22 @@
 //@@renderers
 //@@tonemappers
 
-(function(global) {
-'use strict';
+class RenderingContext {
 
-var Class = global.RenderingContext = RenderingContext;
-var _ = Class.prototype;
-
-// ========================== CLASS DECLARATION ============================ //
-
-function RenderingContext(options) {
-    CommonUtils.extend(this, Class.defaults, options);
-
+constructor(options) {
     this._render = this._render.bind(this);
     this._webglcontextlostHandler = this._webglcontextlostHandler.bind(this);
     this._webglcontextrestoredHandler = this._webglcontextrestoredHandler.bind(this);
 
-    _._init.call(this);
-};
-
-Class.defaults = {
-    _resolution : 512,
-    _filter     : 'linear'
-};
-
-// ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
-
-_._nullify = function() {
-    this._canvas                = null;
-    this._camera                = null;
-    this._cameraController      = null;
-    this._renderer              = null;
-    this._toneMapper            = null;
-    this._scale                 = null;
-    this._translation           = null;
-    this._isTransformationDirty = null;
-
-    this._nullifyGL();
-};
-
-_._init = function() {
-    _._nullify.call(this);
+    Object.assign(this, {
+        _resolution : 512,
+        _filter     : 'linear'
+    }, options);
 
     this._canvas = document.createElement('canvas');
+    this._canvas.addEventListener('webglcontextlost', this._webglcontextlostHandler);
+    this._canvas.addEventListener('webglcontextrestored', this._webglcontextrestoredHandler);
+
     this._initGL();
 
     this._camera = new Camera();
@@ -60,70 +34,25 @@ _._init = function() {
 
     this._cameraController = new OrbitCameraController(this._camera, this._canvas);
 
-    var loader = new BlobLoader();
     this._volume = new Volume(this._gl);
-
-    this._contextRestorable = true;
-
-    this._canvas.addEventListener('webglcontextlost', this._webglcontextlostHandler);
-    this._canvas.addEventListener('webglcontextrestored', this._webglcontextrestoredHandler);
-
     this._scale = new Vector(1, 1, 1);
     this._translation = new Vector(0, 0, 0);
     this._isTransformationDirty = true;
-
     this._updateMvpInverseMatrix();
-};
-
-_.destroy = function() {
-    this.stopRendering();
-
-    this._volume.destroy();
-    if (this._toneMapper) {
-        this._toneMapper.destroy();
-    }
-    if (this._renderer) {
-        this._renderer.destroy();
-    }
-    this._cameraController.destroy();
-    this._camera.destroy();
-
-    this._destroyGL();
-
-    this._canvas.removeEventListener('webglcontextlost', this._webglcontextlostHandler);
-    this._canvas.removeEventListener('webglcontextrestored', this._webglcontextrestoredHandler);
-
-    if (this._canvas.parentNode) {
-        this._canvas.parentNode.removeChild(this._canvas);
-    }
-
-    _._nullify.call(this);
-};
+}
 
 // ============================ WEBGL SUBSYSTEM ============================ //
 
-_._nullifyGL = function() {
-    this._gl                  = null;
-    this._hasCompute          = null;
-    this._volume              = null;
-    this._environmentTexture  = null;
-    this._transferFunction    = null;
-    this._program             = null;
-    this._clipQuad            = null;
-    this._extLoseContext      = null;
-    this._extColorBufferFloat = null;
-};
-
-_._initGL = function() {
-    this._nullifyGL();
-
-    var contextSettings = {
+_initGL() {
+    const contextSettings = {
         alpha                 : false,
         depth                 : false,
         stencil               : false,
         antialias             : false,
         preserveDrawingBuffer : true,
     };
+
+    this._contextRestorable = true;
 
     try {
         this._gl = WebGL.getContext(this._canvas, ['webgl2-compute'], contextSettings);
@@ -135,7 +64,7 @@ _._initGL = function() {
         this._hasCompute = false;
         this._gl = WebGL.getContext(this._canvas, ['webgl2'], contextSettings);
     }
-    var gl = this._gl;
+    const gl = this._gl;
     this._extLoseContext = gl.getExtension('WEBGL_lose_context');
     this._extColorBufferFloat = gl.getExtension('EXT_color_buffer_float');
 
@@ -163,86 +92,49 @@ _._initGL = function() {
     }, MIXINS).quad;
 
     this._clipQuad = WebGL.createClipQuad(gl);
-};
+}
 
-_._destroyGL = function() {
-    var gl = this._gl;
-    if (!gl) {
-        return;
-    }
-
-    gl.deleteProgram(this._program.program);
-    gl.deleteBuffer(this._clipQuad);
-
-    this._contextRestorable = false;
-    if (this._extLoseContext) {
-        this._extLoseContext.loseContext();
-    }
-    this._nullifyGL();
-};
-
-_._webglcontextlostHandler = function(e) {
+_webglcontextlostHandler(e) {
     if (this._contextRestorable) {
         e.preventDefault();
     }
-    this._nullifyGL();
-};
+}
 
-_._webglcontextrestoredHandler = function(e) {
+_webglcontextrestoredHandler(e) {
     this._initGL();
-};
+}
 
-// =========================== INSTANCE METHODS ============================ //
-
-_.resize = function(width, height) {
-    var gl = this._gl;
-    if (!gl) {
-        return;
-    }
-
+resize(width, height) {
     this._canvas.width = width;
     this._canvas.height = height;
     this._camera.resize(width, height);
-};
+}
 
-_.setVolume = function(reader) {
-    var gl = this._gl;
-    if (!gl) {
-        return;
-    }
-
-    var volume = this._volume = new Volume(this._gl, reader);
-
-    volume.readMetadata({
-        onData: function() {
-            volume.readModality('default', {
-                onLoad: function() {
-                    volume.setFilter(this._filter);
+setVolume(reader) {
+    this._volume = new Volume(this._gl, reader);
+    this._volume.readMetadata({
+        onData: () => {
+            this._volume.readModality('default', {
+                onLoad: () => {
+                    this._volume.setFilter(this._filter);
                     if (this._renderer) {
-                        this._renderer.setVolume(volume);
+                        this._renderer.setVolume(this._volume);
                         this.startRendering();
                     }
-                }.bind(this)
+                }
             });
-        }.bind(this)
+        }
     });
-};
+}
 
-_.setEnvironmentMap = function(image) {
-    var gl = this._gl;
-    if (!gl) {
-        return;
-    }
+setEnvironmentMap(image) {
+    WebGL.createTexture(this._gl, {
+        texture : this._environmentTexture,
+        image   : image
+    });
+}
 
-    // TODO: texture class, to avoid duplicating texture specs
-    gl.bindTexture(gl.TEXTURE_2D, this._environmentTexture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl. RGBA,
-        image.width, image.height,
-        0, gl.RGBA, gl.UNSIGNED_BYTE, image);
-    gl.bindTexture(gl.TEXTURE_2D, null);
-};
-
-_.setFilter = function(filter) {
+setFilter(filter) {
     this._filter = filter;
     if (this._volume) {
         this._volume.setFilter(filter);
@@ -250,87 +142,79 @@ _.setFilter = function(filter) {
             this._renderer.reset();
         }
     }
-};
+}
 
-_.chooseRenderer = function(renderer) {
+chooseRenderer(renderer) {
     if (this._renderer) {
         this._renderer.destroy();
     }
-    var gl = this._gl;
-    var volume = this._volume;
-    var env = this._environmentTexture;
-    switch (renderer) {
-        case 'mip' : this._renderer = new MIPRenderer(gl, volume, env); break;
-        case 'iso' : this._renderer = new ISORenderer(gl, volume, env); break;
-        case 'eam' : this._renderer = new EAMRenderer(gl, volume, env); break;
-        case 'mcs' : this._renderer = new MCSRenderer(gl, volume, env); break;
-        case 'mcm' : this._renderer = new MCMRenderer(gl, volume, env); break;
-        case 'mcc' : this._renderer = new MCCRenderer(gl, volume, env); break;
-    }
+    const rendererClass = this._getRendererClass(renderer);
+    this._renderer = new rendererClass(this._gl, this._volume, this._environmentTexture);
     if (this._toneMapper) {
         this._toneMapper.setTexture(this._renderer.getTexture());
     }
     this._isTransformationDirty = true;
-};
+}
 
-_.chooseToneMapper = function(toneMapper) {
+chooseToneMapper(toneMapper) {
     if (this._toneMapper) {
         this._toneMapper.destroy();
     }
-    var gl = this._gl;
+    const gl = this._gl;
+    let texture;
     if (this._renderer) {
-        var texture = this._renderer.getTexture();
+        texture = this._renderer.getTexture();
     } else {
-        var texture = WebGL.createTexture(gl, {
+        texture = WebGL.createTexture(gl, {
             width  : 1,
             height : 1,
             data   : new Uint8Array([255, 255, 255, 255]),
         });
     }
-    switch (toneMapper) {
-        case 'range'    : this._toneMapper = new RangeToneMapper(gl, texture); break;
-        case 'reinhard' : this._toneMapper = new ReinhardToneMapper(gl, texture); break;
-        case 'artistic' : this._toneMapper = new ArtisticToneMapper(gl, texture); break;
-    }
-};
+    const toneMapperClass = this._getToneMapperClass(toneMapper);
+    this._toneMapper = new toneMapperClass(gl, texture);
+}
 
-_.getCanvas = function() {
+getCanvas() {
     return this._canvas;
-};
+}
 
-_.getRenderer = function() {
+getRenderer() {
     return this._renderer;
-};
+}
 
-_.getToneMapper = function() {
+getToneMapper() {
     return this._toneMapper;
-};
+}
 
-_._updateMvpInverseMatrix = function() {
-    if (this._camera.isDirty || this._isTransformationDirty) {
-        this._camera.isDirty = false;
-        this._isTransformationDirty = false;
-        this._camera.updateMatrices();
-
-        var centerTranslation = new Matrix().fromTranslation(-0.5, -0.5, -0.5);
-        var volumeTranslation = new Matrix().fromTranslation(this._translation.x, this._translation.y, this._translation.z);
-        var volumeScale = new Matrix().fromScale(this._scale.x, this._scale.y, this._scale.z);
-
-        var tr = new Matrix();
-        tr.multiply(volumeScale, centerTranslation);
-        tr.multiply(volumeTranslation, tr);
-        tr.multiply(this._camera.transformationMatrix, tr);
-
-        tr.inverse().transpose();
-        if (this._renderer) {
-            this._renderer.setMvpInverseMatrix(tr);
-            this._renderer.reset();
-        }
+_updateMvpInverseMatrix() {
+    if (!this._camera.isDirty && !this._isTransformationDirty) {
+        return;
     }
-};
 
-_._render = function() {
-    var gl = this._gl;
+    this._camera.isDirty = false;
+    this._isTransformationDirty = false;
+    this._camera.updateMatrices();
+
+    const centerTranslation = new Matrix().fromTranslation(-0.5, -0.5, -0.5);
+    const volumeTranslation = new Matrix().fromTranslation(
+        this._translation.x, this._translation.y, this._translation.z);
+    const volumeScale = new Matrix().fromScale(this._scale.x, this._scale.y, this._scale.z);
+
+    const tr = new Matrix();
+    tr.multiply(volumeScale, centerTranslation);
+    tr.multiply(volumeTranslation, tr);
+    tr.multiply(this._camera.transformationMatrix, tr);
+
+    tr.inverse().transpose();
+    if (this._renderer) {
+        this._renderer.setMvpInverseMatrix(tr);
+        this._renderer.reset();
+    }
+}
+
+_render() {
+    const gl = this._gl;
     if (!gl || !this._renderer || !this._toneMapper) {
         return;
     }
@@ -341,11 +225,11 @@ _._render = function() {
     this._toneMapper.render();
 
     gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
-    var program = this._program;
+    const program = this._program;
     gl.useProgram(program.program);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.bindBuffer(gl.ARRAY_BUFFER, this._clipQuad);
-    var aPosition = program.attributes.aPosition;
+    const aPosition = program.attributes.aPosition;
     gl.enableVertexAttribArray(aPosition);
     gl.vertexAttribPointer(aPosition, 2, gl.FLOAT, false, 0, 0);
     gl.activeTexture(gl.TEXTURE0);
@@ -356,31 +240,31 @@ _._render = function() {
     gl.disableVertexAttribArray(aPosition);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.bindTexture(gl.TEXTURE_2D, null);
-};
+}
 
-_.getScale = function() {
+getScale() {
     return this._scale;
-};
+}
 
-_.setScale = function(x, y, z) {
+setScale(x, y, z) {
     this._scale.set(x, y, z);
     this._isTransformationDirty = true;
-};
+}
 
-_.getTranslation = function() {
+getTranslation() {
     return this._translation;
-};
+}
 
-_.setTranslation = function(x, y, z) {
+setTranslation(x, y, z) {
     this._translation.set(x, y, z);
     this._isTransformationDirty = true;
-};
+}
 
-_.getResolution = function() {
+getResolution() {
     return this._resolution;
-};
+}
 
-_.setResolution = function(resolution) {
+setResolution(resolution) {
     if (this._renderer) {
         this._renderer.setResolution(resolution);
     }
@@ -390,20 +274,37 @@ _.setResolution = function(resolution) {
             this._toneMapper.setTexture(this._renderer.getTexture());
         }
     }
-};
+}
 
-_.startRendering = function() {
+startRendering() {
     Ticker.add(this._render);
-};
+}
 
-_.stopRendering = function() {
+stopRendering() {
     Ticker.remove(this._render);
-};
+}
 
-_.hasComputeCapabilities = function() {
+hasComputeCapabilities() {
     return this._hasCompute;
-};
+}
 
-// ============================ STATIC METHODS ============================= //
+_getRendererClass(renderer) {
+    switch (renderer) {
+        case 'mip' : return MIPRenderer;
+        case 'iso' : return ISORenderer;
+        case 'eam' : return EAMRenderer;
+        case 'mcs' : return MCSRenderer;
+        case 'mcm' : return MCMRenderer;
+        case 'mcc' : return MCCRenderer;
+    }
+}
 
-})(this);
+_getToneMapperClass(toneMapper) {
+    switch (toneMapper) {
+        case 'range'    : return RangeToneMapper;
+        case 'reinhard' : return ReinhardToneMapper;
+        case 'artistic' : return ArtisticToneMapper;
+    }
+}
+
+}

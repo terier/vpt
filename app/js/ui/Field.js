@@ -1,65 +1,41 @@
 //@@../utils
 //@@UIObject.js
 
-(function(global) {
-'use strict';
+class Field extends UIObject {
 
-var Class = global.Field = Field;
-CommonUtils.inherit(Class, UIObject);
-var _ = Class.prototype;
+constructor(options) {
+    super(TEMPLATES.Field, options);
 
-// ========================== CLASS DECLARATION ============================ //
+    Object.assign(this, {
+        label: ''
+    }, options);
 
-function Field(options) {
-    _.sup.constructor.call(this, TEMPLATES.Field, options);
-    CommonUtils.extend(this, Class.defaults, options);
-
-    _._init.call(this);
-};
-
-Class.defaults = {
-    label: ''
-};
-
-// ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
-
-_._nullify = function() {
     this._content = null;
-};
-
-_._init = function() {
-    _._nullify.call(this);
-
     this._binds.label.textContent = this.label;
-};
+}
 
-_.destroy = function() {
+destroy() {
     if (this._content) {
         this._content.detach();
     }
 
-    _._nullify.call(this);
-    _.sup.destroy.call(this);
-};
+    super.destroy();
+}
 
-// =========================== INSTANCE METHODS ============================ //
-
-_.setEnabled = function(enabled) {
+setEnabled(enabled) {
     if (this._content) {
         this._content.setEnabled(enabled);
     }
 
-    _.sup.setEnabled.call(this, enabled);
-};
+    super.setEnabled(enabled);
+}
 
-_.add = function(object) {
+add(object) {
     if (!this._content) {
         this._content = object;
         object.appendTo(this._binds.container);
         object.setEnabled(this.enabled);
     }
-};
+}
 
-// ============================ STATIC METHODS ============================= //
-
-})(this);
+}

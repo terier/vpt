@@ -18,56 +18,57 @@
 //@@Textbox.js
 //@@VectorSpinner.js
 
-var UI = (function() {
-'use strict';
+class UI {
 
-var CLASS_FROM_TYPE = {
-    'accordion'     : Accordion,
-    'button'        : Button,
-    'checkbox'      : Checkbox,
-    'color-chooser' : ColorChooser,
-    'dropdown'      : Dropdown,
-    'field'         : Field,
-    'file-chooser'  : FileChooser,
-    'panel'         : Panel,
-    'progress-bar'  : ProgressBar,
-    'radio'         : Radio,
-    'sidebar'       : Sidebar,
-    'slider'        : Slider,
-    'spacer'        : Spacer,
-    'spinner'       : Spinner,
-    'status-bar'    : StatusBar,
-    'tabs'          : Tabs,
-    'textbox'       : Textbox,
-    'vector'        : VectorSpinner,
-};
+static get CLASS_FROM_TYPE() {
+    return {
+        'accordion'     : Accordion,
+        'button'        : Button,
+        'checkbox'      : Checkbox,
+        'color-chooser' : ColorChooser,
+        'dropdown'      : Dropdown,
+        'field'         : Field,
+        'file-chooser'  : FileChooser,
+        'panel'         : Panel,
+        'progress-bar'  : ProgressBar,
+        'radio'         : Radio,
+        'sidebar'       : Sidebar,
+        'slider'        : Slider,
+        'spacer'        : Spacer,
+        'spinner'       : Spinner,
+        'status-bar'    : StatusBar,
+        'tabs'          : Tabs,
+        'textbox'       : Textbox,
+        'vector'        : VectorSpinner,
+    };
+}
 
-function create(spec) {
+static create(spec) {
     // I know, no error checking whatsoever... this is for me, not users.
     // TODO: maybe decouple UI creation spec from object creation spec
     //       by adding an 'options' field to this UI creation spec
-    if (!(spec.type in CLASS_FROM_TYPE)) {
+    if (!(spec.type in UI.CLASS_FROM_TYPE)) {
         throw new Error('Cannot instantiate: ' + spec.type);
     }
-    var Class = CLASS_FROM_TYPE[spec.type];
-    var object = new Class(spec);
-    var binds = {};
+    const Class = UI.CLASS_FROM_TYPE[spec.type];
+    const object = new Class(spec);
+    let binds = {};
     if (spec.bind) {
         binds[spec.bind] = object;
     }
 
     if (spec.children) {
-        for (var childKey in spec.children) {
-            var childSpec = spec.children[childKey];
-            var returnValue = create(childSpec);
-            var childObject = returnValue.object;
-            var childBinds = returnValue.binds;
-            for (var bind in childBinds) {
+        for (let childKey in spec.children) {
+            const childSpec = spec.children[childKey];
+            const returnValue = UI.create(childSpec);
+            const childObject = returnValue.object;
+            const childBinds = returnValue.binds;
+            for (let bind in childBinds) {
                 if (bind in binds) {
                     throw new Error('Already bound: ' + bind);
                 }
             }
-            CommonUtils.extend(binds, childBinds);
+            Object.assign(binds, childBinds);
 
             // TODO: maybe refactor .add()?
             switch (spec.type) {
@@ -84,14 +85,7 @@ function create(spec) {
         }
     }
 
-    return {
-        object : object,
-        binds  : binds
-    };
+    return { object, binds };
 }
 
-return {
-    create: create
-};
-
-})();
+}

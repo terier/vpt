@@ -1,22 +1,10 @@
 //@@math
 //@@Ticker.js
 
-(function(global) {
-'use strict';
+class OrbitCameraController {
 
-var Class = global.OrbitCameraController = OrbitCameraController;
-var _ = Class.prototype;
-
-// ========================== CLASS DECLARATION ============================ //
-
-function OrbitCameraController(camera, domElement, options) {
-    CommonUtils.extend(this, Class.defaults, options);
-
-    this._camera = camera;
-    this._domElement = domElement;
-
+constructor(camera, domElement, options) {
     this._update = this._update.bind(this);
-
     this._handleMouseDown = this._handleMouseDown.bind(this);
     this._handleMouseUp = this._handleMouseUp.bind(this);
     this._handleMouseMove = this._handleMouseMove.bind(this);
@@ -24,26 +12,15 @@ function OrbitCameraController(camera, domElement, options) {
     this._handleKeyDown = this._handleKeyDown.bind(this);
     this._handleKeyUp = this._handleKeyUp.bind(this);
 
-    _._init.call(this);
-};
+    Object.assign(this, {
+        rotationSpeed    : 2,
+        translationSpeed : 2,
+        moveSpeed        : 0.01,
+        zoomSpeed        : 0.001
+    }, options);
 
-Class.defaults = {
-    rotationSpeed    : 2,
-    translationSpeed : 2,
-    moveSpeed        : 0.01,
-    zoomSpeed        : 0.001
-};
-
-// ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
-
-_._nullify = function() {
-    this._startX = null;
-    this._startY = null;
-    this._isMoving = null;
-};
-
-_._init = function() {
-    _._nullify.call(this);
+    this._camera = camera;
+    this._domElement = domElement;
 
     this._focus = this._camera.position.len();
 
@@ -59,18 +36,9 @@ _._init = function() {
 
     this._addEventListeners();
     Ticker.add(this._update);
-};
+}
 
-_.destroy = function() {
-    Ticker.remove(this._update);
-    this._removeEventListeners();
-
-    _._nullify.call(this);
-};
-
-// =========================== INSTANCE METHODS ============================ //
-
-_._addEventListeners = function() {
+_addEventListeners() {
     this._domElement.addEventListener('mousedown', this._handleMouseDown);
     this._domElement.addEventListener('touchstart', this._handleMouseDown);
     document.addEventListener('mouseup', this._handleMouseUp);
@@ -80,21 +48,9 @@ _._addEventListeners = function() {
     this._domElement.addEventListener('mousewheel', this._handleMouseWheel);
     document.addEventListener('keydown', this._handleKeyDown);
     document.addEventListener('keyup', this._handleKeyUp);
-};
+}
 
-_._removeEventListeners = function() {
-    this._domElement.removeEventListener('mousedown', this._handleMouseDown);
-    this._domElement.removeEventListener('touchstart', this._handleMouseDown);
-    document.removeEventListener('mouseup', this._handleMouseUp);
-    document.removeEventListener('touchend', this._handleMouseUp);
-    document.removeEventListener('mousemove', this._handleMouseMove);
-    document.removeEventListener('touchmove', this._handleMouseMove);
-    this._domElement.removeEventListener('mousewheel', this._handleMouseWheel);
-    document.removeEventListener('keydown', this._handleKeyDown);
-    document.removeEventListener('keyup', this._handleKeyUp);
-};
-
-_._handleMouseDown = function(e) {
+_handleMouseDown(e) {
     e.preventDefault();
     if (typeof e.touches === 'object') {
         this._startX = e.touches[0].pageX;
@@ -109,25 +65,25 @@ _._handleMouseDown = function(e) {
         this._startY = e.pageY;
         this._isTranslating = true;
     }
-};
+}
 
-_._handleMouseUp = function(e) {
+_handleMouseUp(e) {
     e.preventDefault();
     this._isTranslating = false;
     this._isRotating = false;
-};
+}
 
-_._handleMouseMove = function(e) {
+_handleMouseMove(e) {
     e.preventDefault();
 
-    var x = typeof e.pageX !== 'undefined' ? e.pageX : e.touches[0].pageX;
-    var y = typeof e.pageY !== 'undefined' ? e.pageY : e.touches[0].pageY;
-    var dx = x - this._startX;
-    var dy = y - this._startY;
+    const x = typeof e.pageX !== 'undefined' ? e.pageX : e.touches[0].pageX;
+    const y = typeof e.pageY !== 'undefined' ? e.pageY : e.touches[0].pageY;
+    const dx = x - this._startX;
+    const dy = y - this._startY;
 
     if (this._isRotating) {
-        var angleX = dx * this.rotationSpeed * this._focus * this._camera.zoomFactor;
-        var angleY = dy * this.rotationSpeed * this._focus * this._camera.zoomFactor;
+        const angleX = dx * this.rotationSpeed * this._focus * this._camera.zoomFactor;
+        const angleY = dy * this.rotationSpeed * this._focus * this._camera.zoomFactor;
 
         if (e.shiftKey) {
             this._rotateAroundSelf(angleX, angleY);
@@ -137,49 +93,49 @@ _._handleMouseMove = function(e) {
     }
 
     if (this._isTranslating) {
-        var speedFactor = this.translationSpeed * this._focus * this._camera.zoomFactor;
+        const speedFactor = this.translationSpeed * this._focus * this._camera.zoomFactor;
         this._move(-dx * speedFactor, dy * speedFactor, 0);
     }
 
     this._startX = x;
     this._startY = y;
-};
+}
 
-_._handleMouseWheel = function(e) {
+_handleMouseWheel(e) {
     e.preventDefault();
-    var amount = e.deltaY * this.zoomSpeed;
-    var keepScale = e.shiftKey;
+    const amount = e.deltaY * this.zoomSpeed;
+    const keepScale = e.shiftKey;
     this._zoom(amount, keepScale);
-};
+}
 
-_._handleKeyDown = function(e) {
+_handleKeyDown(e) {
     switch (e.key.toLowerCase()) {
         case 'w': this._forward  = true; break;
         case 'a': this._left     = true; break;
         case 's': this._backward = true; break;
         case 'd': this._right    = true; break;
     }
-};
+}
 
-_._handleKeyUp = function(e) {
+_handleKeyUp(e) {
     switch (e.key.toLowerCase()) {
         case 'w': this._forward  = false; break;
         case 'a': this._left     = false; break;
         case 's': this._backward = false; break;
         case 'd': this._right    = false; break;
     }
-};
+}
 
-_._rotateAroundFocus = function(dx, dy) {
-    var angle = Math.sqrt(dx * dx + dy * dy);
-    var rotation = new Quaternion(dy / angle, dx / angle, 0, angle);
+_rotateAroundFocus(dx, dy) {
+    const angle = Math.sqrt(dx * dx + dy * dy);
+    const rotation = new Quaternion(dy / angle, dx / angle, 0, angle);
     rotation.fromAxisAngle();
 
     // get focus point
     // TODO: refactor this and positioning
-    var cp = this._camera.position.clone();
-    var cr = this._camera.rotation.clone();
-    var f = new Quaternion(0, 0, -this._focus, 0);
+    const cp = this._camera.position.clone();
+    const cr = this._camera.rotation.clone();
+    const f = new Quaternion(0, 0, -this._focus, 0);
     f.multiply(f, cr);
     f.multiply(cr.inverse(), f);
 
@@ -189,52 +145,52 @@ _._rotateAroundFocus = function(dx, dy) {
 
     // position camera around focus
     // TODO: find out how this works
-    var positionQuat = new Quaternion(0, 0, this._focus, 0);
+    const positionQuat = new Quaternion(0, 0, this._focus, 0);
     positionQuat.multiply(positionQuat, this._camera.rotation);
     positionQuat.multiply(this._camera.rotation.clone().inverse(), positionQuat);
     this._camera.position.set(positionQuat.x, positionQuat.y, positionQuat.z, 1);
     this._camera.position.add(new Vector(cp.x + f.x, cp.y + f.y, cp.z + f.z, 0));
 
     this._camera.isDirty = true;
-};
+}
 
-_._rotateAroundSelf = function(dx, dy) {
-    var angle = Math.sqrt(dx * dx + dy * dy);
-    var rotation = new Quaternion(dy / angle, dx / angle, 0, angle);
+_rotateAroundSelf(dx, dy) {
+    const angle = Math.sqrt(dx * dx + dy * dy);
+    const rotation = new Quaternion(dy / angle, dx / angle, 0, angle);
     rotation.fromAxisAngle();
 
     this._camera.rotation.multiply(rotation, this._camera.rotation);
     this._camera.rotation.normalize();
 
     this._camera.isDirty = true;
-};
+}
 
-_._move = function(dx, dy, dz) {
-    var v = new Quaternion(dx, dy, dz, 0);
-    var r = this._camera.rotation.clone();
+_move(dx, dy, dz) {
+    const v = new Quaternion(dx, dy, dz, 0);
+    const r = this._camera.rotation.clone();
     v.multiply(v, r);
     v.multiply(r.inverse(), v);
     this._camera.position.add(v);
     this._camera.isDirty = true;
-};
+}
 
-_._zoom = function(amount, keepScale) {
+_zoom(amount, keepScale) {
     this._camera.zoom(amount);
     if (keepScale) {
-        var scale = Math.exp(-amount);
+        const scale = Math.exp(-amount);
         this._camera.position.mul(new Vector(scale, scale, scale, 1));
         this._focus *= scale;
     }
     this._camera.isDirty = true;
-};
+}
 
-_._update = function() {
-    var t = Date.now();
-    var dt = t - this._time;
+_update() {
+    const t = Date.now();
+    const dt = t - this._time;
     this._time = t;
 
-    var dx = 0;
-    var dz = 0;
+    let dx = 0;
+    let dz = 0;
 
     if (this._forward) {
         dz -= this.moveSpeed * this._focus;
@@ -252,8 +208,6 @@ _._update = function() {
     if (dx !== 0 || dz !== 0) {
         this._move(dx, 0, dz);
     }
-};
+}
 
-// ============================ STATIC METHODS ============================= //
-
-})(this);
+}

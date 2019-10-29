@@ -1,5 +1,5 @@
 //@@Application.js
 
-document.addEventListener('DOMContentLoaded', function() {
-    var application = new Application();
+document.addEventListener('DOMContentLoaded', () => {
+    const application = new Application();
 });

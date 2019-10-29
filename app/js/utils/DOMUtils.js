@@ -1,36 +1,36 @@
-var DOMUtils = (function() {
+class DOMUtils {
 
-function template(tmpl) {
-    var div = document.createElement('div');
+static template(tmpl) {
+    let div = document.createElement('div');
     div.innerHTML = tmpl;
-    var child = div.firstChild;
+    let child = div.firstChild;
     div.removeChild(child);
     return child;
 }
 
-function instantiate(tmpl) {
+static instantiate(tmpl) {
     if (typeof tmpl === 'string') {
-        return template(tmpl);
+        return DOMUtils.template(tmpl);
     } else {
         return tmpl.cloneNode(true);
     }
 }
 
-function bind(element) {
-    var elements = element.querySelectorAll('[data-bind]');
+static bind(element) {
+    const elements = element.querySelectorAll('[data-bind]');
     return Array.prototype.reduce.call(elements, function(map, obj) {
         map[obj.getAttribute('data-bind')] = obj;
         return map;
     }, {});
 }
 
-function remove(element) {
+static remove(element) {
     if (element.parentNode) {
         element.parentNode.removeChild(element);
     }
 }
 
-function data(element, key, value) {
+static data(element, key, value) {
     if (typeof value !== 'undefined') {
         element.setAttribute('data-' + key, value);
     } else {
@@ -38,27 +38,16 @@ function data(element, key, value) {
     }
 }
 
-function show(element) {
+static show(element) {
     element.classList.remove('invisible');
 }
 
-function hide(element) {
+static hide(element) {
     element.classList.add('invisible');
 }
 
-function toggle(element) {
+static toggle(element) {
     element.classList.toggle('invisible');
 }
 
-return {
-    template    : template,
-    instantiate : instantiate,
-    bind        : bind,
-    remove      : remove,
-    data        : data,
-    show        : show,
-    hide        : hide,
-    toggle      : toggle
-};
-
-})();
+}

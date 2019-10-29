@@ -1,74 +1,44 @@
 //@@../utils
 //@@UIObject.js
 
-(function(global) {
-'use strict';
+class Dropdown extends UIObject {
 
-var Class = global.Dropdown = Dropdown;
-CommonUtils.inherit(Class, UIObject);
-var _ = Class.prototype;
+constructor(options) {
+    super(TEMPLATES.Dropdown, options);
 
-// ========================== CLASS DECLARATION ============================ //
+    Object.assign(this, {
+        options: []
+    }, options);
 
-function Dropdown(options) {
-    _.sup.constructor.call(this, TEMPLATES.Dropdown, options);
-    CommonUtils.extend(this, Class.defaults, options);
-
-    _._init.call(this);
-};
-
-Class.defaults = {
-    options: null
-};
-
-// ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
-
-_._nullify = function() {
-};
-
-_._init = function() {
-    _._nullify.call(this);
-
-    if (this.options) {
-        this.options.forEach(function(option) {
-            this.addOption(option.value, option.label, option.selected);
-        }, this);
+    for (let option of this.options) {
+        this.addOption(option.value, option.label, option.selected);
     }
-};
+}
 
-_.destroy = function() {
-    _._nullify.call(this);
-    _.sup.destroy.call(this);
-};
-
-// =========================== INSTANCE METHODS ============================ //
-
-_.addOption = function(value, label, selected) {
-    var option = document.createElement('option');
+addOption(value, label, selected) {
+    let option = document.createElement('option');
     option.value = value;
     option.text = label;
     this._binds.input.add(option);
     if (selected) {
         this._binds.input.value = value;
     }
-};
+}
 
-_.removeOption = function(value) {
-    var selector = 'option[value="' + value + '"]';
-    var option = this._binds.input.querySelector(selector);
+removeOption(value) {
+    const selector = 'option[value="' + value + '"]';
+    const option = this._binds.input.querySelector(selector);
     if (option) {
         DOMUtils.remove(option);
     }
-};
+}
 
-_.setValue = function(value) {
+setValue(value) {
     this._binds.input.value = value;
-};
+}
 
-_.getValue = function() {
+getValue() {
     return this._binds.input.value;
-};
+}
 
-// ============================ STATIC METHODS ============================= //
-
-})(this);
+}

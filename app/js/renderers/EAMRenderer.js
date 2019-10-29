@@ -2,35 +2,15 @@
 //@@../WebGL.js
 //@@AbstractRenderer.js
 
-(function(global) {
-'use strict';
+class EAMRenderer extends AbstractRenderer {
 
-var Class = global.EAMRenderer = EAMRenderer;
-CommonUtils.inherit(Class, AbstractRenderer);
-var _ = Class.prototype;
+constructor(gl, volume, environmentTexture, options) {
+    super(gl, volume, environmentTexture, options);
 
-// ========================== CLASS DECLARATION ============================ //
-
-function EAMRenderer(gl, volume, environmentTexture, options) {
-    _.sup.constructor.call(this, gl, volume, environmentTexture, options);
-    CommonUtils.extend(this, Class.defaults, options);
-
-    _._init.call(this);
-};
-
-Class.defaults = {
-    _stepSize        : 0.05,
-    _alphaCorrection : 3
-};
-
-// ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
-
-_._nullify = function() {
-    this._programs = null;
-};
-
-_._init = function() {
-    _._nullify.call(this);
+    Object.assign(this, {
+        _stepSize        : 0.05,
+        _alphaCorrection : 3
+    }, options);
 
     this._programs = WebGL.buildPrograms(this._gl, {
         generate  : SHADERS.EAMGenerate,
@@ -38,33 +18,30 @@ _._init = function() {
         render    : SHADERS.EAMRender,
         reset     : SHADERS.EAMReset
     }, MIXINS);
-};
+}
 
-_.destroy = function() {
-    var gl = this._gl;
-    Object.keys(this._programs).forEach(function(programName) {
-        gl.deleteProgram(this._programs[programName].program);
-    }.bind(this));
+destroy() {
+    const gl = this._gl;
+    for (let program of this._programs) {
+        gl.deleteProgram(program.program);
+    }
 
-    _._nullify.call(this);
-    _.sup.destroy.call(this);
-};
+    super.destroy();
+}
 
-// =========================== INSTANCE METHODS ============================ //
+_resetFrame() {
+    const gl = this._gl;
 
-_._resetFrame = function() {
-    var gl = this._gl;
-
-    var program = this._programs.reset;
+    const program = this._programs.reset;
     gl.useProgram(program.program);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-};
+}
 
-_._generateFrame = function() {
-    var gl = this._gl;
+_generateFrame() {
+    const gl = this._gl;
 
-    var program = this._programs.generate;
+    const program = this._programs.generate;
     gl.useProgram(program.program);
 
     gl.activeTexture(gl.TEXTURE0);
@@ -80,12 +57,12 @@ _._generateFrame = function() {
     gl.uniformMatrix4fv(program.uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-};
+}
 
-_._integrateFrame = function() {
-    var gl = this._gl;
+_integrateFrame() {
+    const gl = this._gl;
 
-    var program = this._programs.integrate;
+    const program = this._programs.integrate;
     gl.useProgram(program.program);
 
     gl.activeTexture(gl.TEXTURE0);
@@ -97,12 +74,12 @@ _._integrateFrame = function() {
     gl.uniform1i(program.uniforms.uFrame, 1);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-};
+}
 
-_._renderFrame = function() {
-    var gl = this._gl;
+_renderFrame() {
+    const gl = this._gl;
 
-    var program = this._programs.render;
+    const program = this._programs.render;
     gl.useProgram(program.program);
 
     gl.activeTexture(gl.TEXTURE0);
@@ -111,10 +88,10 @@ _._renderFrame = function() {
     gl.uniform1i(program.uniforms.uAccumulator, 0);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-};
+}
 
-_._getFrameBufferSpec = function() {
-    var gl = this._gl;
+_getFrameBufferSpec() {
+    const gl = this._gl;
     return [{
         width          : this._bufferSize,
         height         : this._bufferSize,
@@ -124,10 +101,10 @@ _._getFrameBufferSpec = function() {
         internalFormat : gl.RGBA,
         type           : gl.UNSIGNED_BYTE
     }];
-};
+}
 
-_._getAccumulationBufferSpec = function() {
-    var gl = this._gl;
+_getAccumulationBufferSpec() {
+    const gl = this._gl;
     return [{
         width          : this._bufferSize,
         height         : this._bufferSize,
@@ -137,8 +114,6 @@ _._getAccumulationBufferSpec = function() {
         internalFormat : gl.RGBA,
         type           : gl.UNSIGNED_BYTE
     }];
-};
+}
 
-// ============================ STATIC METHODS ============================= //
-
-})(this);
+}

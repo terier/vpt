@@ -1,69 +1,41 @@
 //@@../utils
 //@@UIObject.js
 
-(function(global) {
-'use strict';
+class Checkbox extends UIObject {
 
-var Class = global.Checkbox = Checkbox;
-CommonUtils.inherit(Class, UIObject);
-var _ = Class.prototype;
+constructor(options) {
+    super(TEMPLATES.Checkbox, options);
 
-// ========================== CLASS DECLARATION ============================ //
-
-function Checkbox(options) {
-    _.sup.constructor.call(this, TEMPLATES.Checkbox, options);
-    CommonUtils.extend(this, Class.defaults, options);
+    Object.assign(this, {
+        checked : true
+    }, options);
 
     this._handleClick = this._handleClick.bind(this);
 
-    _._init.call(this);
-};
-
-Class.defaults = {
-    checked : true
-};
-
-// ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
-
-_._nullify = function() {
-};
-
-_._init = function() {
-    _._nullify.call(this);
-
     this._element.addEventListener('click', this._handleClick);
     this._element.classList.toggle('checked', this.checked);
-};
+}
 
-_.destroy = function() {
-    _._nullify.call(this);
-    _.sup.destroy.call(this);
-};
-
-// =========================== INSTANCE METHODS ============================ //
-
-_.isChecked = function() {
+isChecked() {
     return this.checked;
-};
+}
 
-_.setChecked = function(checked) {
+setChecked(checked) {
     if (this.checked !== checked) {
         this.checked = checked;
         this._element.classList.toggle('checked', checked);
         this.trigger('change');
     }
-};
+}
 
-_.toggleChecked = function() {
+toggleChecked() {
     this.setChecked(!this.checked);
-};
+}
 
-_._handleClick = function() {
+_handleClick() {
     if (this.enabled) {
         this.toggleChecked();
     }
-};
+}
 
-// ============================ STATIC METHODS ============================= //
-
-})(this);
+}

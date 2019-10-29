@@ -1,36 +1,33 @@
-var Vector = (function() {
-'use strict';
+class Vector {
 
-function Vector(x, y, z, w) {
+constructor(x, y, z, w) {
     this.x = x || 0;
     this.y = y || 0;
     this.z = z || 0;
     this.w = (w !== undefined) ? w : 1;
 }
 
-var _ = Vector.prototype;
-
-_.clone = function() {
+clone() {
     return new Vector(this.x, this.y, this.z, this.w);
-};
+}
 
-_.copy = function(v) {
+copy(v) {
     this.x = v.x;
     this.y = v.y;
     this.z = v.z;
     this.w = v.w;
     return this;
-};
+}
 
-_.set = function(x, y, z, w) {
+set(x, y, z, w) {
     this.x = x;
     this.y = y;
     this.z = z;
     this.w = w;
     return this;
-};
+}
 
-_.add = function(a, b) {
+add(a, b) {
     if (!b) {
         b = this;
     }
@@ -41,9 +38,9 @@ _.add = function(a, b) {
     this.w = a.w + b.w;
 
     return this;
-};
+}
 
-_.sub = function(a, b) {
+sub(a, b) {
     if (!b) {
         b = this;
     }
@@ -54,9 +51,9 @@ _.sub = function(a, b) {
     this.w = a.w - b.w;
 
     return this;
-};
+}
 
-_.mul = function(a, b) {
+mul(a, b) {
     if (!b) {
         b = this;
     }
@@ -67,19 +64,19 @@ _.mul = function(a, b) {
     this.w = a.w * b.w;
 
     return this;
-};
+}
 
-_.normalize = function() {
-    var len = this.len();
+normalize() {
+    const len = this.len();
 
     this.x /= len;
     this.y /= len;
     this.z /= len;
 
     return this;
-};
+}
 
-_.setLength = function(len) {
+setLength(len) {
     this.normalize();
 
     this.x *= len;
@@ -87,15 +84,15 @@ _.setLength = function(len) {
     this.z *= len;
 
     return this;
-};
+}
 
-_.dot = function(v) {
+dot(v) {
     return this.x * v.x + this.y * v.y + this.z * v.z;
-};
+}
 
-_.cross = function(a, b) {
-    var ax = a.x, ay = a.y, az = a.z;
-    var bx = b.x, by = b.y, bz = b.z;
+cross(a, b) {
+    const ax = a.x, ay = a.y, az = a.z;
+    const bx = b.x, by = b.y, bz = b.z;
 
     this.x = ay * bz - az * by;
     this.y = az * bx - ax * bz;
@@ -103,16 +100,14 @@ _.cross = function(a, b) {
     this.w = 1;
 
     return this;
-};
+}
 
-_.lensq = function() {
+lensq() {
     return this.dot(this);
-};
+}
 
-_.len = function() {
+len() {
     return Math.sqrt(this.lensq());
-};
+}
 
-return Vector;
-
-})();
+}

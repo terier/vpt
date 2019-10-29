@@ -1,48 +1,30 @@
 //@@../utils
 //@@../WebGL.js
 
-(function(global) {
-'use strict';
-
 // MCC: Monte Carlo Compute renderer
-var Class = global.MCCRenderer = MCCRenderer;
-var _ = Class.prototype;
+class MCCRenderer {
 
-// ========================== CLASS DECLARATION ============================ //
-
-function MCCRenderer(gl, volume, environmentTexture, options) {
-    CommonUtils.extend(this, Class.defaults, options);
+constructor(gl, volume, environmentTexture, options) {
+    Object.assign(this, {
+        absorptionCoefficient : 1,
+        scatteringCoefficient : 1,
+        scatteringBias        : 0,
+        majorant              : 2,
+        maxBounces            : 8,
+        steps                 : 1,
+        _resolution           : 512,
+        _workgroup            : 8
+    }, options);
 
     this._gl = gl;
     this._volume = volume;
     this._envmap = environmentTexture;
 
-    _._init.call(this);
-};
+    this.init();
+}
 
-Class.defaults = {
-    absorptionCoefficient : 1,
-    scatteringCoefficient : 1,
-    scatteringBias        : 0,
-    majorant              : 2,
-    maxBounces            : 8,
-    steps                 : 1,
-    _resolution           : 512,
-    _workgroup            : 8
-};
-
-// ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
-
-_._nullify = function() {
-    this._programs = null;
-    this._transferFunction = null;
-    this._renderBuffer = null;
-};
-
-_._init = function() {
-    _._nullify.call(this);
-
-    var gl = this._gl;
+_init() {
+    const gl = this._gl;
 
     this._programs = WebGL.buildPrograms(gl, {
         render : SHADERS.MCCRender,
@@ -76,47 +58,39 @@ _._init = function() {
     //     uint samples;   // 4B
     //          padding    // ??
     // };                  //
-    var bufferSize = 20 * 4 * this._resolution * this._resolution;
+    const bufferSize = 20 * 4 * this._resolution * this._resolution;
     this._photonBuffer = gl.createBuffer();
     gl.bindBuffer(gl.SHADER_STORAGE_BUFFER, this._photonBuffer);
     gl.bindBufferBase(gl.SHADER_STORAGE_BUFFER, 0, this._photonBuffer);
     gl.bufferData(gl.SHADER_STORAGE_BUFFER, bufferSize, gl.STATIC_DRAW);
 };
 
-_.destroy = function() {
-    var gl = this._gl;
-    Object.keys(this._programs).forEach(function(programName) {
-        gl.deleteProgram(this._programs[programName].program);
-    }.bind(this));
+destroy() {
+    const gl = this._gl;
+    for (let program of this._programs) {
+        gl.deleteProgram(program.program);
+    }
+}
 
-    this._gl = null;
-    this._volume = null;
-    this._envmap = null;
-
-    _._nullify.call(this);
-};
-
-// =========================== INSTANCE METHODS ============================ //
-
-_.getTexture = function() {
+getTexture() {
     return this._renderBuffer;
-};
+}
 
-_.setVolume = function(volume) {
+setVolume(volume) {
     this._volume = volume;
     this.reset();
-};
+}
 
-_.setTransferFunction = function(transferFunction) {
-    var gl = this._gl;
+setTransferFunction(transferFunction) {
+    const gl = this._gl;
     gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
     gl.texImage2D(gl.TEXTURE_2D, 0,
         gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, transferFunction);
     gl.bindTexture(gl.TEXTURE_2D, null);
-};
+}
 
-_.setResolution = function(resolution) {
-    var gl = this._gl;
+setResolution(resolution) {
+    const gl = this._gl;
 
     this._resolution = resolution;
 
@@ -124,12 +98,12 @@ _.setResolution = function(resolution) {
     this._renderBuffer = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, this._renderBuffer);
     gl.texStorage2D(gl.TEXTURE_2D, 1, gl.RGBA32F, this._resolution, this._resolution);
-};
+}
 
-_.reset = function() {
-    var gl = this._gl;
+reset() {
+    const gl = this._gl;
 
-    var program = this._programs.reset;
+    const program = this._programs.reset;
     gl.useProgram(program.program);
 
     gl.uniformMatrix4fv(program.uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
@@ -142,14 +116,14 @@ _.reset = function() {
 
     gl.bindImageTexture(0, this._renderBuffer, 0, false, 0, gl.WRITE_ONLY, gl.RGBA32F);
 
-    var groups = this._resolution / this._workgroup;
+    const groups = this._resolution / this._workgroup;
     gl.dispatchCompute(groups, groups, 1);
-};
+}
 
-_.render = function() {
-    var gl = this._gl;
+render() {
+    const gl = this._gl;
 
-    var program = this._programs.render;
+    const program = this._programs.render;
     gl.useProgram(program.program);
 
     gl.activeTexture(gl.TEXTURE0);
@@ -180,10 +154,8 @@ _.render = function() {
 
     gl.bindImageTexture(0, this._renderBuffer, 0, false, 0, gl.WRITE_ONLY, gl.RGBA32F);
 
-    var groups = this._resolution / this._workgroup;
+    const groups = this._resolution / this._workgroup;
     gl.dispatchCompute(groups, groups, 1);
-};
+}
 
-// ============================ STATIC METHODS ============================= //
-
-})(this);
+}

@@ -1,49 +1,21 @@
 //@@../utils
 //@@UIObject.js
 
-(function(global) {
-'use strict';
+class Button extends UIObject {
 
-var Class = global.Button = Button;
-CommonUtils.inherit(Class, UIObject);
-var _ = Class.prototype;
+constructor(options) {
+    super(TEMPLATES.Button, options);
 
-// ========================== CLASS DECLARATION ============================ //
-
-function Button(options) {
-    _.sup.constructor.call(this, TEMPLATES.Button, options);
-    CommonUtils.extend(this, Class.defaults, options);
-
-    _._init.call(this);
-};
-
-Class.defaults = {
-    label: ''
-};
-
-// ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
-
-_._nullify = function() {
-};
-
-_._init = function() {
-    _._nullify.call(this);
+    Object.assign(this, {
+        label: ''
+    }, options);
 
     this._binds.input.value = this.label;
-};
+}
 
-_.destroy = function() {
-    _._nullify.call(this);
-    _.sup.destroy.call(this);
-};
-
-// =========================== INSTANCE METHODS ============================ //
-
-_.setEnabled = function(enabled) {
+setEnabled(enabled) {
     this._binds.input.disabled = !enabled;
-    _.sup.setEnabled.call(this, enabled);
-};
+    super.setEnabled(enabled);
+}
 
-// ============================ STATIC METHODS ============================= //
-
-})(this);
+}

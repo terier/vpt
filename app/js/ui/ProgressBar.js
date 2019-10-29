@@ -1,54 +1,26 @@
 //@@../utils
 //@@UIObject.js
 
-(function(global) {
-'use strict';
+class ProgressBar extends UIObject {
 
-var Class = global.ProgressBar = ProgressBar;
-CommonUtils.inherit(Class, UIObject);
-var _ = Class.prototype;
+constructor(options) {
+    super(TEMPLATES.ProgressBar, options);
 
-// ========================== CLASS DECLARATION ============================ //
-
-function ProgressBar(options) {
-    _.sup.constructor.call(this, TEMPLATES.ProgressBar, options);
-    CommonUtils.extend(this, Class.defaults, options);
-
-    _._init.call(this);
-};
-
-Class.defaults = {
-    progress: 0
-};
-
-// ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
-
-_._nullify = function() {
-};
-
-_._init = function() {
-    _._nullify.call(this);
+    Object.assign(this, {
+        progress: 0
+    }, options);
 
     this.setProgress(this.progress);
-};
+}
 
-_.destroy = function() {
-    _._nullify.call(this);
-    _.sup.destroy.call(this);
-};
-
-// =========================== INSTANCE METHODS ============================ //
-
-_.setProgress = function(progress) {
+setProgress(progress) {
     this.progress = Math.round(CommonUtils.clamp(progress, 0, 100));
     this._binds.progress.style.width = this.progress + '%';
     this._binds.label.textContent = this.progress + '%';
-};
+}
 
-_.getProgress = function() {
+getProgress() {
     return this.progress;
-};
+}
 
-// ============================ STATIC METHODS ============================= //
-
-})(this);
+}

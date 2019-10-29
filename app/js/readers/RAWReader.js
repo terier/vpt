@@ -1,46 +1,20 @@
 //@@../utils
 //@@AbstractReader.js
 
-(function(global) {
-'use strict';
+class RAWReader extends AbstractReader {
 
-var Class = global.RAWReader = RAWReader;
-CommonUtils.inherit(Class, AbstractReader);
-var _ = Class.prototype;
+constructor(loader, options) {
+    super(loader);
 
-// ========================== CLASS DECLARATION ============================ //
+    Object.assign(this, {
+        width  : 0,
+        height : 0,
+        depth  : 0,
+        bits   : 8
+    }, options);
+}
 
-function RAWReader(loader, options) {
-    _.sup.constructor.call(this, loader, options);
-    CommonUtils.extend(this, Class.defaults, options);
-
-    _._init.call(this);
-};
-
-Class.defaults = {
-    width  : 0,
-    height : 0,
-    depth  : 0,
-    bits   : 8
-};
-
-// ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
-
-_._nullify = function() {
-};
-
-_._init = function() {
-    _._nullify.call(this);
-};
-
-_.destroy = function() {
-    _._nullify.call(this);
-    _.sup.destroy.call(this);
-};
-
-// =========================== INSTANCE METHODS ============================ //
-
-_.readMetadata = function(handlers) {
+readMetadata(handlers) {
     handlers.onData && handlers.onData({
         meta: {
             version: 1
@@ -87,16 +61,14 @@ _.readMetadata = function(handlers) {
             }
         ]
     });
-};
+}
 
-_.readBlock = function(block, handlers) {
+readBlock(block, handlers) {
     this._loader.readData(0, this.width * this.height * this.depth * (this.bits / 8), {
-        onData: function(data) {
+        onData: data => {
             handlers.onData && handlers.onData(data);
         }
     });
-};
+}
 
-// ============================ STATIC METHODS ============================= //
-
-})(this);
+}

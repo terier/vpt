@@ -1,38 +1,25 @@
-var Ticker = (function() {
-'use strict';
+const Ticker = (() => {
 
-var queue = [];
+let queue = [];
 
 (function tick() {
-    queue.forEach(function(f) {
-        f();
-    });
+    queue.forEach(f => f());
     requestAnimationFrame(tick);
 })();
 
 function add(f) {
-    if (queue.indexOf(f) < 0) {
+    if (!queue.includes(f)) {
         queue.push(f);
-    }
-};
-
-function remove(f) {
-    var idx = queue.indexOf(f);
-    if (idx >= 0) {
-        queue.splice(idx, 1);
-    }
-};
-
-function clear() {
-    for (var i = queue.length; i > 0; i--) {
-        queue.pop();
     }
 }
 
-return {
-    add: add,
-    remove: remove,
-    clear: clear
-};
+function remove(f) {
+    const idx = queue.indexOf(f);
+    if (idx >= 0) {
+        queue.splice(idx, 1);
+    }
+}
+
+return { add, remove };
 
 })();

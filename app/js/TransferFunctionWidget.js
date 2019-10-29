@@ -3,50 +3,20 @@
 //@@WebGL.js
 //@@Draggable.js
 
-(function(global) {
-'use strict';
+class TransferFunctionWidget extends EventEmitter {
 
-var Class = global.TransferFunctionWidget = TransferFunctionWidget;
-var _ = Class.prototype;
-CommonUtils.extend(_, EventEmitter);
-
-// ========================== CLASS DECLARATION ============================ //
-
-function TransferFunctionWidget(options) {
-    CommonUtils.extend(this, Class.defaults, options);
+constructor(options) {
+    super();
 
     this._onColorChange = this._onColorChange.bind(this);
 
-    _._init.call(this);
-};
-
-Class.defaults = {
-    _width                  : 256,
-    _height                 : 256,
-    _transferFunctionWidth  : 256,
-    _transferFunctionHeight : 256,
-    scaleSpeed              : 0.003
-};
-
-// ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
-
-_._nullify = function() {
-    this._$html          = null;
-    this._$colorPicker   = null;
-    this._$alphaPicker   = null;
-    this._$addBumpButton = null;
-    this._$loadButton    = null;
-    this._$saveButton    = null;
-
-    this._canvas         = null;
-    this._gl             = null;
-    this._clipQuad       = null;
-    this._program        = null;
-    this._bumps          = null;
-};
-
-_._init = function() {
-    _._nullify.call(this);
+    Object.assign(this, {
+        _width                  : 256,
+        _height                 : 256,
+        _transferFunctionWidth  : 256,
+        _transferFunctionHeight : 256,
+        scaleSpeed              : 0.003
+    }, options);
 
     this._$html = DOMUtils.instantiate(TEMPLATES.TransferFunctionWidget);
     this._$colorPicker   = this._$html.querySelector('[name="color"]');
@@ -66,7 +36,7 @@ _._init = function() {
         antialias             : false,
         preserveDrawingBuffer : true
     });
-    var gl = this._gl;
+    const gl = this._gl;
 
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -75,77 +45,94 @@ _._init = function() {
     this._program = WebGL.buildPrograms(gl, {
         drawTransferFunction: SHADERS.drawTransferFunction
     }, MIXINS).drawTransferFunction;
-    var program = this._program;
+    const program = this._program;
     gl.useProgram(program.program);
     gl.bindBuffer(gl.ARRAY_BUFFER, this._clipQuad);
     gl.enableVertexAttribArray(program.attributes.aPosition);
     gl.vertexAttribPointer(program.attributes.aPosition, 2, gl.FLOAT, false, 0, 0);
 
     this._bumps = [];
-    this._$addBumpButton.addEventListener('click', function() {
+    this._$addBumpButton.addEventListener('click', () => {
         this.addBump();
-    }.bind(this));
+    });
 
     this._$colorPicker.addEventListener('change', this._onColorChange);
     this._$alphaPicker.addEventListener('change', this._onColorChange);
 
-    this._$loadButton.addEventListener('click', function() {
-        CommonUtils.readTextFile(function(data) {
+    this._$loadButton.addEventListener('click', () => {
+        CommonUtils.readTextFile(data => {
             this._bumps = JSON.parse(data);
             this.render();
             this._rebuildHandles();
             this.trigger('change');
-        }.bind(this));
-    }.bind(this));
+        });
+    });
 
-    this._$saveButton.addEventListener('click', function() {
+    this._$saveButton.addEventListener('click', () => {
         CommonUtils.downloadJSON(this._bumps, 'TransferFunction.json');
-    }.bind(this));
-};
+    });
+}
 
-_.destroy = function() {
-    var gl = this._gl;
+// ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
+
+_nullify() {
+    this._$html          = null;
+    this._$colorPicker   = null;
+    this._$alphaPicker   = null;
+    this._$addBumpButton = null;
+    this._$loadButton    = null;
+    this._$saveButton    = null;
+
+    this._canvas         = null;
+    this._gl             = null;
+    this._clipQuad       = null;
+    this._program        = null;
+    this._bumps          = null;
+}
+
+destroy() {
+    const gl = this._gl;
     gl.deleteBuffer(this._clipQuad);
     gl.deleteProgram(this._program.program);
     DOMUtils.remove(this._$html);
 
-    _._nullify.call(this);
-};
+    this._nullify();
+}
 
 // =========================== INSTANCE METHODS ============================ //
 
-_.resize = function(width, height) {
+resize(width, height) {
     this._canvas.style.width = width + 'px';
     this._canvas.style.height = height + 'px';
     this._width = width;
     this._height = height;
-};
+}
 
-_.resizeTransferFunction = function(width, height) {
+resizeTransferFunction(width, height) {
     this._canvas.width = width;
     this._canvas.height = height;
     this._transferFunctionWidth = width;
     this._transferFunctionHeight = height;
-    var gl = this._gl;
+    const gl = this._gl;
     gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
-};
+}
 
-_.render = function() {
-    var gl = this._gl;
-    var program = this._program;
+render() {
+    const gl = this._gl;
+    const program = this._program;
 
     gl.clear(gl.COLOR_BUFFER_BIT);
-    this._bumps.forEach(function(bump) {
+    this._bumps.forEach(bump => {
         gl.uniform2f(program.uniforms['uPosition'], bump.position.x, bump.position.y);
         gl.uniform2f(program.uniforms['uSize'], bump.size.x, bump.size.y);
         gl.uniform4f(program.uniforms['uColor'], bump.color.r, bump.color.g, bump.color.b, bump.color.a);
         gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
     });
-};
+}
 
-_.addBump = function(options) {
-    var bumpIndex = this._bumps.length;
-    var newBump = {
+addBump(options) {
+    const bumpIndex = this._bumps.length;
+    const newBump = {
         position: {
             x: 0.5,
             y: 0.5
@@ -166,36 +153,36 @@ _.addBump = function(options) {
     this.selectBump(bumpIndex);
     this.render();
     this.trigger('change');
-};
+}
 
-_._addHandle = function(index) {
-    var $handle = DOMUtils.instantiate(TEMPLATES.TransferFunctionWidgetBumpHandle);
+_addHandle(index) {
+    const $handle = DOMUtils.instantiate(TEMPLATES.TransferFunctionWidgetBumpHandle);
     this._$html.querySelector('.widget').appendChild($handle);
     DOMUtils.data($handle, 'index', index);
 
-    var left = this._bumps[index].position.x * this._width;
-    var top = (1 - this._bumps[index].position.y) * this._height;
+    const left = this._bumps[index].position.x * this._width;
+    const top = (1 - this._bumps[index].position.y) * this._height;
     $handle.style.left = Math.round(left) + 'px';
     $handle.style.top = Math.round(top) + 'px';
 
     new Draggable($handle, $handle.querySelector('.bump-handle'));
-    $handle.addEventListener('draggable', function(e) {
-        var x = e.currentTarget.offsetLeft / this._width;
-        var y = 1 - (e.currentTarget.offsetTop / this._height);
-        var i = parseInt(DOMUtils.data(e.currentTarget, 'index'));
+    $handle.addEventListener('draggable', e => {
+        const x = e.currentTarget.offsetLeft / this._width;
+        const y = 1 - (e.currentTarget.offsetTop / this._height);
+        const i = parseInt(DOMUtils.data(e.currentTarget, 'index'));
         this._bumps[i].position.x = x;
         this._bumps[i].position.y = y;
         this.render();
         this.trigger('change');
-    }.bind(this));
-    $handle.addEventListener('mousedown', function(e) {
-        var i = parseInt(DOMUtils.data(e.currentTarget, 'index'));
+    });
+    $handle.addEventListener('mousedown', e => {
+        const i = parseInt(DOMUtils.data(e.currentTarget, 'index'));
         this.selectBump(i);
-    }.bind(this));
-    $handle.addEventListener('mousewheel', function(e) {
-        var amount = e.deltaY * this.scaleSpeed;
-        var scale = Math.exp(-amount);
-        var i = parseInt(DOMUtils.data(e.currentTarget, 'index'));
+    });
+    $handle.addEventListener('mousewheel', e => {
+        const amount = e.deltaY * this.scaleSpeed;
+        const scale = Math.exp(-amount);
+        const i = parseInt(DOMUtils.data(e.currentTarget, 'index'));
         this.selectBump(i);
         if (e.shiftKey) {
             this._bumps[i].size.y *= scale;
@@ -204,23 +191,23 @@ _._addHandle = function(index) {
         }
         this.render();
         this.trigger('change');
-    }.bind(this));
-};
+    });
+}
 
-_._rebuildHandles = function() {
-    var handles = this._$html.querySelectorAll('.bump');
-    handles.forEach(function(handle) {
+_rebuildHandles() {
+    const handles = this._$html.querySelectorAll('.bump');
+    handles.forEach(handle => {
         DOMUtils.remove(handle);
     });
-    for (var i = 0; i < this._bumps.length; i++) {
+    for (let i = 0; i < this._bumps.length; i++) {
         this._addHandle(i);
     }
-};
+}
 
-_.selectBump = function(index) {
-    var handles = this._$html.querySelectorAll('.bump');
-    handles.forEach(function(handle) {
-        var i = parseInt(DOMUtils.data(handle, 'index'));
+selectBump(index) {
+    const handles = this._$html.querySelectorAll('.bump');
+    handles.forEach(handle => {
+        const i = parseInt(DOMUtils.data(handle, 'index'));
         if (i === index) {
             handle.classList.add('selected');
         } else {
@@ -228,32 +215,30 @@ _.selectBump = function(index) {
         }
     });
 
-    var color = this._bumps[index].color;
+    const color = this._bumps[index].color;
     this._$colorPicker.value = CommonUtils.rgb2hex(color.r, color.g, color.b);
     this._$alphaPicker.value = color.a;
-};
+}
 
-_.getTransferFunction = function() {
+getTransferFunction() {
     return this._canvas;
-};
+}
 
-_._onColorChange = function() {
-    var $selectedBump = this._$html.querySelector('.bump.selected');
-    var i = parseInt(DOMUtils.data($selectedBump, 'index'));
-    var color = CommonUtils.hex2rgb(this._$colorPicker.value);
-    var alpha = parseFloat(this._$alphaPicker.value);
+_onColorChange() {
+    const $selectedBump = this._$html.querySelector('.bump.selected');
+    const i = parseInt(DOMUtils.data($selectedBump, 'index'));
+    const color = CommonUtils.hex2rgb(this._$colorPicker.value);
+    const alpha = parseFloat(this._$alphaPicker.value);
     this._bumps[i].color.r = color.r;
     this._bumps[i].color.g = color.g;
     this._bumps[i].color.b = color.b;
     this._bumps[i].color.a = alpha;
     this.render();
     this.trigger('change');
-};
+}
 
-_.appendTo = function(object) {
+appendTo(object) {
     object.appendChild(this._$html);
-};
+}
 
-// ============================ STATIC METHODS ============================= //
-
-})(this);
+}

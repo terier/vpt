@@ -1,47 +1,17 @@
 //@@../utils
 
-(function(global) {
-'use strict';
+class AbstractReader {
 
-var Class = global.AbstractReader = AbstractReader;
-var _ = Class.prototype;
-
-// ========================== CLASS DECLARATION ============================ //
-
-function AbstractReader(loader, options) {
-    CommonUtils.extend(this, Class.defaults, options);
-
+constructor(loader) {
     this._loader = loader;
+}
 
-    _._init.call(this);
-};
-
-Class.defaults = {
-};
-
-// ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
-
-_._nullify = function() {
-};
-
-_._init = function() {
-    _._nullify.call(this);
-};
-
-_.destroy = function() {
-    _._nullify.call(this);
-};
-
-// =========================== INSTANCE METHODS ============================ //
-
-_.readMetadata = function(handlers) {
+readMetadata(handlers) {
     throw CommonUtils.noimpl;
-};
+}
 
-_.readBlock = function(block, handlers) {
+readBlock(block, handlers) {
     throw CommonUtils.noimpl;
-};
+}
 
-// ============================ STATIC METHODS ============================= //
-
-})(this);
+}

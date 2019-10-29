@@ -1,44 +1,25 @@
 //@@../utils
 //@@UIObject.js
 
-(function(global) {
-'use strict';
+class Spinner extends UIObject {
 
-var Class = global.Spinner = Spinner;
-CommonUtils.inherit(Class, UIObject);
-var _ = Class.prototype;
+constructor(options) {
+    super(TEMPLATES.Spinner, options);
 
-// ========================== CLASS DECLARATION ============================ //
-
-function Spinner(options) {
-    _.sup.constructor.call(this, TEMPLATES.Spinner, options);
-    CommonUtils.extend(this, Class.defaults, options);
+    Object.assign(this, {
+        value : 0,
+        min   : null,
+        max   : null,
+        step  : 1,
+        unit  : null, // TODO: add a label with units at the end of input
+        // If logarithmic, step size is proportional to value * this.step
+        logarithmic : false
+    }, options);
 
     this._handleInput = this._handleInput.bind(this);
     this._handleChange = this._handleChange.bind(this);
 
-    _._init.call(this);
-};
-
-Class.defaults = {
-    value : 0,
-    min   : null,
-    max   : null,
-    step  : 1,
-    unit  : null, // TODO: add a label with units at the end of input
-    // If logarithmic, step size is proportional to value * this.step
-    logarithmic : false
-};
-
-// ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
-
-_._nullify = function() {
-};
-
-_._init = function() {
-    _._nullify.call(this);
-
-    var input = this._binds.input;
+    let input = this._binds.input;
     if (this.value !== null) {
         input.value = this.value;
     }
@@ -54,21 +35,14 @@ _._init = function() {
 
     input.addEventListener('input', this._handleInput);
     input.addEventListener('change', this._handleChange);
-};
+}
 
-_.destroy = function() {
-    _._nullify.call(this);
-    _.sup.destroy.call(this);
-};
-
-// =========================== INSTANCE METHODS ============================ //
-
-_.setEnabled = function(enabled) {
+setEnabled(enabled) {
     this._binds.input.disabled = !enabled;
-    _.sup.setEnabled.call(this, enabled);
-};
+    super.setEnabled(enabled);
+}
 
-_.setValue = function(value) {
+setValue(value) {
     this.value = value;
     if (this.min !== null) {
         this.value = Math.max(this.value, this.min);
@@ -79,32 +53,32 @@ _.setValue = function(value) {
     if (this.logarithmic) {
         this._binds.input.step = this.value * this.step;
     }
-};
+}
 
-_.getValue = function() {
+getValue() {
     return this.value;
-};
+}
 
-_._handleInput = function(e) {
+_handleInput(e) {
     e.stopPropagation();
 
     if (this._binds.input.value === '') {
         return;
     }
 
-    var parsedValue = parseFloat(this._binds.input.value);
+    const parsedValue = parseFloat(this._binds.input.value);
     if (!isNaN(parsedValue)) {
         this.setValue(parsedValue);
         this.trigger('input');
     } else {
         this._binds.input.value = parsedValue;
     }
-};
+}
 
-_._handleChange = function(e) {
+_handleChange(e) {
     e.stopPropagation();
 
-    var parsedValue = parseFloat(this._binds.input.value);
+    const parsedValue = parseFloat(this._binds.input.value);
     if (!isNaN(parsedValue)) {
         this.setValue(parsedValue);
         if (this._binds.input.value !== this.value) {
@@ -114,8 +88,6 @@ _._handleChange = function(e) {
     } else {
         this._binds.input.value = this.value;
     }
-};
+}
 
-// ============================ STATIC METHODS ============================= //
-
-})(this);
+}

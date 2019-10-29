@@ -4,44 +4,16 @@
 //@@../SingleBuffer.js
 //@@../DoubleBuffer.js
 
-(function(global) {
-'use strict';
+class AbstractRenderer {
 
-var Class = global.AbstractRenderer = AbstractRenderer;
-var _ = Class.prototype;
-
-// ========================== CLASS DECLARATION ============================ //
-
-function AbstractRenderer(gl, volume, environmentTexture, options) {
-    CommonUtils.extend(this, Class.defaults, options);
+constructor(gl, volume, environmentTexture, options) {
+    Object.assign(this, {
+        _bufferSize : 512
+    }, options);
 
     this._gl = gl;
     this._volume = volume;
     this._environmentTexture = environmentTexture;
-
-    _._init.call(this);
-};
-
-Class.defaults = {
-    _bufferSize : 512
-};
-
-// ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
-
-_._nullify = function() {
-    this._frameBuffer        = null;
-    this._accumulationBuffer = null;
-    this._renderBuffer       = null;
-    this._transferFunction   = null;
-    this._mvpInverseMatrix   = null;
-    this._clipQuad           = null;
-    this._clipQuadProgram    = null;
-};
-
-_._init = function() {
-    _._nullify.call(this);
-
-    var gl = this._gl;
 
     this._rebuildBuffers();
 
@@ -61,25 +33,21 @@ _._init = function() {
     this._clipQuadProgram = WebGL.buildPrograms(gl, {
         quad: SHADERS.quad
     }).quad;
-};
+}
 
-_.destroy = function() {
-    var gl = this._gl;
+destroy() {
+    const gl = this._gl;
     this._frameBuffer.destroy();
     this._accumulationBuffer.destroy();
     this._renderBuffer.destroy();
     gl.deleteTexture(this._transferFunction);
     gl.deleteBuffer(this._clipQuad);
     gl.deleteProgram(this._clipQuadProgram.program);
+}
 
-    _._nullify.call(this);
-};
-
-// =========================== INSTANCE METHODS ============================ //
-
-_.render = function() {
+render() {
     // TODO: put the following logic in VAO
-    var gl = this._gl;
+    const gl = this._gl;
     gl.bindBuffer(gl.ARRAY_BUFFER, this._clipQuad);
     gl.enableVertexAttribArray(0); // position always bound to attribute 0
     gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
@@ -93,11 +61,11 @@ _.render = function() {
 
     this._renderBuffer.use();
     this._renderFrame();
-};
+}
 
-_.reset = function() {
+reset() {
     // TODO: put the following logic in VAO
-    var gl = this._gl;
+    const gl = this._gl;
     gl.bindBuffer(gl.ARRAY_BUFFER, this._clipQuad);
     gl.enableVertexAttribArray(0); // position always bound to attribute 0
     gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
@@ -105,9 +73,9 @@ _.reset = function() {
     this._accumulationBuffer.use();
     this._resetFrame();
     this._accumulationBuffer.swap();
-};
+}
 
-_._rebuildBuffers = function() {
+_rebuildBuffers() {
     if (this._frameBuffer) {
         this._frameBuffer.destroy();
     }
@@ -117,67 +85,67 @@ _._rebuildBuffers = function() {
     if (this._renderBuffer) {
         this._renderBuffer.destroy();
     }
-    var gl = this._gl;
+    const gl = this._gl;
     this._frameBuffer = new SingleBuffer(gl, this._getFrameBufferSpec());
     this._accumulationBuffer = new DoubleBuffer(gl, this._getAccumulationBufferSpec());
     this._renderBuffer = new SingleBuffer(gl, this._getRenderBufferSpec());
-};
+}
 
-_.setVolume = function(volume) {
+setVolume(volume) {
     this._volume = volume;
     this.reset();
-};
+}
 
-_.setTransferFunction = function(transferFunction) {
-    var gl = this._gl;
+setTransferFunction(transferFunction) {
+    const gl = this._gl;
     gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
     gl.texImage2D(gl.TEXTURE_2D, 0,
         gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, transferFunction);
     gl.bindTexture(gl.TEXTURE_2D, null);
-};
+}
 
-_.setResolution = function(resolution) {
+setResolution(resolution) {
     if (resolution !== this._bufferSize) {
         this._bufferSize = resolution;
         this._rebuildBuffers();
         this.reset();
     }
-};
+}
 
-_.getTexture = function() {
+getTexture() {
     return this._renderBuffer.getAttachments().color[0];
-};
+}
 
-_.setMvpInverseMatrix = function(matrix) {
+setMvpInverseMatrix(matrix) {
     this._mvpInverseMatrix.copy(matrix);
-};
+}
 
-_._resetFrame = function() {
+_resetFrame() {
     throw CommonUtils.noimpl;
-};
+}
 
-_._generateFrame = function() {
+_generateFrame() {
     throw CommonUtils.noimpl;
-};
+}
 
-_._integrateFrame = function() {
+_integrateFrame() {
     throw CommonUtils.noimpl;
-};
+}
 
-_._renderFrame = function() {
+_renderFrame() {
     throw CommonUtils.noimpl;
-};
+}
 
-_._getFrameBufferSpec = function() {
+_getFrameBufferSpec() {
     throw CommonUtils.noimpl;
-};
+}
 
-_._getAccumulationBufferSpec = function() {
+_getAccumulationBufferSpec() {
     throw CommonUtils.noimpl;
-};
+}
 
-_._getRenderBufferSpec = function() {
-    var gl = this._gl;
+_getRenderBufferSpec() {
+    const gl = this._gl;
     return [{
         width          : this._bufferSize,
         height         : this._bufferSize,
@@ -189,8 +157,6 @@ _._getRenderBufferSpec = function() {
         internalFormat : gl.RGBA16F,
         type           : gl.FLOAT
     }];
-};
+}
 
-// ============================ STATIC METHODS ============================= //
-
-})(this);
+}

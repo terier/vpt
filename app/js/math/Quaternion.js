@@ -1,49 +1,46 @@
-var Quaternion = (function() {
-'use strict';
+class Quaternion {
 
-function Quaternion(x, y, z, w) {
+constructor(x, y, z, w) {
     this.x = x || 0;
     this.y = y || 0;
     this.z = z || 0;
     this.w = (w !== undefined) ? w : 1;
 }
 
-var _ = Quaternion.prototype;
-
-_.clone = function() {
+clone() {
     return new Quaternion(this.x, this.y, this.z, this.w);
-};
+}
 
-_.copy = function(q) {
+copy(q) {
     this.x = q.x;
     this.y = q.y;
     this.z = q.z;
     this.w = q.w;
     return this;
-};
+}
 
-_.set = function(x, y, z, w) {
+set(x, y, z, w) {
     this.x = x;
     this.y = y;
     this.z = z;
     this.w = w;
     return this;
-};
+}
 
-_.identity = function() {
+identity() {
     this.x = this.y = this.z = 0;
     this.w = 1;
     return this;
-};
+}
 
-_.inverse = function() {
+inverse() {
     this.x *= -1;
     this.y *= -1;
     this.z *= -1;
     return this;
-};
+}
 
-_.multiply = function(a, b) {
+multiply(a, b) {
     var ax = a.x, ay = a.y, az = a.z, aw = a.w;
     var bx = b.x, by = b.y, bz = b.z, bw = b.w;
 
@@ -53,13 +50,13 @@ _.multiply = function(a, b) {
     this.w = aw * bw - ax * bx - ay * by - az * bz;
 
     return this;
-};
+}
 
-_.length = function() {
+length() {
     return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w);
-};
+}
 
-_.normalize = function() {
+normalize() {
     var length = this.length();
 
     this.x /= length;
@@ -68,9 +65,9 @@ _.normalize = function() {
     this.w /= length;
 
     return this;
-};
+}
 
-_.fromAxisAngle = function() {
+fromAxisAngle() {
     var s = Math.sin(this.w / 2);
     var c = Math.cos(this.w / 2);
 
@@ -80,9 +77,9 @@ _.fromAxisAngle = function() {
     this.w = c;
 
     return this;
-};
+}
 
-_.fromDevice = function(alpha, beta, gamma) {
+fromDevice(alpha, beta, gamma) {
     var degtorad = Math.PI / 180;
     var x = beta * degtorad / 2;
     var y = gamma * degtorad / 2;
@@ -101,9 +98,9 @@ _.fromDevice = function(alpha, beta, gamma) {
     this.w = cx * cy * cz - sx * sy * sz;
 
     return this;
-};
+}
 
-_.toRotationMatrix = function(m) {
+toRotationMatrix(m) {
     var x = this.x, y = this.y, z = this.z, w = this.w;
     var x2 = x + x, y2 = y + y, z2 = z + z;
     var xx = x * x2, xy = x * y2, xz = x * z2;
@@ -124,8 +121,6 @@ _.toRotationMatrix = function(m) {
 
     m[3] = m[7] = m[11] = m[12] = m[13] = m[14] = 0;
     m[15] = 1;
-};
+}
 
-return Quaternion;
-
-})();
+}

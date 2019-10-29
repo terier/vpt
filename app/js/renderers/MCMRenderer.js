@@ -2,41 +2,19 @@
 //@@../WebGL.js
 //@@AbstractRenderer.js
 
-(function(global) {
-    'use strict';
+class MCMRenderer extends AbstractRenderer {
 
-    var Class = global.MCMRenderer = MCMRenderer;
-    CommonUtils.inherit(Class, AbstractRenderer);
-    var _ = Class.prototype;
+constructor(gl, volume, environmentTexture, options) {
+    super(gl, volume, environmentTexture, options);
 
-// ========================== CLASS DECLARATION ============================ //
-
-function MCMRenderer(gl, volume, environmentTexture, options) {
-    _.sup.constructor.call(this, gl, volume, environmentTexture, options);
-    CommonUtils.extend(this, Class.defaults, options);
-
-    _._init.call(this);
-};
-
-Class.defaults = {
-    absorptionCoefficient : 1,
-    scatteringCoefficient : 1,
-    scatteringBias        : 0,
-    majorant              : 2,
-    maxBounces            : 8,
-    steps                 : 1
-};
-
-// ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
-
-_._nullify = function() {
-    this._programs = null;
-};
-
-_._init = function() {
-    _._nullify.call(this);
-
-    var gl = this._gl;
+    Object.assign(this, {
+        absorptionCoefficient : 1,
+        scatteringCoefficient : 1,
+        scatteringBias        : 0,
+        majorant              : 2,
+        maxBounces            : 8,
+        steps                 : 1
+    }, options);
 
     this._programs = WebGL.buildPrograms(gl, {
         generate  : SHADERS.MCMGenerate,
@@ -44,24 +22,21 @@ _._init = function() {
         render    : SHADERS.MCMRender,
         reset     : SHADERS.MCMReset
     }, MIXINS);
-};
+}
 
-_.destroy = function() {
-    var gl = this._gl;
-    Object.keys(this._programs).forEach(function(programName) {
-        gl.deleteProgram(this._programs[programName].program);
-    }.bind(this));
+destroy() {
+    const gl = this._gl;
+    for (let program of this._programs) {
+        gl.deleteProgram(program.program);
+    }
 
-    _._nullify.call(this);
-    _.sup.destroy.call(this);
-};
+    super.destroy();
+}
 
-// =========================== INSTANCE METHODS ============================ //
+_resetFrame() {
+    const gl = this._gl;
 
-_._resetFrame = function() {
-    var gl = this._gl;
-
-    var program = this._programs.reset;
+    const program = this._programs.reset;
     gl.useProgram(program.program);
 
     gl.uniformMatrix4fv(program.uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
@@ -77,15 +52,15 @@ _._resetFrame = function() {
     ]);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-};
+}
 
-_._generateFrame = function() {
-};
+_generateFrame() {
+}
 
-_._integrateFrame = function() {
-    var gl = this._gl;
+_integrateFrame() {
+    const gl = this._gl;
 
-    var program = this._programs.integrate;
+    const program = this._programs.integrate;
     gl.useProgram(program.program);
 
     gl.activeTexture(gl.TEXTURE0);
@@ -133,12 +108,12 @@ _._integrateFrame = function() {
     ]);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-};
+}
 
-_._renderFrame = function() {
-    var gl = this._gl;
+_renderFrame() {
+    const gl = this._gl;
 
-    var program = this._programs.render;
+    const program = this._programs.render;
     gl.useProgram(program.program);
 
     gl.activeTexture(gl.TEXTURE0);
@@ -147,10 +122,10 @@ _._renderFrame = function() {
     gl.uniform1i(program.uniforms.uColor, 0);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-};
+}
 
-_._getFrameBufferSpec = function() {
-    var gl = this._gl;
+_getFrameBufferSpec() {
+    const gl = this._gl;
     return [{
         width          : this._bufferSize,
         height         : this._bufferSize,
@@ -160,12 +135,12 @@ _._getFrameBufferSpec = function() {
         internalFormat : gl.RGBA32F,
         type           : gl.FLOAT
     }];
-};
+}
 
-_._getAccumulationBufferSpec = function() {
-    var gl = this._gl;
+_getAccumulationBufferSpec() {
+    const gl = this._gl;
 
-    var positionBufferSpec = {
+    const positionBufferSpec = {
         width          : this._bufferSize,
         height         : this._bufferSize,
         min            : gl.NEAREST,
@@ -175,7 +150,7 @@ _._getAccumulationBufferSpec = function() {
         type           : gl.FLOAT
     };
 
-    var directionBufferSpec = {
+    const directionBufferSpec = {
         width          : this._bufferSize,
         height         : this._bufferSize,
         min            : gl.NEAREST,
@@ -185,7 +160,7 @@ _._getAccumulationBufferSpec = function() {
         type           : gl.FLOAT
     };
 
-    var transmittanceBufferSpec = {
+    const transmittanceBufferSpec = {
         width          : this._bufferSize,
         height         : this._bufferSize,
         min            : gl.NEAREST,
@@ -195,7 +170,7 @@ _._getAccumulationBufferSpec = function() {
         type           : gl.FLOAT
     };
 
-    var radianceBufferSpec = {
+    const radianceBufferSpec = {
         width          : this._bufferSize,
         height         : this._bufferSize,
         min            : gl.NEAREST,
@@ -211,8 +186,6 @@ _._getAccumulationBufferSpec = function() {
         transmittanceBufferSpec,
         radianceBufferSpec
     ];
-};
+}
 
-// ============================ STATIC METHODS ============================= //
-
-})(this);
+}
