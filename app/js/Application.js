@@ -112,6 +112,7 @@ _._init = function() {
         storage = Object.assign({}, storage, settings);
         localStorage.setItem(storageKey, JSON.stringify(storage));
         this._rendererDialog.fromLocalStorage();
+        // TODO: load TF
     }.bind(this));
 };
 

@@ -16,6 +16,7 @@ function TransferFunctionWidget(options) {
     CommonUtils.extend(this, Class.defaults, options);
 
     this._onColorChange = this._onColorChange.bind(this);
+    this._onImageLoad = this._onImageLoad.bind(this);
 
     _._init.call(this);
 };
@@ -41,7 +42,7 @@ _._nullify = function() {
     this._canvas         = null;
     this._gl             = null;
     this._clipQuad       = null;
-    this._program        = null;
+    this._programs       = null;
     this._bumps          = null;
 };
 
@@ -72,14 +73,10 @@ _._init = function() {
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
     this._clipQuad = WebGL.createClipQuad(gl);
-    this._program = WebGL.buildPrograms(gl, {
-        drawTransferFunction: SHADERS.drawTransferFunction
-    }, MIXINS).drawTransferFunction;
-    var program = this._program;
-    gl.useProgram(program.program);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this._clipQuad);
-    gl.enableVertexAttribArray(program.attributes.aPosition);
-    gl.vertexAttribPointer(program.attributes.aPosition, 2, gl.FLOAT, false, 0, 0);
+    this._programs = WebGL.buildPrograms(gl, {
+        drawTransferFunction : SHADERS.drawTransferFunction,
+        quad                 : SHADERS.quad
+    }, MIXINS);
 
     this._bumps = [];
     this._$addBumpButton.addEventListener('click', function() {
@@ -106,7 +103,9 @@ _._init = function() {
 _.destroy = function() {
     var gl = this._gl;
     gl.deleteBuffer(this._clipQuad);
-    gl.deleteProgram(this._program.program);
+    Object.keys(this._programs).forEach(function(programName) {
+        gl.deleteProgram(this._programs[programName].program);
+    }.bind(this));
     DOMUtils.remove(this._$html);
 
     _._nullify.call(this);
@@ -132,7 +131,12 @@ _.resizeTransferFunction = function(width, height) {
 
 _.render = function() {
     var gl = this._gl;
-    var program = this._program;
+    var program = this._programs.drawTransferFunction;
+    gl.useProgram(program.program);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._clipQuad);
+    gl.enableVertexAttribArray(program.attributes.aPosition);
+    gl.vertexAttribPointer(program.attributes.aPosition, 2, gl.FLOAT, false, 0, 0);
 
     gl.clear(gl.COLOR_BUFFER_BIT);
     this._bumps.forEach(function(bump) {
@@ -252,6 +256,55 @@ _._onColorChange = function() {
 
 _.appendTo = function(object) {
     object.appendChild(this._$html);
+};
+
+_._onImageLoad = function(e) {
+    var gl = this._gl;
+
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    debugger;
+    var texture = WebGL.createTexture(gl, {
+        image : e.target,
+        min   : gl.NEAREST,
+        mag   : gl.NEAREST
+    });
+
+    var program = this._programs.quad;
+    gl.useProgram(program.program);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._clipQuad);
+    gl.enableVertexAttribArray(program.attributes.aPosition);
+    gl.vertexAttribPointer(program.attributes.aPosition, 2, gl.FLOAT, false, 0, 0);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.uniform1i(program.uniforms.uTexture, 0);
+
+    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+
+    gl.deleteTexture(texture);
+    this.trigger('change');
+};
+
+_.loadFromUrl = function(url) {
+    var gl = this._gl;
+
+    var image = new Image();
+    image.addEventListener('load', this._onImageLoad);
+    image.src = url;
+};
+
+_.loadFromFile = function(file) {
+    var gl = this._gl;
+
+    var image = new Image();
+    image.addEventListener('load', this._onImageLoad);
+
+    var fr = new FileReader();
+    fr.addEventListener('load', function() {
+        image.src = fr.result;
+    });
+    fr.readAsDataURL(file);
 };
 
 // ============================ STATIC METHODS ============================= //
