@@ -88,6 +88,11 @@ _.disableMCC = function() {
     this._binds.rendererSelect.removeOption('mcc');
 };
 
+_.selectRenderer = function(renderer) {
+    this._binds.rendererSelect.setValue(renderer);
+    this._handleRendererChange();
+};
+
 // ============================ STATIC METHODS ============================= //
 
 })(this);

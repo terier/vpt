@@ -38,13 +38,13 @@ _._init = function() {
     this._tfwidget = new TransferFunctionWidget();
     this._binds.tfcontainer.add(this._tfwidget);
 
-    this._fromLocalStorage();
+    this.fromLocalStorage();
     this._attachHandlers();
 };
 
 _.destroy = function() {
     this._detachHandlers();
-    this._toLocalStorage();
+    this.toLocalStorage();
 
     this._renderer = null;
     this._tfwidget.destroy();
@@ -110,9 +110,13 @@ _._handleTFChange = function() {
     this._renderer.reset();
 };
 
+_.getStorageKey = function() {
+    return 'MCMRendererDialog';
+};
+
 // TODO: maybe automate serialization?
-_._toLocalStorage = function() {
-    localStorage.setItem('MCMRendererDialog', JSON.stringify({
+_.toLocalStorage = function() {
+    localStorage.setItem(this.getStorageKey(), JSON.stringify({
         extinction : this._binds.extinction.getValue(),
         albedo     : this._binds.albedo.getValue(),
         bias       : this._binds.bias.getValue(),
@@ -122,25 +126,29 @@ _._toLocalStorage = function() {
     }));
 };
 
-_._fromLocalStorage = function() {
-    var data = localStorage.getItem('MCMRendererDialog');
+_.fromLocalStorage = function() {
+    var data = localStorage.getItem(this.getStorageKey());
     if (!data) {
         return;
     }
 
-    data = JSON.parse(data);
+    try {
+        data = JSON.parse(data);
 
-    this._detachHandlers();
-    this._binds.extinction.setValue(data.extinction);
-    this._binds.albedo.setValue(data.albedo);
-    this._binds.bias.setValue(data.bias);
-    this._binds.ratio.setValue(data.ratio);
-    this._binds.bounces.setValue(data.bounces);
-    this._binds.steps.setValue(data.steps);
-    this._attachHandlers();
+        this._detachHandlers();
+        this._binds.extinction.setValue(data.extinction);
+        this._binds.albedo.setValue(data.albedo);
+        this._binds.bias.setValue(data.bias);
+        this._binds.ratio.setValue(data.ratio);
+        this._binds.bounces.setValue(data.bounces);
+        this._binds.steps.setValue(data.steps);
+        this._attachHandlers();
 
-    this._handleChange();
-    this._handleTFChange();
+        this._handleChange();
+        this._handleTFChange();
+    } catch (e) {
+        localStorage.removeItem(this.getStorageKey());
+    }
 };
 
 // ============================ STATIC METHODS ============================= //

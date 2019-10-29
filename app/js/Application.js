@@ -103,6 +103,16 @@ _._init = function() {
     this._mainDialog.addEventListener('tonemapperchange', this._handleToneMapperChange);
     this._mainDialog.trigger('rendererchange', this._mainDialog.getSelectedRenderer());
     this._mainDialog.trigger('tonemapperchange', this._mainDialog.getSelectedToneMapper());
+
+    this._renderingContext.addEventListener('settings', function(settings) {
+        this._mainDialog.selectRenderer(settings.renderer);
+        this._rendererDialog.toLocalStorage();
+        var storageKey = this._rendererDialog.getStorageKey();
+        var storage = JSON.parse(localStorage.getItem(storageKey));
+        storage = Object.assign({}, storage, settings);
+        localStorage.setItem(storageKey, JSON.stringify(storage));
+        this._rendererDialog.fromLocalStorage();
+    }.bind(this));
 };
 
 _.destroy = function() {

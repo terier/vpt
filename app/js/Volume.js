@@ -27,6 +27,7 @@ _._nullify = function() {
     this.meta       = null;
     this.modalities = null;
     this.blocks     = null;
+    this.settings   = null;
     this._texture   = null;
 };
 
@@ -50,6 +51,7 @@ _.readMetadata = function(handlers) {
             this.meta = data.meta;
             this.modalities = data.modalities;
             this.blocks = data.blocks;
+            this.settings = data.settings;
             handlers.onData && handlers.onData();
         }.bind(this)
     });

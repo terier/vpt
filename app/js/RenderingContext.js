@@ -5,6 +5,7 @@
 //@@Camera.js
 //@@OrbitCameraController.js
 //@@Volume.js
+//@@EventEmitter.js
 //@@renderers
 //@@tonemappers
 
@@ -13,6 +14,7 @@
 
 var Class = global.RenderingContext = RenderingContext;
 var _ = Class.prototype;
+CommonUtils.extend(_, EventEmitter);
 
 // ========================== CLASS DECLARATION ============================ //
 
@@ -215,6 +217,9 @@ _.setVolume = function(reader) {
 
     volume.readMetadata({
         onData: function() {
+            if (volume.settings) {
+                this.trigger('settings', volume.settings);
+            }
             volume.readModality('default', {
                 onLoad: function() {
                     volume.setFilter(this._filter);
