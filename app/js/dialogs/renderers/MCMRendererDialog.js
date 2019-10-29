@@ -142,6 +142,11 @@ _.fromLocalStorage = function() {
         this._binds.ratio.setValue(data.ratio);
         this._binds.bounces.setValue(data.bounces);
         this._binds.steps.setValue(data.steps);
+
+        if (data.transfer) {
+            this._tfwidget.loadFromUrl(data.transfer);
+        }
+
         this._attachHandlers();
 
         this._handleChange();

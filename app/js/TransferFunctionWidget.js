@@ -262,7 +262,6 @@ _._onImageLoad = function(e) {
     var gl = this._gl;
 
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-    debugger;
     var texture = WebGL.createTexture(gl, {
         image : e.target,
         min   : gl.NEAREST,
