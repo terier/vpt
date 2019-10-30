@@ -29,8 +29,8 @@ function RenderingContext(options) {
 };
 
 Class.defaults = {
-    _resolution : 512,
-    _filter     : 'linear'
+    _resolution : 2048,
+    _filter     : 'nearest'
 };
 
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //

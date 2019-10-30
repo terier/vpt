@@ -23,7 +23,7 @@ function AbstractRenderer(gl, volume, environmentTexture, options) {
 };
 
 Class.defaults = {
-    _bufferSize : 512
+    _bufferSize : 2048
 };
 
 // ======================= CONSTRUCTOR & DESTRUCTOR ======================== //

@@ -147,7 +147,7 @@ _.fromLocalStorage = function() {
             if (data.transfer.startsWith('data')) {
                 this._tfwidget.loadFromUrl(data.transfer);
             } else {
-                this._tfwidget._bumps = JSON.parse(data);
+                this._tfwidget._bumps = JSON.parse(data.transfer);
                 this._tfwidget.render();
                 this._tfwidget._rebuildHandles();
             }
@@ -160,6 +160,8 @@ _.fromLocalStorage = function() {
     } catch (e) {
         localStorage.removeItem(this.getStorageKey());
     }
+
+    this.toLocalStorage();
 };
 
 // ============================ STATIC METHODS ============================= //

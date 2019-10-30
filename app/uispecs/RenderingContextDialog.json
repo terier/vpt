@@ -8,7 +8,7 @@
         {
           "type": "checkbox",
           "bind": "filter",
-          "checked": true
+          "checked": false
         }
       ]
     },
@@ -21,7 +21,7 @@
           "bind": "resolution",
           "min": 1,
           "max": 4096,
-          "value": 512
+          "value": 2048
         }
       ]
     },
