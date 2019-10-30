@@ -144,7 +144,13 @@ _.fromLocalStorage = function() {
         this._binds.steps.setValue(data.steps);
 
         if (data.transfer) {
-            this._tfwidget.loadFromUrl(data.transfer);
+            if (data.transfer.startsWith('data')) {
+                this._tfwidget.loadFromUrl(data.transfer);
+            } else {
+                this._tfwidget._bumps = JSON.parse(data);
+                this._tfwidget.render();
+                this._tfwidget._rebuildHandles();
+            }
         }
 
         this._attachHandlers();
