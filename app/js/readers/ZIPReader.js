@@ -28,7 +28,7 @@ getFiles(handlers) {
 }
 
 readFile(fileName, handlers) {
-    function readFile() {
+    const readFile = function() {
         const entry = this._cd.find(entry => entry.name === fileName);
         if (entry) {
             this._loader.readData(entry.headerOffset, entry.headerOffset + 30, {
@@ -45,7 +45,7 @@ readFile(fileName, handlers) {
                 }
             });
         }
-    }
+    }.bind(this);
 
     if (!this._cd) {
         this._readCD({
@@ -85,7 +85,7 @@ _readEOCD(handlers) {
         return;
     }
 
-    function readEOCD() {
+    const readEOCD = function() {
         var EOCD_SIGNATURE = new Uint8Array([0x50, 0x4b, 0x05, 0x06]);
         var MIN_EOCD_SIZE = 22;
         var offset = Math.max(this._length - MIN_EOCD_SIZE, 0);
@@ -102,7 +102,7 @@ _readEOCD(handlers) {
                 handlers.onData && handlers.onData();
             }
         });
-    }
+    }.bind(this);
 
     if (!this._length) {
         this._loader.readLength({
@@ -121,7 +121,7 @@ _readCD(handlers) {
         return;
     }
 
-    function readCD() {
+    const readCD = function() {
         this._loader.readData(this._eocd.offset, this._eocd.offset + this._eocd.size, {
             onData: data => {
                 data = new Uint8Array(data);
@@ -152,7 +152,7 @@ _readCD(handlers) {
                 handlers.onData && handlers.onData();
             }
         });
-    }
+    }.bind(this);
 
     if (!this._eocd) {
         this._readEOCD({
