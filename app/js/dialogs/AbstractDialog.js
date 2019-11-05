@@ -19,7 +19,7 @@ constructor(spec, options) {
 }
 
 destroy() {
-    DOMUtils.remove(this._object);
+    this._object.destroy();
 }
 
 isVisible() {
