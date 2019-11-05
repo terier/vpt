@@ -6,7 +6,6 @@
 //@@dialogs/tonemappers
 //@@ui
 //@@RenderingContext.js
-//@@Volume.js
 
 class Application {
 

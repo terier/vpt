@@ -1,4 +1,3 @@
-//@@../utils
 //@@AbstractLoader.js
 
 class AjaxLoader extends AbstractLoader {

@@ -1,4 +1,3 @@
-//@@../../utils
 //@@../AbstractDialog.js
 
 class MIPRendererDialog extends AbstractDialog {

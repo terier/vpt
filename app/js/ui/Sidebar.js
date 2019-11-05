@@ -1,4 +1,3 @@
-//@@../utils
 //@@UIObject.js
 
 class Sidebar extends UIObject {

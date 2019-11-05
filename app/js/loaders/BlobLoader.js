@@ -1,4 +1,3 @@
-//@@../utils
 //@@AbstractLoader.js
 
 class BlobLoader extends AbstractLoader {

@@ -1,4 +1,3 @@
-//@@../utils
 //@@../math
 //@@../WebGL.js
 //@@../SingleBuffer.js
@@ -121,27 +120,27 @@ setMvpInverseMatrix(matrix) {
 }
 
 _resetFrame() {
-    throw CommonUtils.noimpl;
+    // IMPLEMENT
 }
 
 _generateFrame() {
-    throw CommonUtils.noimpl;
+    // IMPLEMENT
 }
 
 _integrateFrame() {
-    throw CommonUtils.noimpl;
+    // IMPLEMENT
 }
 
 _renderFrame() {
-    throw CommonUtils.noimpl;
+    // IMPLEMENT
 }
 
 _getFrameBufferSpec() {
-    throw CommonUtils.noimpl;
+    // IMPLEMENT
 }
 
 _getAccumulationBufferSpec() {
-    throw CommonUtils.noimpl;
+    // IMPLEMENT
 }
 
 _getRenderBufferSpec() {

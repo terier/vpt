@@ -1,4 +1,3 @@
-//@@../utils
 //@@UIObject.js
 
 class Spinner extends UIObject {

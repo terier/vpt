@@ -1,4 +1,3 @@
-//@@../utils
 //@@UIObject.js
 
 class Checkbox extends UIObject {

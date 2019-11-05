@@ -1,13 +1,11 @@
-//@@../utils
-
 class AbstractLoader {
 
 readLength(handlers) {
-    throw CommonUtils.noimpl;
+    // IMPLEMENT
 }
 
 readData(start, end, handlers) {
-    throw CommonUtils.noimpl;
+    // IMPLEMENT
 }
 
 }

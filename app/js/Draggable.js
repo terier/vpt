@@ -1,5 +1,3 @@
-//@@utils
-
 class Draggable {
 
 constructor(element, handle) {

@@ -1,5 +1,3 @@
-//@@../utils
-
 class AbstractReader {
 
 constructor(loader) {
@@ -7,11 +5,11 @@ constructor(loader) {
 }
 
 readMetadata(handlers) {
-    throw CommonUtils.noimpl;
+    // IMPLEMENT
 }
 
 readBlock(block, handlers) {
-    throw CommonUtils.noimpl;
+    // IMPLEMENT
 }
 
 }

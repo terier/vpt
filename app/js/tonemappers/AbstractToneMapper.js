@@ -1,4 +1,3 @@
-//@@../utils
 //@@../WebGL.js
 
 class AbstractToneMapper {
@@ -62,7 +61,7 @@ setResolution(resolution) {
 }
 
 _renderFrame() {
-    throw CommonUtils.noimpl;
+    // IMPLEMENT
 }
 
 _getRenderBufferSpec() {

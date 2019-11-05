@@ -1,4 +1,3 @@
-//@@../utils
 //@@UIObject.js
 
 class Button extends UIObject {

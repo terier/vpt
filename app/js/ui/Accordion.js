@@ -1,4 +1,3 @@
-//@@../utils
 //@@UIObject.js
 
 class Accordion extends UIObject {

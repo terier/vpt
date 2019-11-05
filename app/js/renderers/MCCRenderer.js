@@ -1,4 +1,3 @@
-//@@../utils
 //@@../WebGL.js
 
 // MCC: Monte Carlo Compute renderer
