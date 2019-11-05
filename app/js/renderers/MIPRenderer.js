@@ -21,9 +21,9 @@ constructor(gl, volume, environmentTexture, options) {
 
 destroy() {
     const gl = this._gl;
-    for (let program of this._programs) {
-        gl.deleteProgram(program.program);
-    }
+    Object.keys(this._programs).forEach(programName => {
+        gl.deleteProgram(this._programs[programName].program);
+    });
 
     super.destroy();
 }

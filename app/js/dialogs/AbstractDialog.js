@@ -18,6 +18,10 @@ constructor(spec, options) {
     this._binds = creation.binds;
 }
 
+destroy() {
+    DOMUtils.remove(this._object);
+}
+
 isVisible() {
     return this._object.isVisible();
 }
