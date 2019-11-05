@@ -19,6 +19,11 @@ constructor(renderer, options) {
     this._tfwidget.addEventListener('change', this._handleTFChange);
 }
 
+destroy() {
+    this._tfwidget.destroy();
+    super.destroy();
+}
+
 _handleChange() {
     this._renderer._sigmaMax = this._binds.extinction.getValue();
     this._renderer._alphaCorrection = this._binds.extinction.getValue();

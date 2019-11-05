@@ -24,6 +24,11 @@ constructor(renderer, options) {
     this._tfwidget.addEventListener('change', this._handleTFChange);
 }
 
+destroy() {
+    this._tfwidget.destroy();
+    super.destroy();
+}
+
 _handleChange() {
     const extinction = this._binds.extinction.getValue();
     const albedo     = this._binds.albedo.getValue();

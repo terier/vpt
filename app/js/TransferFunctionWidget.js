@@ -73,33 +73,12 @@ constructor(options) {
     });
 }
 
-// ======================= CONSTRUCTOR & DESTRUCTOR ======================== //
-
-_nullify() {
-    this._$html          = null;
-    this._$colorPicker   = null;
-    this._$alphaPicker   = null;
-    this._$addBumpButton = null;
-    this._$loadButton    = null;
-    this._$saveButton    = null;
-
-    this._canvas         = null;
-    this._gl             = null;
-    this._clipQuad       = null;
-    this._program        = null;
-    this._bumps          = null;
-}
-
 destroy() {
     const gl = this._gl;
     gl.deleteBuffer(this._clipQuad);
     gl.deleteProgram(this._program.program);
     DOMUtils.remove(this._$html);
-
-    this._nullify();
 }
-
-// =========================== INSTANCE METHODS ============================ //
 
 resize(width, height) {
     this._canvas.style.width = width + 'px';

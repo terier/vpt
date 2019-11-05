@@ -20,6 +20,11 @@ constructor(renderer, options) {
     this._tfwidget.addEventListener('change', this._handleTFChange);
 }
 
+destroy() {
+    this._tfwidget.destroy();
+    super.destroy();
+}
+
 _handleChange() {
     this._renderer._stepSize = 1 / this._binds.steps.getValue();
     this._renderer._alphaCorrection = this._binds.opacity.getValue();
