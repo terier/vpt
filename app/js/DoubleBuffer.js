@@ -15,6 +15,18 @@ constructor(gl, spec) {
     this._height = this._spec[0].height;
 }
 
+destroy() {
+    const gl = this._gl;
+    gl.deleteFramebuffer(this._readFramebuffer);
+    for (let texture of this._readAttachments.color) {
+        gl.deleteTexture(texture);
+    }
+    gl.deleteFramebuffer(this._writeFramebuffer);
+    for (let texture of this._writeAttachments.color) {
+        gl.deleteTexture(texture);
+    }
+}
+
 _createAttachmentsFromSpec(gl, spec) {
     return { color: spec.map(s => WebGL.createTexture(gl, s)) };
 }

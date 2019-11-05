@@ -13,12 +13,20 @@ constructor(gl, spec) {
     this._height = this._spec[0].height;
 }
 
+destroy() {
+    const gl = this._gl;
+    gl.deleteFramebuffer(this._framebuffer);
+    for (let texture of this._attachments.color) {
+        gl.deleteTexture(texture);
+    }
+}
+
 _createAttachmentsFromSpec(gl, spec) {
     return { color: spec.map(s => WebGL.createTexture(gl, s)) };
 }
 
 use() {
-    var gl = this._gl;
+    const gl = this._gl;
     gl.bindFramebuffer(gl.FRAMEBUFFER, this._framebuffer);
     gl.viewport(0, 0, this._width, this._height);
 }
