@@ -15,7 +15,7 @@ constructor(camera, domElement, options) {
     Object.assign(this, {
         rotationSpeed    : 2,
         translationSpeed : 2,
-        moveSpeed        : 0.01,
+        moveSpeed        : 0.001,
         zoomSpeed        : 0.001
     }, options);
 
@@ -193,16 +193,16 @@ _update() {
     let dz = 0;
 
     if (this._forward) {
-        dz -= this.moveSpeed * this._focus;
+        dz -= this.moveSpeed * this._focus * dt;
     }
     if (this._backward) {
-        dz += this.moveSpeed * this._focus;
+        dz += this.moveSpeed * this._focus * dt;
     }
     if (this._left) {
-        dx -= this.moveSpeed * this._focus;
+        dx -= this.moveSpeed * this._focus * dt;
     }
     if (this._right) {
-        dx += this.moveSpeed * this._focus;
+        dx += this.moveSpeed * this._focus * dt;
     }
 
     if (dx !== 0 || dz !== 0) {
