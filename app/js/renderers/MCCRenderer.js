@@ -62,7 +62,7 @@ _init() {
     gl.bindBuffer(gl.SHADER_STORAGE_BUFFER, this._photonBuffer);
     gl.bindBufferBase(gl.SHADER_STORAGE_BUFFER, 0, this._photonBuffer);
     gl.bufferData(gl.SHADER_STORAGE_BUFFER, bufferSize, gl.STATIC_DRAW);
-};
+}
 
 destroy() {
     const gl = this._gl;

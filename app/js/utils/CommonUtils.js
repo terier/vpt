@@ -13,7 +13,7 @@ static lerp(a, b, x) {
 
 static downloadJSON(json, filename) {
     const str = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(json));
-    const a = document.createElement('a');
+    let a = document.createElement('a');
     a.setAttribute('href', str);
     a.setAttribute('download', filename);
     a.click();
@@ -40,25 +40,6 @@ static readTextFile(onLoad, onError) {
 
 static trigger(event, element) {
     element.dispatchEvent(new Event(event));
-}
-
-static inherit(sub, sup) {
-    sub.prototype = Object.create(sup.prototype);
-    sub.prototype.constructor = sub;
-    sub.prototype.sup = sup.prototype;
-    sub.sup = sup;
-}
-
-static extend(out) {
-    for (let i = 1; i < arguments.length; i++) {
-        const obj = arguments[i];
-        for (const key in obj) {
-            if (obj.hasOwnProperty(key)) {
-                out[key] = obj[key];
-            }
-        }
-    }
-    return out;
 }
 
 static hex2rgb(str) {
