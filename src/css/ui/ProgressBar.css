@@ -1,0 +1,35 @@
+/* #package css/main */
+
+.progress-bar {
+    --border-color            : #aaaaaa;
+    --enabled-progress-color  : #2196f3;
+    --disabled-progress-color : #cccccc;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 18px;
+    position: relative;
+    border: 1px solid var(--border-color);
+    box-sizing: border-box;
+    display: grid;
+    justify-content: center;
+    align-content: center;
+}
+
+.progress-bar .label {
+    font-style: italic;
+    user-select: none;
+    z-index: 1;
+}
+
+.progress-bar .progress {
+    height: 100%;
+    position: absolute;
+
+    background-color: var(--enabled-progress-color);
+}
+
+.progress-bar.disabled .progress {
+    background-color: var(--disabled-progress-color);
+}

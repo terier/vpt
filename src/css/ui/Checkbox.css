@@ -1,0 +1,44 @@
+/* #package css/main */
+
+.checkbox {
+    --width           : 40px;
+    --height          : 18px;
+    --padding         : 1px;
+    --disabled-color  : #cccccc;
+    --checked-color   : #2196f3;
+    --unchecked-color : #666666;
+    --handle-color    : #ffffff;
+}
+
+.checkbox {
+    width: var(--width);
+    height: var(--height);
+    padding: var(--padding);
+    border-radius: calc(var(--height) / 2);
+
+    box-sizing: border-box;
+    transition: 100ms;
+    background-color: var(--unchecked-color);
+    user-select: none;
+}
+
+.checkbox:not(.disabled) {
+    cursor: pointer;
+}
+
+.checkbox > .handle {
+    width: calc(var(--height) - 2 * var(--padding));
+    height: calc(var(--height) - 2 * var(--padding));
+    border-radius: 50%;
+
+    background-color: var(--handle-color);
+}
+
+.checkbox.checked {
+    padding-left: calc(var(--width) - var(--height) + var(--padding));
+    background-color: var(--checked-color);
+}
+
+.checkbox.disabled, .checkbox.checked.disabled {
+    background-color: var(--disabled-color);
+}

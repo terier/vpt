@@ -1,0 +1,21 @@
+// #package uispecs
+
+// #section MIPRendererDialog
+
+{
+  "type": "panel",
+  "children": [
+    {
+      "type": "field",
+      "label": "Steps:",
+      "children": [
+        {
+          "type": "spinner",
+          "bind": "steps",
+          "value": 10,
+          "min": 1
+        }
+      ]
+    }
+  ]
+}

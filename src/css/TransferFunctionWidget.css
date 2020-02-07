@@ -1,0 +1,38 @@
+/* #package css/main */
+
+.transfer-function-widget .widget {
+    overflow: hidden;
+    line-height: 0;
+    display: inline-block;
+    position: relative;
+}
+
+.transfer-function-widget canvas {
+    background: url('../images/alpha-checkerboard.png') repeat;
+}
+
+.transfer-function-widget .bump {
+    width: 0;
+    height: 0;
+    position: absolute;
+}
+
+.transfer-function-widget .bump .bump-handle {
+    box-sizing: border-box;
+    border: 2px solid black;
+    border-radius: 5px;
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    top: -5px;
+    left: -5px;
+}
+
+.transfer-function-widget .bump.selected .bump-handle {
+    border: 4px solid orange;
+    border-radius: 7px;
+    width: 14px;
+    height: 14px;
+    top: -7px;
+    left: -7px;
+}

@@ -1,0 +1,36 @@
+{
+    "sources": [
+        "src/js",
+        "src/css",
+        "src/html",
+        "src/glsl",
+        "src/uispecs"
+    ],
+    "packages": {
+        "js/main": {
+            "output": "build/js/main.js",
+            "mode": "concat"
+        },
+        "css/main": {
+            "output": "build/css/main.css",
+            "mode": "concat"
+        },
+        "html/templates": {
+            "output": "build/html/templates.json",
+            "mode": "files"
+        },
+        "glsl/shaders": {
+            "output": "build/glsl/shaders.json",
+            "mode": "sections"
+        },
+        "glsl/mixins": {
+            "output": "build/glsl/mixins.json",
+            "mode": "sections"
+        },
+        "uispecs": {
+            "output": "build/uispecs.json",
+            "mode": "sections"
+        }
+    },
+    "resources": "build/resources.json"
+}

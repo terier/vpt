@@ -1,0 +1,59 @@
+/* #package css/main */
+
+.accordion {
+    --handle-height   : 18px;
+    --icon-size       : 10px;
+    --handle-color    : #f3f3f3;
+    --border-color    : #cccccc;
+    --hover-color     : #eaeaea;
+    --text-color      : #555555;
+    --text-high-color : #000000;
+}
+
+.accordion {
+    overflow: hidden;
+}
+
+.accordion > .handle {
+    height: var(--handle-height);
+    padding-left: 20px;
+
+    line-height: var(--handle-height);
+
+    background-color: var(--handle-color);
+    background-image: url(../images/icons/down-arrow.svg);
+    background-position: 5px 50%;
+    background-repeat: no-repeat;
+    background-size: var(--icon-size);
+    box-sizing: border-box;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    user-select: none;
+    cursor: pointer;
+    z-index: 1;
+}
+
+.accordion > .handle:hover {
+    background-color: var(--hover-color);
+}
+
+.accordion.contracted > .handle:hover {
+    color: var(--text-high-color);
+}
+
+.accordion:not(.contracted) > .handle {
+    color: var(--text-high-color);
+}
+
+.accordion.contracted > .handle {
+    background-image: url(../images/icons/arrow-angle-pointing-to-right.svg);
+    color: var(--text-color);
+}
+
+.accordion > .container {
+    overflow: hidden;
+}
+
+.accordion.contracted > .container {
+    height: 0;
+}

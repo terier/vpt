@@ -1,0 +1,60 @@
+/* #package css/main */
+
+.tabs {
+    --header-height    : 26px;
+    --header-padding   : 12px;
+    --border-color     : #cccccc;
+    --selected-color   : #1a73e8;
+    --unselected-color : #f3f3f3;
+    --hover-color      : #eaeaea;
+    --text-color       : #555555;
+    --text-high-color  : #000000;
+}
+
+.tabs > .headers {
+    display: flex;
+    overflow: hidden;
+}
+
+.tabs > .headers > .header {
+    height: var(--header-height);
+    line-height: var(--header-height);
+    padding: 0 var(--header-padding);
+    box-sizing: border-box;
+    border-bottom: 1px solid var(--border-color);
+
+    background-color: var(--unselected-color);
+    color: var(--text-color);
+    cursor: pointer;
+    user-select: none;
+    overflow: hidden;
+}
+
+.tabs > .headers > .header.selected {
+    border-bottom: 2px solid var(--selected-color);
+    color: var(--text-high-color);
+}
+
+.tabs > .headers > .header:not(.selected):hover {
+    background-color: var(--hover-color);
+    color: var(--text-high-color);
+}
+
+.tabs > .headers > .filler {
+    flex: 1;
+    order: 999999;
+    background-color: var(--unselected-color);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.tabs > .container {
+    display: flex;
+    overflow: hidden;
+}
+
+.tabs > .container > * {
+    position: relative;
+    flex: 0 0 100%;
+    overflow: hidden;
+    transition: left 100ms;
+}

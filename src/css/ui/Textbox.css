@@ -1,0 +1,41 @@
+/* #package css/main */
+
+.textbox {
+    --enabled-background-color  : #ffffff;
+    --disabled-background-color : #f3f3f3;
+    --invalid-background-color  : #ffccbb;
+    --enabled-border-color      : #aaaaaa;
+    --disabled-border-color     : #cccccc;
+    --enabled-text-color        : #333333;
+    --disabled-text-color       : #aaaaaa;
+}
+
+.textbox {
+    width: 100%;
+    height: 18px;
+}
+
+.textbox > input {
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+
+    padding-left: 5px;
+
+    cursor: text;
+    box-sizing: border-box;
+    border: 1px solid var(--enabled-border-color);
+    background: var(--enabled-background-color);
+    color: var(--enabled-text-color);
+}
+
+.textbox > input:invalid {
+    background: var(--invalid-background-color);
+}
+
+.textbox.disabled > input {
+    border: 1px solid var(--disabled-border-color);
+    background: var(--disabled-background-color);
+    color: var(--disabled-text-color);
+}

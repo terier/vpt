@@ -1,0 +1,36 @@
+/* #package css/main */
+
+.status-bar {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: calc(1 * 18px);
+
+    background: #ffffff;
+    box-sizing: border-box;
+    border-top: 1px solid #cccccc;
+    z-index: 2;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+.status-bar > .log {
+    display: flex;
+    line-height: 18px;
+}
+
+.status-bar > .log > .timestamp {
+    flex: 0 0 170px;
+}
+
+.status-bar > .log > .content {
+    flex: 1;
+}
+
+.status-bar > .log.warning > .content {
+    color: #ffbb00;
+}
+
+.status-bar > .log.error > .content {
+    color: red;
+}

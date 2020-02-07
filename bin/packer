@@ -1,0 +1,166 @@
+#!/usr/bin/env node
+
+const fs = require('fs');
+const path = require('path');
+
+// read config from argv, or packer.json by default
+
+const configPath = process.argv.length > 2 ? process.argv[2] : 'packer.json';
+const configDir = path.dirname(configPath);
+const config = JSON.parse(fs.readFileSync(configPath));
+
+// construct dependecy graph
+
+let queue = config.sources;
+
+let isDirectory = {};
+let hasBeenRead = {};
+
+let filesToFiles = {};
+let filesToPackages = {};
+
+let fileContents = {};
+
+while (queue.length > 0) {
+    let next = queue.pop();
+    next = path.normalize(next);
+    if (hasBeenRead[next]) {
+        continue;
+    }
+
+    hasBeenRead[next] = true;
+
+    if (fs.lstatSync(next).isDirectory()) {
+        isDirectory[next] = true;
+
+        const files = fs.readdirSync(next)
+            .map(file => path.join(next, file))
+            .filter(file => !fs.lstatSync(file).isDirectory()); // recursive flag?
+        filesToFiles[next] = files;
+
+        queue = queue.concat(files);
+    } else {
+        const contents = fs.readFileSync(next, 'utf8');
+        fileContents[next] = contents;
+
+        const includesDupl = [...contents.matchAll(/#include (\S+)/g)]
+            .map(match => path.join(path.dirname(next), match[1]));
+        const includes = [...new Set(includesDupl)];
+        filesToFiles[next] = includes;
+
+        const packagesDupl = [...contents.matchAll(/#package (\S+)/g)]
+            .map(match => match[1]);
+        const packages = [...new Set(packagesDupl)];
+        filesToPackages[next] = packages;
+
+        queue = queue.concat(includes);
+    }
+}
+
+let packagesToFiles = {};
+for (const file in filesToPackages) {
+    if (filesToPackages[file].length !== 1) {
+        console.error('Error: exactly 1 package should be declared: ' + file);
+        process.exit(1);
+    }
+    for (const package of filesToPackages[file]) {
+        packagesToFiles[package] = (packagesToFiles[package] || []).concat(file);
+    }
+}
+
+for (const directory in isDirectory) {
+    filesToPackages[directory] = [];
+}
+
+const packagesToPackages = {};
+for (const file in filesToFiles) {
+    const sourcePackages = filesToPackages[file];
+    const destinationPackages = filesToFiles[file]
+        .map(file => filesToPackages[file])
+        .flat()
+        .filter(package => !sourcePackages.includes(package));
+    for (const package of sourcePackages) {
+        packagesToPackages[package] = (packagesToPackages[package] || []).concat(destinationPackages);
+        packagesToPackages[package] = [...new Set(packagesToPackages[package])];
+    }
+}
+
+// topo sort
+
+function toposort(graph) {
+    let sorted = [];
+    let visited = {};
+    let processing = {};
+
+    Object.keys(graph).forEach(function visit(next) {
+        if (visited[next]) return;
+        if (processing[next]) throw new Error('Cyclic dependencies');
+
+        processing[next] = true;
+        graph[next].forEach(d => visit(d));
+        processing[next] = false;
+
+        visited[next] = true;
+        sorted.push(next);
+    });
+
+    return sorted;
+}
+
+let sortedFiles = toposort(filesToFiles);
+let sortedPackages = toposort(packagesToPackages);
+sortedFiles = sortedFiles.filter(file => !isDirectory[file]);
+
+// output
+
+function parseSections(data, json = {}) {
+    const split = data.split(/#section (\S+)/g);
+    for (let i = 1; i < split.length; i += 2) {
+        const marker = split[i];
+        const chunk = split[i + 1].trim();
+        let path = marker.split('/');
+        let name = path.pop();
+        let object = json;
+        for (const part of path) {
+            object[part] = object[part] || {};
+            object = object[part];
+        }
+        object[name] = chunk;
+    }
+    return json;
+}
+
+for (const package of sortedPackages) {
+    const packageConfig = config.packages[package];
+    if (!packageConfig) {
+        console.warn(`Warning: package ${package} not declared in config`);
+        continue;
+    }
+
+    const outputPath = path.join(configDir, packageConfig.output);
+    fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+    const output = fs.createWriteStream(outputPath);
+    const files = sortedFiles.filter(file => packagesToFiles[package].includes(file));
+
+    if (packageConfig.mode === 'concat') {
+        for (const file of files) {
+            output.write(fileContents[file].trim());
+            output.write('\n');
+        }
+    } else if (packageConfig.mode === 'files') {
+        const json = {};
+        for (const file of files) {
+            const key = path.basename(file, path.extname(file));
+            json[key] = fileContents[file].trim();
+        }
+        output.write(JSON.stringify(json));
+    } else if (packageConfig.mode === 'sections') {
+        const json = {};
+        for (const file of files) {
+            parseSections(fileContents[file], json);
+        }
+        output.write(JSON.stringify(json));
+    }
+
+    output.end();
+}

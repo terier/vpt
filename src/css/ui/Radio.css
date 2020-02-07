@@ -1,0 +1,56 @@
+/* #package css/main */
+
+.radio {
+    --radio-margin               : 5px;
+    --checked-border-color       : #2196f3;
+    --checked-background-color   : #ffffff;
+    --unchecked-border-color     : #cccccc;
+    --unchecked-background-color : #cccccc;
+}
+
+.radio {
+    display: flex;
+}
+
+.radio.vertical {
+    flex-direction: column;
+}
+
+.radio-option {
+    display: flex;
+    align-items: center;
+    height: 18px;
+}
+
+.radio-option {
+    margin-right: var(--radio-margin);
+}
+
+.radio-option > input {
+    margin: 0;
+    width: 16px;
+    height: 16px;
+    box-sizing: border-box;
+    border-radius: 50%;
+    border: 5px solid var(--unchecked-border-color);
+    background-color: var(--unchecked-background-color);
+    transition: 200ms;
+    cursor: pointer;
+    outline: none;
+}
+
+.radio-option > input:checked {
+    border-color: var(--checked-border-color);
+    background-color: var(--checked-background-color);
+}
+
+.radio-option > label {
+    line-height: 18px;
+    padding: 0 var(--radio-margin);
+    color: #333;
+    cursor: pointer;
+
+    overflow: hidden;
+    text-overflow: clip;
+    white-space: nowrap;
+}

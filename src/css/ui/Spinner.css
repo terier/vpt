@@ -1,0 +1,34 @@
+/* #package css/main */
+
+.spinner {
+    --enabled-background-color  : #ffffff;
+    --disabled-background-color : #f3f3f3;
+    --enabled-border-color      : #aaaaaa;
+    --disabled-border-color     : #cccccc;
+    --enabled-text-color        : #333333;
+    --disabled-text-color       : #aaaaaa;
+}
+
+.spinner {
+    width: 100%;
+    height: 18px;
+}
+
+.spinner > input {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    padding-left: 3px;
+    background-color: var(--enabled-background-color);
+    border: 1px solid var(--enabled-border-color);
+    color: var(--enabled-text-color);
+    box-sizing: border-box;
+    display: block;
+}
+
+.spinner > input:disabled {
+    background-color: var(--disabled-background-color);
+    border-color: var(--disabled-border-color);
+    color: var(--disabled-text-color);
+}

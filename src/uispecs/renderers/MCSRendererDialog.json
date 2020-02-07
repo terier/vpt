@@ -1,0 +1,33 @@
+// #package uispecs
+
+// #section MCSRendererDialog
+
+{
+  "type": "panel",
+  "children": [
+    {
+      "type": "field",
+      "label": "Extinction:",
+      "children": [
+        {
+          "type": "spinner",
+          "bind": "extinction",
+          "logarithmic": true,
+          "value": 1,
+          "min": 0,
+          "step": 0.1
+        }
+      ]
+    },
+    {
+      "type": "accordion",
+      "label": "Transfer function",
+      "children": [
+        {
+          "type": "panel",
+          "bind": "tfcontainer"
+        }
+      ]
+    }
+  ]
+}

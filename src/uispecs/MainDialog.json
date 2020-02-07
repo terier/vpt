@@ -1,0 +1,126 @@
+// #package uispecs
+
+// #section MainDialog
+
+{
+  "type": "sidebar",
+  "bind": "sidebar",
+  "children": [
+    {
+      "type": "tabs",
+      "children": {
+        "Data": {
+          "type": "panel",
+          "children": [
+            {
+              "type": "accordion",
+              "bind": "volumeLoadContainer",
+              "label": "Volume"
+            },
+            {
+              "type": "accordion",
+              "bind": "envmapLoadContainer",
+              "label": "Environment"
+            }
+          ]
+        },
+        "Settings": {
+          "type": "panel",
+          "children": [
+            {
+              "type": "accordion",
+              "label": "Renderer",
+              "children": [
+                {
+                  "type": "field",
+                  "label": "Renderer:",
+                  "children": [
+                    {
+                      "type": "dropdown",
+                      "bind": "rendererSelect",
+                      "options": [
+                        {
+                          "value": "mip",
+                          "label": "Maximum intensity projection"
+                        },
+                        {
+                          "value": "iso",
+                          "label": "Isosurface extraction"
+                        },
+                        {
+                          "value": "eam",
+                          "label": "Emission-absorption model"
+                        },
+                        {
+                          "value": "mcs",
+                          "label": "Single scattering"
+                        },
+                        {
+                          "value": "mcm",
+                          "label": "Multiple scattering",
+                          "selected": true
+                        },
+                        {
+                          "value": "mcc",
+                          "label": "Multiple scattering (compute)"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "panel",
+                  "bind": "rendererSettingsContainer"
+                }
+              ]
+            },
+            {
+              "type": "accordion",
+              "label": "Tone mapper",
+              "children": [
+                {
+                  "type": "field",
+                  "label": "Tone mapper:",
+                  "children": [
+                    {
+                      "type": "dropdown",
+                      "bind": "toneMapperSelect",
+                      "options": [
+                        {
+                          "value": "range",
+                          "label": "Range"
+                        },
+                        {
+                          "value": "reinhard",
+                          "label": "Reinhard"
+                        },
+                        {
+                          "value": "artistic",
+                          "label": "Artistic",
+                          "selected": true
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "panel",
+                  "bind": "toneMapperSettingsContainer"
+                }
+              ]
+            },
+            {
+              "type": "accordion",
+              "bind": "renderingContextSettingsContainer",
+              "label": "Context"
+            }
+          ]
+        },
+        "About": {
+          "type": "panel",
+          "bind": "about"
+        }
+      }
+    }
+  ]
+}

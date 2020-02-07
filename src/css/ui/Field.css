@@ -1,0 +1,34 @@
+/* #package css/main */
+
+.field {
+    --label-width       : 100px;
+    --label-margin      : 7px;
+    --vertical-margin   : 2px;
+    --horizontal-margin : 10px;
+    --enabled-color     : #333333;
+    --disabled-color    : #cccccc;
+}
+
+.field {
+    display: flex;
+    align-items: center;
+
+    margin: var(--vertical-margin) var(--horizontal-margin);
+}
+
+.field > label {
+    flex: 0 0 var(--label-width);
+    padding: 0 var(--label-margin);
+
+    font-style: italic;
+    text-align: right;
+    color: var(--enabled-color);
+}
+
+.field.disabled > label {
+    color: var(--disabled-color);
+}
+
+.field > .container {
+    flex: 1;
+}

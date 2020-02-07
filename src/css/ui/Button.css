@@ -1,0 +1,39 @@
+/* #package css/main */
+
+.button {
+    --enabled-background-color  : #f3f3f3;
+    --hover-background-color    : #eaeaea;
+    --disabled-background-color : #f3f3f3;
+    --enabled-border-color      : #aaaaaa;
+    --disabled-border-color     : #cccccc;
+    --enabled-text-color        : #333333;
+    --disabled-text-color       : #aaaaaa;
+}
+
+.button {
+    width: 100%;
+    height: 24px;
+}
+
+.button > input {
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+
+    cursor: pointer;
+    box-sizing: border-box;
+    border: 1px solid var(--enabled-border-color);
+    background: var(--enabled-background-color);
+    color: var(--enabled-text-color);
+}
+
+.button > input:hover {
+    background: var(--hover-background-color);
+}
+
+.button.disabled > input {
+    border: 1px solid var(--disabled-border-color);
+    background: var(--disabled-background-color);
+    color: var(--disabled-text-color);
+}

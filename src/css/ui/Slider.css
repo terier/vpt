@@ -1,0 +1,45 @@
+/* #package css/main */
+
+.slider {
+    --height         : 18px;
+    --button-size    : 16px;
+    --track-height   : 2px;
+    --enabled-color  : #2196f3;
+    --disabled-color : #cccccc;
+}
+
+.slider {
+    width: 100%;
+    height: var(--height);
+
+    cursor: pointer;
+}
+
+.slider .container {
+    position: relative;
+    width: calc(100% - var(--button-size));
+    height: 100%;
+    margin: auto;
+}
+
+.slider .track {
+    position: absolute;
+    top: calc((var(--height) - var(--track-height)) / 2);
+    width: 100%;
+    height: var(--track-height);
+
+    background-color: var(--enabled-color);
+}
+
+.slider .button {
+    position: absolute;
+    width: var(--button-size);
+    height: var(--button-size);
+    left: calc(0% - var(--button-size) / 2);
+    top: calc((var(--height) - var(--button-size)) / 2);
+
+    border: 2px solid var(--enabled-color);
+    background-color: white;
+    border-radius: 50%;
+    box-sizing: border-box;
+}

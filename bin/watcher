@@ -1,32 +1,34 @@
 #!/usr/bin/env node
 
+const path = require('path');
 const fs = require('fs');
 const cp = require('child_process');
 
-const path = 'app';
-const command = 'make';
+const args = process.argv.slice(2);
+const command = args[0] || 'make';
+let queue = args.slice(1);
 
 let debounced = true;
 function watcher() {
     if (debounced) {
-        console.log('Running ' + command);
-        cp.exec(command);
+        console.log(command);
+        const output = cp.execSync(command);
+        process.stdout.write(output);
         debounced = false;
-        setTimeout(() => debounced = true, 100);
+        setTimeout(() => debounced = true, 0);
     }
 }
 
 console.log('Setting up watchers ...');
 
-let queue = [path];
 while (queue.length > 0) {
     const current = queue.pop();
     fs.watch(current, watcher);
     const stat = fs.lstatSync(current);
     if (stat.isDirectory()) {
         const files = fs.readdirSync(current);
-        for (let file of files) {
-            queue.push(current + '/' + file);
+        for (const file of files) {
+            queue.push(path.join(current, file));
         }
     }
 }

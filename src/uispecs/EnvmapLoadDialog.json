@@ -1,0 +1,112 @@
+// #package uispecs
+
+// #section EnvmapLoadDialog
+
+{
+  "type": "panel",
+  "children": [
+    {
+      "type": "field",
+      "label": "Type:",
+      "children": [
+        {
+          "type": "dropdown",
+          "bind": "type",
+          "options": [
+            {
+              "value": "file",
+              "label": "File",
+              "selected": true
+            },
+            {
+              "value": "url",
+              "label": "URL"
+            },
+            {
+              "value": "demo",
+              "label": "Demo"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "panel",
+      "bind": "filePanel",
+      "visible": true,
+      "children": [
+        {
+          "type": "field",
+          "label": "File:",
+          "children": [
+            {
+              "type": "file-chooser",
+              "bind": "file"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "panel",
+      "bind": "urlPanel",
+      "visible": false,
+      "children": [
+        {
+          "type": "field",
+          "label": "URL:",
+          "children": [
+            {
+              "type": "textbox",
+              "bind": "url",
+              "placeholder": "http://"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "panel",
+      "bind": "demoPanel",
+      "visible": false,
+      "children": [
+        {
+          "type": "field",
+          "label": "File:",
+          "children": [
+            {
+              "type": "dropdown",
+              "bind": "demo"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "panel",
+      "bind": "loadButtonAndProgress",
+      "visible": false,
+      "children": [
+        {
+          "type": "field",
+          "children": [
+            {
+              "type": "button",
+              "bind": "loadButton",
+              "label": "Load"
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "children": [
+            {
+              "type": "progress-bar",
+              "bind": "loadProgress"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

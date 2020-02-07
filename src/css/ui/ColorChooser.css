@@ -1,0 +1,29 @@
+/* #package css/main */
+
+.color-chooser {
+    --enabled-border-color  : #aaaaaa;
+    --disabled-border-color : #cccccc;
+}
+
+.color-chooser {
+    width: 100%;
+    height: 18px;
+    border: 1px solid var(--enabled-border-color);
+    background: url('../images/alpha-checkerboard-small.png') repeat;
+    background-position: 50% 50%;
+    box-sizing: border-box;
+    cursor: pointer;
+}
+
+.color-chooser > .color {
+    width: 100%;
+    height: 100%;
+}
+
+.color-chooser.disabled {
+    border-color: var(--disabled-border-color);
+}
+
+.color-chooser > input {
+    display: none;
+}

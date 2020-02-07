@@ -1,0 +1,37 @@
+// #package uispecs
+
+// #section RangeToneMapperDialog
+
+{
+  "type": "panel",
+  "children": [
+    {
+      "type": "field",
+      "label": "Low:",
+      "children": [
+        {
+          "type": "spinner",
+          "bind": "low",
+          "logarithmic": true,
+          "value": 0,
+          "min": 0,
+          "step": 0.1
+        }
+      ]
+    },
+    {
+      "type": "field",
+      "label": "High:",
+      "children": [
+        {
+          "type": "spinner",
+          "bind": "high",
+          "logarithmic": true,
+          "value": 1,
+          "min": 0,
+          "step": 0.1
+        }
+      ]
+    }
+  ]
+}

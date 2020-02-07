@@ -1,0 +1,37 @@
+/* #package css/main */
+
+.file-chooser {
+    --enabled-background-color  : #ffffff;
+    --disabled-background-color : #f3f3f3;
+    --enabled-border-color      : #aaaaaa;
+    --disabled-border-color     : #cccccc;
+    --enabled-text-color        : #333333;
+    --disabled-text-color       : #aaaaaa;
+}
+
+.file-chooser {
+    width: 100%;
+    height: 18px;
+
+    box-sizing: border-box;
+    border: 1px solid var(--enabled-border-color);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.file-chooser .label {
+    position: absolute;
+    height: 100%;
+    background: url(../images/icons/upload-tray-with-up-arrow-interface-symbol.svg) no-repeat;
+    background-size: 14px;
+    background-position: 2px 50%;
+
+    color: var(--enabled-text-color);
+    line-height: 18px;
+    padding-left: 23px;
+}
+
+.file-chooser input {
+    display: none;
+}

@@ -1,0 +1,45 @@
+// #package uispecs
+
+// #section EAMRendererDialog
+
+{
+  "type": "panel",
+  "children": [
+    {
+      "type": "field",
+      "label": "Steps:",
+      "children": [
+        {
+          "type": "spinner",
+          "bind": "steps",
+          "value": 10,
+          "min": 1
+        }
+      ]
+    },
+    {
+      "type": "field",
+      "label": "Opacity:",
+      "children": [
+        {
+          "type": "spinner",
+          "bind": "opacity",
+          "logarithmic": true,
+          "value": 1,
+          "min": 0,
+          "step": 0.1
+        }
+      ]
+    },
+    {
+      "type": "accordion",
+      "label": "Transfer function",
+      "children": [
+        {
+          "type": "panel",
+          "bind": "tfcontainer"
+        }
+      ]
+    }
+  ]
+}

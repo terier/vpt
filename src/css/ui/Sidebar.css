@@ -1,0 +1,55 @@
+/* #package css/main */
+
+.sidebar {
+    --sidebar-width    : 300px;
+    --handle-width     : 10px;
+    --icon-size        : 10px;
+    --background-color : #ffffff;
+    --handle-color     : #f3f3f3;
+    --border-color     : #cccccc;
+    --hover-color      : #eaeaea;
+}
+
+.sidebar {
+    display: flex;
+
+    position: absolute;
+    width: var(--sidebar-width);
+    height: 100vh;
+
+    overflow: hidden;
+    transition: width 100ms;
+}
+
+.sidebar.contracted {
+    width: var(--handle-width);
+}
+
+.sidebar > .handle {
+    flex: 0 0 var(--handle-width);
+    background-color: var(--handle-color);
+
+    background-image: url(../images/icons/left-arrow-angle-big-gross-symbol.svg);
+    background-position: 50% 10px;
+    background-repeat: no-repeat;
+    background-size: var(--icon-size);
+    box-sizing: border-box;
+    border-right: 1px solid var(--border-color);
+    user-select: none;
+    z-index: 1;
+}
+
+.sidebar > .handle:hover {
+    background-color: var(--hover-color);
+}
+
+.sidebar.contracted > .handle {
+    background-image: url(../images/icons/arrow-angle-pointing-to-right.svg);
+}
+
+.sidebar > .container {
+    flex: 1;
+    background-color: var(--background-color);
+    border-right: 1px solid var(--border-color);
+    overflow: hidden;
+}

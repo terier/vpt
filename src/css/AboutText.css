@@ -1,0 +1,10 @@
+/* #package css/main */
+
+.about {
+    padding: 0 10px;
+}
+
+.about .center {
+    display: flex;
+    justify-content: center;
+}
