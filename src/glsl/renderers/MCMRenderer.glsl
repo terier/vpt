@@ -1,5 +1,10 @@
 // #package glsl/shaders
 
+// #include ../mixins/Photon.glsl
+// #include ../mixins/rand.glsl
+// #include ../mixins/unprojectRand.glsl
+// #include ../mixins/intersectCube.glsl
+
 // #section MCMGenerate/vertex
 
 void main() {}

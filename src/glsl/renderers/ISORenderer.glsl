@@ -1,5 +1,8 @@
 // #package glsl/shaders
 
+// #include ../mixins/unproject.glsl
+// #include ../mixins/intersectCube.glsl
+
 // #section ISOGenerate/vertex
 
 #version 300 es

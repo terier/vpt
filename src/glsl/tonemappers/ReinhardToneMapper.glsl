@@ -1,5 +1,7 @@
 // #package glsl/shaders
 
+// #include ../mixins/XYZITU2002.glsl
+
 // #section ReinhardToneMapper/vertex
 
 #version 300 es
