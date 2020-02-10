@@ -2,9 +2,16 @@
     "sources": [
         "src/js",
         "src/css",
+        "src/css/ui",
         "src/html",
+        "src/html/ui",
         "src/glsl",
-        "src/uispecs"
+        "src/glsl/mixins",
+        "src/glsl/renderers",
+        "src/glsl/tonemappers",
+        "src/uispecs",
+        "src/uispecs/renderers",
+        "src/uispecs/tonemappers"
     ],
     "packages": {
         "js/main": {

@@ -5,9 +5,9 @@ class DOMUtils {
 static template(tmpl) {
     let div = document.createElement('div');
     div.innerHTML = tmpl;
-    let child = div.firstChild;
-    div.removeChild(child);
-    return child;
+    const element = div.querySelector('.instantiate');
+    div.removeChild(element);
+    return element;
 }
 
 static instantiate(tmpl) {

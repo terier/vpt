@@ -1,6 +1,6 @@
 // #package uispecs
 
-// #section ISORendererDialog
+// #section MCMRendererDialog
 
 {
   "type": "panel",
