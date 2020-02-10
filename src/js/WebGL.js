@@ -3,17 +3,16 @@
 class WebGL {
 
 static getContext(canvas, keys, options) {
-    let context;
     for (let i = 0; i < keys.length; i++) {
         try {
-            context = canvas.getContext(keys[i], options);
+            const context = canvas.getContext(keys[i], options);
+            if (context) {
+                return context;
+            }
         } catch (e) {
         }
-        if (context) {
-            return context;
-        }
     }
-    throw new Error('Cannot create WebGL context');
+    return null;
 }
 
 static createShader(gl, source, type) {

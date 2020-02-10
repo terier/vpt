@@ -55,16 +55,8 @@ _initGL() {
 
     this._contextRestorable = true;
 
-    try {
-        this._gl = WebGL.getContext(this._canvas, ['webgl2-compute'], contextSettings);
-    } catch (err) {
-    }
-    if (this._gl) {
-        this._hasCompute = true;
-    } else {
-        this._hasCompute = false;
-        this._gl = WebGL.getContext(this._canvas, ['webgl2'], contextSettings);
-    }
+    this._gl = WebGL.getContext(this._canvas, ['webgl2-compute', 'webgl2'], contextSettings);
+    this._hasCompute = !!Webgl.getContext(this._canvas, ['webgl2-compute'], contextSettings);
     const gl = this._gl;
     this._extLoseContext = gl.getExtension('WEBGL_lose_context');
     this._extColorBufferFloat = gl.getExtension('EXT_color_buffer_float');
