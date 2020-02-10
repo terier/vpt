@@ -36,7 +36,7 @@ constructor(options) {
     this._canvas.height = this._transferFunctionHeight;
     this.resize(this._width, this._height);
 
-    this._gl = WebGL.getContext(this._canvas, ['webgl2'], {
+    this._gl = this._canvas.getContext('webgl2', {
         depth                 : false,
         stencil               : false,
         antialias             : false,
