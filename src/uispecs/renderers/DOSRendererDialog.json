@@ -1,0 +1,56 @@
+// #package uispecs
+
+// #section DOSRendererDialog
+
+{
+  "type": "panel",
+  "children": [
+    {
+      "type": "field",
+      "label": "Steps:",
+      "children": [
+        {
+          "type": "spinner",
+          "bind": "steps",
+          "value": 10,
+          "min": 1
+        }
+      ]
+    },
+    {
+      "type": "field",
+      "label": "Slices:",
+      "children": [
+        {
+          "type": "spinner",
+          "bind": "slices",
+          "value": 200,
+          "min": 1
+        }
+      ]
+    },
+    {
+      "type": "field",
+      "label": "Angle:",
+      "children": [
+        {
+          "type": "spinner",
+          "bind": "angle",
+          "value": 30,
+          "min": 0,
+          "max": 180
+        }
+      ]
+    },
+    {
+      "type": "accordion",
+      "label": "Transfer function",
+      "children": [
+        {
+          "type": "panel",
+          "bind": "tfcontainer"
+        }
+      ]
+    }
+  ]
+}

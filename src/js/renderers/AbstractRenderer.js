@@ -28,6 +28,7 @@ constructor(gl, volume, environmentTexture, options) {
         mag    : gl.LINEAR
     });
 
+    this._mvpMatrix = new Matrix();
     this._mvpInverseMatrix = new Matrix();
 
     this._clipQuad = WebGL.createClipQuad(gl);
@@ -115,6 +116,10 @@ setResolution(resolution) {
 
 getTexture() {
     return this._renderBuffer.getAttachments().color[0];
+}
+
+setMvpMatrix(matrix) {
+    this._mvpMatrix.copy(matrix);
 }
 
 setMvpInverseMatrix(matrix) {

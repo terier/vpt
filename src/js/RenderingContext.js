@@ -197,16 +197,19 @@ _updateMvpInverseMatrix() {
     const centerTranslation = new Matrix().fromTranslation(-0.5, -0.5, -0.5);
     const volumeTranslation = new Matrix().fromTranslation(
         this._translation.x, this._translation.y, this._translation.z);
-    const volumeScale = new Matrix().fromScale(this._scale.x, this._scale.y, this._scale.z);
+    const volumeScale = new Matrix().fromScale(
+        this._scale.x, this._scale.y, this._scale.z);
 
-    const tr = new Matrix();
-    tr.multiply(volumeScale, centerTranslation);
-    tr.multiply(volumeTranslation, tr);
-    tr.multiply(this._camera.transformationMatrix, tr);
+    const mvp = new Matrix();
+    mvp.multiply(volumeScale, centerTranslation);
+    mvp.multiply(volumeTranslation, mvp);
+    mvp.multiply(this._camera.transformationMatrix, mvp);
+    mvp.transpose();
+    const mvpit = mvp.clone().inverse();
 
-    tr.inverse().transpose();
     if (this._renderer) {
-        this._renderer.setMvpInverseMatrix(tr);
+        this._renderer.setMvpMatrix(mvp);
+        this._renderer.setMvpInverseMatrix(mvpit);
         this._renderer.reset();
     }
 }
@@ -294,6 +297,7 @@ _getRendererClass(renderer) {
         case 'mcs' : return MCSRenderer;
         case 'mcm' : return MCMRenderer;
         case 'mcc' : return MCCRenderer;
+        case 'dos' : return DOSRenderer;
     }
 }
 

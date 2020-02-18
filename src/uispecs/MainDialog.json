@@ -57,12 +57,16 @@
                         },
                         {
                           "value": "mcm",
-                          "label": "Multiple scattering",
-                          "selected": true
+                          "label": "Multiple scattering"
                         },
                         {
                           "value": "mcc",
                           "label": "Multiple scattering (compute)"
+                        },
+                        {
+                          "value": "dos",
+                          "label": "Directional occlusion shading",
+                          "selected": true
                         }
                       ]
                     }
