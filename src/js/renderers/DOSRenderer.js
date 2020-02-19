@@ -36,30 +36,28 @@ destroy() {
 }
 
 calculateDepth() {
-    // const vertices = [
-    //     new Vector(0, 0, 0),
-    //     new Vector(0, 0, 1),
-    //     new Vector(0, 1, 0),
-    //     new Vector(0, 1, 1),
-    //     new Vector(1, 0, 0),
-    //     new Vector(1, 0, 1),
-    //     new Vector(1, 1, 0),
-    //     new Vector(1, 1, 1)
-    // ];
+    const vertices = [
+        new Vector(0, 0, 0),
+        new Vector(0, 0, 1),
+        new Vector(0, 1, 0),
+        new Vector(0, 1, 1),
+        new Vector(1, 0, 0),
+        new Vector(1, 0, 1),
+        new Vector(1, 1, 0),
+        new Vector(1, 1, 1)
+    ];
 
-    // // TODO: fix this
-    // let minDepth = 1;
-    // let maxDepth = -1;
-    // for (const v of vertices) {
-    //     this._mvpMatrix.transform(v);
-    //     const depth = Math.min(Math.max(v.z / v.w, -1), 1);
-    //     minDepth = Math.min(minDepth, depth);
-    //     maxDepth = Math.max(maxDepth, depth);
-    // }
+    let minDepth = 1;
+    let maxDepth = -1;
+    let mvp = this._mvpMatrix.clone().transpose();
+    for (const v of vertices) {
+        mvp.transform(v);
+        const depth = Math.min(Math.max(v.z / v.w, -1), 1);
+        minDepth = Math.min(minDepth, depth);
+        maxDepth = Math.max(maxDepth, depth);
+    }
 
-    // return [minDepth, maxDepth];
-
-    return [-1, 1];
+    return [minDepth, maxDepth];
 }
 
 _resetFrame() {
