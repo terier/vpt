@@ -34,6 +34,7 @@ uniform sampler2D uColor;
 uniform sampler2D uOcclusion;
 
 uniform vec2 uOcclusionScale;
+uniform float uOcclusionDecay;
 
 in vec2 vPosition2D;
 in vec3 vPosition3D;
@@ -76,9 +77,9 @@ void main() {
         vec4 transferSample = texture(uTransferFunction, volumeSample);
         transferSample.rgb *= transferSample.a * occlusion;
 
-        oColor = (1.0 - transferSample.a) * prevColor + transferSample;
+        oColor = prevColor + transferSample * (1.0 - prevColor.a);
         // TODO: do this calculation right
-        oOcclusion = (1.0 - transferSample.a) * occlusion + (1.0 - transferSample.a);
+        oOcclusion = 1.0 - ((1.0 - (occlusion - transferSample.a)) * uOcclusionDecay);
     }
 }
 
@@ -130,6 +131,6 @@ layout (location = 0) out vec4 oColor;
 layout (location = 1) out float oOcclusion;
 
 void main() {
-    oColor = vec4(1, 1, 1, 0);
+    oColor = vec4(0, 0, 0, 0);
     oOcclusion = 1.0;
 }

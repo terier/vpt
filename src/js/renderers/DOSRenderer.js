@@ -10,12 +10,13 @@ constructor(gl, volume, environmentTexture, options) {
     super(gl, volume, environmentTexture, options);
 
     Object.assign(this, {
-        steps     : 10,
-        slices    : 200,
-        angle     : 0.1,
-        _depth    : 1,
-        _minDepth : -1,
-        _maxDepth : 1
+        steps          : 10,
+        slices         : 200,
+        occlusionScale : 0.1,
+        occlusionDecay : 0.9,
+        _depth         : 1,
+        _minDepth      : -1,
+        _maxDepth      : 1
     }, options);
 
     this._programs = WebGL.buildPrograms(this._gl, {
@@ -68,7 +69,7 @@ _resetFrame() {
     //console.log(minDepth, maxDepth);
     this._minDepth = minDepth;
     this._maxDepth = maxDepth;
-    this._depth = 1;
+    this._depth = minDepth;
 
     gl.drawBuffers([
         gl.COLOR_ATTACHMENT0,
@@ -101,12 +102,11 @@ _integrateFrame() {
     gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
 
     // TODO: calculate correct blur radius (occlusion scale)
-    const os = this.angle;
-    gl.uniform2f(program.uniforms.uOcclusionScale, os, os);
+    gl.uniform2f(program.uniforms.uOcclusionScale, this.occlusionScale, this.occlusionScale);
+    gl.uniform1f(program.uniforms.uOcclusionDecay, this.occlusionDecay);
     gl.uniformMatrix4fv(program.uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
 
     const depthStep = (this._maxDepth - this._minDepth) / this.slices;
-    let depth = this._depth;
     for (let step = 0; step < this.steps; step++) {
         gl.activeTexture(gl.TEXTURE0);
         gl.uniform1i(program.uniforms.uColor, 0);
@@ -116,18 +116,17 @@ _integrateFrame() {
         gl.uniform1i(program.uniforms.uOcclusion, 1);
         gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[1]);
 
-        gl.uniform1f(program.uniforms.uDepth, depth);
+        gl.uniform1f(program.uniforms.uDepth, this._depth);
 
         this._accumulationBuffer.use();
         gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-
-        // TODO: do swap correctly: remove from AbstractRenderer
-        //       and add to each individual renderer
         this._accumulationBuffer.swap();
 
-        depth -= depthStep;
+        this._depth += depthStep;
     }
-    this._depth = depth;
+
+    // Swap again to undo the last swap by AbstractRenderer
+    this._accumulationBuffer.swap();
 }
 
 _renderFrame() {

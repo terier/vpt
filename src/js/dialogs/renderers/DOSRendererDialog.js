@@ -17,7 +17,8 @@ constructor(renderer, options) {
 
     this._binds.steps.addEventListener('input', this._handleChange);
     this._binds.slices.addEventListener('input', this._handleChange);
-    this._binds.angle.addEventListener('input', this._handleChange);
+    this._binds.occlusionScale.addEventListener('input', this._handleChange);
+    this._binds.occlusionDecay.addEventListener('input', this._handleChange);
 
     this._tfwidget = new TransferFunctionWidget();
     this._binds.tfcontainer.add(this._tfwidget);
@@ -32,7 +33,8 @@ destroy() {
 _handleChange() {
     this._renderer.steps = this._binds.steps.getValue();
     this._renderer.slices = this._binds.slices.getValue();
-    this._renderer.angle = this._binds.angle.getValue() * Math.PI / 180;
+    this._renderer.occlusionScale = this._binds.occlusionScale.getValue();
+    this._renderer.occlusionDecay = this._binds.occlusionDecay.getValue();
     this._renderer.reset();
 }
 
