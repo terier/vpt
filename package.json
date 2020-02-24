@@ -4,7 +4,7 @@
   "description": "Volumetric Path Tracing",
   "main": "bin/server-express",
   "scripts": {
-    "build": "make",
+    "build": "bin/packer",
     "start": "bin/server-express",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

@@ -4,16 +4,16 @@ VPT is a volumetric path tracing framework targeted towards interactive
 real-time data exploration. It works in both desktop and mobile environments.
 It is built on top of WebGL 2 with no external dependencies.
 
-![VPT](app/images/screenshot.jpg)
+![VPT](src/images/screenshot.jpg)
 
 Visit the [portfolio page](http://lgm.fri.uni-lj.si/portfolio-view/volumetric-path-tracing-framework/) for more information.
 
 ## Building and running
 
-You need `node` and `make` to build the framework, and `node` to run it.
+You need only `node` to build the framework and to run it.
 
 ```bash
-make
+bin/packer
 bin/server-node
 ```
 
