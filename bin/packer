@@ -111,7 +111,26 @@ let sortedFiles = toposort(filesToFiles);
 let sortedPackages = toposort(packagesToPackages);
 sortedFiles = sortedFiles.filter(file => !isDirectory[file]);
 
-// output
+// output statics
+
+function copyRecursive(src, dst) {
+    if (fs.lstatSync(src).isDirectory()) {
+        if (!fs.existsSync(dst)) {
+            fs.mkdirSync(dst, { recursive: true });
+        }
+        for (const file of fs.readdirSync(src)) {
+            copyRecursive(path.join(src, file), path.join(dst, file));
+        }
+    } else {
+        fs.copyFileSync(src, dst);
+    }
+}
+
+for (const source in config.static) {
+    copyRecursive(source, config.static[source]);
+}
+
+// output packages
 
 function parseSections(data, json = {}) {
     const split = data.split(/#section (\S+)/g);
@@ -130,12 +149,20 @@ function parseSections(data, json = {}) {
     return json;
 }
 
+let resources = {};
+
 for (const package of sortedPackages) {
     const packageConfig = config.packages[package];
     if (!packageConfig) {
         console.warn(`Warning: package ${package} not declared in config`);
         continue;
     }
+
+    const url = packageConfig.url;
+    const type = packageConfig.type;
+    const dependencies = packagesToPackages[package];
+
+    resources[package] = { url, type, dependencies };
 
     const outputPath = path.join(configDir, packageConfig.output);
     fs.mkdirSync(path.dirname(outputPath), { recursive: true });
@@ -164,3 +191,11 @@ for (const package of sortedPackages) {
 
     output.end();
 }
+
+// output resources json
+
+const resourcesPath = path.join(configDir, config.resources);
+fs.mkdirSync(path.dirname(resourcesPath), { recursive: true });
+const output = fs.createWriteStream(resourcesPath);
+output.write(JSON.stringify(resources));
+output.end();

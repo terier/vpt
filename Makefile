@@ -1,33 +1,11 @@
-SRCD := src
-DSTD := build
-
-# ---------------------------------------------------------
-
-.PHONY: packages
-packages:
-	bin/packer
-
-$(DSTD):
-	mkdir $(DSTD)
-
-$(DSTD)/index.html: $(SRCD)/index.html | $(DSTD)
-	cp $^ $@
-
-$(DSTD)/images: $(SRCD)/images | $(DSTD)
-	cp -r $^ $@
-
-# ---------------------------------------------------------
-
-.DEFAULT_GOAL := all
 .PHONY: all
-all: $(DSTD)/index.html \
-     $(DSTD)/images \
-     packages
+all:
+	bin/packer
 
 .PHONY: clean
 clean:
-	rm -rf $(DSTD)
+	rm -rf build
 
 .PHONY: watch
 watch:
-	bin/watcher make $(SRCD)
+	bin/watcher bin/packer src

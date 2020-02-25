@@ -13,29 +13,45 @@
         "src/uispecs/renderers",
         "src/uispecs/tonemappers"
     ],
+    "static": {
+        "src/images": "build/images",
+        "src/index.html": "build/index.html"
+    },
     "packages": {
         "js/main": {
             "output": "build/js/main.js",
+            "url": "js/main.js",
+            "type": "script",
             "mode": "concat"
         },
         "css/main": {
             "output": "build/css/main.css",
+            "url": "css/main.css",
+            "type": "style",
             "mode": "concat"
         },
         "html/templates": {
             "output": "build/html/templates.json",
+            "url": "html/templates.json",
+            "type": "json",
             "mode": "files"
         },
         "glsl/shaders": {
             "output": "build/glsl/shaders.json",
+            "url": "glsl/shaders.json",
+            "type": "json",
             "mode": "sections"
         },
         "glsl/mixins": {
             "output": "build/glsl/mixins.json",
+            "url": "glsl/mixins.json",
+            "type": "json",
             "mode": "sections"
         },
         "uispecs": {
             "output": "build/uispecs.json",
+            "url": "uispecs.json",
+            "type": "json",
             "mode": "sections"
         }
     },
