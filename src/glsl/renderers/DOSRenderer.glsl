@@ -108,7 +108,7 @@ out vec4 oColor;
 
 void main() {
     vec4 color = texture(uAccumulator, vPosition);
-    oColor = vec4(color.rgb, 1);
+    oColor = mix(vec4(1), vec4(color.rgb, 1), color.a);
 }
 
 // #section DOSReset/vertex
