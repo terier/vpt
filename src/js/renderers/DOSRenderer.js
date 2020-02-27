@@ -106,6 +106,10 @@ _integrateFrame() {
 
     const depthStep = (this._maxDepth - this._minDepth) / this.slices;
     for (let step = 0; step < this.steps; step++) {
+        if (this._depth > this._maxDepth) {
+            break;
+        }
+
         gl.activeTexture(gl.TEXTURE0);
         gl.uniform1i(program.uniforms.uColor, 0);
         gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[0]);
