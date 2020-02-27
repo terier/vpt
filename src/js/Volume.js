@@ -68,6 +68,8 @@ readModality(modalityName, handlers) {
         internalFormat = gl.R8;
         format = gl.RED;
     }
+    internalFormat = gl.RGBA8UI;
+    format = gl.RGBA_INTEGER;
     gl.texStorage3D(gl.TEXTURE_3D, 1, internalFormat, dimensions.width, dimensions.height, dimensions.depth);
     let remainingBlocks = modality.placements.length;
     modality.placements.forEach(placement => {
