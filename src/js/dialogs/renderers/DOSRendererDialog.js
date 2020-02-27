@@ -18,7 +18,8 @@ constructor(renderer, options) {
     this._binds.steps.addEventListener('input', this._handleChange);
     this._binds.slices.addEventListener('input', this._handleChange);
     this._binds.occlusionScale.addEventListener('input', this._handleChange);
-    this._binds.occlusionDecay.addEventListener('input', this._handleChange);
+    this._binds.occlusionDecay.addEventListener('change', this._handleChange);
+    this._binds.visibility.addEventListener('change', this._handleChange);
 
     this._tfwidget = new TransferFunctionWidget();
     this._binds.tfcontainer.add(this._tfwidget);
@@ -35,6 +36,7 @@ _handleChange() {
     this._renderer.slices = this._binds.slices.getValue();
     this._renderer.occlusionScale = this._binds.occlusionScale.getValue();
     this._renderer.occlusionDecay = this._binds.occlusionDecay.getValue();
+    this._renderer.visibility = this._binds.visibility.getValue();
     this._renderer.reset();
 }
 
