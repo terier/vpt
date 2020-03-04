@@ -12,8 +12,9 @@ constructor(gl, volume, environmentTexture, options) {
     Object.assign(this, {
         steps          : 10,
         slices         : 200,
-        occlusionScale : 0.1,
+        occlusionScale : 0.01,
         occlusionDecay : 0.9,
+        visibility     : 0.9,
         _depth         : 1,
         _minDepth      : -1,
         _maxDepth      : 1
@@ -102,10 +103,15 @@ _integrateFrame() {
     // TODO: calculate correct blur radius (occlusion scale)
     gl.uniform2f(program.uniforms.uOcclusionScale, this.occlusionScale, this.occlusionScale);
     gl.uniform1f(program.uniforms.uOcclusionDecay, this.occlusionDecay);
+    gl.uniform1f(program.uniforms.uVisibility, this.visibility);
     gl.uniformMatrix4fv(program.uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
 
     const depthStep = (this._maxDepth - this._minDepth) / this.slices;
     for (let step = 0; step < this.steps; step++) {
+        if (this._depth > this._maxDepth) {
+            break;
+        }
+
         gl.activeTexture(gl.TEXTURE0);
         gl.uniform1i(program.uniforms.uColor, 0);
         gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[0]);

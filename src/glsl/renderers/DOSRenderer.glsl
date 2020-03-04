@@ -23,15 +23,17 @@ void main() {
 // #section DOSIntegrate/fragment
 
 #version 300 es
-precision highp float;
-precision highp sampler2D;
-precision highp sampler3D;
+precision mediump float;
+precision mediump sampler2D;
+precision mediump usampler3D;
 
-uniform sampler3D uVolume;
+uniform usampler3D uVolume;
 uniform sampler2D uTransferFunction;
 
 uniform sampler2D uColor;
 uniform sampler2D uOcclusion;
+
+uniform float uVisibility;
 
 uniform vec2 uOcclusionScale;
 uniform float uOcclusionDecay;
@@ -41,6 +43,17 @@ in vec3 vPosition3D;
 
 layout (location = 0) out vec4 oColor;
 layout (location = 1) out float oOcclusion;
+
+vec4 getSample(vec3 position) {
+    uvec4 volumeSample = texture(uVolume, position);
+    uint header = volumeSample.r;
+    uint id = volumeSample.g;
+    uint value = volumeSample.b;
+
+    if (float(id) / 255.0 < uVisibility) {
+        return texture(uTransferFunction, vec2(float(value) / 255.0, 0));
+    }
+}
 
 void main() {
     const vec2 offsets[9] = vec2[](
@@ -73,8 +86,7 @@ void main() {
         oColor = prevColor;
         oOcclusion = occlusion;
     } else {
-        vec2 volumeSample = texture(uVolume, vPosition3D).rg;
-        vec4 transferSample = texture(uTransferFunction, volumeSample);
+        vec4 transferSample = getSample(vPosition3D);
         transferSample.rgb *= transferSample.a * occlusion;
 
         oColor = prevColor + transferSample * (1.0 - prevColor.a);
@@ -108,7 +120,7 @@ out vec4 oColor;
 
 void main() {
     vec4 color = texture(uAccumulator, vPosition);
-    oColor = vec4(color.rgb, 1);
+    oColor = mix(vec4(1), vec4(color.rgb, 1), color.a);
 }
 
 // #section DOSReset/vertex

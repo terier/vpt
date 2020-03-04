@@ -78,6 +78,10 @@
                     {
                       "value": 16,
                       "label": "16-bit"
+                    },
+                    {
+                      "value": 32,
+                      "label": "32-bit"
                     }
                   ]
                 }
