@@ -34,6 +34,7 @@ uniform sampler2D uColor;
 uniform sampler2D uOcclusion;
 
 uniform float uVisibility;
+uniform float uDepth;
 
 uniform vec2 uOcclusionScale;
 uniform float uOcclusionDecay;
@@ -76,7 +77,7 @@ void main() {
 
     float occlusion = 0.0;
     for (int i = 0; i < 9; i++) {
-        vec2 occlusionPos = vPosition2D + offsets[i] * uOcclusionScale;
+        vec2 occlusionPos = vPosition2D + offsets[i] * uOcclusionScale / uDepth;
         occlusion += texture(uOcclusion, occlusionPos).r * weights[i];
     }
 
