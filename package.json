@@ -4,8 +4,9 @@
   "description": "Volumetric Path Tracing",
   "main": "bin/server-express",
   "scripts": {
-    "build": "bin/packer",
-    "start": "bin/server-express",
+    "build": "node bin/packer",
+    "start": "node bin/server-express",
+    "restart": "node bin/packer & node bin/server-express",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
