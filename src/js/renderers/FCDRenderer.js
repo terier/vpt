@@ -28,11 +28,11 @@ setVolume(volume) {
     this._volume = volume;
     if (this._energyDensity)
         gl.deleteTexture(this._energyDensity);
-    this.createEnergyDensityTexture();
+    this._createEnergyDensityTexture();
     this.reset();
 }
 
-createEnergyDensityTexture() {
+_createEnergyDensityTexture() {
     const gl = this._gl;
 
     this._energyDensity = gl.createTexture();
@@ -77,6 +77,8 @@ _resetFrame() {
 
 _convection() {
     const gl = this._gl;
+    const localSizeX = 16
+    const localSizeY = 16
 
     const program = this._programs.convection;
     gl.useProgram(program.program);
@@ -92,6 +94,10 @@ _convection() {
     gl.uniform3i(program.uniforms.uSize, this._dimensions.width, this._dimensions.height, this._dimensions.depth);
 
     gl.uniform3fv(program.uniforms.uLightDirection, this._lightDirection);
+
+    for (let i = 0; i < 40; i++) {
+        gl.dispatchCompute(this._dimensions.width / localSizeX, this._dimensions.height / localSizeY, 1);
+    }
 }
 
 _generateFrame() {
