@@ -46,8 +46,11 @@ createEnergyDensityTexture() {
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     let energyDensityArray = new Float32Array(dimensions.width * dimensions.height * dimensions.depth).fill(0);
-
+    console.log("Dimensions: " + dimensions.width + " " + dimensions.height + " " + dimensions.depth)
     energyDensityArray[0] = 1;
+    energyDensityArray[dimensions.width - 1] = 1;
+    energyDensityArray[dimensions.width * (dimensions.height - 1)] = 1;
+    energyDensityArray[dimensions.width * dimensions.height - 1] = 1;
 
     gl.texSubImage3D(gl.TEXTURE_3D, 0,
         0, 0, 0, dimensions.width, dimensions.height, dimensions.depth,

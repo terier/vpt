@@ -121,7 +121,9 @@ void main() {
             colorSample = texture(uTransferFunction, vec2(val, 0.5));
             colorSample.a *= rayStepLength * uAlphaCorrection;
             // utezi z energy density
-            colorSample.rgb *= colorSample.a * energyDensity;
+            //colorSample.rgb *= colorSample.a * energyDensity;
+//            colorSample.rgb *= colorSample.a;
+            colorSample.rgb = vec3(energyDensity, energyDensity, energyDensity);
             accumulator += (1.0 - accumulator.a) * colorSample;
             t += uStepSize;
         }
