@@ -111,4 +111,16 @@ setFilter(filter) {
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, filter);
 }
 
+getDimensions(modalityName) {
+    if (!this.ready) {
+        return null;
+    }
+    const modality = this.modalities.find(modality => modality.name === modalityName);
+    return {
+        width: modality.dimensions.width,
+        height: modality.dimensions.height,
+        depth: modality.dimensions.depth
+    }
+}
+
 }

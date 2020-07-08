@@ -57,8 +57,7 @@
                         },
                         {
                           "value": "mcm",
-                          "label": "Multiple scattering",
-                          "selected": true
+                          "label": "Multiple scattering"
                         },
                         {
                           "value": "mcc",
@@ -66,7 +65,8 @@
                         },
                         {
                           "value": "fcd",
-                          "label": "Convection-Diffusion"
+                          "label": "Convection-Diffusion",
+                          "selected": true
                         }
                       ]
                     }
