@@ -45,16 +45,29 @@ _createEnergyDensityTexture() {
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    let energyDensityArray = new Float32Array(dimensions.width * dimensions.height * dimensions.depth).fill(0);
+    // let energyDensityArray = new Float32Array(dimensions.width * dimensions.height * dimensions.depth).fill(0);
+    let energyDensityArray = [];
+    for (let z = 0; z < dimensions.depth; z++) {
+        for (let y = 0; y < dimensions.height; y++) {
+            for (let x = 0; x < dimensions.width; x++) {
+                if (x < 1 && y < 1 && z < 1) {
+                    energyDensityArray.push(1);
+                    continue;
+                }
+                energyDensityArray.push(0);
+            }
+        }
+    }
+
     console.log("Dimensions: " + dimensions.width + " " + dimensions.height + " " + dimensions.depth)
-    energyDensityArray[0] = 1;
-    energyDensityArray[dimensions.width - 1] = 1;
-    energyDensityArray[dimensions.width * (dimensions.height - 1)] = 1;
-    energyDensityArray[dimensions.width * dimensions.height - 1] = 1;
+    // energyDensityArray[0] = 1;
+    // energyDensityArray[dimensions.width - 1] = 1;
+    // energyDensityArray[dimensions.width * (dimensions.height - 1)] = 1;
+    // energyDensityArray[dimensions.width * dimensions.height - 1] = 1;
 
     gl.texSubImage3D(gl.TEXTURE_3D, 0,
         0, 0, 0, dimensions.width, dimensions.height, dimensions.depth,
-        gl.RED, gl.FLOAT, energyDensityArray);
+        gl.RED, gl.FLOAT, new Float32Array(energyDensityArray));
 }
 
 destroy() {
@@ -95,8 +108,8 @@ _convection() {
 
     gl.uniform3fv(program.uniforms.uLightDirection, this._lightDirection);
 
-    for (let i = 0; i < 40; i++) {
-        gl.dispatchCompute(this._dimensions.width / localSizeX, this._dimensions.height / localSizeY, 1);
+    for (let i = 0; i < 1; i++) {
+        gl.dispatchCompute(this._dimensions.width / localSizeX, this._dimensions.height / localSizeY, this._dimensions.depth);
     }
 }
 
