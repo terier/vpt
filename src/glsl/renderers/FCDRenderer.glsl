@@ -22,18 +22,21 @@ uniform mediump sampler2D uTransferFunction;
 void main() {
     ivec3 position = ivec3(gl_GlobalInvocationID.xyz);
 
-    if (position.x < 1 || position.y < 1 || position.z < 1 ||
-    position.x >= uSize.x - 1 || position.y >= uSize.y - 1 || position.z >= uSize.z - 1) {
-        return;
-    }
+//    if (position.x < 1 || position.y < 1 || position.z < 1 ||
+//    position.x >= uSize.x - 1 || position.y >= uSize.y - 1 || position.z >= uSize.z - 1) {
+//        return;
+//    }
 
     float val = imageLoad(uVolume, position).r;
     vec4 colorSample = texture(uTransferFunction, vec2(val, 0.5));
 
-    float absorption = float(1) - colorSample.a;
+//    float revAbsorption = float(1) - colorSample.a;
+    float revAbsorption = float(1);
+
 //    float absorption = float(1) - val;
 //    float absorption = val;
-//    imageStore(uEnergyDensityWrite, position, vec4(1));
+    imageStore(uEnergyDensityWrite, position, vec4(1));
+    return;
     for (int i = 0; i < 1; i++) {
         vec4 center = imageLoad(uEnergyDensityRead, position);
         float radiance = center.r;
@@ -52,7 +55,7 @@ void main() {
         );
         // (1 - absorption) * (p - 1/2 deltap)
         float convectionDelta = -dot(uLightDirection, grad) * 0.5;
-        float new = absorption * (radiance + convectionDelta);
+        float new = revAbsorption * (radiance + convectionDelta);
         vec4 final = vec4(new, 0, 0, 0);
 //        vec4 final = vec4(1, 0, 0, 0);
 
@@ -71,11 +74,16 @@ layout(location = 0) in vec2 aPosition;
 out vec3 vRayFrom;
 out vec3 vRayTo;
 
+//debug
+out vec2 vPosition;
+
 @unproject
 
 void main() {
     unproject(aPosition, uMvpInverseMatrix, vRayFrom, vRayTo);
     gl_Position = vec4(aPosition, 0.0, 1.0);
+    //debug
+    vPosition = aPosition * 0.5 + 0.5;
 }
 
 // #section FCDGenerate/fragment
@@ -94,9 +102,17 @@ in vec3 vRayFrom;
 in vec3 vRayTo;
 out vec4 oColor;
 
+//debug
+in vec2 vPosition;
+
+
 @intersectCube
 
 void main() {
+//    float radiance = texture(uEnergyDensity, vec3(vPosition, 90)).r;
+//    oColor = vec4(vec3(radiance), 1);
+//    return;
+
     vec3 rayDirection = vRayTo - vRayFrom;
     vec2 tbounds = max(intersectCube(vRayFrom, rayDirection), 0.0);
     if (tbounds.x >= tbounds.y) {
@@ -123,9 +139,9 @@ void main() {
             colorSample = texture(uTransferFunction, vec2(val, 0.5));
             colorSample.a *= rayStepLength * uAlphaCorrection;
             // utezi z energy density
-            //colorSample.rgb *= colorSample.a * energyDensity;
+            colorSample.rgb *= colorSample.a * energyDensity;
 //            colorSample.rgb *= colorSample.a;
-            colorSample.rgb = vec3(energyDensity);
+//            colorSample.rgb = vec3(energyDensity);
             accumulator += (1.0 - accumulator.a) * colorSample;
             t += uStepSize;
         }

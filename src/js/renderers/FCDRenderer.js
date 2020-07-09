@@ -30,6 +30,7 @@ setVolume(volume) {
         gl.deleteTexture(this._energyDensity);
     this._createEnergyDensityTexture();
     this.reset();
+
 }
 
 _createEnergyDensityTexture() {
@@ -46,11 +47,51 @@ _createEnergyDensityTexture() {
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     // let energyDensityArray = new Float32Array(dimensions.width * dimensions.height * dimensions.depth).fill(0);
+
+    function around(val, size) {
+        return Math.abs(val - Math.floor(size / 4)) < 3
+    }
+
     let energyDensityArray = [];
     for (let z = 0; z < dimensions.depth; z++) {
         for (let y = 0; y < dimensions.height; y++) {
             for (let x = 0; x < dimensions.width; x++) {
+                if (around(x, dimensions.width) &&
+                    around(y, dimensions.height) &&
+                    around(z, dimensions.depth)) {
+                    energyDensityArray.push(1);
+                    continue;
+                }
                 if (x < 1 && y < 1 && z < 1) {
+                    energyDensityArray.push(1);
+                    continue;
+                }
+                if (x === dimensions.width - 1 && y < 1 && z < 1) {
+                    energyDensityArray.push(1);
+                    continue;
+                }
+                if (x < 1 && y === dimensions.height - 1 && z < 1) {
+                    energyDensityArray.push(1);
+                    continue;
+                }
+                if (x === dimensions.width - 1 && y === dimensions.height - 1 && z < 1) {
+                    energyDensityArray.push(1);
+                    continue;
+                }
+
+                if (x < 1 && y < 1 && z === dimensions.depth - 1) {
+                    energyDensityArray.push(1);
+                    continue;
+                }
+                if (x === dimensions.width - 1 && y < 1 && z === dimensions.depth - 1) {
+                    energyDensityArray.push(1);
+                    continue;
+                }
+                if (x < 1 && y === dimensions.height - 1 && z === dimensions.depth - 1) {
+                    energyDensityArray.push(1);
+                    continue;
+                }
+                if (x === dimensions.width - 1 && y === dimensions.height - 1 && z === dimensions.depth - 1) {
                     energyDensityArray.push(1);
                     continue;
                 }
@@ -117,6 +158,8 @@ _generateFrame() {
     const gl = this._gl;
 
     this._convection();
+
+    // console.log(this._energyDensity.toString());
 
     const program = this._programs.generate;
     gl.useProgram(program.program);
