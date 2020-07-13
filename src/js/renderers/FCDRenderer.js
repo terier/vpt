@@ -41,11 +41,13 @@ _createEnergyDensityTexture() {
     this._dimensions = dimensions;
     // TODO separate function in WebGL.js
     gl.bindTexture(gl.TEXTURE_3D, this._energyDensity);
-    gl.texStorage3D(gl.TEXTURE_3D, 1, gl.R32F, dimensions.width, dimensions.height, dimensions.depth);
+    // gl.texStorage3D(gl.TEXTURE_3D, 1, gl.R32F, dimensions.width, dimensions.height, dimensions.depth);
+    gl.texStorage3D(gl.TEXTURE_3D, 1, gl.RGBA32F, dimensions.width, dimensions.height, dimensions.depth);
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    //gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
     // let energyDensityArray = new Float32Array(dimensions.width * dimensions.height * dimensions.depth).fill(0);
 
     function around(val, size) {
@@ -56,45 +58,11 @@ _createEnergyDensityTexture() {
     for (let z = 0; z < dimensions.depth; z++) {
         for (let y = 0; y < dimensions.height; y++) {
             for (let x = 0; x < dimensions.width; x++) {
-                if (around(x, dimensions.width) &&
-                    around(y, dimensions.height) &&
-                    around(z, dimensions.depth)) {
-                    energyDensityArray.push(1);
-                    continue;
-                }
-                if (x < 1 && y < 1 && z < 1) {
-                    energyDensityArray.push(1);
-                    continue;
-                }
-                if (x === dimensions.width - 1 && y < 1 && z < 1) {
-                    energyDensityArray.push(1);
-                    continue;
-                }
-                if (x < 1 && y === dimensions.height - 1 && z < 1) {
-                    energyDensityArray.push(1);
-                    continue;
-                }
-                if (x === dimensions.width - 1 && y === dimensions.height - 1 && z < 1) {
-                    energyDensityArray.push(1);
-                    continue;
-                }
-
-                if (x < 1 && y < 1 && z === dimensions.depth - 1) {
-                    energyDensityArray.push(1);
-                    continue;
-                }
-                if (x === dimensions.width - 1 && y < 1 && z === dimensions.depth - 1) {
-                    energyDensityArray.push(1);
-                    continue;
-                }
-                if (x < 1 && y === dimensions.height - 1 && z === dimensions.depth - 1) {
-                    energyDensityArray.push(1);
-                    continue;
-                }
-                if (x === dimensions.width - 1 && y === dimensions.height - 1 && z === dimensions.depth - 1) {
-                    energyDensityArray.push(1);
-                    continue;
-                }
+                energyDensityArray.push(
+                    x === 0 || y === 0 || z === 0 ||
+                    x === dimensions.width - 1 || y === dimensions.height - 1 || z === dimensions.depth - 1);
+                energyDensityArray.push(0);
+                energyDensityArray.push(0);
                 energyDensityArray.push(0);
             }
         }
@@ -108,7 +76,7 @@ _createEnergyDensityTexture() {
 
     gl.texSubImage3D(gl.TEXTURE_3D, 0,
         0, 0, 0, dimensions.width, dimensions.height, dimensions.depth,
-        gl.RED, gl.FLOAT, new Float32Array(energyDensityArray));
+        gl.RGBA, gl.FLOAT, new Float32Array(energyDensityArray));
 }
 
 destroy() {
@@ -131,13 +99,13 @@ _resetFrame() {
 
 _convection() {
     const gl = this._gl;
-    const localSizeX = 16
+    const localSizeX = 1
     const localSizeY = 16
 
     const program = this._programs.convection;
     gl.useProgram(program.program);
 
-    gl.bindImageTexture(0, this._energyDensity, 0, false, 0, gl.READ_WRITE, gl.R32F);
+    gl.bindImageTexture(0, this._energyDensity, 0, false, 0, gl.READ_WRITE, gl.RGBA32F);
     gl.bindImageTexture(1, this._volume.getTexture(), 0, false, 0, gl.READ_ONLY, gl.RGBA32F);
     // gl.bindImageTexture(2, this._transferFunction, 0, false, 0, gl.READ_ONLY, gl.RGBA32F);
 
@@ -150,7 +118,9 @@ _convection() {
     gl.uniform3fv(program.uniforms.uLightDirection, this._lightDirection);
 
     for (let i = 0; i < 1; i++) {
-        gl.dispatchCompute(this._dimensions.width / localSizeX, this._dimensions.height / localSizeY, this._dimensions.depth);
+        gl.dispatchCompute(this._dimensions.width / localSizeX,
+            this._dimensions.height / localSizeY,
+            this._dimensions.depth);
     }
 }
 
@@ -170,6 +140,8 @@ _generateFrame() {
     gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
     gl.activeTexture(gl.TEXTURE2);
     gl.bindTexture(gl.TEXTURE_3D, this._energyDensity);
+
+    // gl.bindImageTexture(2, this._energyDensity, 0, false, 0, gl.READ_ONLY, gl.R32F);
 
     gl.uniform1i(program.uniforms.uVolume, 0);
     gl.uniform1i(program.uniforms.uTransferFunction, 1);

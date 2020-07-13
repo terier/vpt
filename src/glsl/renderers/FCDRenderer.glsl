@@ -11,8 +11,10 @@ layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
 uniform ivec3 uSize;
 uniform vec3 uLightDirection;
-layout (r32f, binding = 0) readonly highp uniform image3D uEnergyDensityRead;
-layout (r32f, binding = 0) writeonly highp uniform image3D uEnergyDensityWrite;
+//layout (r32f, binding = 0) readonly highp uniform image3D uEnergyDensityRead;
+//layout (r32f, binding = 0) writeonly highp uniform image3D uEnergyDensityWrite;
+layout (rgba32f, binding = 0) readonly highp uniform image3D uEnergyDensityRead;
+layout (rgba32f, binding = 0) writeonly highp uniform image3D uEnergyDensityWrite;
 
 layout (rgba32f, binding = 1) readonly highp uniform image3D uVolume;
 // layout (rgba32f, binding = 2) readonly highp uniform image2D uTransferFunction;
@@ -20,8 +22,10 @@ layout (rgba32f, binding = 1) readonly highp uniform image3D uVolume;
 uniform mediump sampler2D uTransferFunction;
 
 void main() {
-    ivec3 position = ivec3(gl_GlobalInvocationID.xyz);
-
+    ivec3 position = ivec3(gl_GlobalInvocationID);
+    imageStore(uEnergyDensityWrite, position, vec4(1));
+//    memoryBarrier();
+    return;
 //    if (position.x < 1 || position.y < 1 || position.z < 1 ||
 //    position.x >= uSize.x - 1 || position.y >= uSize.y - 1 || position.z >= uSize.z - 1) {
 //        return;
@@ -30,12 +34,12 @@ void main() {
     float val = imageLoad(uVolume, position).r;
     vec4 colorSample = texture(uTransferFunction, vec2(val, 0.5));
 
-//    float revAbsorption = float(1) - colorSample.a;
-    float revAbsorption = float(1);
+    float revAbsorption = float(1) - colorSample.a;
+//    float revAbsorption = float(1);
 
 //    float absorption = float(1) - val;
 //    float absorption = val;
-    imageStore(uEnergyDensityWrite, position, vec4(1));
+
     return;
     for (int i = 0; i < 1; i++) {
         vec4 center = imageLoad(uEnergyDensityRead, position);
@@ -65,7 +69,7 @@ void main() {
 
 // #section FCDGenerate/vertex
 
-#version 300 es
+#version 310 es
 precision mediump float;
 
 uniform mat4 uMvpInverseMatrix;
@@ -88,8 +92,10 @@ void main() {
 
 // #section FCDGenerate/fragment
 
-#version 300 es
+#version 310 es
 precision mediump float;
+
+//layout (r32f, binding = 2) readonly highp uniform image3D uEnergyDensity;
 
 uniform mediump sampler3D uVolume;
 uniform mediump sampler2D uTransferFunction;
@@ -135,13 +141,14 @@ void main() {
             val = texture(uVolume, pos).r;
 
             energyDensity = texture(uEnergyDensity, pos).r;
+//            energyDensity = imageLoad(uEnergyDensity, pos).r;
 
             colorSample = texture(uTransferFunction, vec2(val, 0.5));
             colorSample.a *= rayStepLength * uAlphaCorrection;
             // utezi z energy density
-            colorSample.rgb *= colorSample.a * energyDensity;
+//            colorSample.rgb *= colorSample.a * energyDensity;
 //            colorSample.rgb *= colorSample.a;
-//            colorSample.rgb = vec3(energyDensity);
+            colorSample.rgb = vec3(energyDensity);
             accumulator += (1.0 - accumulator.a) * colorSample;
             t += uStepSize;
         }
