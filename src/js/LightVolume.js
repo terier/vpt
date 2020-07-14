@@ -91,7 +91,7 @@ class LightVolume {
         }
         gl.texSubImage3D(gl.TEXTURE_3D, 0,
             0, 0, 0, dimensions.width, dimensions.height, dimensions.depth,
-            gl.RGBA, gl.FLOAT, new Float32Array(lightDirectionArray));
+            gl.RED, gl.FLOAT, new Float32Array(lightDirectionArray));
     }
 
     createPointLight() {

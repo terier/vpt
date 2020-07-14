@@ -3,7 +3,7 @@
 // #include ../mixins/unproject.glsl
 // #include ../mixins/intersectCube.glsl
 
-// #section FCDDiffusion/compute
+// #section FCDConvection/compute
 
 #version 310 es
 precision highp float;
@@ -11,10 +11,8 @@ layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
 uniform ivec3 uSize;
 uniform vec3 uLightDirection;
-//layout (r32f, binding = 0) readonly highp uniform image3D uEnergyDensityRead;
-//layout (r32f, binding = 0) writeonly highp uniform image3D uEnergyDensityWrite;
-layout (rgba32f, binding = 0) readonly highp uniform image3D uEnergyDensityRead;
-layout (rgba32f, binding = 0) writeonly highp uniform image3D uEnergyDensityWrite;
+layout (r32f, binding = 0) readonly highp uniform image3D uEnergyDensityRead;
+layout (r32f, binding = 0) writeonly highp uniform image3D uEnergyDensityWrite;
 
 layout (rgba32f, binding = 1) readonly highp uniform image3D uVolume;
 // layout (rgba32f, binding = 2) readonly highp uniform image2D uTransferFunction;
@@ -64,9 +62,50 @@ void main() {
         float convectionDelta = -dot(uLightDirection, grad) * 0.5;
         float new = revAbsorption * (radiance + convectionDelta);
         vec4 final = vec4(new, 0, 0, 0);
-//        vec4 final = vec4(1, 0, 0, 0);
 
         imageStore(uEnergyDensityWrite, position, final);
+    }
+}
+
+
+// #section FCDDiffusion/compute
+
+#version 310 es
+precision highp float;
+layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+uniform ivec3 uSize;
+layout (r32f, binding = 0) readonly highp uniform image2D uTextureRead;
+layout (r32f, binding = 0) writeonly highp uniform image2D uTextureWrite;
+
+void main() {
+    ivec3 position = ivec3(gl_GlobalInvocationID);
+
+    if (position.x < 1 || position.y < 1 || position.z < 1 ||
+    position.x >= uSize.x - 1 || position.y >= uSize.y - 1 || position.z >= uSize.z - 1) {
+        return;
+    }
+
+    for (int i = 0; i < 1; i++) {
+        vec4 center = imageLoad(uTextureRead, position);
+        float radiance = center.a;
+
+        float dl    = imageLoad(uTextureRead, position + ivec3(-1, -1, 0)).a;
+        float ul    = imageLoad(uTextureRead, position + ivec3(-1,  1,  0)).a;
+        float dr    = imageLoad(uTextureRead, position + ivec3( 1, -1,  0)).a;
+        float ur    = imageLoad(uTextureRead, position + ivec3( 1,  1,  0)).a;
+        float left  = imageLoad(uTextureRead, position + ivec3(-1,  0,  0)).a;
+        float right = imageLoad(uTextureRead, position + ivec3( 1,  0,  0)).a;
+        float down  = imageLoad(uTextureRead, position + ivec3( 0, -1,  0)).a;
+        float up    = imageLoad(uTextureRead, position + ivec3( 0,  1,  0)).a;
+
+        float laplace = 0.25 * dl + 0.25 * ul + 0.25 * dr + 0.25 * ur + 0.5 * left + 0.5 * right + 0.5 * down + 0.5 * up - 3.0 * radiance;
+
+        float diffusionDelta = laplace * radiance * 0.5;
+        float delta = absorptionDelta + convectionDelta + diffusionDelta;
+        vec4 final = vec4(radiance + delta, 0, 0, 0);
+
+        imageStore(uTextureWrite, position, final);
     }
 }
 
