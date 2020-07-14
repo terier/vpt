@@ -47,7 +47,7 @@ _createEnergyDensityTexture() {
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    //gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
     // let energyDensityArray = new Float32Array(dimensions.width * dimensions.height * dimensions.depth).fill(0);
 
     function around(val, size) {
@@ -99,14 +99,14 @@ _resetFrame() {
 
 _convection() {
     const gl = this._gl;
-    const localSizeX = 1
+    const localSizeX = 16
     const localSizeY = 16
 
     const program = this._programs.convection;
     gl.useProgram(program.program);
 
-    gl.bindImageTexture(0, this._energyDensity, 0, false, 0, gl.READ_WRITE, gl.RGBA32F);
-    gl.bindImageTexture(1, this._volume.getTexture(), 0, false, 0, gl.READ_ONLY, gl.RGBA32F);
+    gl.bindImageTexture(0, this._energyDensity, 0, true, 0, gl.READ_WRITE, gl.RGBA32F);
+    gl.bindImageTexture(1, this._volume.getTexture(), 0, true, 0, gl.READ_ONLY, gl.RGBA32F);
     // gl.bindImageTexture(2, this._transferFunction, 0, false, 0, gl.READ_ONLY, gl.RGBA32F);
 
     gl.activeTexture(gl.TEXTURE2);

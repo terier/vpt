@@ -23,13 +23,11 @@ uniform mediump sampler2D uTransferFunction;
 
 void main() {
     ivec3 position = ivec3(gl_GlobalInvocationID);
-    imageStore(uEnergyDensityWrite, position, vec4(1));
-//    memoryBarrier();
-    return;
-//    if (position.x < 1 || position.y < 1 || position.z < 1 ||
-//    position.x >= uSize.x - 1 || position.y >= uSize.y - 1 || position.z >= uSize.z - 1) {
-//        return;
-//    }
+    if (position.x < 1 || position.y < 1 || position.z < 1 ||
+    position.x >= uSize.x - 1 || position.y >= uSize.y - 1 || position.z >= uSize.z - 1) {
+        return;
+    }
+    //imageStore(uEnergyDensityWrite, position, vec4(1));
 
     float val = imageLoad(uVolume, position).r;
     vec4 colorSample = texture(uTransferFunction, vec2(val, 0.5));
@@ -40,22 +38,27 @@ void main() {
 //    float absorption = float(1) - val;
 //    float absorption = val;
 
-    return;
     for (int i = 0; i < 1; i++) {
         vec4 center = imageLoad(uEnergyDensityRead, position);
         float radiance = center.r;
 
-        float left = imageLoad(uEnergyDensityRead, position + ivec3(-1,  0, 0)).r;
-        float right = imageLoad(uEnergyDensityRead, position + ivec3( 1,  0, 0)).r;
-        float down = imageLoad(uEnergyDensityRead, position + ivec3( 0, -1, 0)).r;
-        float up = imageLoad(uEnergyDensityRead, position + ivec3( 0,  1, 0)).r;
-        float back = imageLoad(uEnergyDensityRead, position + ivec3( 0,  0, -1)).r;
-        float forward = imageLoad(uEnergyDensityRead, position + ivec3( 0,  0, 1)).r;
+//        float left = imageLoad(uEnergyDensityRead, position + ivec3(-1,  0, 0)).r;
+//        float right = imageLoad(uEnergyDensityRead, position + ivec3( 1,  0, 0)).r;
+//        float down = imageLoad(uEnergyDensityRead, position + ivec3( 0, -1, 0)).r;
+//        float up = imageLoad(uEnergyDensityRead, position + ivec3( 0,  1, 0)).r;
+//        float back = imageLoad(uEnergyDensityRead, position + ivec3( 0,  0, -1)).r;
+//        float forward = imageLoad(uEnergyDensityRead, position + ivec3( 0,  0, 1)).r;
 
         vec3 grad = vec3(
-            uLightDirection.x < 0.0 ? right - radiance : radiance - left,
-            uLightDirection.y < 0.0 ? up - radiance : radiance - down,
-            uLightDirection.z < 0.0 ? forward - radiance : radiance - back
+            uLightDirection.x < 0.0 ?
+                imageLoad(uEnergyDensityRead, position + ivec3( 1,  0, 0)).r - radiance :
+                radiance - imageLoad(uEnergyDensityRead, position + ivec3(-1,  0, 0)).r,
+            uLightDirection.y < 0.0 ?
+                imageLoad(uEnergyDensityRead, position + ivec3( 0,  1, 0)).r - radiance :
+                radiance - imageLoad(uEnergyDensityRead, position + ivec3( 0, -1, 0)).r,
+            uLightDirection.z < 0.0 ?
+                imageLoad(uEnergyDensityRead, position + ivec3( 0,  0, 1)).r - radiance :
+                radiance - imageLoad(uEnergyDensityRead, position + ivec3( 0,  0, -1)).r
         );
         // (1 - absorption) * (p - 1/2 deltap)
         float convectionDelta = -dot(uLightDirection, grad) * 0.5;
@@ -146,9 +149,9 @@ void main() {
             colorSample = texture(uTransferFunction, vec2(val, 0.5));
             colorSample.a *= rayStepLength * uAlphaCorrection;
             // utezi z energy density
-//            colorSample.rgb *= colorSample.a * energyDensity;
+            colorSample.rgb *= colorSample.a * energyDensity;
 //            colorSample.rgb *= colorSample.a;
-            colorSample.rgb = vec3(energyDensity);
+            //colorSample.rgb = vec3(energyDensity);
             accumulator += (1.0 - accumulator.a) * colorSample;
             t += uStepSize;
         }
