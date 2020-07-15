@@ -13,10 +13,12 @@ constructor(renderer, options) {
     this._renderer = renderer;
 
     this._handleChange = this._handleChange.bind(this);
+    this._handleChangeScettering = this._handleChangeScettering.bind(this);
     this._handleTFChange = this._handleTFChange.bind(this);
 
     this._binds.steps.addEventListener('input', this._handleChange);
     this._binds.opacity.addEventListener('input', this._handleChange);
+    this._binds.scattering.addEventListener('input', this._handleChangeScettering);
 
     this._tfwidget = new TransferFunctionWidget();
     this._binds.tfcontainer.add(this._tfwidget);
@@ -33,6 +35,12 @@ _handleChange() {
     this._renderer._alphaCorrection = this._binds.opacity.getValue();
 
     this._renderer.reset();
+}
+
+_handleChangeScettering() {
+    this._renderer._scattering = this._binds.scattering.getValue();
+
+    this._renderer.resetLightField();
 }
 
 _handleTFChange() {

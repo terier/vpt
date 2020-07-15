@@ -31,13 +31,11 @@ class LightVolume {
         const dirX = this._x;
         const dirY = this._y;
         const dirZ = this._z;
-        console.log("Dimensions: " + dimensions.width + " " + dimensions.height + " " + dimensions.depth)
         // Energy density
         this._energyDensity = gl.createTexture();
 
         // TODO separate function in WebGL.js
         gl.bindTexture(gl.TEXTURE_3D, this._energyDensity);
-        // gl.texStorage3D(gl.TEXTURE_3D, 1, gl.R32F, dimensions.width, dimensions.height, dimensions.depth);
         gl.texStorage3D(gl.TEXTURE_3D, 1, gl.R32F, dimensions.width, dimensions.height, dimensions.depth);
         gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
@@ -68,8 +66,7 @@ class LightVolume {
 
         // // TODO separate function in WebGL.js
         gl.bindTexture(gl.TEXTURE_3D, this._lightDirection);
-        gl.texStorage3D(gl.TEXTURE_3D, 1, gl.R32F, dimensions.width, dimensions.height, dimensions.depth);
-        // gl.texStorage3D(gl.TEXTURE_3D, 1, gl.RGBA32F, dimensions.width, dimensions.height, dimensions.depth);
+        gl.texStorage3D(gl.TEXTURE_3D, 1, gl.RGBA32F, dimensions.width, dimensions.height, dimensions.depth);
         gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -91,7 +88,7 @@ class LightVolume {
         }
         gl.texSubImage3D(gl.TEXTURE_3D, 0,
             0, 0, 0, dimensions.width, dimensions.height, dimensions.depth,
-            gl.RED, gl.FLOAT, new Float32Array(lightDirectionArray));
+            gl.RGBA, gl.FLOAT, new Float32Array(lightDirectionArray));
     }
 
     createPointLight() {
@@ -100,13 +97,11 @@ class LightVolume {
         const posX = this._x;
         const posY = this._y;
         const posZ = this._z;
-        console.log("Dimensions: " + dimensions.width + " " + dimensions.height + " " + dimensions.depth)
         // Energy density
         this._energyDensity = gl.createTexture();
 
         // TODO separate function in WebGL.js
         gl.bindTexture(gl.TEXTURE_3D, this._energyDensity);
-        // gl.texStorage3D(gl.TEXTURE_3D, 1, gl.R32F, dimensions.width, dimensions.height, dimensions.depth);
         gl.texStorage3D(gl.TEXTURE_3D, 1, gl.R32F, dimensions.width, dimensions.height, dimensions.depth);
         gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
