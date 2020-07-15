@@ -28,9 +28,10 @@ class LightVolume {
     createDistantLight() {
         const gl = this._gl;
         const dimensions = this._dimensions;
-        const dirX = this._x;
-        const dirY = this._y;
-        const dirZ = this._z;
+        const unitVector = this.toUnitVector([this._x, this._y, this._z]);
+        const dirX = this._x = unitVector[0];
+        const dirY = this._y = unitVector[1];
+        const dirZ = this._z = unitVector[2];
         // Energy density
         this._energyDensity = gl.createTexture();
 
@@ -208,6 +209,10 @@ class LightVolume {
 
     getEnergyDensity() {
         return this._energyDensity;
+    }
+
+    getDirection() {
+        return [this._x, this._y, this._z];
     }
 
 }

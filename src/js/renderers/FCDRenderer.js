@@ -10,7 +10,7 @@ constructor(gl, volume, environmentTexture, options) {
     super(gl, volume, environmentTexture, options);
 
     Object.assign(this, {
-        _lightDirection     : [0.5, 0.5, 0.5],
+        _lightDirection     : [-0.5, -0.5, -0.5],
         _stepSize           : 0.05,
         _alphaCorrection    : 3,
         _scattering         : 0.5
@@ -36,7 +36,10 @@ setVolume(volume) {
     if (this._energyDensity)
         gl.deleteTexture(this._energyDensity.getEnergyDensity());
     //this._createEnergyDensityTexture();
-    this._energyDensity = new LightVolume(gl, 'distant', 0.5, 0.5, 0.5, volume.getDimensions('default'));
+    this._energyDensity = new LightVolume(gl,
+        'distant',
+        this._lightDirection[0], this._lightDirection[1], this._lightDirection[2],
+        dimensions);
     this.reset();
 }
 
@@ -85,7 +88,8 @@ _convection() {
 
     gl.uniform3i(program.uniforms.uSize, this._dimensions.width, this._dimensions.height, this._dimensions.depth);
 
-    gl.uniform3fv(program.uniforms.uLightDirection, this._lightDirection);
+    const lightDirection = this._energyDensity.getDirection();
+    gl.uniform3fv(program.uniforms.uLightDirection, new Float32Array(lightDirection));
 
     gl.dispatchCompute(this._dimensions.width / localSizeX,
         this._dimensions.height / localSizeY,

@@ -38,14 +38,14 @@ void main() {
 
         vec3 grad = vec3(
             uLightDirection.x < 0.0 ?
-                imageLoad(uEnergyDensityRead, position + ivec3( 1,  0, 0)).r - radiance :
+                imageLoad(uEnergyDensityRead, position + ivec3(1,  0, 0)).r - radiance :
                 radiance - imageLoad(uEnergyDensityRead, position + ivec3(-1,  0, 0)).r,
             uLightDirection.y < 0.0 ?
-                imageLoad(uEnergyDensityRead, position + ivec3( 0,  1, 0)).r - radiance :
-                radiance - imageLoad(uEnergyDensityRead, position + ivec3( 0, -1, 0)).r,
+                imageLoad(uEnergyDensityRead, position + ivec3(0,  1, 0)).r - radiance :
+                radiance - imageLoad(uEnergyDensityRead, position + ivec3(0, -1, 0)).r,
             uLightDirection.z < 0.0 ?
-                imageLoad(uEnergyDensityRead, position + ivec3( 0,  0, 1)).r - radiance :
-                radiance - imageLoad(uEnergyDensityRead, position + ivec3( 0,  0, -1)).r
+                imageLoad(uEnergyDensityRead, position + ivec3(0,  0, 1)).r - radiance :
+                radiance - imageLoad(uEnergyDensityRead, position + ivec3(0,  0, -1)).r
         );
         // (1 - absorption) * (p - 1/2 deltap)
         float convectionDelta = -dot(uLightDirection, grad) * 0.5;
