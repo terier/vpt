@@ -13,7 +13,7 @@ class LightVolume {
         this._z              = z;
         this._dimensions     = dimensions;
         this._energyDensity  = null;
-        this._lightDirection = null;
+        // this._lightDirection = null;
 
         switch(type) {
             case 'distant':
@@ -62,33 +62,33 @@ class LightVolume {
             gl.RED, gl.FLOAT, new Float32Array(energyDensityArray));
 
         // Light direction
-        this._lightDirection = gl.createTexture();
-
-        // // TODO separate function in WebGL.js
-        gl.bindTexture(gl.TEXTURE_3D, this._lightDirection);
-        gl.texStorage3D(gl.TEXTURE_3D, 1, gl.RGBA32F, dimensions.width, dimensions.height, dimensions.depth);
-        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
+        // this._lightDirection = gl.createTexture();
         //
-        let lightDirectionArray = [];
-        const dirUnitVector = this.toUnitVector([dirX, dirY, dirZ]);
-
-        for (let z = 0; z < dimensions.depth; z++) {
-            for (let y = 0; y < dimensions.height; y++) {
-                for (let x = 0; x < dimensions.width; x++) {
-                    lightDirectionArray.push(dirUnitVector[0]);
-                    lightDirectionArray.push(dirUnitVector[1]);
-                    lightDirectionArray.push(dirUnitVector[2]);
-                    lightDirectionArray.push(0);
-                }
-            }
-        }
-        gl.texSubImage3D(gl.TEXTURE_3D, 0,
-            0, 0, 0, dimensions.width, dimensions.height, dimensions.depth,
-            gl.RGBA, gl.FLOAT, new Float32Array(lightDirectionArray));
+        // // // TODO separate function in WebGL.js
+        // gl.bindTexture(gl.TEXTURE_3D, this._lightDirection);
+        // gl.texStorage3D(gl.TEXTURE_3D, 1, gl.RGBA32F, dimensions.width, dimensions.height, dimensions.depth);
+        // gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        // gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        // gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        // gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        // gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
+        // //
+        // let lightDirectionArray = [];
+        // const dirUnitVector = this.toUnitVector([dirX, dirY, dirZ]);
+        //
+        // for (let z = 0; z < dimensions.depth; z++) {
+        //     for (let y = 0; y < dimensions.height; y++) {
+        //         for (let x = 0; x < dimensions.width; x++) {
+        //             lightDirectionArray.push(dirUnitVector[0]);
+        //             lightDirectionArray.push(dirUnitVector[1]);
+        //             lightDirectionArray.push(dirUnitVector[2]);
+        //             lightDirectionArray.push(0);
+        //         }
+        //     }
+        // }
+        // gl.texSubImage3D(gl.TEXTURE_3D, 0,
+        //     0, 0, 0, dimensions.width, dimensions.height, dimensions.depth,
+        //     gl.RGBA, gl.FLOAT, new Float32Array(lightDirectionArray));
     }
 
     createPointLight() {
@@ -149,33 +149,33 @@ class LightVolume {
             gl.RED, gl.FLOAT, new Float32Array(energyDensityArray));
 
         // Light direction
-        this._lightDirection = gl.createTexture();
-
-        // // TODO separate function in WebGL.js
-        gl.bindTexture(gl.TEXTURE_3D, this._lightDirection);
-        gl.texStorage3D(gl.TEXTURE_3D, 1, gl.RGBA32F, dimensions.width, dimensions.height, dimensions.depth);
-        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
+        // this._lightDirection = gl.createTexture();
         //
-        let lightDirectionArray = [];
-        for (let z = 0; z < dimensions.depth; z++) {
-            for (let y = 0; y < dimensions.height; y++) {
-                for (let x = 0; x < dimensions.width; x++) {
-                    let dirVector = [x - posX, y - posY, z - posZ];
-                    let dirUnitVector = this.toUnitVector(dirVector);
-                    lightDirectionArray.push(dirUnitVector[0]);
-                    lightDirectionArray.push(dirUnitVector[1]);
-                    lightDirectionArray.push(dirUnitVector[2]);
-                    lightDirectionArray.push(0);
-                }
-            }
-        }
-        gl.texSubImage3D(gl.TEXTURE_3D, 0,
-            0, 0, 0, dimensions.width, dimensions.height, dimensions.depth,
-            gl.RGBA, gl.FLOAT, new Float32Array(lightDirectionArray));
+        // // // TODO separate function in WebGL.js
+        // gl.bindTexture(gl.TEXTURE_3D, this._lightDirection);
+        // gl.texStorage3D(gl.TEXTURE_3D, 1, gl.RGBA32F, dimensions.width, dimensions.height, dimensions.depth);
+        // gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        // gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        // gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        // gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        // gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
+        // //
+        // let lightDirectionArray = [];
+        // for (let z = 0; z < dimensions.depth; z++) {
+        //     for (let y = 0; y < dimensions.height; y++) {
+        //         for (let x = 0; x < dimensions.width; x++) {
+        //             let dirVector = [x - posX, y - posY, z - posZ];
+        //             let dirUnitVector = this.toUnitVector(dirVector);
+        //             lightDirectionArray.push(dirUnitVector[0]);
+        //             lightDirectionArray.push(dirUnitVector[1]);
+        //             lightDirectionArray.push(dirUnitVector[2]);
+        //             lightDirectionArray.push(0);
+        //         }
+        //     }
+        // }
+        // gl.texSubImage3D(gl.TEXTURE_3D, 0,
+        //     0, 0, 0, dimensions.width, dimensions.height, dimensions.depth,
+        //     gl.RGBA, gl.FLOAT, new Float32Array(lightDirectionArray));
     }
 
     toUnitVector(vector) {
@@ -202,9 +202,9 @@ class LightVolume {
         return this._type;
     }
 
-    getLightDirection() {
-        return this._lightDirection;
-    }
+    // getLightDirection() {
+    //     return this._lightDirection;
+    // }
 
     getEnergyDensity() {
         return this._energyDensity;

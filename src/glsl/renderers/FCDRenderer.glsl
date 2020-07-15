@@ -32,7 +32,7 @@ void main() {
 
     float revAbsorption = float(1) - colorSample.a;
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 5; i++) {
         vec4 center = imageLoad(uEnergyDensityRead, position);
         float radiance = center.r;
 
@@ -66,7 +66,8 @@ layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 uniform ivec3 uSize;
 uniform float scattering;
 layout (r32f, binding = 0) readonly highp uniform image3D uEnergyDensityRead;
-layout (r32f, binding = 0) writeonly highp uniform image3D uEnergyDensityWrite;
+layout (r32f, binding = 0) readonly highp uniform image3D uEnergyDensityDiffusionRead;
+layout (r32f, binding = 1) writeonly highp uniform image3D uEnergyDensityDiffusionWrite;
 
 void main() {
     ivec3 position = ivec3(gl_GlobalInvocationID);
@@ -97,12 +98,19 @@ void main() {
         float back      = imageLoad(uEnergyDensityRead, position + ivec3( 0, 0, -1)).r;
         float forward   = imageLoad(uEnergyDensityRead, position + ivec3( 0,  0, 1)).r;
 
+        left            += imageLoad(uEnergyDensityDiffusionRead, position + ivec3(-1,  0,  0)).r;
+        right           += imageLoad(uEnergyDensityDiffusionRead, position + ivec3( 1,  0,  0)).r;
+        down            += imageLoad(uEnergyDensityDiffusionRead, position + ivec3( 0, -1,  0)).r;
+        up              += imageLoad(uEnergyDensityDiffusionRead, position + ivec3( 0,  1,  0)).r;
+        back            += imageLoad(uEnergyDensityDiffusionRead, position + ivec3( 0, 0, -1)).r;
+        forward         += imageLoad(uEnergyDensityDiffusionRead, position + ivec3( 0,  0, 1)).r;
+
         float laplace = 0.5 * left + 0.5 * right + 0.5 * down + 0.5 * up + 0.5 * back + 0.5 * forward - 3.0 * radiance;
 
         float delta = laplace * radiance * scattering;
-        vec4 final = vec4(radiance + delta, 0, 0, 0);
+        vec4 final = vec4(delta, 0, 0, 0);
 
-        imageStore(uEnergyDensityWrite, position, final);
+        imageStore(uEnergyDensityDiffusionWrite, position, final);
     }
 }
 
@@ -201,6 +209,7 @@ precision mediump float;
 uniform mediump sampler3D uVolume;
 uniform mediump sampler2D uTransferFunction;
 uniform mediump sampler3D uEnergyDensity;
+uniform mediump sampler3D uEnergyDensityDiffusion;
 uniform float uStepSize;
 uniform float uOffset;
 uniform float uAlphaCorrection;
@@ -242,7 +251,7 @@ void main() {
             val = texture(uVolume, pos).r;
 
             energyDensity = texture(uEnergyDensity, pos).r;
-//            energyDensity = imageLoad(uEnergyDensity, pos).r;
+            energyDensity += texture(uEnergyDensityDiffusion, pos).r;
 
             colorSample = texture(uTransferFunction, vec2(val, 0.5));
             colorSample.a *= rayStepLength * uAlphaCorrection;
