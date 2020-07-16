@@ -40,6 +40,7 @@ setVolume(volume) {
         'distant',
         this._lightDirection[0], this._lightDirection[1], this._lightDirection[2],
         dimensions);
+    this.counter = 0;
     this.reset();
 }
 
@@ -152,9 +153,14 @@ _convectionDiffusion() {
 
 _generateFrame() {
     const gl = this._gl;
+    if (this.counter <= this._dimensions.width + 50) {
+        this._convection();
+        this.counter++;
+    } else {
+        this._diffusion();
+    }
 
-    this._convection();
-    this._diffusion();
+
     // this._convectionDiffusion();
 
     // console.log(this._energyDensity.toString());
