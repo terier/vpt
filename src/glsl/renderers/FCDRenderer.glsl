@@ -32,7 +32,7 @@ void main() {
 
     float revAbsorption = float(1) - colorSample.a;
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 1; i++) {
         vec4 center = imageLoad(uEnergyDensityRead, position);
         float radiance = center.r;
 

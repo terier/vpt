@@ -153,9 +153,11 @@ _convectionDiffusion() {
 
 _generateFrame() {
     const gl = this._gl;
-    if (this.counter <= this._dimensions.width + 50) {
+    if (this.counter <= this._dimensions.width) {
         this._convection();
         this.counter++;
+        if (this.counter === this._dimensions.width)
+            console.log("Convection done")
     } else {
         this._diffusion();
     }
