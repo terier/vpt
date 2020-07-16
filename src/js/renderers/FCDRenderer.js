@@ -10,10 +10,10 @@ constructor(gl, volume, environmentTexture, options) {
     super(gl, volume, environmentTexture, options);
 
     Object.assign(this, {
-        _lightDirection             : [0.5, 0.5, 0.5],
-        _stepSize                   : 0.05,
-        _alphaCorrection            : 10,
-        _absorptionCoefficient      : 1,
+        _lightDirection             : [0, 0, 0.5],
+        _stepSize                   : 0.00333,
+        _alphaCorrection            : 100,
+        _absorptionCoefficient      : 0.5,
         _scattering                 : 0.5
     }, options);
 
@@ -190,6 +190,7 @@ _generateFrame() {
     //     this.counter++;
     // }
     this._convection();
+    this._diffusion();
     // else {
     //     this._diffusion();
     // }

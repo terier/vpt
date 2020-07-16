@@ -34,6 +34,7 @@ void main() {
     vec4 colorSample = texture(uTransferFunction, vec2(val, 0.5));
 
     float absorption = colorSample.a * uAbsorptionCoefficient;
+    float revAbsorption = float(1) - absorption;
 
     for (int i = 0; i < 1; i++) {
         vec4 center = imageLoad(uEnergyDensityRead, position);
@@ -56,7 +57,10 @@ void main() {
 //        float new = revAbsorption * (radiance + convectionDelta);
         float new = radiance + convectionDelta + absorptionDelta;
 
-        vec4 final = vec4(new, 0, 0, 0);
+
+        float new2 = revAbsorption * (radiance + convectionDelta);
+
+        vec4 final = vec4(new2, 0, 0, 0);
 
         imageStore(uEnergyDensityWrite, position, final);
     }
@@ -199,9 +203,9 @@ void main() {
             colorSample = texture(uTransferFunction, vec2(val, 0.5));
             colorSample.a *= rayStepLength * uAlphaCorrection;
             // utezi z energy density
-//            colorSample.rgb *= colorSample.a * energyDensity;
+            colorSample.rgb *= colorSample.a * energyDensity;
 //            colorSample.rgb *= colorSample.a;
-            colorSample.rgb = vec3(energyDensity);
+//            colorSample.rgb = vec3(energyDensity);
             accumulator += (1.0 - accumulator.a) * colorSample;
             t += uStepSize;
         }

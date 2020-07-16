@@ -12,7 +12,7 @@
         {
           "type": "spinner",
           "bind": "steps",
-          "value": 10,
+          "value": 300,
           "min": 1
         }
       ]
@@ -25,7 +25,7 @@
           "type": "spinner",
           "bind": "opacity",
           "logarithmic": true,
-          "value": 10,
+          "value": 100,
           "min": 0,
           "step": 0.1
         }
@@ -39,9 +39,9 @@
           "type": "spinner",
           "bind": "absorptionCoefficient",
           "logarithmic": true,
-          "value": 1,
+          "value": 0.5,
           "min": 0,
-          "step": 1
+          "step": 0.1
         }
       ]
     },
