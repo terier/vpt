@@ -25,9 +25,23 @@
           "type": "spinner",
           "bind": "opacity",
           "logarithmic": true,
-          "value": 1,
+          "value": 10,
           "min": 0,
           "step": 0.1
+        }
+      ]
+    },
+    {
+      "type": "field",
+      "label": "Absorption Coefficient:",
+      "children": [
+        {
+          "type": "spinner",
+          "bind": "absorptionCoefficient",
+          "logarithmic": true,
+          "value": 1,
+          "min": 0,
+          "step": 1
         }
       ]
     },

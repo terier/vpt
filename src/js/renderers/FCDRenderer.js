@@ -10,16 +10,16 @@ constructor(gl, volume, environmentTexture, options) {
     super(gl, volume, environmentTexture, options);
 
     Object.assign(this, {
-        _lightDirection     : [0.5, 0.5, 0.5],
-        _stepSize           : 0.05,
-        _alphaCorrection    : 3,
-        _scattering         : 0.5
+        _lightDirection             : [0.5, 0.5, 0.5],
+        _stepSize                   : 0.05,
+        _alphaCorrection            : 10,
+        _absorptionCoefficient      : 1,
+        _scattering                 : 0.5
     }, options);
 
     this._programs = WebGL.buildPrograms(this._gl, {
         convection: SHADERS.FCDConvection,
         diffusion: SHADERS.FCDDiffusion,
-        convectionDiffusion: SHADERS.FCDConvDiff,
         generate  : SHADERS.FCDGenerate,
         integrate : SHADERS.FCDIntegrate,
         render    : SHADERS.FCDRender,
@@ -38,6 +38,7 @@ setVolume(volume) {
     //this._createEnergyDensityTexture();
     this._energyDensity = new LightVolume(gl, 'distant', 0.5, 0.5, 0.5, volume.getDimensions('default'));
     this.resetLightField();
+    this.counter = 0;
     this.reset();
 }
 
@@ -48,7 +49,7 @@ _createDiffusionLightVolume() {
     this._energyDesityDiffusion = gl.createTexture();
 
     // TODO separate function in WebGL.js
-    gl.bindTexture(gl.TEXTURE_3D, this._energyDensity);
+    gl.bindTexture(gl.TEXTURE_3D, this._energyDesityDiffusion);
     gl.texStorage3D(gl.TEXTURE_3D, 1, gl.R32F, dimensions.width, dimensions.height, dimensions.depth);
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
@@ -98,16 +99,21 @@ _convection() {
     gl.useProgram(program.program);
 
     gl.bindImageTexture(0, this._energyDensity.getEnergyDensity(), 0, true, 0, gl.READ_WRITE, gl.R32F);
-    gl.bindImageTexture(1, this._volume.getTexture(), 0, true, 0, gl.READ_ONLY, gl.RGBA32F);
+    // gl.bindImageTexture(1, this._volume.getTexture(), 0, true, 0, gl.READ_ONLY, gl.R32F);
     // gl.bindImageTexture(2, this._transferFunction, 0, false, 0, gl.READ_ONLY, gl.RGBA32F);
+
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
 
     gl.activeTexture(gl.TEXTURE2);
     gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
+
+    gl.uniform1i(program.uniforms.uVolume, 1);
     gl.uniform1i(program.uniforms.uTransferFunction, 2);
 
     gl.uniform3i(program.uniforms.uSize, this._dimensions.width, this._dimensions.height, this._dimensions.depth);
-
     gl.uniform3fv(program.uniforms.uLightDirection, this._lightDirection);
+    gl.uniform1f(program.uniforms.uAbsorptionCoefficient, this._absorptionCoefficient)
 
     gl.dispatchCompute(this._dimensions.width / localSizeX,
         this._dimensions.height / localSizeY,
@@ -171,9 +177,19 @@ _convectionDiffusion() {
 
 _generateFrame() {
     const gl = this._gl;
-
+    // if (this.counter <= this._dimensions.width) {
+    //     this._convection();
+    //     if (this.counter === this._dimensions.width) {
+    //         console.log("Convection done!")
+    //     }
+    //     this.counter++;
+    // }
     this._convection();
-    this._diffusion();
+    // else {
+    //     this._diffusion();
+    // }
+
+
     // this._convectionDiffusion();
 
     // console.log(this._energyDensity.toString());
