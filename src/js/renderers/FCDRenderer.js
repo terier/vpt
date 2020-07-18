@@ -10,7 +10,8 @@ constructor(gl, volume, environmentTexture, options) {
     super(gl, volume, environmentTexture, options);
 
     Object.assign(this, {
-        _lightDirection             : [0, 0, 0.5],
+        _lightDirection             : [1, 1, 1],
+        _lightType                  : 'distant',
         _stepSize                   : 0.00333,
         _alphaCorrection            : 100,
         _absorptionCoefficient      : 0.5,
@@ -33,14 +34,8 @@ setVolume(volume) {
     const dimensions = this._volume.getDimensions('default');
     this._dimensions = dimensions;
     console.log("Dimensions: " + dimensions.width + " " + dimensions.height + " " + dimensions.depth)
-    if (this._energyDensity)
-        gl.deleteTexture(this._energyDensity.getEnergyDensity());
-    //this._createEnergyDensityTexture();
-    this._energyDensity = new LightVolume(gl,
-        'distant',
-        this._lightDirection[0], this._lightDirection[1], this._lightDirection[2],
-        dimensions);
-    this.resetLightField();
+    this._resetLightField();
+    this._resetDiffusionField();
     this.counter = 0;
     this.reset();
 }
@@ -66,13 +61,25 @@ _createDiffusionLightVolume() {
         gl.RED, gl.FLOAT, new Float32Array(energyDensityArray));
 }
 
-resetLightField() {
+_resetLightField() {
     const gl = this._gl;
     console.log("Reset Light Field")
+    if (this._energyDensity)
+        gl.deleteTexture(this._energyDensity.getEnergyDensity());
+    this._energyDensity = new LightVolume(gl,
+        this._lightType,
+        this._lightDirection[0], this._lightDirection[1], this._lightDirection[2],
+        this._dimensions);
+    this._resetDiffusionField();
+}
+
+_resetDiffusionField() {
+    const gl = this._gl;
+    console.log("Reset Diffusion Light Field")
     if (this._energyDesityDiffusion)
         gl.deleteTexture(this._energyDesityDiffusion);
     this._createDiffusionLightVolume();
-    this.reset();
+
 }
 
 destroy() {
@@ -97,7 +104,7 @@ _convection() {
     const gl = this._gl;
     const localSizeX = 16
     const localSizeY = 16
-
+    // console.log(this._lightDirection)
     const program = this._programs.convection;
     gl.useProgram(program.program);
 
@@ -117,7 +124,7 @@ _convection() {
     gl.uniform3i(program.uniforms.uSize, this._dimensions.width, this._dimensions.height, this._dimensions.depth);
 
     const lightDirection = this._energyDensity.getDirection();
-    gl.uniform3fv(program.uniforms.uLightDirection, this._lightDirection);
+    gl.uniform3fv(program.uniforms.uLightDirection, lightDirection);
     gl.uniform1f(program.uniforms.uAbsorptionCoefficient, this._absorptionCoefficient)
 
     gl.dispatchCompute(this._dimensions.width / localSizeX,

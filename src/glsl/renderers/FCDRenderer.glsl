@@ -53,9 +53,9 @@ void main() {
         );
         // (1 - absorption) * (p - 1/2 deltap)
         float convectionDelta = -dot(uLightDirection, grad) * 0.5;
-        float absorptionDelta = -exp(absorption * radiance) * 0.01;
+//        float absorptionDelta = -exp(absorption * radiance) * 0.01;
 //        float new = revAbsorption * (radiance + convectionDelta);
-        float new = radiance + convectionDelta + absorptionDelta;
+//        float new = radiance + convectionDelta + absorptionDelta;
 
 
         float new2 = revAbsorption * (radiance + convectionDelta);
