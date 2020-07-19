@@ -15,6 +15,7 @@ constructor(renderer, options) {
     this._handleChange = this._handleChange.bind(this);
     this._handleChangeScettering = this._handleChangeScettering.bind(this);
     this._handleChangeLightDirection = this._handleChangeLightDirection.bind(this);
+    this._handleChangeRatio = this._handleChangeRatio.bind(this);
     this._handleTFChange = this._handleTFChange.bind(this);
 
     this._binds.steps.addEventListener('input', this._handleChange);
@@ -22,6 +23,7 @@ constructor(renderer, options) {
     this._binds.direction.addEventListener('input', this._handleChangeLightDirection);
     this._binds.scattering.addEventListener('input', this._handleChangeScettering);
     this._binds.absorptionCoefficient.addEventListener('input', this._handleChange);
+    this._binds.ratio.addEventListener('input', this._handleChangeRatio);
 
     this._tfwidget = new TransferFunctionWidget();
     this._binds.tfcontainer.add(this._tfwidget);
@@ -54,6 +56,13 @@ _handleChangeLightDirection() {
     this._renderer._lightDirection[1] = direction.y;
     this._renderer._lightDirection[2] = direction.z;
 
+    this._renderer._resetLightField();
+    this._renderer.reset();
+}
+
+_handleChangeRatio() {
+    this._renderer._lightVolumeRatio = this._binds.ratio.getValue();
+    this._renderer._setLightVolumeDimensions();
     this._renderer._resetLightField();
     this._renderer.reset();
 }

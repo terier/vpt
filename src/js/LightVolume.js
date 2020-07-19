@@ -185,9 +185,9 @@ class LightVolume {
     }
 
     lightOutsideVolume() {
-        return  this._x < 0 || this._x >= this._dimensions[0] ||
-                this._y < 0 || this._y >= this._dimensions[1] ||
-                this._z < 0 || this._z >= this._dimensions[2];
+        return  this._x < 0 || this._x >= this._dimensions.width ||
+                this._y < 0 || this._y >= this._dimensions.height ||
+                this._z < 0 || this._z >= this._dimensions.depth;
     }
 
     lightHitsBoundary(x, y, z, dx, dy, dz) {

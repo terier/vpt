@@ -15,7 +15,8 @@ constructor(gl, volume, environmentTexture, options) {
         _stepSize                   : 0.00333,
         _alphaCorrection            : 100,
         _absorptionCoefficient      : 0.5,
-        _scattering                 : 0.5
+        _scattering                 : 0.5,
+        _lightVolumeRatio           : 1
     }, options);
 
     this._programs = WebGL.buildPrograms(this._gl, {
@@ -29,20 +30,30 @@ constructor(gl, volume, environmentTexture, options) {
 }
 
 setVolume(volume) {
-    const gl = this._gl;
     this._volume = volume;
-    const dimensions = this._volume.getDimensions('default');
-    this._dimensions = dimensions;
-    console.log("Dimensions: " + dimensions.width + " " + dimensions.height + " " + dimensions.depth)
+    const volumeDimensions = this._volume.getDimensions('default');
+    this._volumeDimensions = volumeDimensions;
+    this._setLightVolumeDimensions();
+    console.log("Volume Dimensions: " + volumeDimensions.width + " " + volumeDimensions.height + " " + volumeDimensions.depth)
     this._resetLightField();
-    this._resetDiffusionField();
     this.counter = 0;
     this.reset();
 }
 
+_setLightVolumeDimensions() {
+    const volumeDimensions = this._volumeDimensions;
+    this._lightVolumeDimensions = {
+        width: Math.floor(volumeDimensions.width / this._lightVolumeRatio),
+        height: Math.floor(volumeDimensions.height / this._lightVolumeRatio),
+        depth: Math.floor(volumeDimensions.depth / this._lightVolumeRatio)
+    };
+    console.log("Light Volume Dimensions: " + this._lightVolumeDimensions.width + " " +
+        this._lightVolumeDimensions.height + " " + this._lightVolumeDimensions.depth);
+}
+
 _createDiffusionLightVolume() {
     const gl = this._gl;
-    const dimensions = this._dimensions;
+    const dimensions = this._lightVolumeDimensions;
     // Energy density
     this._energyDesityDiffusion = gl.createTexture();
 
@@ -69,7 +80,7 @@ _resetLightField() {
     this._energyDensity = new LightVolume(gl,
         this._lightType,
         this._lightDirection[0], this._lightDirection[1], this._lightDirection[2],
-        this._dimensions);
+        this._lightVolumeDimensions);
     this._resetDiffusionField();
 }
 
@@ -121,15 +132,17 @@ _convection() {
     gl.uniform1i(program.uniforms.uVolume, 1);
     gl.uniform1i(program.uniforms.uTransferFunction, 2);
 
-    gl.uniform3i(program.uniforms.uSize, this._dimensions.width, this._dimensions.height, this._dimensions.depth);
+    const dimensions = this._lightVolumeDimensions;
+
+    gl.uniform3i(program.uniforms.uSize, dimensions.width, dimensions.height, dimensions.depth);
 
     const lightDirection = this._energyDensity.getDirection();
     gl.uniform3fv(program.uniforms.uLightDirection, lightDirection);
     gl.uniform1f(program.uniforms.uAbsorptionCoefficient, this._absorptionCoefficient)
 
-    gl.dispatchCompute(this._dimensions.width / localSizeX,
-        this._dimensions.height / localSizeY,
-        this._dimensions.depth);
+    gl.dispatchCompute(Math.ceil(dimensions.width / localSizeX),
+        Math.ceil(dimensions.height / localSizeY),
+        dimensions.depth);
 }
 
 _diffusion() {
@@ -149,49 +162,24 @@ _diffusion() {
     // gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
     // gl.uniform1i(program.uniforms.uTransferFunction, 2);
 
-    gl.uniform3i(program.uniforms.uSize, this._dimensions.width, this._dimensions.height, this._dimensions.depth);
+    const dimensions = this._lightVolumeDimensions;
+
+    gl.uniform3i(program.uniforms.uSize, dimensions.width, dimensions.height, dimensions.depth);
     gl.uniform1f(program.uniforms.scattering, this._scattering);
 
     // gl.uniform3fv(program.uniforms.uLightDirection, this._lightDirection);
     for (let i = 0; i < 1; i++) {
-        gl.dispatchCompute(this._dimensions.width / localSizeX,
-            this._dimensions.height / localSizeY,
-            this._dimensions.depth);
+        gl.dispatchCompute(Math.ceil(dimensions.width / localSizeX),
+            Math.ceil(dimensions.height / localSizeY),
+            dimensions.depth);
     }
-}
-
-_convectionDiffusion() {
-    const gl = this._gl;
-    const localSizeX = 16
-    const localSizeY = 16
-
-    const program = this._programs.convectionDiffusion;
-    gl.useProgram(program.program);
-
-    gl.bindImageTexture(0, this._energyDensity.getEnergyDensity(), 0, true, 0, gl.READ_WRITE, gl.R32F);
-    gl.bindImageTexture(1, this._volume.getTexture(), 0, true, 0, gl.READ_ONLY, gl.RGBA32F);
-    // gl.bindImageTexture(2, this._transferFunction, 0, false, 0, gl.READ_ONLY, gl.RGBA32F);
-
-    gl.activeTexture(gl.TEXTURE2);
-    gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
-    gl.uniform1i(program.uniforms.uTransferFunction, 2);
-
-    gl.uniform3i(program.uniforms.uSize, this._dimensions.width, this._dimensions.height, this._dimensions.depth);
-
-    gl.uniform3fv(program.uniforms.uLightDirection, this._lightDirection);
-
-    gl.uniform1f(program.uniforms.scattering, this._scattering);
-
-    gl.dispatchCompute(this._dimensions.width / localSizeX,
-        this._dimensions.height / localSizeY,
-        this._dimensions.depth);
 }
 
 _generateFrame() {
     const gl = this._gl;
-    // if (this.counter <= this._dimensions.width) {
+    // if (this.counter <= this._lightVolumeDimensions.width) {
     //     this._convection();
-    //     if (this.counter === this._dimensions.width) {
+    //     if (this.counter === this._lightVolumeDimensions.width) {
     //         console.log("Convection done!")
     //     }
     //     this.counter++;
