@@ -66,6 +66,8 @@ _initGL() {
     this._extLoseContext = gl.getExtension('WEBGL_lose_context');
     this._extColorBufferFloat = gl.getExtension('EXT_color_buffer_float');
 
+    gl.getExtension('OES_texture_float_linear');
+
     if (!this._extColorBufferFloat) {
         console.error('EXT_color_buffer_float not supported!');
     }

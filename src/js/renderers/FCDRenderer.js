@@ -16,7 +16,9 @@ constructor(gl, volume, environmentTexture, options) {
         _alphaCorrection            : 100,
         _absorptionCoefficient      : 0.5,
         _scattering                 : 0.5,
-        _lightVolumeRatio           : 1
+        _lightVolumeRatio           : 1,
+        _convectionLimit            : 0,
+        _convectionSteps            : 5
     }, options);
 
     this._programs = WebGL.buildPrograms(this._gl, {
@@ -60,8 +62,8 @@ _createDiffusionLightVolume() {
     // TODO separate function in WebGL.js
     gl.bindTexture(gl.TEXTURE_3D, this._energyDesityDiffusion);
     gl.texStorage3D(gl.TEXTURE_3D, 1, gl.R32F, dimensions.width, dimensions.height, dimensions.depth);
-    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
@@ -82,6 +84,7 @@ _resetLightField() {
         this._lightDirection[0], this._lightDirection[1], this._lightDirection[2],
         this._lightVolumeDimensions);
     this._resetDiffusionField();
+    this.counter = 0;
 }
 
 _resetDiffusionField() {
@@ -120,8 +123,6 @@ _convection() {
     gl.useProgram(program.program);
 
     gl.bindImageTexture(0, this._energyDensity.getEnergyDensity(), 0, true, 0, gl.READ_WRITE, gl.R32F);
-    // gl.bindImageTexture(1, this._volume.getTexture(), 0, true, 0, gl.READ_ONLY, gl.R32F);
-    // gl.bindImageTexture(2, this._transferFunction, 0, false, 0, gl.READ_ONLY, gl.RGBA32F);
 
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
@@ -139,6 +140,7 @@ _convection() {
     const lightDirection = this._energyDensity.getDirection();
     gl.uniform3fv(program.uniforms.uLightDirection, lightDirection);
     gl.uniform1f(program.uniforms.uAbsorptionCoefficient, this._absorptionCoefficient)
+    gl.uniform1i(program.uniforms.uSteps, Math.floor(this._convectionSteps));
 
     gl.dispatchCompute(Math.ceil(dimensions.width / localSizeX),
         Math.ceil(dimensions.height / localSizeY),
@@ -155,41 +157,33 @@ _diffusion() {
 
     gl.bindImageTexture(0, this._energyDensity.getEnergyDensity(), 0, true, 0, gl.READ_ONLY, gl.R32F);
     gl.bindImageTexture(1, this._energyDesityDiffusion, 0, true, 0, gl.READ_WRITE, gl.R32F);
-    //gl.bindImageTexture(1, this._volume.getTexture(), 0, true, 0, gl.READ_ONLY, gl.RGBA32F);
-    // gl.bindImageTexture(2, this._transferFunction, 0, false, 0, gl.READ_ONLY, gl.RGBA32F);
-
-    // gl.activeTexture(gl.TEXTURE2);
-    // gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
-    // gl.uniform1i(program.uniforms.uTransferFunction, 2);
 
     const dimensions = this._lightVolumeDimensions;
 
     gl.uniform3i(program.uniforms.uSize, dimensions.width, dimensions.height, dimensions.depth);
     gl.uniform1f(program.uniforms.scattering, this._scattering);
 
-    // gl.uniform3fv(program.uniforms.uLightDirection, this._lightDirection);
-    for (let i = 0; i < 1; i++) {
-        gl.dispatchCompute(Math.ceil(dimensions.width / localSizeX),
-            Math.ceil(dimensions.height / localSizeY),
-            dimensions.depth);
-    }
+    gl.dispatchCompute(Math.ceil(dimensions.width / localSizeX),
+        Math.ceil(dimensions.height / localSizeY),
+        dimensions.depth);
 }
 
 _generateFrame() {
     const gl = this._gl;
-    // if (this.counter <= this._lightVolumeDimensions.width) {
-    //     this._convection();
-    //     if (this.counter === this._lightVolumeDimensions.width) {
-    //         console.log("Convection done!")
-    //     }
-    //     this.counter++;
-    // }
-    this._convection();
-    this._diffusion();
-    // else {
-    //     this._diffusion();
-    // }
-
+    if (this._convectionLimit === 0) {
+        this._convection();
+        this._diffusion();
+    }
+    else if (this.counter <= this._convectionLimit) {
+        this._convection();
+        if (this.counter === this._convectionLimit) {
+            console.log("Convection done!")
+        }
+        this.counter++;
+    }
+    else {
+        this._diffusion();
+    }
 
     // this._convectionDiffusion();
 

@@ -33,6 +33,19 @@
     },
     {
       "type": "field",
+      "label": "Convection steps:",
+      "children": [
+        {
+          "type": "spinner",
+          "bind": "convectionSteps",
+          "value": 5,
+          "min": 0,
+          "step": 1
+        }
+      ]
+    },
+    {
+      "type": "field",
       "label": "Light direction:",
       "children": [
         {
@@ -77,6 +90,19 @@
           "bind": "ratio",
           "value": 1,
           "min": 1,
+          "step": 1
+        }
+      ]
+    },
+    {
+      "type": "field",
+      "label": "Convections before diffusion:",
+      "children": [
+        {
+          "type": "spinner",
+          "bind": "repeats",
+          "value": 0,
+          "min": 0,
           "step": 1
         }
       ]

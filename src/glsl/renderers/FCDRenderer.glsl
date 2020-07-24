@@ -12,6 +12,7 @@ layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 uniform ivec3 uSize;
 uniform vec3 uLightDirection;
 uniform float uAbsorptionCoefficient;
+uniform int uSteps;
 layout (r32f, binding = 0) readonly highp uniform image3D uEnergyDensityRead;
 layout (r32f, binding = 0) writeonly highp uniform image3D uEnergyDensityWrite;
 
@@ -36,7 +37,7 @@ void main() {
     float absorption = colorSample.a * uAbsorptionCoefficient;
     float revAbsorption = float(1) - absorption;
 
-    for (int i = 0; i < 1; i++) {
+    for (int i = 0; i < uSteps; i++) {
         vec4 center = imageLoad(uEnergyDensityRead, position);
         float radiance = center.r;
 
