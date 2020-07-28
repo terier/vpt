@@ -41,15 +41,16 @@ _setInitialValues() {
     this._renderer._absorptionCoefficient = this._binds.absorptionCoefficient.getValue();
     this._renderer._scattering = this._binds.scattering.getValue();
 
-    const direction = this._binds.direction.getValue();
-    this._renderer._light[0] = direction.x;
-    this._renderer._light[1] = direction.y;
-    this._renderer._light[2] = direction.z;
+    // this._renderer._lightType = this._binds.lightType.getValue();
+    // const direction = this._binds.direction.getValue();
+    // this._renderer._light[0] = direction.x;
+    // this._renderer._light[1] = direction.y;
+    // this._renderer._light[2] = direction.z;
 
     this._renderer._convectionLimit = this._binds.repeats.getValue();
     this._renderer._convectionSteps = this._binds.convectionSteps.getValue();
     this._renderer._lightVolumeRatio = this._binds.ratio.getValue();
-    this._renderer._lightType = this._binds.lightType.getValue();
+
 }
 
 destroy() {
@@ -73,12 +74,12 @@ _handleChangeScettering() {
 }
 
 _handleChangeResetLightField() {
-    this._renderer._lightType = this._binds.lightType.getValue();
-
-    const direction = this._binds.direction.getValue();
-    this._renderer._light[0] = direction.x;
-    this._renderer._light[1] = direction.y;
-    this._renderer._light[2] = direction.z;
+    // this._renderer._lightType = this._binds.lightType.getValue();
+    //
+    // const direction = this._binds.direction.getValue();
+    // this._renderer._light[0] = direction.x;
+    // this._renderer._light[1] = direction.y;
+    // this._renderer._light[2] = direction.z;
 
     this._renderer._convectionLimit = this._binds.repeats.getValue();
 

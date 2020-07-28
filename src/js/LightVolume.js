@@ -15,8 +15,13 @@ class LightVolume {
         this._energyDensity  = null;
         this._ratio          = ratio;
         // this._lightDirection = null;
+        this.createTextures();
 
-        switch(type) {
+    }
+
+    createTextures() {
+        this.deleteTexture();
+        switch(this._type) {
             case 'distant':
                 this.createDistantLight();
                 break;
@@ -187,6 +192,14 @@ class LightVolume {
         // gl.texSubImage3D(gl.TEXTURE_3D, 0,
         //     0, 0, 0, dimensions.width, dimensions.height, dimensions.depth,
         //     gl.RGBA, gl.FLOAT, new Float32Array(lightDirectionArray));
+    }
+
+    deleteTexture() {
+        const gl = this._gl;
+        if (this._energyDensity && gl.isTexture(this._energyDensity)) {
+            console.log("Texture deleted")
+            gl.deleteTexture(this._energyDensity);
+        }
     }
 
     toUnitVector(vector) {
