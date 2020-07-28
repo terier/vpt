@@ -15,6 +15,8 @@ uniform float uAbsorptionCoefficient;
 uniform int uSteps;
 layout (r32f, binding = 0) readonly highp uniform image3D uEnergyDensityRead;
 layout (r32f, binding = 0) writeonly highp uniform image3D uEnergyDensityWrite;
+layout (r32f, binding = 1) readonly highp uniform image3D uTotalEnergyDensityRead;
+layout (r32f, binding = 1) writeonly highp uniform image3D uTotalEnergyDensityWrite;
 
 uniform mediump sampler3D uVolume;
 
@@ -58,6 +60,9 @@ void main() {
         vec4 final = vec4(new, 0, 0, 0);
 
         imageStore(uEnergyDensityWrite, position, final);
+
+        vec4 total = imageLoad(uTotalEnergyDensityRead, position);
+        imageStore(uTotalEnergyDensityWrite, position, total + final - radiance);
     }
 }
 
@@ -73,6 +78,8 @@ uniform float uAbsorptionCoefficient;
 uniform int uSteps;
 layout (r32f, binding = 0) readonly highp uniform image3D uEnergyDensityRead;
 layout (r32f, binding = 0) writeonly highp uniform image3D uEnergyDensityWrite;
+layout (r32f, binding = 1) readonly highp uniform image3D uTotalEnergyDensityRead;
+layout (r32f, binding = 1) writeonly highp uniform image3D uTotalEnergyDensityWrite;
 
 uniform mediump sampler3D uVolume;
 
@@ -120,6 +127,9 @@ void main() {
         vec4 final = vec4(new, 0, 0, 0);
 
         imageStore(uEnergyDensityWrite, position, final);
+
+        vec4 total = imageLoad(uTotalEnergyDensityRead, position);
+        imageStore(uTotalEnergyDensityWrite, position, total + final - radiance);
     }
 }
 

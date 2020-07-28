@@ -71,14 +71,56 @@ class FCDRenderer extends AbstractRenderer {
             this._lightVolumeDimensions.height + " " + this._lightVolumeDimensions.depth);
     }
 
+    _resetLightField() {
+        const gl = this._gl;
+        console.log("Reset Light Field")
+        if (this._energyDensityConvection) {
+            gl.deleteTexture(this._energyDensityConvection);
+        }
+        this._createConvectionLightVolume();
+        this._deleteLightVolumeTextures();
+        for (let i = 0; i < this._lightDefinitions.length; i++) {
+            let lightDefinition = this._lightDefinitions[i];
+            this._lightVolumes[i] = new LightVolume(gl,
+                lightDefinition._lightType,
+                lightDefinition._light[0], lightDefinition._light[1], lightDefinition._light[2],
+                this._lightVolumeDimensions,
+                this._lightVolumeRatio);
+        }
+        this._resetDiffusionField();
+        this.counter = 0;
+    }
+
+    _createConvectionLightVolume() {
+        const gl = this._gl;
+        const dimensions = this._lightVolumeDimensions;
+        // Energy density
+        this._energyDensityConvection = gl.createTexture();
+
+        // TODO separate function in WebGL.js
+        gl.bindTexture(gl.TEXTURE_3D, this._energyDensityConvection);
+        gl.texStorage3D(gl.TEXTURE_3D, 1, gl.R32F, dimensions.width, dimensions.height, dimensions.depth);
+        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
+        for (let i = 0; i < dimensions.depth; i++) {
+            let energyDensityArray = new Float32Array(dimensions.width * dimensions.height).fill(0);
+            gl.texSubImage3D(gl.TEXTURE_3D, 0,
+                0, 0, i, dimensions.width, dimensions.height, 1,
+                gl.RED, gl.FLOAT, new Float32Array(energyDensityArray));
+        }
+    }
+    
     _createDiffusionLightVolume() {
         const gl = this._gl;
         const dimensions = this._lightVolumeDimensions;
         // Energy density
-        this._energyDesityDiffusion = gl.createTexture();
+        this._energyDensityDiffusion = gl.createTexture();
 
         // TODO separate function in WebGL.js
-        gl.bindTexture(gl.TEXTURE_3D, this._energyDesityDiffusion);
+        gl.bindTexture(gl.TEXTURE_3D, this._energyDensityDiffusion);
         gl.texStorage3D(gl.TEXTURE_3D, 1, gl.R32F, dimensions.width, dimensions.height, dimensions.depth);
         gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
@@ -93,22 +135,6 @@ class FCDRenderer extends AbstractRenderer {
         }
     }
 
-    _resetLightField() {
-        const gl = this._gl;
-        console.log("Reset Light Field")
-        this._deleteLightVolumeTextures();
-        for (let i = 0; i < this._lightDefinitions.length; i++) {
-            let lightDefinition = this._lightDefinitions[i];
-            this._lightVolumes[i] = new LightVolume(gl,
-                lightDefinition._lightType,
-                lightDefinition._light[0], lightDefinition._light[1], lightDefinition._light[2],
-                this._lightVolumeDimensions,
-                this._lightVolumeRatio);
-        }
-        this._resetDiffusionField();
-        this.counter = 0;
-    }
-
     _deleteLightVolumeTextures() {
         for (let lightVolume of this._lightVolumes) {
             lightVolume.deleteTexture();
@@ -118,8 +144,8 @@ class FCDRenderer extends AbstractRenderer {
     _resetDiffusionField() {
         const gl = this._gl;
         console.log("Reset Diffusion Light Field")
-        if (this._energyDesityDiffusion)
-            gl.deleteTexture(this._energyDesityDiffusion);
+        if (this._energyDensityDiffusion)
+            gl.deleteTexture(this._energyDensityDiffusion);
         this._createDiffusionLightVolume();
 
     }
@@ -129,8 +155,8 @@ class FCDRenderer extends AbstractRenderer {
         Object.keys(this._programs).forEach(programName => {
             gl.deleteProgram(this._programs[programName].program);
         });
-        if (this._energyDesityDiffusion)
-            gl.deleteTexture(this._energyDesityDiffusion);
+        if (this._energyDensityDiffusion)
+            gl.deleteTexture(this._energyDensityDiffusion);
         this._deleteLightVolumeTextures();
         super.destroy();
     }
@@ -149,12 +175,13 @@ class FCDRenderer extends AbstractRenderer {
         const localSizeX = 16
         const localSizeY = 16
 
-        for (let i = 0; i < this._lightVolumes; i++) {
+        for (let i = 0; i < this._lightVolumes.length; i++) {
             let lightVolume = this._lightVolumes[i];
             const program = this._getProgramFromLightType(i);
             gl.useProgram(program.program);
 
             gl.bindImageTexture(0, lightVolume.getEnergyDensity(), 0, true, 0, gl.READ_WRITE, gl.R32F);
+            gl.bindImageTexture(1, this._energyDensityConvection, 0, true, 0, gl.READ_WRITE, gl.R32F);
 
             gl.activeTexture(gl.TEXTURE1);
             gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
@@ -188,8 +215,8 @@ class FCDRenderer extends AbstractRenderer {
         const program = this._programs.diffusion;
         gl.useProgram(program.program);
 
-        gl.bindImageTexture(0, this._lightVolumes[0].getEnergyDensity(), 0, true, 0, gl.READ_ONLY, gl.R32F);
-        gl.bindImageTexture(1, this._energyDesityDiffusion, 0, true, 0, gl.READ_WRITE, gl.R32F);
+        gl.bindImageTexture(0, this._energyDensityConvection, 0, true, 0, gl.READ_ONLY, gl.R32F);
+        gl.bindImageTexture(1, this._energyDensityDiffusion, 0, true, 0, gl.READ_WRITE, gl.R32F);
 
         const dimensions = this._lightVolumeDimensions;
 
@@ -226,9 +253,9 @@ class FCDRenderer extends AbstractRenderer {
         gl.activeTexture(gl.TEXTURE1);
         gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
         gl.activeTexture(gl.TEXTURE2);
-        gl.bindTexture(gl.TEXTURE_3D, this._lightVolumes[0].getEnergyDensity());
+        gl.bindTexture(gl.TEXTURE_3D, this._energyDensityConvection);
         gl.activeTexture(gl.TEXTURE3);
-        gl.bindTexture(gl.TEXTURE_3D, this._energyDesityDiffusion);
+        gl.bindTexture(gl.TEXTURE_3D, this._energyDensityDiffusion);
 
         gl.uniform1i(program.uniforms.uVolume, 0);
         gl.uniform1i(program.uniforms.uTransferFunction, 1);
