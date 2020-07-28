@@ -10,15 +10,13 @@ precision highp float;
 layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
 uniform ivec3 uSize;
-uniform vec3 uLightDirection;
+uniform vec3 uLight;
 uniform float uAbsorptionCoefficient;
 uniform int uSteps;
 layout (r32f, binding = 0) readonly highp uniform image3D uEnergyDensityRead;
 layout (r32f, binding = 0) writeonly highp uniform image3D uEnergyDensityWrite;
 
-//layout (rgba32f, binding = 1) readonly highp uniform image3D uVolume;
 uniform mediump sampler3D uVolume;
-// layout (rgba32f, binding = 2) readonly highp uniform image2D uTransferFunction;
 
 uniform mediump sampler2D uTransferFunction;
 
@@ -42,26 +40,84 @@ void main() {
         float radiance = center.r;
 
         vec3 grad = vec3(
-            uLightDirection.x < 0.0 ?
+            uLight.x < 0.0 ?
                 imageLoad(uEnergyDensityRead, position + ivec3(1,  0, 0)).r - radiance :
                 radiance - imageLoad(uEnergyDensityRead, position + ivec3(-1,  0, 0)).r,
-            uLightDirection.y < 0.0 ?
+            uLight.y < 0.0 ?
                 imageLoad(uEnergyDensityRead, position + ivec3(0,  1, 0)).r - radiance :
                 radiance - imageLoad(uEnergyDensityRead, position + ivec3(0, -1, 0)).r,
-            uLightDirection.z < 0.0 ?
+            uLight.z < 0.0 ?
                 imageLoad(uEnergyDensityRead, position + ivec3(0,  0, 1)).r - radiance :
                 radiance - imageLoad(uEnergyDensityRead, position + ivec3(0,  0, -1)).r
         );
         // (1 - absorption) * (p - 1/2 deltap)
-        float convectionDelta = -dot(uLightDirection, grad) * 0.5;
-//        float absorptionDelta = -exp(absorption * radiance) * 0.01;
-//        float new = revAbsorption * (radiance + convectionDelta);
-//        float new = radiance + convectionDelta + absorptionDelta;
+        float convectionDelta = -dot(uLight, grad) * 0.5;
 
+        float new = revAbsorption * (radiance + convectionDelta);
 
-        float new2 = revAbsorption * (radiance + convectionDelta);
+        vec4 final = vec4(new, 0, 0, 0);
 
-        vec4 final = vec4(new2, 0, 0, 0);
+        imageStore(uEnergyDensityWrite, position, final);
+    }
+}
+
+// #section FCDConvectionPL/compute
+
+#version 310 es
+precision highp float;
+layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+uniform ivec3 uSize;
+uniform vec3 uLight;
+uniform float uAbsorptionCoefficient;
+uniform int uSteps;
+layout (r32f, binding = 0) readonly highp uniform image3D uEnergyDensityRead;
+layout (r32f, binding = 0) writeonly highp uniform image3D uEnergyDensityWrite;
+
+uniform mediump sampler3D uVolume;
+
+uniform mediump sampler2D uTransferFunction;
+
+void main() {
+    ivec3 position = ivec3(gl_GlobalInvocationID);
+
+    if (position.x < 1 || position.y < 1 || position.z < 1 ||
+    position.x >= uSize.x - 1 || position.y >= uSize.y - 1 || position.z >= uSize.z - 1 ||
+    distance(vec3(position), uLight) <= 2.0) {
+        return;
+    }
+
+    vec3 lightDirection = normalize(vec3(position) - uLight);
+//    imageStore(uEnergyDensityWrite, position, vec4(lightDirection, 0));
+//    return;
+    float val = texture(uVolume, vec3(position) / vec3(uSize)).r;
+
+    vec4 colorSample = texture(uTransferFunction, vec2(val, 0.5));
+
+    float absorption = colorSample.a * uAbsorptionCoefficient;
+    float revAbsorption = float(1) - absorption;
+
+    for (int i = 0; i < uSteps; i++) {
+        vec4 center = imageLoad(uEnergyDensityRead, position);
+        float radiance = center.r;
+
+        vec3 grad = vec3(
+        lightDirection.x < 0.0 ?
+        imageLoad(uEnergyDensityRead, position + ivec3(1,  0, 0)).r - radiance :
+        radiance - imageLoad(uEnergyDensityRead, position + ivec3(-1,  0, 0)).r,
+        lightDirection.y < 0.0 ?
+        imageLoad(uEnergyDensityRead, position + ivec3(0,  1, 0)).r - radiance :
+        radiance - imageLoad(uEnergyDensityRead, position + ivec3(0, -1, 0)).r,
+        lightDirection.z < 0.0 ?
+        imageLoad(uEnergyDensityRead, position + ivec3(0,  0, 1)).r - radiance :
+        radiance - imageLoad(uEnergyDensityRead, position + ivec3(0,  0, -1)).r
+        );
+        // (1 - absorption) * (p - 1/2 deltap)
+        float convectionDelta = -dot(lightDirection, grad) * 0.5;;
+
+        float new = revAbsorption * (radiance + convectionDelta);
+
+        vec4 final = vec4(new, 0, 0, 0);
 
         imageStore(uEnergyDensityWrite, position, final);
     }
@@ -205,8 +261,8 @@ void main() {
             colorSample.a *= rayStepLength * uAlphaCorrection;
             // utezi z energy density
             colorSample.rgb *= colorSample.a * energyDensity;
-//            colorSample.rgb *= colorSample.a;
-//            colorSample.rgb = vec3(energyDensity);
+            //            colorSample.rgb *= colorSample.a;
+            //            colorSample.rgb = vec3(energyDensity);
             accumulator += (1.0 - accumulator.a) * colorSample;
             t += uStepSize;
         }
@@ -215,7 +271,8 @@ void main() {
             accumulator.rgb /= accumulator.a;
         }
 
-        oColor = vec4(accumulator.rgb, 1.0);
+//        oColor = vec4(accumulator.rgb, 1.0);
+        oColor = mix(vec4(1), vec4(accumulator.rgb, 1), accumulator.a);
     }
 }
 

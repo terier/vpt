@@ -12,6 +12,8 @@ constructor(renderer, options) {
 
     this._renderer = renderer;
 
+    this._setInitialValues();
+
     this._handleChange = this._handleChange.bind(this);
     this._handleChangeScettering = this._handleChangeScettering.bind(this);
     this._handleChangeResetLightField = this._handleChangeResetLightField.bind(this);
@@ -20,6 +22,7 @@ constructor(renderer, options) {
 
     this._binds.steps.addEventListener('input', this._handleChange);
     this._binds.opacity.addEventListener('input', this._handleChange);
+    this._binds.lightType.addEventListener('input', this._handleChangeResetLightField);
     this._binds.direction.addEventListener('input', this._handleChangeResetLightField);
     this._binds.scattering.addEventListener('input', this._handleChangeScettering);
     this._binds.absorptionCoefficient.addEventListener('input', this._handleChange);
@@ -30,6 +33,23 @@ constructor(renderer, options) {
     this._tfwidget = new TransferFunctionWidget();
     this._binds.tfcontainer.add(this._tfwidget);
     this._tfwidget.addEventListener('change', this._handleTFChange);
+}
+
+_setInitialValues() {
+    this._renderer._stepSize = 1 / this._binds.steps.getValue();
+    this._renderer._alphaCorrection = this._binds.opacity.getValue();
+    this._renderer._absorptionCoefficient = this._binds.absorptionCoefficient.getValue();
+    this._renderer._scattering = this._binds.scattering.getValue();
+
+    const direction = this._binds.direction.getValue();
+    this._renderer._light[0] = direction.x;
+    this._renderer._light[1] = direction.y;
+    this._renderer._light[2] = direction.z;
+
+    this._renderer._convectionLimit = this._binds.repeats.getValue();
+    this._renderer._convectionSteps = this._binds.convectionSteps.getValue();
+    this._renderer._lightVolumeRatio = this._binds.ratio.getValue();
+    this._renderer._lightType = this._binds.lightType.getValue();
 }
 
 destroy() {
@@ -53,10 +73,12 @@ _handleChangeScettering() {
 }
 
 _handleChangeResetLightField() {
+    this._renderer._lightType = this._binds.lightType.getValue();
+
     const direction = this._binds.direction.getValue();
-    this._renderer._lightDirection[0] = direction.x;
-    this._renderer._lightDirection[1] = direction.y;
-    this._renderer._lightDirection[2] = direction.z;
+    this._renderer._light[0] = direction.x;
+    this._renderer._light[1] = direction.y;
+    this._renderer._light[2] = direction.z;
 
     this._renderer._convectionLimit = this._binds.repeats.getValue();
 
@@ -68,9 +90,11 @@ _handleChangeResetLightField() {
 
 _handleChangeRatio() {
     this._renderer._lightVolumeRatio = this._binds.ratio.getValue();
-    this._renderer._setLightVolumeDimensions();
-    this._renderer._resetLightField();
-    this._renderer.reset();
+    if (this._renderer._volumeDimensions) {
+        this._renderer._setLightVolumeDimensions();
+        this._renderer._resetLightField();
+        this._renderer.reset();
+    }
 }
 
 _handleTFChange() {

@@ -4,7 +4,7 @@
 
 class LightVolume {
 
-    constructor(gl, type, x, y, z, dimensions) {
+    constructor(gl, type, x, y, z, dimensions, ratio) {
         this._gl = gl;
 
         this._type           = type;
@@ -13,6 +13,7 @@ class LightVolume {
         this._z              = z;
         this._dimensions     = dimensions;
         this._energyDensity  = null;
+        this._ratio          = ratio;
         // this._lightDirection = null;
 
         switch(type) {
@@ -26,6 +27,7 @@ class LightVolume {
     }
 
     createDistantLight() {
+        console.log("Creating distant light");
         const gl = this._gl;
         const dimensions = this._dimensions;
         const unitVector = this.toUnitVector([this._x, this._y, this._z]);
@@ -38,15 +40,16 @@ class LightVolume {
         // TODO separate function in WebGL.js
         gl.bindTexture(gl.TEXTURE_3D, this._energyDensity);
         gl.texStorage3D(gl.TEXTURE_3D, 1, gl.R32F, dimensions.width, dimensions.height, dimensions.depth);
-        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
         //let energyDensityArray = new Float32Array(dimensions.width * dimensions.height * dimensions.depth).fill(0);
 
-        let energyDensityArray = [];
+
         for (let z = 0; z < dimensions.depth; z++) {
+            let energyDensityArray = [];
             for (let y = 0; y < dimensions.height; y++) {
                 for (let x = 0; x < dimensions.width; x++) {
                     if (this.lightHitsBoundary(x, y, z, dirX, dirY, dirZ)) {
@@ -56,11 +59,10 @@ class LightVolume {
                     }
                 }
             }
+            gl.texSubImage3D(gl.TEXTURE_3D, 0,
+                0, 0, z, dimensions.width, dimensions.height, 1,
+                gl.RED, gl.FLOAT, new Float32Array(energyDensityArray));
         }
-
-        gl.texSubImage3D(gl.TEXTURE_3D, 0,
-            0, 0, 0, dimensions.width, dimensions.height, dimensions.depth,
-            gl.RED, gl.FLOAT, new Float32Array(energyDensityArray));
 
         // Light direction
         // this._lightDirection = gl.createTexture();
@@ -95,26 +97,28 @@ class LightVolume {
     createPointLight() {
         const gl = this._gl;
         const dimensions = this._dimensions;
-        const posX = this._x;
-        const posY = this._y;
-        const posZ = this._z;
+        const posX = this._x = Math.floor(this._x / this._ratio);
+        const posY = this._y = Math.floor(this._y / this._ratio);
+        const posZ = this._z = Math.floor(this._z / this._ratio);
         // Energy density
         this._energyDensity = gl.createTexture();
 
         // TODO separate function in WebGL.js
         gl.bindTexture(gl.TEXTURE_3D, this._energyDensity);
         gl.texStorage3D(gl.TEXTURE_3D, 1, gl.R32F, dimensions.width, dimensions.height, dimensions.depth);
-        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
         //let energyDensityArray = new Float32Array(dimensions.width * dimensions.height * dimensions.depth).fill(0);
 
-        let energyDensityArray = [];
+
 
         if (this.lightOutsideVolume()) {
+            console.log("Creating point light - outside");
             for (let z = 0; z < dimensions.depth; z++) {
+                let energyDensityArray = [];
                 for (let y = 0; y < dimensions.height; y++) {
                     for (let x = 0; x < dimensions.width; x++) {
                         let dx = x - posX;
@@ -127,9 +131,14 @@ class LightVolume {
                         }
                     }
                 }
+                gl.texSubImage3D(gl.TEXTURE_3D, 0,
+                    0, 0, z, dimensions.width, dimensions.height, 1,
+                    gl.RED, gl.FLOAT, new Float32Array(energyDensityArray));
             }
         } else {
+            console.log("Creating point light - inside");
             for (let z = 0; z < dimensions.depth; z++) {
+                let energyDensityArray = [];
                 for (let y = 0; y < dimensions.height; y++) {
                     for (let x = 0; x < dimensions.width; x++) {
                         if (Math.abs(x - posX) < 2 &&
@@ -142,12 +151,13 @@ class LightVolume {
                         }
                     }
                 }
+                gl.texSubImage3D(gl.TEXTURE_3D, 0,
+                    0, 0, z, dimensions.width, dimensions.height, 1,
+                    gl.RED, gl.FLOAT, new Float32Array(energyDensityArray));
             }
         }
 
-        gl.texSubImage3D(gl.TEXTURE_3D, 0,
-            0, 0, 0, dimensions.width, dimensions.height, dimensions.depth,
-            gl.RED, gl.FLOAT, new Float32Array(energyDensityArray));
+
 
         // Light direction
         // this._lightDirection = gl.createTexture();
