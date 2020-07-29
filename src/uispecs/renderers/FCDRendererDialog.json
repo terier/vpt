@@ -46,38 +46,6 @@
     },
     {
       "type": "field",
-      "label": "Light Type:",
-      "children": [
-        {
-          "type": "dropdown",
-          "bind": "lightType",
-          "options": [
-            {
-              "value": "distant",
-              "label": "Distant",
-              "selected": true
-            },
-            {
-              "value": "point",
-              "label": "Point"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "type": "field",
-      "label": "Light direction/position:",
-      "children": [
-        {
-          "type": "vector",
-          "bind": "direction",
-          "value": 10
-        }
-      ]
-    },
-    {
-      "type": "field",
       "label": "Absorption Coefficient:",
       "children": [
         {
@@ -109,7 +77,7 @@
         {
           "type": "spinner",
           "bind": "ratio",
-          "value": 2,
+          "value": 1,
           "min": 1,
           "step": 1
         }
@@ -125,6 +93,104 @@
           "value": 0,
           "min": 0,
           "step": 1
+        }
+      ]
+    },
+    {
+      "type": "accordion",
+      "label": "Light 1",
+      "children": [
+        {
+          "type": "field",
+          "label": "Enabled:",
+          "children": [
+            {
+              "type": "checkbox",
+              "bind": "light1_enabled",
+              "checked": true
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Light Type:",
+          "children": [
+            {
+              "type": "dropdown",
+              "bind": "light1_type",
+              "options": [
+                {
+                  "value": "distant",
+                  "label": "Distant",
+                  "selected": true
+                },
+                {
+                  "value": "point",
+                  "label": "Point"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Light direction/position:",
+          "children": [
+            {
+              "type": "vector",
+              "bind": "light1_dirpos",
+              "value": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "accordion",
+      "label": "Light 2",
+      "children": [
+        {
+          "type": "field",
+          "label": "Enabled:",
+          "children": [
+            {
+              "type": "checkbox",
+              "bind": "light2_enabled",
+              "checked": false
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Light Type:",
+          "children": [
+            {
+              "type": "dropdown",
+              "bind": "light2_type",
+              "options": [
+                {
+                  "value": "distant",
+                  "label": "Distant",
+                  "selected": true
+                },
+                {
+                  "value": "point",
+                  "label": "Point"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Light direction/position:",
+          "children": [
+            {
+              "type": "vector",
+              "bind": "light2_dirpos",
+              "value": 50
+            }
+          ]
         }
       ]
     },

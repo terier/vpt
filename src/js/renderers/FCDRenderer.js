@@ -8,7 +8,6 @@ class FCDRenderer extends AbstractRenderer {
 
     constructor(gl, volume, environmentTexture, options) {
         super(gl, volume, environmentTexture, options);
-
         Object.assign(this, {
             // _light                      : [10, 10, 10],
             // _lightType                  : 'distant',
@@ -34,10 +33,8 @@ class FCDRenderer extends AbstractRenderer {
         }, MIXINS);
 
         this._lightDefinitions = [
-            {
-                _light                      : [10, 10, 10],
-                _lightType                  : 'distant'
-            }
+            new LightDefinition('distant', [10,10,10], true),
+            new LightDefinition('point', [220,125,50], false)
         ]
 
         if (this._volume.ready) {
@@ -80,15 +77,26 @@ class FCDRenderer extends AbstractRenderer {
         this._createConvectionLightVolume();
         this._deleteLightVolumeTextures();
         for (let i = 0; i < this._lightDefinitions.length; i++) {
-            let lightDefinition = this._lightDefinitions[i];
-            this._lightVolumes[i] = new LightVolume(gl,
-                lightDefinition._lightType,
-                lightDefinition._light[0], lightDefinition._light[1], lightDefinition._light[2],
-                this._lightVolumeDimensions,
-                this._lightVolumeRatio);
+            if (this._lightDefinitions[i].isEnabled())
+                this._resetLightVolume(i);
+            else
+                this._lightVolumes[i] = null;
         }
+        // console.log(this._lightDefinitions);
         this._resetDiffusionField();
         this.counter = 0;
+    }
+
+    _resetLightVolume(index) {
+        const gl = this._gl;
+        let lightDefinition = this._lightDefinitions[index];
+
+        this._lightVolumes[index] = new LightVolume(gl,
+            lightDefinition.type,
+            lightDefinition.light[0], lightDefinition.light[1], lightDefinition.light[2],
+            this._lightVolumeDimensions,
+            this._lightVolumeRatio);
+        // console.log(this._lightVolumes[index])
     }
 
     _createConvectionLightVolume() {
@@ -174,9 +182,10 @@ class FCDRenderer extends AbstractRenderer {
         const gl = this._gl;
         const localSizeX = 16
         const localSizeY = 16
-
         for (let i = 0; i < this._lightVolumes.length; i++) {
             let lightVolume = this._lightVolumes[i];
+            if (!this._lightDefinitions[i].isEnabled())
+                continue;
             const program = this._getProgramFromLightType(i);
             gl.useProgram(program.program);
 
@@ -333,4 +342,28 @@ class FCDRenderer extends AbstractRenderer {
         }];
     }
 
+}
+
+// dirpos -> direction/position
+class LightDefinition {
+    constructor(type, dirpos, enabled) {
+        this.type = type;
+        this.light = dirpos;
+        this.enabled = enabled;
+    }
+
+    isEnabled() {
+        return this.enabled;
+    }
+
+    hasChanged(oldDefinition) {
+        // console.log("old:", oldDefinition, "new", this)
+        if (!oldDefinition)
+            return true;
+        return this.type !== oldDefinition.type
+            || this.light[0] !== oldDefinition.light[0]
+            || this.light[1] !== oldDefinition.light[1]
+            || this.light[2] !== oldDefinition.light[2]
+            || this.enabled !== oldDefinition.enabled
+    }
 }
