@@ -13,6 +13,7 @@ uniform ivec3 uSize;
 uniform vec3 uLight;
 uniform float uAbsorptionCoefficient;
 uniform int uSteps;
+uniform float uRatio;
 layout (r32f, binding = 0) readonly highp uniform image3D uEnergyDensityRead;
 layout (r32f, binding = 0) writeonly highp uniform image3D uEnergyDensityWrite;
 layout (r32f, binding = 1) readonly highp uniform image3D uTotalEnergyDensityRead;
@@ -53,7 +54,7 @@ void main() {
                 radiance - imageLoad(uEnergyDensityRead, position + ivec3(0,  0, -1)).r
         );
         // (1 - absorption) * (p - 1/2 deltap)
-        float convectionDelta = -dot(uLight, grad) * 0.5;
+        float convectionDelta = -dot(uLight, grad) * 0.5 / uRatio;
 
         float new = revAbsorption * (radiance + convectionDelta);
 
@@ -76,6 +77,7 @@ uniform ivec3 uSize;
 uniform vec3 uLight;
 uniform float uAbsorptionCoefficient;
 uniform int uSteps;
+uniform float uRatio;
 layout (r32f, binding = 0) readonly highp uniform image3D uEnergyDensityRead;
 layout (r32f, binding = 0) writeonly highp uniform image3D uEnergyDensityWrite;
 layout (r32f, binding = 1) readonly highp uniform image3D uTotalEnergyDensityRead;
@@ -120,7 +122,7 @@ void main() {
         radiance - imageLoad(uEnergyDensityRead, position + ivec3(0,  0, -1)).r
         );
         // (1 - absorption) * (p - 1/2 deltap)
-        float convectionDelta = -dot(lightDirection, grad) * 0.5;;
+        float convectionDelta = -dot(lightDirection, grad) * 0.5 / uRatio;
 
         float new = revAbsorption * (radiance + convectionDelta);
 
@@ -141,6 +143,7 @@ layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
 uniform ivec3 uSize;
 uniform float scattering;
+uniform float uRatio;
 layout (r32f, binding = 0) readonly highp uniform image3D uEnergyDensityRead;
 layout (r32f, binding = 0) readonly highp uniform image3D uEnergyDensityDiffusionRead;
 layout (r32f, binding = 1) writeonly highp uniform image3D uEnergyDensityDiffusionWrite;
@@ -183,7 +186,7 @@ void main() {
 
         float laplace = 0.5 * left + 0.5 * right + 0.5 * down + 0.5 * up + 0.5 * back + 0.5 * forward - 3.0 * radiance;
 
-        float delta = laplace * radiance * scattering;
+        float delta = laplace * radiance * scattering / uRatio;
         vec4 final = vec4(delta, 0, 0, 0);
 
         imageStore(uEnergyDensityDiffusionWrite, position, final);
@@ -196,12 +199,18 @@ void main() {
 precision highp float;
 layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
+uniform ivec3 uSize;
+
 layout (r32f, binding = 0) readonly highp uniform image3D uEnergyDensityRead;
 layout (r32f, binding = 1) readonly highp uniform image3D uTotalEnergyDensityRead;
 layout (r32f, binding = 1) writeonly highp uniform image3D uTotalEnergyDensityWrite;
 
 void main() {
     ivec3 position = ivec3(gl_GlobalInvocationID);
+    if (position.x < 1 || position.y < 1 || position.z < 1 ||
+    position.x >= uSize.x - 1 || position.y >= uSize.y - 1 || position.z >= uSize.z - 1) {
+        return;
+    }
     vec4 val = imageLoad(uEnergyDensityRead, position);
     vec4 original = imageLoad(uTotalEnergyDensityRead, position);
     imageStore(uTotalEnergyDensityWrite, position, original - val);

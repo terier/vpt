@@ -118,6 +118,8 @@ class FCDRenderer extends AbstractRenderer {
 
         const dimensions = this._lightVolumeDimensions;
 
+        gl.uniform3i(program.uniforms.uSize, dimensions.width, dimensions.height, dimensions.depth);
+
         gl.dispatchCompute(Math.ceil(dimensions.width / this._localSizeX),
             Math.ceil(dimensions.height / this._localSizeY),
             dimensions.depth);
@@ -233,6 +235,8 @@ class FCDRenderer extends AbstractRenderer {
             gl.uniform1f(program.uniforms.uAbsorptionCoefficient, this._absorptionCoefficient)
             gl.uniform1i(program.uniforms.uSteps, Math.floor(this._convectionSteps));
 
+            gl.uniform1f(program.uniforms.uRatio, Math.floor(this._lightVolumeRatio));
+
             gl.dispatchCompute(Math.ceil(dimensions.width / this._localSizeX),
                 Math.ceil(dimensions.height / this._localSizeY),
                 dimensions.depth);
@@ -252,6 +256,8 @@ class FCDRenderer extends AbstractRenderer {
 
         gl.uniform3i(program.uniforms.uSize, dimensions.width, dimensions.height, dimensions.depth);
         gl.uniform1f(program.uniforms.scattering, this._scattering);
+
+        gl.uniform1f(program.uniforms.uRatio, Math.floor(this._lightVolumeRatio));
 
         gl.dispatchCompute(Math.ceil(dimensions.width / this._localSizeX),
             Math.ceil(dimensions.height / this._localSizeY),
