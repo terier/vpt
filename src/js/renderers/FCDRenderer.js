@@ -19,12 +19,16 @@ class FCDRenderer extends AbstractRenderer {
             _scattering                 : 0.5,
             _lightVolumeRatio           : 1,
             _convectionLimit            : 0,
-            _convectionSteps            : 5
+            _convectionSteps            : 5,
+            _lightToggling              : 1,
+            _localSizeX                 : 16,
+            _localSizeY                 : 16
         }, options);
 
         this._programs = WebGL.buildPrograms(this._gl, {
             convection: SHADERS.FCDConvection,
             convectionPL: SHADERS.FCDConvectionPL,
+            removeLightDensity: SHADERS.FCDDeleteTexture,
             diffusion: SHADERS.FCDDiffusion,
             generate  : SHADERS.FCDGenerate,
             integrate : SHADERS.FCDIntegrate,
@@ -99,6 +103,26 @@ class FCDRenderer extends AbstractRenderer {
         // console.log(this._lightVolumes[index])
     }
 
+    _removeLightDensity(index) {
+        const lightVolume = this._lightVolumes[index];
+        if (!lightVolume || !lightVolume.hasEnergyDensity())
+            return;
+
+        const gl = this._gl;
+
+        const program = this._programs.removeLightDensity;
+        gl.useProgram(program.program);
+
+        gl.bindImageTexture(0, lightVolume.getEnergyDensity(), 0, true, 0, gl.READ_ONLY, gl.R32F);
+        gl.bindImageTexture(1, this._energyDensityConvection, 0, true, 0, gl.READ_WRITE, gl.R32F);
+
+        const dimensions = this._lightVolumeDimensions;
+
+        gl.dispatchCompute(Math.ceil(dimensions.width / this._localSizeX),
+            Math.ceil(dimensions.height / this._localSizeY),
+            dimensions.depth);
+    }
+
     _createConvectionLightVolume() {
         const gl = this._gl;
         const dimensions = this._lightVolumeDimensions;
@@ -145,7 +169,8 @@ class FCDRenderer extends AbstractRenderer {
 
     _deleteLightVolumeTextures() {
         for (let lightVolume of this._lightVolumes) {
-            lightVolume.deleteTexture();
+            if (lightVolume)
+                lightVolume.deleteTexture();
         }
     }
 
@@ -180,8 +205,6 @@ class FCDRenderer extends AbstractRenderer {
 
     _convection() {
         const gl = this._gl;
-        const localSizeX = 16
-        const localSizeY = 16
         for (let i = 0; i < this._lightVolumes.length; i++) {
             let lightVolume = this._lightVolumes[i];
             if (!this._lightDefinitions[i].isEnabled())
@@ -210,16 +233,14 @@ class FCDRenderer extends AbstractRenderer {
             gl.uniform1f(program.uniforms.uAbsorptionCoefficient, this._absorptionCoefficient)
             gl.uniform1i(program.uniforms.uSteps, Math.floor(this._convectionSteps));
 
-            gl.dispatchCompute(Math.ceil(dimensions.width / localSizeX),
-                Math.ceil(dimensions.height / localSizeY),
+            gl.dispatchCompute(Math.ceil(dimensions.width / this._localSizeX),
+                Math.ceil(dimensions.height / this._localSizeY),
                 dimensions.depth);
         }
     }
 
     _diffusion() {
         const gl = this._gl;
-        const localSizeX = 16
-        const localSizeY = 16
 
         const program = this._programs.diffusion;
         gl.useProgram(program.program);
@@ -232,8 +253,8 @@ class FCDRenderer extends AbstractRenderer {
         gl.uniform3i(program.uniforms.uSize, dimensions.width, dimensions.height, dimensions.depth);
         gl.uniform1f(program.uniforms.scattering, this._scattering);
 
-        gl.dispatchCompute(Math.ceil(dimensions.width / localSizeX),
-            Math.ceil(dimensions.height / localSizeY),
+        gl.dispatchCompute(Math.ceil(dimensions.width / this._localSizeX),
+            Math.ceil(dimensions.height / this._localSizeY),
             dimensions.depth);
     }
 

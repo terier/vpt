@@ -194,6 +194,11 @@ class LightVolume {
         //     gl.RGBA, gl.FLOAT, new Float32Array(lightDirectionArray));
     }
 
+    hasEnergyDensity() {
+        const gl = this._gl;
+        return this._energyDensity && gl.isTexture(this._energyDensity);
+    }
+
     deleteTexture() {
         const gl = this._gl;
         if (this._energyDensity && gl.isTexture(this._energyDensity)) {

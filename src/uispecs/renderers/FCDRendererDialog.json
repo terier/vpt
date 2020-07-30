@@ -121,7 +121,7 @@
               "options": [
                 {
                   "value": "distant",
-                  "label": "Distant",
+                  "label": "Directional",
                   "selected": true
                 },
                 {
@@ -170,7 +170,7 @@
               "options": [
                 {
                   "value": "distant",
-                  "label": "Distant",
+                  "label": "Directional",
                   "selected": true
                 },
                 {
@@ -188,7 +188,56 @@
             {
               "type": "vector",
               "bind": "light2_dirpos",
-              "value": 50
+              "value": -1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "accordion",
+      "label": "Light 3",
+      "children": [
+        {
+          "type": "field",
+          "label": "Enabled:",
+          "children": [
+            {
+              "type": "checkbox",
+              "bind": "light3_enabled",
+              "checked": false
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Light Type:",
+          "children": [
+            {
+              "type": "dropdown",
+              "bind": "light3_type",
+              "options": [
+                {
+                  "value": "distant",
+                  "label": "Directional"
+                },
+                {
+                  "value": "point",
+                  "label": "Point",
+                  "selected": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Light direction/position:",
+          "children": [
+            {
+              "type": "vector",
+              "bind": "light3_dirpos",
+              "value": 1
             }
           ]
         }

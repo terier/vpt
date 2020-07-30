@@ -190,6 +190,23 @@ void main() {
     }
 }
 
+// #section FCDDeleteTexture/compute
+
+#version 310 es
+precision highp float;
+layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+layout (r32f, binding = 0) readonly highp uniform image3D uEnergyDensityRead;
+layout (r32f, binding = 1) readonly highp uniform image3D uTotalEnergyDensityRead;
+layout (r32f, binding = 1) writeonly highp uniform image3D uTotalEnergyDensityWrite;
+
+void main() {
+    ivec3 position = ivec3(gl_GlobalInvocationID);
+    vec4 val = imageLoad(uEnergyDensityRead, position);
+    vec4 original = imageLoad(uTotalEnergyDensityRead, position);
+    imageStore(uTotalEnergyDensityWrite, position, original - val);
+}
+
 // #section FCDGenerate/vertex
 
 #version 310 es
