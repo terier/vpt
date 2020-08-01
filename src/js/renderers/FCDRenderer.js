@@ -192,6 +192,8 @@ class FCDRenderer extends AbstractRenderer {
         });
         if (this._energyDensityDiffusion)
             gl.deleteTexture(this._energyDensityDiffusion);
+        if (this._energyDensityConvection)
+            gl.deleteTexture(this._energyDensityConvection);
         this._deleteLightVolumeTextures();
         super.destroy();
     }
