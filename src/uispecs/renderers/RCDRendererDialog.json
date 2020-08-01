@@ -1,0 +1,231 @@
+// #package uispecs
+
+// #section RCDRendererDialog
+
+{
+  "type": "panel",
+  "children": [
+    {
+      "type": "field",
+      "label": "Steps:",
+      "children": [
+        {
+          "type": "spinner",
+          "bind": "steps",
+          "value": 300,
+          "min": 1
+        }
+      ]
+    },
+    {
+      "type": "field",
+      "label": "Opacity:",
+      "children": [
+        {
+          "type": "spinner",
+          "bind": "opacity",
+          "logarithmic": true,
+          "value": 100,
+          "min": 0,
+          "step": 0.1
+        }
+      ]
+    },
+    {
+      "type": "field",
+      "label": "Absorption Coefficient:",
+      "children": [
+        {
+          "type": "spinner",
+          "bind": "absorptionCoefficient",
+          "value": 0.5,
+          "min": 0,
+          "step": 0.1
+        }
+      ]
+    },
+    {
+      "type": "field",
+      "label": "Scattering:",
+      "children": [
+        {
+          "type": "spinner",
+          "bind": "scattering",
+          "value": 0.5,
+          "min": 0,
+          "step": 0.1
+        }
+      ]
+    },
+    {
+      "type": "field",
+      "label": "Volume to Light Volume ratio:",
+      "children": [
+        {
+          "type": "spinner",
+          "bind": "ratio",
+          "value": 1,
+          "min": 1,
+          "step": 1
+        }
+      ]
+    },
+    {
+      "type": "accordion",
+      "label": "Light 1",
+      "children": [
+        {
+          "type": "field",
+          "label": "Enabled:",
+          "children": [
+            {
+              "type": "checkbox",
+              "bind": "light1_enabled",
+              "checked": true
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Light Type:",
+          "children": [
+            {
+              "type": "dropdown",
+              "bind": "light1_type",
+              "options": [
+                {
+                  "value": "distant",
+                  "label": "Directional",
+                  "selected": true
+                },
+                {
+                  "value": "point",
+                  "label": "Point"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Light direction/position:",
+          "children": [
+            {
+              "type": "vector",
+              "bind": "light1_dirpos",
+              "value": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "accordion",
+      "label": "Light 2",
+      "children": [
+        {
+          "type": "field",
+          "label": "Enabled:",
+          "children": [
+            {
+              "type": "checkbox",
+              "bind": "light2_enabled",
+              "checked": false
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Light Type:",
+          "children": [
+            {
+              "type": "dropdown",
+              "bind": "light2_type",
+              "options": [
+                {
+                  "value": "distant",
+                  "label": "Directional",
+                  "selected": true
+                },
+                {
+                  "value": "point",
+                  "label": "Point"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Light direction/position:",
+          "children": [
+            {
+              "type": "vector",
+              "bind": "light2_dirpos",
+              "value": -1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "accordion",
+      "label": "Light 3",
+      "children": [
+        {
+          "type": "field",
+          "label": "Enabled:",
+          "children": [
+            {
+              "type": "checkbox",
+              "bind": "light3_enabled",
+              "checked": false
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Light Type:",
+          "children": [
+            {
+              "type": "dropdown",
+              "bind": "light3_type",
+              "options": [
+                {
+                  "value": "distant",
+                  "label": "Directional"
+                },
+                {
+                  "value": "point",
+                  "label": "Point",
+                  "selected": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Light direction/position:",
+          "children": [
+            {
+              "type": "vector",
+              "bind": "light3_dirpos",
+              "value": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "accordion",
+      "label": "Transfer function",
+      "children": [
+        {
+          "type": "panel",
+          "bind": "tfcontainer"
+        }
+      ]
+    }
+  ]
+}
