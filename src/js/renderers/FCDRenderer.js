@@ -139,12 +139,12 @@ class FCDRenderer extends AbstractRenderer {
         gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
-        for (let i = 0; i < dimensions.depth; i++) {
-            let energyDensityArray = new Float32Array(dimensions.width * dimensions.height).fill(0);
-            gl.texSubImage3D(gl.TEXTURE_3D, 0,
-                0, 0, i, dimensions.width, dimensions.height, 1,
-                gl.RED, gl.FLOAT, new Float32Array(energyDensityArray));
-        }
+        // for (let i = 0; i < dimensions.depth; i++) {
+        //     let energyDensityArray = new Float32Array(dimensions.width * dimensions.height).fill(0);
+        //     gl.texSubImage3D(gl.TEXTURE_3D, 0,
+        //         0, 0, i, dimensions.width, dimensions.height, 1,
+        //         gl.RED, gl.FLOAT, new Float32Array(energyDensityArray));
+        // }
     }
     
     _createDiffusionLightVolume() {
@@ -161,12 +161,12 @@ class FCDRenderer extends AbstractRenderer {
         gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
-        for (let i = 0; i < dimensions.depth; i++) {
-            let energyDensityArray = new Float32Array(dimensions.width * dimensions.height).fill(0);
-            gl.texSubImage3D(gl.TEXTURE_3D, 0,
-                0, 0, i, dimensions.width, dimensions.height, 1,
-                gl.RED, gl.FLOAT, new Float32Array(energyDensityArray));
-        }
+        // for (let i = 0; i < dimensions.depth; i++) {
+        //     let energyDensityArray = new Float32Array(dimensions.width * dimensions.height).fill(0);
+        //     gl.texSubImage3D(gl.TEXTURE_3D, 0,
+        //         0, 0, i, dimensions.width, dimensions.height, 1,
+        //         gl.RED, gl.FLOAT, new Float32Array(energyDensityArray));
+        // }
     }
 
     _deleteLightVolumeTextures() {
