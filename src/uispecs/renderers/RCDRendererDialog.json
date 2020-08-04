@@ -38,9 +38,9 @@
         {
           "type": "spinner",
           "bind": "absorptionCoefficient",
-          "value": 0.5,
+          "value": 1,
           "min": 0,
-          "step": 0.1
+          "step": 0.2
         }
       ]
     },
@@ -71,49 +71,33 @@
       ]
     },
     {
-      "type": "accordion",
-      "label": "Light 1",
+      "type": "field",
+      "label": "Light position:",
       "children": [
         {
-          "type": "field",
-          "label": "Enabled:",
-          "children": [
-            {
-              "type": "checkbox",
-              "bind": "light1_enabled",
-              "checked": true
-            }
-          ]
-        },
+          "type": "vector",
+          "bind": "light_pos",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "type": "field",
+      "label": "Renderer Subtype:",
+      "children": [
         {
-          "type": "field",
-          "label": "Light Type:",
-          "children": [
+          "type": "dropdown",
+          "bind": "renderer_type",
+          "options": [
             {
-              "type": "dropdown",
-              "bind": "light1_type",
-              "options": [
-                {
-                  "value": "distant",
-                  "label": "Directional",
-                  "selected": true
-                },
-                {
-                  "value": "point",
-                  "label": "Point"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "type": "field",
-          "label": "Light direction/position:",
-          "children": [
+              "value": 0,
+              "label": "Monte Carlo",
+              "selected": true
+            },
             {
-              "type": "vector",
-              "bind": "light1_dirpos",
-              "value": 10
+              "value": 1,
+              "label": "Simple",
+              "selected": false
             }
           ]
         }
@@ -121,48 +105,31 @@
     },
     {
       "type": "accordion",
-      "label": "Light 2",
+      "label": "Monte Carlo:",
       "children": [
         {
           "type": "field",
-          "label": "Enabled:",
+          "label": "Majorant:",
           "children": [
             {
-              "type": "checkbox",
-              "bind": "light2_enabled",
-              "checked": false
+              "type": "spinner",
+              "bind": "majorant",
+              "value": 2,
+              "min": 1,
+              "step": 0.2
             }
           ]
         },
         {
           "type": "field",
-          "label": "Light Type:",
+          "label": "Ray steps:",
           "children": [
             {
-              "type": "dropdown",
-              "bind": "light2_type",
-              "options": [
-                {
-                  "value": "distant",
-                  "label": "Directional",
-                  "selected": true
-                },
-                {
-                  "value": "point",
-                  "label": "Point"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "type": "field",
-          "label": "Light direction/position:",
-          "children": [
-            {
-              "type": "vector",
-              "bind": "light2_dirpos",
-              "value": -1
+              "type": "spinner",
+              "bind": "ray_steps",
+              "value": 1,
+              "min": 1,
+              "step": 1
             }
           ]
         }
@@ -170,48 +137,31 @@
     },
     {
       "type": "accordion",
-      "label": "Light 3",
+      "label": "Simple",
       "children": [
         {
           "type": "field",
-          "label": "Enabled:",
+          "label": "Ray Steps:",
           "children": [
             {
-              "type": "checkbox",
-              "bind": "light3_enabled",
-              "checked": false
+              "type": "spinner",
+              "bind": "simple_ray_steps",
+              "value": 300,
+              "step": 5,
+              "min": 1
             }
           ]
         },
         {
           "type": "field",
-          "label": "Light Type:",
+          "label": "Opacity:",
           "children": [
             {
-              "type": "dropdown",
-              "bind": "light3_type",
-              "options": [
-                {
-                  "value": "distant",
-                  "label": "Directional"
-                },
-                {
-                  "value": "point",
-                  "label": "Point",
-                  "selected": true
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "type": "field",
-          "label": "Light direction/position:",
-          "children": [
-            {
-              "type": "vector",
-              "bind": "light3_dirpos",
-              "value": 1
+              "type": "spinner",
+              "bind": "simple_opacity",
+              "value": 100,
+              "step": 5,
+              "min": 1
             }
           ]
         }

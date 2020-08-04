@@ -15,19 +15,30 @@ class RCDRendererDialog extends AbstractDialog {
         this._setInitialValues();
 
         this._handleChange = this._handleChange.bind(this);
+        this._handleChangeType = this._handleChangeType.bind(this);
         this._handleChangeScettering = this._handleChangeScettering.bind(this);
         this._handleChangeResetLightField = this._handleChangeResetLightField.bind(this);
         this._handleChangeRatio = this._handleChangeRatio.bind(this);
         this._handleTFChange = this._handleTFChange.bind(this);
         this._handleChangeLights = this._handleChangeLights.bind(this);
+        this._handleChangeResetLightFieldSimple = this._handleChangeResetLightFieldSimple.bind(this);
+        this._handleChangeResetLightFieldMC = this._handleChangeResetLightFieldMC.bind(this);
 
         this._binds.steps.addEventListener('input', this._handleChange);
         this._binds.opacity.addEventListener('input', this._handleChange);
         this._binds.scattering.addEventListener('input', this._handleChangeScettering);
-        this._binds.absorptionCoefficient.addEventListener('input', this._handleChange);
-        this._binds.ratio.addEventListener('input', this._handleChangeRatio);
+        this._binds.absorptionCoefficient.addEventListener('input', this._handleChangeResetLightField);
 
-        this._setLightsBinds();
+        this._binds.renderer_type.addEventListener('input', this._handleChangeType);
+
+        // this._binds.ratio.addEventListener('input', this._handleChangeRatio);
+        this._binds.light_pos.addEventListener('input', this._handleChangeResetLightFieldMC);
+        this._binds.majorant.addEventListener('input', this._handleChangeResetLightFieldMC);
+        this._binds.ray_steps.addEventListener('input', this._handleChange);
+        this._binds.simple_ray_steps.addEventListener('input', this._handleChangeResetLightFieldSimple);
+        this._binds.simple_opacity.addEventListener('input', this._handleChangeResetLightFieldSimple);
+
+        // this._setLightsBinds();
 
         this._tfwidget = new TransferFunctionWidget();
         this._binds.tfcontainer.add(this._tfwidget);
@@ -53,13 +64,20 @@ class RCDRendererDialog extends AbstractDialog {
         this._renderer._absorptionCoefficient = this._binds.absorptionCoefficient.getValue();
         this._renderer._scattering = this._binds.scattering.getValue();
 
-        // this._renderer._lightType = this._binds.lightType.getValue();
-        // const direction = this._binds.direction.getValue();
-        // this._renderer._light[0] = direction.x;
-        // this._renderer._light[1] = direction.y;
-        // this._renderer._light[2] = direction.z;
-        // this._setLights();
+        this._renderer._type = parseInt(this._binds.renderer_type.getValue());
+
+        this._renderer.steps = this._binds.ray_steps.getValue();
+
+        const pos = this._binds.light_pos.getValue();
+        this._renderer._light[0] = pos.x;
+        this._renderer._light[1] = pos.y;
+        this._renderer._light[2] = pos.z;
+
+        this._renderer.majorant = this._binds.majorant.getValue();
+
         this._renderer._lightVolumeRatio = this._binds.ratio.getValue();
+
+        this._renderer._rayCastingStepSize = 1 / this._binds.simple_ray_steps.getValue();
 
     }
 
@@ -71,9 +89,13 @@ class RCDRendererDialog extends AbstractDialog {
     _handleChange() {
         this._renderer._stepSize = 1 / this._binds.steps.getValue();
         this._renderer._alphaCorrection = this._binds.opacity.getValue();
-        this._renderer._absorptionCoefficient = this._binds.absorptionCoefficient.getValue();
+        this._renderer.steps = this._binds.ray_steps.getValue();
 
         this._renderer.reset();
+    }
+
+    _handleChangeType() {
+        this._renderer._switchToType(parseInt(this._binds.renderer_type.getValue()));
     }
 
     _handleChangeScettering() {
@@ -83,13 +105,26 @@ class RCDRendererDialog extends AbstractDialog {
         this._renderer.reset();
     }
 
+    _handleChangeResetLightFieldSimple() {
+        this._renderer._rayCastingStepSize = 1 / this._binds.simple_ray_steps.getValue();
+        this._renderer._rayCastingAlphaCorrection = this._binds.simple_opacity.getValue();
+        this._renderer._resetLightField();
+        this._renderer.reset();
+    }
+
+    _handleChangeResetLightFieldMC() {
+        this._renderer.majorant = this._binds.majorant.getValue();
+        const pos = this._binds.light_pos.getValue();
+        this._renderer._light[0] = pos.x;
+        this._renderer._light[1] = pos.y;
+        this._renderer._light[2] = pos.z;
+
+        this._renderer._resetLightField();
+        this._renderer.reset();
+    }
+
     _handleChangeResetLightField() {
-        // this._renderer._lightType = this._binds.lightType.getValue();
-        //
-        // const direction = this._binds.direction.getValue();
-        // this._renderer._light[0] = direction.x;
-        // this._renderer._light[1] = direction.y;
-        // this._renderer._light[2] = direction.z;
+        this._renderer._absorptionCoefficient = this._binds.absorptionCoefficient.getValue();
 
         this._renderer._resetLightField();
         this._renderer.reset();
@@ -97,11 +132,9 @@ class RCDRendererDialog extends AbstractDialog {
 
     _handleChangeRatio() {
         this._renderer._lightVolumeRatio = this._binds.ratio.getValue();
-        if (this._renderer._volumeDimensions) {
-            this._renderer._setLightVolumeDimensions();
-            this._renderer._resetLightField();
-            this._renderer.reset();
-        }
+        this._renderer._setLightVolumeDimensions();
+        this._renderer._resetLightField();
+        this._renderer.reset();
     }
 
     _handleChangeLights() {
@@ -111,7 +144,10 @@ class RCDRendererDialog extends AbstractDialog {
     }
 
     _handleTFChange() {
+
         this._renderer.setTransferFunction(this._tfwidget.getTransferFunction());
+        if (this._renderer._type === 1)
+            this._renderer._resetLightField();
         this._renderer.reset();
     }
 

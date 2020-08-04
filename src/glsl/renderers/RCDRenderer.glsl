@@ -3,7 +3,7 @@
 // #include ../mixins/unproject.glsl
 // #include ../mixins/intersectCube.glsl
 
-// #section RCDRayCasting/compute
+// #section RCDMonteCarlo/compute
 
 #version 310 es
 precision highp float;
@@ -25,6 +25,7 @@ uniform float uAbsorptionCoefficient;
 uniform float uMajorant;
 uniform float uRandSeed;
 uniform uint uSteps;
+uniform vec3 light;
 layout (r32f, binding = 0) writeonly highp uniform image3D uEnergyDensityWrite;
 
 uniform mediump sampler3D uVolume;
@@ -32,26 +33,24 @@ uniform mediump sampler3D uVolume;
 uniform mediump sampler2D uTransferFunction;
 
 @rand
-@unprojectRand
-@intersectCube
 
 vec3 getRandomLight(vec2 randState) {
-    return lights[0];
+    return vec3(0.0);
 }
 
 void resetPhoton(inout vec2 randState, inout Photon photon) {
     vec3 from = vec3(gl_GlobalInvocationID) / vec3(uSize);
-    vec3 to = getRandomLight(randState);
+    vec3 to = light / vec3(uSize);
     photon.direction = normalize(to - from);
+    photon.position = from;
     photon.bounces = 0u;
-    vec2 tbounds = max(intersectCube(from, photon.direction), 0.0);
-    photon.position = from + tbounds.x * photon.direction;
     photon.transmittance = vec3(1);
 }
 
 vec4 sampleVolumeColor(vec3 position) {
     vec2 volumeSample = texture(uVolume, position).rg;
-    vec4 transferSample = texture(uTransferFunction, volumeSample);
+//    vec4 transferSample = texture(uTransferFunction, volumeSample);
+    vec4 transferSample = texture(uTransferFunction, vec2(volumeSample.r, 0.5));
     return transferSample;
 }
 
@@ -63,14 +62,21 @@ void main() {
         gl_GlobalInvocationID.x;
     Photon photon = sPhotons[globalInvocationIndex];
 
-    vec2 r = rand(vec2(gl_GlobalInvocationID.xy) * uRandSeed);
+    vec2 r = rand((vec2(gl_GlobalInvocationID.xy) + vec2(gl_GlobalInvocationID.yz)) * uRandSeed);
+//    float d = distance(photon.position, light / vec3(uSize));
+//    imageStore(uEnergyDensityWrite, ivec3(gl_GlobalInvocationID), vec4(d));
+//    imageStore(uEnergyDensityWrite, ivec3(gl_GlobalInvocationID), vec4(photon.transmittance, 0));
     for (uint i = 0u; i < uSteps; i++) {
         r = rand(r);
         float t = -log(r.x) / uMajorant;
-        photon.position += t * photon.direction;
+        photon.bounces++;
+
+        photon.position += t * 0.05 * photon.direction;
 
         vec4 volumeSample = sampleVolumeColor(photon.position);
+
         float muAbsorption = volumeSample.a * uAbsorptionCoefficient;
+
         float muNull = uMajorant - muAbsorption;
         float muMajorant = muAbsorption + abs(muNull);
         float PNull = abs(muNull) / muMajorant;
@@ -78,10 +84,10 @@ void main() {
 
         if (any(greaterThan(photon.position, vec3(1))) || any(lessThan(photon.position, vec3(0)))) {
             // out of bounds
-            vec3 radiance = photon.transmittance;
+            vec3 radiance = photon.transmittance * 0.5;
             photon.samples++;
             photon.radiance += (radiance - photon.radiance) / float(photon.samples);
-            imageStore(uEnergyDensityWrite, ivec3(gl_GlobalInvocationID), vec4(photon.radiance, 1));
+            imageStore(uEnergyDensityWrite, ivec3(gl_GlobalInvocationID), vec4(photon.radiance, 0));
             resetPhoton(r, photon);
         } else if (r.y < PAbsorption) {
             // absorption
@@ -95,6 +101,101 @@ void main() {
     }
 
     sPhotons[globalInvocationIndex] = photon;
+}
+
+// #section RCDResetPhotons/compute
+
+#version 310 es
+layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+uniform float uRandSeed;
+uniform ivec3 uSize;
+uniform vec3 light;
+
+@rand
+
+@Photon
+
+layout (std430, binding = 0) buffer bPhotons {
+    Photon sPhotons[];
+};
+
+layout (std430, binding = 1) readonly buffer bLights {
+    vec3 lights[];
+};
+
+vec3 getRandomLight(vec2 randState) {
+    return vec3(0.0);
+}
+
+void main() {
+    Photon photon;
+    vec2 randState = rand(vec2(gl_GlobalInvocationID) * uRandSeed);
+    vec3 from = vec3(gl_GlobalInvocationID) / vec3(uSize);
+    vec3 to = light / vec3(uSize);
+    photon.direction = normalize(to - from);
+    photon.position = from;
+    photon.transmittance = vec3(1);
+    photon.bounces = 0u;
+    photon.radiance = vec3(0.05);
+    photon.samples = 0u;
+    uvec3 globalSize = gl_WorkGroupSize * gl_NumWorkGroups;
+    uint globalInvocationIndex =
+    gl_GlobalInvocationID.z * globalSize.x * globalSize.y +
+    gl_GlobalInvocationID.y * globalSize.x +
+    gl_GlobalInvocationID.x;
+    sPhotons[globalInvocationIndex] = photon;
+}
+
+
+// #section RCDRayCasting/compute
+
+#version 310 es
+precision highp float;
+layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+uniform ivec3 uSize;
+uniform float uAbsorptionCoefficient;
+uniform float uStepSize;
+uniform vec3 uLight;
+uniform float uAlphaCorrection;
+layout (r32f, binding = 0) readonly highp uniform image3D uEnergyDensityRead;
+layout (r32f, binding = 0) writeonly highp uniform image3D uEnergyDensityWrite;
+
+uniform mediump sampler3D uVolume;
+uniform mediump sampler2D uTransferFunction;
+
+vec4 sampleVolumeColor(vec3 position) {
+    float volumeSample = texture(uVolume, position).r;
+    vec4 transferSample = texture(uTransferFunction, vec2(volumeSample, 0.5));
+    return transferSample;
+}
+
+void main() {
+    ivec3 index = ivec3(gl_GlobalInvocationID);
+    vec3 position = vec3(gl_GlobalInvocationID) / vec3(uSize);
+    vec3 light = vec3(uLight) / vec3(uSize);
+    float previousRadiance = imageLoad(uEnergyDensityRead, index).r;
+    float rayStepLength = distance(position, light) * uStepSize;
+
+    float t = 0.0;
+    vec3 pos;
+    float absorption;
+    float accumulator = 1.0;
+
+    while (t < 1.0 && accumulator > 0.0) {
+        pos = mix(position, light, t);
+        absorption = sampleVolumeColor(pos).a * rayStepLength * uAbsorptionCoefficient * uAlphaCorrection;
+
+        accumulator -= absorption;
+        t += uStepSize;
+    }
+
+    if (accumulator < 0.0) {
+        accumulator = 0.0;
+    }
+
+    imageStore(uEnergyDensityWrite, index, vec4(previousRadiance + accumulator));
 }
 
 // #section RCDDiffusion/compute
@@ -113,13 +214,9 @@ layout (r32f, binding = 1) writeonly highp uniform image3D uEnergyDensityDiffusi
 void main() {
     ivec3 position = ivec3(gl_GlobalInvocationID);
 
-    if (position.x < 1 || position.y < 1 || position.z < 1 ||
-    position.x >= uSize.x - 1 || position.y >= uSize.y - 1 || position.z >= uSize.z - 1) {
-        return;
-    }
-
     for (int i = 0; i < 1; i++) {
         float radiance = imageLoad(uEnergyDensityRead, position).r;
+        radiance += imageLoad(uEnergyDensityDiffusionRead, position).r;
 
 //        float dl    = imageLoad(uEnergyDensityRead, position + ivec3(-1, -1, 0)).r;
 //        float ul    = imageLoad(uEnergyDensityRead, position + ivec3(-1,  1,  0)).r;
@@ -237,7 +334,7 @@ void main() {
             // utezi z energy density
             colorSample.rgb *= colorSample.a * energyDensity;
             //            colorSample.rgb *= colorSample.a;
-            //            colorSample.rgb = vec3(energyDensity);
+//            colorSample.rgb = vec3(energyDensity);
             accumulator += (1.0 - accumulator.a) * colorSample;
             t += uStepSize;
         }
