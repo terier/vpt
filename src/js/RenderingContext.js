@@ -297,6 +297,7 @@ _getRendererClass(renderer) {
         case 'mcm' : return MCMRenderer;
         case 'mcc' : return MCCRenderer;
         case 'fcd' : return FCDRenderer;
+        case 'rcd' : return RCDRenderer;
     }
 }
 

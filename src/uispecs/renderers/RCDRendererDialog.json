@@ -1,0 +1,195 @@
+// #package uispecs
+
+// #section RCDRendererDialog
+
+{
+  "type": "panel",
+  "children": [
+    {
+      "type": "field",
+      "label": "Steps:",
+      "children": [
+        {
+          "type": "spinner",
+          "bind": "steps",
+          "value": 300,
+          "min": 1
+        }
+      ]
+    },
+    {
+      "type": "field",
+      "label": "Opacity:",
+      "children": [
+        {
+          "type": "spinner",
+          "bind": "opacity",
+          "logarithmic": true,
+          "value": 100,
+          "min": 0,
+          "step": 0.1
+        }
+      ]
+    },
+    {
+      "type": "field",
+      "label": "Scattering:",
+      "children": [
+        {
+          "type": "spinner",
+          "bind": "scattering",
+          "value": 0.5,
+          "min": 0,
+          "step": 0.1
+        }
+      ]
+    },
+    {
+      "type": "field",
+      "label": "Volume to Light Volume ratio:",
+      "children": [
+        {
+          "type": "spinner",
+          "bind": "ratio",
+          "value": 1,
+          "min": 1,
+          "step": 1
+        }
+      ]
+    },
+    {
+      "type": "field",
+      "label": "Light position:",
+      "children": [
+        {
+          "type": "vector",
+          "bind": "light_pos",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "type": "field",
+      "label": "Renderer Subtype:",
+      "children": [
+        {
+          "type": "dropdown",
+          "bind": "renderer_type",
+          "options": [
+            {
+              "value": 0,
+              "label": "Monte Carlo",
+              "selected": true
+            },
+            {
+              "value": 1,
+              "label": "Simple",
+              "selected": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "accordion",
+      "label": "Monte Carlo:",
+      "children": [
+        {
+          "type": "field",
+          "label": "Ray steps:",
+          "children": [
+            {
+              "type": "spinner",
+              "bind": "ray_steps",
+              "value": 10,
+              "min": 1,
+              "step": 1
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Absorption Coefficient:",
+          "children": [
+            {
+              "type": "spinner",
+              "bind": "extinction",
+              "value": 16,
+              "min": 0,
+              "step": 1
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Majorant ratio:",
+          "children": [
+            {
+              "type": "slider",
+              "bind": "majorant_ratio",
+              "value": 1,
+              "min": 0,
+              "max": 1,
+              "step": 0.1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "accordion",
+      "label": "Simple",
+      "children": [
+        {
+          "type": "field",
+          "label": "Ray Steps:",
+          "children": [
+            {
+              "type": "spinner",
+              "bind": "simple_ray_steps",
+              "value": 300,
+              "step": 5,
+              "min": 1
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Opacity:",
+          "children": [
+            {
+              "type": "spinner",
+              "bind": "simple_opacity",
+              "value": 100,
+              "step": 5,
+              "min": 1
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Absorption Coefficient:",
+          "children": [
+            {
+              "type": "spinner",
+              "bind": "absorptionCoefficient",
+              "value": 1,
+              "min": 0,
+              "step": 0.2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "accordion",
+      "label": "Transfer function",
+      "children": [
+        {
+          "type": "panel",
+          "bind": "tfcontainer"
+        }
+      ]
+    }
+  ]
+}

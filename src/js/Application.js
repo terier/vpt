@@ -175,6 +175,7 @@ _getDialogForRenderer(renderer) {
         case 'mcm' : return MCMRendererDialog;
         case 'mcc' : return MCMRendererDialog; // yes, the same
         case 'fcd' : return FCDRendererDialog;
+        case 'rcd' : return RCDRendererDialog;
     }
 }
 
