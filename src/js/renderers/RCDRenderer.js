@@ -21,7 +21,8 @@ class RCDRenderer extends AbstractRenderer {
             _localSizeX                 : 16,
             _localSizeY                 : 16,
             steps                       : 1,
-            majorant                    : 20,
+            _majorant                   : 1,
+            _absorptionCoefficientMC    : 16,
             _type                       : 1,
             _rayCastingStepSize         : 0.00333,
             _rayCastingAlphaCorrection  : 100
@@ -211,7 +212,6 @@ class RCDRenderer extends AbstractRenderer {
         const program = this._programs.monteCarlo;
         gl.useProgram(program.program);
 
-
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
 
@@ -224,7 +224,7 @@ class RCDRenderer extends AbstractRenderer {
         const dimensions = this._lightVolumeDimensions;
         gl.uniform3i(program.uniforms.uSize, dimensions.width, dimensions.height, dimensions.depth);
 
-        gl.uniform1f(program.uniforms.uAbsorptionCoefficient, this._absorptionCoefficient)
+        gl.uniform1f(program.uniforms.uAbsorptionCoefficient, this._absorptionCoefficientMC)
 
         gl.uniform1f(program.uniforms.uRatio, Math.floor(this._lightVolumeRatio));
 
@@ -235,7 +235,7 @@ class RCDRenderer extends AbstractRenderer {
         // gl.bindBufferBase(gl.SHADER_STORAGE_BUFFER, 1, this._photonBuffer);
 
         gl.uniform1f(program.uniforms.uRandSeed, Math.random());
-        gl.uniform1f(program.uniforms.uMajorant, this.majorant);
+        gl.uniform1f(program.uniforms.uMajorant, this._majorant);
         gl.uniform1ui(program.uniforms.uSteps, this.steps);
 
         gl.uniform3fv(program.uniforms.light, this._light);
@@ -323,13 +323,8 @@ class RCDRenderer extends AbstractRenderer {
     _generateFrame() {
         const gl = this._gl;
         if (this._type === 0) {
-            if (this.counter >= 1) {
-                this._monteCarlo();
-                this.counter = 0;
-            }
-            this.counter++;
+            this._monteCarlo();
         }
-
         this._diffusion();
 
         const program = this._programs.generate;

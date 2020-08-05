@@ -71,7 +71,7 @@ void main() {
         float t = -log(r.x) / uMajorant;
         photon.bounces++;
 
-        photon.position += t * 0.05 * photon.direction;
+        photon.position += t * photon.direction;
 
         vec4 volumeSample = sampleVolumeColor(photon.position);
 

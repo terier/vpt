@@ -33,19 +33,6 @@
     },
     {
       "type": "field",
-      "label": "Absorption Coefficient:",
-      "children": [
-        {
-          "type": "spinner",
-          "bind": "absorptionCoefficient",
-          "value": 1,
-          "min": 0,
-          "step": 0.2
-        }
-      ]
-    },
-    {
-      "type": "field",
       "label": "Scattering:",
       "children": [
         {
@@ -109,27 +96,41 @@
       "children": [
         {
           "type": "field",
-          "label": "Majorant:",
-          "children": [
-            {
-              "type": "spinner",
-              "bind": "majorant",
-              "value": 2,
-              "min": 1,
-              "step": 0.2
-            }
-          ]
-        },
-        {
-          "type": "field",
           "label": "Ray steps:",
           "children": [
             {
               "type": "spinner",
               "bind": "ray_steps",
-              "value": 1,
+              "value": 10,
               "min": 1,
               "step": 1
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Absorption Coefficient:",
+          "children": [
+            {
+              "type": "spinner",
+              "bind": "extinction",
+              "value": 16,
+              "min": 0,
+              "step": 1
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Majorant ratio:",
+          "children": [
+            {
+              "type": "slider",
+              "bind": "majorant_ratio",
+              "value": 1,
+              "min": 0,
+              "max": 1,
+              "step": 0.1
             }
           ]
         }
@@ -162,6 +163,19 @@
               "value": 100,
               "step": 5,
               "min": 1
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Absorption Coefficient:",
+          "children": [
+            {
+              "type": "spinner",
+              "bind": "absorptionCoefficient",
+              "value": 1,
+              "min": 0,
+              "step": 0.2
             }
           ]
         }
