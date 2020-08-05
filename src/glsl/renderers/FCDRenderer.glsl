@@ -158,6 +158,7 @@ void main() {
 
     for (int i = 0; i < 1; i++) {
         float radiance = imageLoad(uEnergyDensityRead, position).r;
+        radiance += imageLoad(uEnergyDensityDiffusionRead, position).r;
 
 //        float dl    = imageLoad(uEnergyDensityRead, position + ivec3(-1, -1, 0)).r;
 //        float ul    = imageLoad(uEnergyDensityRead, position + ivec3(-1,  1,  0)).r;
