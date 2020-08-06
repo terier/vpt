@@ -41,9 +41,11 @@ vec3 getRandomLight(vec2 randState) {
 void resetPhoton(inout vec2 randState, inout PhotonRCD photon) {
     vec3 from = vec3(gl_GlobalInvocationID) / vec3(uSize);
     vec3 to = light / vec3(uSize);
-    photon.target = normalize(to - from);
+    photon.target = to;
     photon.position = from;
     photon.transmittance = 1.0;
+    photon.travelled = 0.0;
+    photon.distance = distance(from, to);
 }
 
 vec4 sampleVolumeColor(vec3 position) {
@@ -68,8 +70,11 @@ void main() {
     for (uint i = 0u; i < uSteps; i++) {
         r = rand(r);
         float t = -log(r.x) / uMajorant;
-
-        photon.position += t * photon.target;
+        vec3 direction = normalize(photon.target - photon.position);
+        vec3 newPosition = photon.position + t * direction;
+        float distance = distance(photon.position, newPosition);
+        photon.position = newPosition;
+        photon.travelled += distance;
 
         vec4 volumeSample = sampleVolumeColor(photon.position);
 
@@ -80,7 +85,7 @@ void main() {
         float PNull = abs(muNull) / muMajorant;
         float PAbsorption = muAbsorption / muMajorant;
 
-        if (any(greaterThan(photon.position, vec3(1))) || any(lessThan(photon.position, vec3(0)))) {
+        if (photon.travelled >= photon.distance) {
             // out of bounds
             float radiance = photon.transmittance * 0.5;
             photon.samples++;
@@ -131,9 +136,11 @@ void main() {
     vec2 randState = rand(vec2(gl_GlobalInvocationID) * uRandSeed);
     vec3 from = vec3(gl_GlobalInvocationID) / vec3(uSize);
     vec3 to = light / vec3(uSize);
-    photon.target = normalize(to - from);
+    photon.target = to;
     photon.position = from;
     photon.transmittance = 1.0;
+    photon.travelled = 0.0;
+    photon.distance = distance(from, to);
     photon.radiance = 0.05;
     photon.samples = 0u;
     uvec3 globalSize = gl_WorkGroupSize * gl_NumWorkGroups;
