@@ -37,8 +37,8 @@ class FCDRenderer extends AbstractRenderer {
         }, MIXINS);
 
         this._lightDefinitions = [
-            new LightDefinition('distant', [10,10,10], true),
-            new LightDefinition('point', [220,125,50], false)
+            new LightDefinition('distant', [0.05,0.05,0.05], true),
+            new LightDefinition('point', [0.9,0.5,0.4], false)
         ]
 
         if (this._volume.ready) {

@@ -134,12 +134,12 @@ class FCDRendererDialog extends AbstractDialog {
                 let dirpos = this._binds[name + "_dirpos"].getValue();
                 let lightDefinition = new LightDefinition(
                     this._binds[name + "_type"].getValue(),
-                    [dirpos.x, dirpos.y, dirpos.z],
+                    [dirpos.x / 100, dirpos.y / 100, dirpos.z / 100],
                     this._binds[name + "_enabled"].isChecked()
                 )
                 this._renderer._lightDefinitions[i] = lightDefinition;
                 if (this._renderer._volumeDimensions &&
-                    (lightDefinition.isEnabled() || oldLightDefinition.isEnabled()) &&
+                    (lightDefinition.isEnabled() || (oldLightDefinition && oldLightDefinition.isEnabled())) &&
                     lightDefinition.hasChanged(oldLightDefinition)) {
                     hasChanged = true;
                 }
@@ -161,7 +161,7 @@ class FCDRendererDialog extends AbstractDialog {
                 let dirpos = this._binds[name + "_dirpos"].getValue();
                 let lightDefinition = new LightDefinition(
                     this._binds[name + "_type"].getValue(),
-                    [dirpos.x, dirpos.y, dirpos.z],
+                    [dirpos.x / 100, dirpos.y / 100, dirpos.z / 100],
                     this._binds[name + "_enabled"].isChecked()
                 )
                 this._renderer._lightDefinitions[i] = lightDefinition;

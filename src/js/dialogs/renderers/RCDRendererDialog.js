@@ -116,7 +116,7 @@ class RCDRendererDialog extends AbstractDialog {
                 )
                 this._renderer._lightDefinitions[i] = lightDefinition;
                 if (this._renderer._volumeDimensions &&
-                    (lightDefinition.isEnabled() || oldLightDefinition.isEnabled()) &&
+                    (lightDefinition.isEnabled() || (oldLightDefinition && oldLightDefinition.isEnabled())) &&
                     lightDefinition.hasChanged(oldLightDefinition)) {
                     doReset = true;
                 }

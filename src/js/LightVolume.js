@@ -102,9 +102,15 @@ class LightVolume {
     createPointLight() {
         const gl = this._gl;
         const dimensions = this._dimensions;
-        const posX = this._x = Math.floor(this._x / this._ratio);
-        const posY = this._y = Math.floor(this._y / this._ratio);
-        const posZ = this._z = Math.floor(this._z / this._ratio);
+        let posX = this._x = Math.floor(this._x * dimensions.width);
+        let posY = this._y = Math.floor(this._y * dimensions.height);
+        let posZ = this._z = Math.floor(this._z * dimensions.depth);
+        if (posX === 0)
+            posX = this._x = 1;
+        if (posY === 0)
+            posY = this._y = 1;
+        if (posZ === 0)
+            posZ = this._z = 1;
         // Energy density
         this._energyDensity = gl.createTexture();
 

@@ -170,12 +170,12 @@
               "options": [
                 {
                   "value": "distant",
-                  "label": "Directional",
-                  "selected": true
+                  "label": "Directional"
                 },
                 {
                   "value": "point",
-                  "label": "Point"
+                  "label": "Point",
+                  "selected": true
                 }
               ]
             }
@@ -188,7 +188,7 @@
             {
               "type": "vector",
               "bind": "light2_dirpos",
-              "value": -1
+              "value": 1
             }
           ]
         }
@@ -237,7 +237,9 @@
             {
               "type": "vector",
               "bind": "light3_dirpos",
-              "value": 1
+              "valueX": 100,
+              "valueY": 40,
+              "valueZ": 100
             }
           ]
         }
