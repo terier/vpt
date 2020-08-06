@@ -88,7 +88,7 @@ class RCDRenderer extends AbstractRenderer {
         //     uint samples;   // 4B
         //          padding    // ??
         // };                  // Where do we get 20 though???
-        const bufferSize = 20 * 4 * dimensions.width * dimensions.height * dimensions.depth;
+        const bufferSize = 12 * 4 * dimensions.width * dimensions.height * dimensions.depth;
         this._photonBuffer = gl.createBuffer();
         gl.bindBuffer(gl.SHADER_STORAGE_BUFFER, this._photonBuffer);
         gl.bindBufferBase(gl.SHADER_STORAGE_BUFFER, 0, this._photonBuffer);

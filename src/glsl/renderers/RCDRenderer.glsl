@@ -9,10 +9,10 @@
 precision highp float;
 layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
-@Photon
+@PhotonRCD
 
 layout (std430, binding = 0) buffer bPhotons {
-    Photon sPhotons[];
+    PhotonRCD sPhotons[];
 };
 
 layout (std430, binding = 1) readonly buffer bLights {
@@ -38,13 +38,12 @@ vec3 getRandomLight(vec2 randState) {
     return vec3(0.0);
 }
 
-void resetPhoton(inout vec2 randState, inout Photon photon) {
+void resetPhoton(inout vec2 randState, inout PhotonRCD photon) {
     vec3 from = vec3(gl_GlobalInvocationID) / vec3(uSize);
     vec3 to = light / vec3(uSize);
-    photon.direction = normalize(to - from);
+    photon.target = normalize(to - from);
     photon.position = from;
-    photon.bounces = 0u;
-    photon.transmittance = vec3(1);
+    photon.transmittance = 1.0;
 }
 
 vec4 sampleVolumeColor(vec3 position) {
@@ -60,7 +59,7 @@ void main() {
         gl_GlobalInvocationID.z * globalSize.x * globalSize.y +
         gl_GlobalInvocationID.y * globalSize.x +
         gl_GlobalInvocationID.x;
-    Photon photon = sPhotons[globalInvocationIndex];
+    PhotonRCD photon = sPhotons[globalInvocationIndex];
 
     vec2 r = rand((vec2(gl_GlobalInvocationID.xy) + vec2(gl_GlobalInvocationID.yz)) * uRandSeed);
 //    float d = distance(photon.position, light / vec3(uSize));
@@ -69,9 +68,8 @@ void main() {
     for (uint i = 0u; i < uSteps; i++) {
         r = rand(r);
         float t = -log(r.x) / uMajorant;
-        photon.bounces++;
 
-        photon.position += t * photon.direction;
+        photon.position += t * photon.target;
 
         vec4 volumeSample = sampleVolumeColor(photon.position);
 
@@ -84,10 +82,10 @@ void main() {
 
         if (any(greaterThan(photon.position, vec3(1))) || any(lessThan(photon.position, vec3(0)))) {
             // out of bounds
-            vec3 radiance = photon.transmittance * 0.5;
+            float radiance = photon.transmittance * 0.5;
             photon.samples++;
             photon.radiance += (radiance - photon.radiance) / float(photon.samples);
-            imageStore(uEnergyDensityWrite, ivec3(gl_GlobalInvocationID), vec4(photon.radiance, 0));
+            imageStore(uEnergyDensityWrite, ivec3(gl_GlobalInvocationID), vec4(photon.radiance));
             resetPhoton(r, photon);
         } else if (r.y < PAbsorption) {
             // absorption
@@ -114,10 +112,10 @@ uniform vec3 light;
 
 @rand
 
-@Photon
+@PhotonRCD
 
 layout (std430, binding = 0) buffer bPhotons {
-    Photon sPhotons[];
+    PhotonRCD sPhotons[];
 };
 
 layout (std430, binding = 1) readonly buffer bLights {
@@ -129,15 +127,14 @@ vec3 getRandomLight(vec2 randState) {
 }
 
 void main() {
-    Photon photon;
+    PhotonRCD photon;
     vec2 randState = rand(vec2(gl_GlobalInvocationID) * uRandSeed);
     vec3 from = vec3(gl_GlobalInvocationID) / vec3(uSize);
     vec3 to = light / vec3(uSize);
-    photon.direction = normalize(to - from);
+    photon.target = normalize(to - from);
     photon.position = from;
-    photon.transmittance = vec3(1);
-    photon.bounces = 0u;
-    photon.radiance = vec3(0.05);
+    photon.transmittance = 1.0;
+    photon.radiance = 0.05;
     photon.samples = 0u;
     uvec3 globalSize = gl_WorkGroupSize * gl_NumWorkGroups;
     uint globalInvocationIndex =

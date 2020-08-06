@@ -114,7 +114,7 @@
             {
               "type": "spinner",
               "bind": "extinction",
-              "value": 16,
+              "value": 100,
               "min": 0,
               "step": 1
             }
