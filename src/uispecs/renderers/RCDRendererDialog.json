@@ -93,6 +93,7 @@
     {
       "type": "accordion",
       "label": "Monte Carlo:",
+      "bind": "accMC",
       "children": [
         {
           "type": "field",
@@ -139,6 +140,7 @@
     {
       "type": "accordion",
       "label": "Simple",
+      "bind": "accSimple",
       "children": [
         {
           "type": "field",
@@ -176,6 +178,157 @@
               "value": 1,
               "min": 0,
               "step": 0.2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "accordion",
+      "label": "Light 1",
+      "children": [
+        {
+          "type": "field",
+          "label": "Enabled:",
+          "children": [
+            {
+              "type": "checkbox",
+              "bind": "light1_enabled",
+              "checked": true
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Light Type:",
+          "children": [
+            {
+              "type": "dropdown",
+              "bind": "light1_type",
+              "options": [
+                {
+                  "value": "distant",
+                  "label": "Directional",
+                  "selected": true
+                },
+                {
+                  "value": "point",
+                  "label": "Point"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Light direction/position:",
+          "children": [
+            {
+              "type": "vector",
+              "bind": "light1_dirpos",
+              "valueX": 1,
+              "valueY": 1,
+              "valueZ": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "accordion",
+      "label": "Light 2",
+      "children": [
+        {
+          "type": "field",
+          "label": "Enabled:",
+          "children": [
+            {
+              "type": "checkbox",
+              "bind": "light2_enabled",
+              "checked": false
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Light Type:",
+          "children": [
+            {
+              "type": "dropdown",
+              "bind": "light2_type",
+              "options": [
+                {
+                  "value": "distant",
+                  "label": "Directional",
+                  "selected": true
+                },
+                {
+                  "value": "point",
+                  "label": "Point"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Light direction/position:",
+          "children": [
+            {
+              "type": "vector",
+              "bind": "light2_dirpos",
+              "valueX": 100,
+              "valueY": 40,
+              "valueZ": 100
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "accordion",
+      "label": "Light 3",
+      "children": [
+        {
+          "type": "field",
+          "label": "Enabled:",
+          "children": [
+            {
+              "type": "checkbox",
+              "bind": "light3_enabled",
+              "checked": false
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Light Type:",
+          "children": [
+            {
+              "type": "dropdown",
+              "bind": "light3_type",
+              "options": [
+                {
+                  "value": "distant",
+                  "label": "Directional"
+                },
+                {
+                  "value": "point",
+                  "label": "Point",
+                  "selected": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Light direction/position:",
+          "children": [
+            {
+              "type": "vector",
+              "bind": "light3_dirpos",
+              "value": 120
             }
           ]
         }

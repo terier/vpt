@@ -16,16 +16,14 @@ layout (std430, binding = 0) buffer bPhotons {
 };
 
 layout (std430, binding = 1) readonly buffer bLights {
-    vec3 lights[];
+    vec4 lights[];
 };
 
 uniform ivec3 uSize;
-uniform uint uNLights;
 uniform float uAbsorptionCoefficient;
 uniform float uMajorant;
 uniform float uRandSeed;
 uniform uint uSteps;
-uniform vec3 light;
 layout (r32f, binding = 0) writeonly highp uniform image3D uEnergyDensityWrite;
 
 uniform mediump sampler3D uVolume;
@@ -35,12 +33,14 @@ uniform mediump sampler2D uTransferFunction;
 @rand
 
 vec3 getRandomLight(vec2 randState) {
-    return vec3(0.0);
+    float divider = 1.0 / float(lights.length());
+    randState = rand(randState);
+    return lights[int(randState.x / divider)].xyz;
 }
 
-void resetPhoton(inout vec2 randState, inout PhotonRCD photon) {
+void resetPhoton(vec2 randState, inout PhotonRCD photon) {
     vec3 from = vec3(gl_GlobalInvocationID) / vec3(uSize);
-    vec3 to = light / vec3(uSize);
+    vec3 to = getRandomLight(randState);
     photon.target = to;
     photon.position = from;
     photon.transmittance = 1.0;
@@ -85,9 +85,10 @@ void main() {
         float PNull = abs(muNull) / muMajorant;
         float PAbsorption = muAbsorption / muMajorant;
 
-        if (photon.travelled >= photon.distance) {
+        if (photon.travelled >= photon.distance ||
+            any(greaterThan(photon.position, vec3(1))) || any(lessThan(photon.position, vec3(0)))) {
             // out of bounds
-            float radiance = photon.transmittance * 0.5;
+            float radiance = photon.transmittance;
             photon.samples++;
             photon.radiance += (radiance - photon.radiance) / float(photon.samples);
             imageStore(uEnergyDensityWrite, ivec3(gl_GlobalInvocationID), vec4(photon.radiance));
@@ -113,7 +114,6 @@ layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
 uniform float uRandSeed;
 uniform ivec3 uSize;
-uniform vec3 light;
 
 @rand
 
@@ -124,18 +124,19 @@ layout (std430, binding = 0) buffer bPhotons {
 };
 
 layout (std430, binding = 1) readonly buffer bLights {
-    vec3 lights[];
+    vec4 lights[];
 };
 
 vec3 getRandomLight(vec2 randState) {
-    return vec3(0.0);
+    float divider = 1.0 / float(lights.length());
+    randState = rand(randState);
+    return lights[int(randState.x / divider)].xyz;
 }
-
 void main() {
     PhotonRCD photon;
     vec2 randState = rand(vec2(gl_GlobalInvocationID) * uRandSeed);
     vec3 from = vec3(gl_GlobalInvocationID) / vec3(uSize);
-    vec3 to = light / vec3(uSize);
+    vec3 to = getRandomLight(randState);
     photon.target = to;
     photon.position = from;
     photon.transmittance = 1.0;
@@ -178,9 +179,8 @@ vec4 sampleVolumeColor(vec3 position) {
 void main() {
     ivec3 index = ivec3(gl_GlobalInvocationID);
     vec3 position = vec3(gl_GlobalInvocationID) / vec3(uSize);
-    vec3 light = vec3(uLight) / vec3(uSize);
     float previousRadiance = imageLoad(uEnergyDensityRead, index).r;
-    float rayStepLength = distance(position, light) * uStepSize;
+    float rayStepLength = distance(position, uLight) * uStepSize;
 
     float t = 0.0;
     vec3 pos;
@@ -188,7 +188,7 @@ void main() {
     float accumulator = 1.0;
 
     while (t < 1.0 && accumulator > 0.0) {
-        pos = mix(position, light, t);
+        pos = mix(position, uLight, t);
         absorption = sampleVolumeColor(pos).a * rayStepLength * uAbsorptionCoefficient * uAlphaCorrection;
 
         accumulator -= absorption;

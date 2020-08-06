@@ -18,16 +18,31 @@ constructor(options) {
     this._handleChange = this._handleChange.bind(this);
     this._handleInput = this._handleInput.bind(this);
 
-    const opts = {
-        value : this.value,
+    let opts = {
         min   : this.min,
         max   : this.max,
         step  : this.step
     };
 
+    if (this.valueX)
+        opts.value = this.valueX;
+    else
+        opts.value = this.value;
     this._spinnerX = new Spinner(opts);
+
+    if (this.valueY)
+        opts.value = this.valueY;
+    else
+        opts.value = this.value;
     this._spinnerY = new Spinner(opts);
+
+    if (this.valueZ)
+        opts.value = this.valueZ;
+    else
+        opts.value = this.value;
     this._spinnerZ = new Spinner(opts);
+
+
 
     this._spinnerX.appendTo(this._binds.vectorX);
     this._spinnerY.appendTo(this._binds.vectorY);

@@ -20,10 +20,10 @@ class RCDRenderer extends AbstractRenderer {
             _lightToggling              : 0,
             _localSizeX                 : 16,
             _localSizeY                 : 16,
-            steps                       : 1,
-            _majorant                   : 1,
-            _absorptionCoefficientMC    : 16,
-            _type                       : 1,
+            _steps                      : 1,
+            _majorant                   : 100,
+            _absorptionCoefficientMC    : 100,
+            _type                       : 0,
             _rayCastingStepSize         : 0.00333,
             _rayCastingAlphaCorrection  : 100
         }, options);
@@ -50,8 +50,8 @@ class RCDRenderer extends AbstractRenderer {
         });
 
         this._lightDefinitions = [
-            new LightDefinition('distant', [10,10,10], true),
-            new LightDefinition('point', [220,125,50], false)
+            new LightDefinition('distant', [0.8, 0.01, 0.01], true),
+            new LightDefinition('point', [0, -0.1, 0.5], true)
         ]
 
         if (this._volume.ready) {
@@ -64,9 +64,12 @@ class RCDRenderer extends AbstractRenderer {
         this._type = type;
         if (type === 0) {
             this._initPhotons();
+            this._resetLightsBuffer();
         } else if (this._photonBuffer) {
             gl.deleteBuffer(this._photonBuffer);
+            gl.deleteBuffer(this._lightsBuffer);
             this._photonBuffer = null;
+            this._lightsBuffer = null;
         }
         this._resetLightField();
     }
@@ -106,8 +109,9 @@ class RCDRenderer extends AbstractRenderer {
         this._volumeDimensions = volumeDimensions;
         this._setLightVolumeDimensions();
         console.log("Volume Dimensions: " + volumeDimensions.width + " " + volumeDimensions.height + " " + volumeDimensions.depth);
-        if (this._type === 0)
+        if (this._type === 0) {
             this._initPhotons();
+        }
         this._resetLightField();
         this.counter = 0;
     }
@@ -138,7 +142,7 @@ class RCDRenderer extends AbstractRenderer {
         this._createLightVolume();
         this._resetDiffusionField();
         switch(this._type) {
-            case 0: this.resetPhotons(); break;
+            case 0: this.resetPhotons(); this._resetLightsBuffer(); break;
             case 1: this._rayCasting(); break;
         }
         this.counter = 0;
@@ -184,6 +188,34 @@ class RCDRenderer extends AbstractRenderer {
         this._createDiffusionLightVolume();
     }
 
+    _resetLightsBuffer() {
+        const gl = this._gl;
+        if (this._lightsBuffer)
+            gl.deleteBuffer(this._lightsBuffer);
+        this._createLightsBuffer();
+    }
+
+    _createLightsBuffer() {
+        const gl = this._gl;
+        // const bufferSize = 4 * 4 * this._lightDefinitions;
+        // 4 dimensional array, cannot convert to vec3, hence vec4 is used
+        this._lightsBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.SHADER_STORAGE_BUFFER, this._lightsBuffer);
+        gl.bindBufferBase(gl.SHADER_STORAGE_BUFFER, 1, this._lightsBuffer);
+        gl.bufferData(gl.SHADER_STORAGE_BUFFER, new Float32Array(this._lightDefinitionArray()), gl.STATIC_DRAW);
+    }
+
+    _lightDefinitionArray() {
+        let lightsArray = [];
+        for (let i = 0; i < this._lightDefinitions.length; i++) {
+            if (!this._lightDefinitions[i].isEnabled())
+                continue;
+            let lightArray = this._lightDefinitions[i].getLightArr();
+            lightsArray.push(lightArray[0], lightArray[1], lightArray[2], 0);
+        }
+        return lightsArray;
+    }
+
     destroy() {
         const gl = this._gl;
         Object.keys(this._programs).forEach(programName => {
@@ -195,6 +227,8 @@ class RCDRenderer extends AbstractRenderer {
             gl.deleteTexture(this._energyDensityDiffusion);
         if (this._photonBuffer)
             gl.deleteBuffer(this._photonBuffer);
+        if (this._lightsBuffer)
+            gl.deleteBuffer(this._lightsBuffer);
         super.destroy();
     }
 
@@ -231,14 +265,12 @@ class RCDRenderer extends AbstractRenderer {
         gl.bindBuffer(gl.SHADER_STORAGE_BUFFER, this._photonBuffer);
         gl.bindBufferBase(gl.SHADER_STORAGE_BUFFER, 0, this._photonBuffer);
 
-        // gl.bindBuffer(gl.SHADER_STORAGE_BUFFER, this._photonBuffer);
-        // gl.bindBufferBase(gl.SHADER_STORAGE_BUFFER, 1, this._photonBuffer);
+        gl.bindBuffer(gl.SHADER_STORAGE_BUFFER, this._lightsBuffer);
+        gl.bindBufferBase(gl.SHADER_STORAGE_BUFFER, 1, this._lightsBuffer);
 
         gl.uniform1f(program.uniforms.uRandSeed, Math.random());
         gl.uniform1f(program.uniforms.uMajorant, this._majorant);
-        gl.uniform1ui(program.uniforms.uSteps, this.steps);
-
-        gl.uniform3fv(program.uniforms.light, this._light);
+        gl.uniform1ui(program.uniforms.uSteps, this._steps);
 
         gl.bindImageTexture(0, this._energyDensityVolume, 0, true, 0, gl.WRITE_ONLY, gl.R32F);
 
@@ -258,10 +290,12 @@ class RCDRenderer extends AbstractRenderer {
         gl.bindBuffer(gl.SHADER_STORAGE_BUFFER, this._photonBuffer);
         gl.bindBufferBase(gl.SHADER_STORAGE_BUFFER, 0, this._photonBuffer);
 
+        gl.bindBuffer(gl.SHADER_STORAGE_BUFFER, this._lightsBuffer);
+        gl.bindBufferBase(gl.SHADER_STORAGE_BUFFER, 1, this._lightsBuffer);
+
         const dimensions = this._lightVolumeDimensions;
 
         gl.uniform3i(program.uniforms.uSize, dimensions.width, dimensions.height, dimensions.depth);
-        gl.uniform3fv(program.uniforms.light, this._light);
 
         gl.dispatchCompute(Math.ceil(dimensions.width / this._localSizeX),
             Math.ceil(dimensions.height / this._localSizeY),
@@ -271,32 +305,37 @@ class RCDRenderer extends AbstractRenderer {
     _rayCasting() {
         const gl = this._gl;
         const program = this._programs.rayCasting;
-        gl.useProgram(program.program);
+        for (let lightDefinition of this._lightDefinitions) {
+            if (!lightDefinition.isEnabled()) {
+                continue;
+            }
+            gl.useProgram(program.program);
 
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
 
-        gl.activeTexture(gl.TEXTURE1);
-        gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
+            gl.activeTexture(gl.TEXTURE1);
+            gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
 
-        gl.uniform1i(program.uniforms.uVolume, 0);
-        gl.uniform1i(program.uniforms.uTransferFunction, 1);
+            gl.uniform1i(program.uniforms.uVolume, 0);
+            gl.uniform1i(program.uniforms.uTransferFunction, 1);
 
-        const dimensions = this._lightVolumeDimensions;
-        gl.uniform3i(program.uniforms.uSize, dimensions.width, dimensions.height, dimensions.depth);
+            const dimensions = this._lightVolumeDimensions;
+            gl.uniform3i(program.uniforms.uSize, dimensions.width, dimensions.height, dimensions.depth);
 
-        gl.uniform1f(program.uniforms.uAbsorptionCoefficient, this._absorptionCoefficient);
+            gl.uniform1f(program.uniforms.uAbsorptionCoefficient, this._absorptionCoefficient);
 
-        gl.uniform3fv(program.uniforms.uLight, this._light);
+            gl.uniform3fv(program.uniforms.uLight, lightDefinition.getLightArr());
 
-        gl.uniform1f(program.uniforms.uStepSize, this._rayCastingStepSize);
-        gl.uniform1f(program.uniforms.uAlphaCorrection, this._rayCastingAlphaCorrection);
+            gl.uniform1f(program.uniforms.uStepSize, this._rayCastingStepSize);
+            gl.uniform1f(program.uniforms.uAlphaCorrection, this._rayCastingAlphaCorrection);
 
-        gl.bindImageTexture(0, this._energyDensityVolume, 0, true, 0, gl.READ_WRITE, gl.R32F);
+            gl.bindImageTexture(0, this._energyDensityVolume, 0, true, 0, gl.READ_WRITE, gl.R32F);
 
-        gl.dispatchCompute(Math.ceil(dimensions.width / this._localSizeX),
-            Math.ceil(dimensions.height / this._localSizeY),
-            dimensions.depth);
+            gl.dispatchCompute(Math.ceil(dimensions.width / this._localSizeX),
+                Math.ceil(dimensions.height / this._localSizeY),
+                dimensions.depth);
+        }
     }
 
     _diffusion() {

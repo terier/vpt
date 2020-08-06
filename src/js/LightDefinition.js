@@ -8,6 +8,10 @@ class LightDefinition {
         this.enabled = enabled;
     }
 
+    getLightArr() {
+        return this.light;
+    }
+
     isEnabled() {
         return this.enabled;
     }
