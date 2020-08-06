@@ -214,20 +214,14 @@ layout (r32f, binding = 1) writeonly highp uniform image3D uEnergyDensityDiffusi
 void main() {
     ivec3 position = ivec3(gl_GlobalInvocationID);
 
+    if (position.x < 1 || position.y < 1 || position.z < 1 ||
+    position.x >= uSize.x - 1 || position.y >= uSize.y - 1 || position.z >= uSize.z - 1) {
+        return;
+    }
+
     for (int i = 0; i < 1; i++) {
         float radiance = imageLoad(uEnergyDensityRead, position).r;
         radiance += imageLoad(uEnergyDensityDiffusionRead, position).r;
-
-//        float dl    = imageLoad(uEnergyDensityRead, position + ivec3(-1, -1, 0)).r;
-//        float ul    = imageLoad(uEnergyDensityRead, position + ivec3(-1,  1,  0)).r;
-//        float dr    = imageLoad(uEnergyDensityRead, position + ivec3( 1, -1,  0)).r;
-//        float ur    = imageLoad(uEnergyDensityRead, position + ivec3( 1,  1,  0)).r;
-//        float left  = imageLoad(uEnergyDensityRead, position + ivec3(-1,  0,  0)).r;
-//        float right = imageLoad(uEnergyDensityRead, position + ivec3( 1,  0,  0)).r;
-//        float down  = imageLoad(uEnergyDensityRead, position + ivec3( 0, -1,  0)).r;
-//        float up    = imageLoad(uEnergyDensityRead, position + ivec3( 0,  1,  0)).r;
-
-//        float laplace = 0.25 * dl + 0.25 * ul + 0.25 * dr + 0.25 * ur + 0.5 * left + 0.5 * right + 0.5 * down + 0.5 * up - 3.0 * radiance;
 
         float left      = imageLoad(uEnergyDensityRead, position + ivec3(-1,  0,  0)).r;
         float right     = imageLoad(uEnergyDensityRead, position + ivec3( 1,  0,  0)).r;
