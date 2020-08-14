@@ -50,6 +50,10 @@ getSelectedToneMapper() {
     return this._binds.toneMapperSelect.getValue();
 }
 
+getLightsContainer() {
+    return this._binds.lights_container;
+}
+
 _handleRendererChange() {
     const renderer = this._binds.rendererSelect.getValue();
     this.trigger('rendererchange', renderer);

@@ -1,0 +1,68 @@
+// #package uispecs
+
+// #section LightsGroup
+
+{
+  "type": "panel",
+  "children": [
+    {
+      "type": "panel",
+      "bind": "controlPanel"
+    },
+    {
+      "type": "panel",
+      "children": [
+        {
+          "type": "field",
+          "label": "Enabled:",
+          "children": [
+            {
+              "type": "checkbox",
+              "bind": "enabled",
+              "checked": true
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Light Type:",
+          "children": [
+            {
+              "type": "dropdown",
+              "bind": "type",
+              "options": [
+                {
+                  "value": "distant",
+                  "label": "Directional",
+                  "selected": true
+                },
+                {
+                  "value": "point",
+                  "label": "Point"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Light direction/position:",
+          "children": [
+            {
+              "type": "vector",
+              "bind": "dirpos",
+              "valueX": 1,
+              "valueY": 1,
+              "valueZ": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "spacer",
+      "bind": "spacer",
+      "height": "1px"
+    }
+  ]
+}

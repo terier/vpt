@@ -16,6 +16,10 @@ class LightDefinition {
         return this.enabled;
     }
 
+    isOrWasEnabled(oldDefinition) {
+        return this.isEnabled() || (oldDefinition && oldDefinition.isEnabled());
+    }
+
     hasChanged(oldDefinition) {
         // console.log("old:", oldDefinition, "new", this)
         if (!oldDefinition)

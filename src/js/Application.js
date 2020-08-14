@@ -17,6 +17,7 @@ constructor() {
     this._handleToneMapperChange = this._handleToneMapperChange.bind(this);
     this._handleVolumeLoad = this._handleVolumeLoad.bind(this);
     this._handleEnvmapLoad = this._handleEnvmapLoad.bind(this);
+    this._handleLightsChange = this._handleLightsChange.bind(this);
 
     this._renderingContext = new RenderingContext();
     this._canvas = this._renderingContext.getCanvas();
@@ -65,6 +66,11 @@ constructor() {
         this._renderingContext.setFilter(options.filter);
     });
 
+    this._lightsDialog = new LightsDialog();
+    this._lightsDialog.appendTo(this._mainDialog.getLightsContainer());
+    this._lightsDialog.addEventListener('change', this._handleLightsChange);
+    this._lightsDialog._setInitialLights();
+
     this._mainDialog.addEventListener('rendererchange', this._handleRendererChange);
     this._mainDialog.addEventListener('tonemapperchange', this._handleToneMapperChange);
     this._mainDialog.trigger('rendererchange', this._mainDialog.getSelectedRenderer());
@@ -100,6 +106,16 @@ _handleRendererChange(which) {
     const dialogClass = this._getDialogForRenderer(which);
     this._rendererDialog = new dialogClass(renderer);
     this._rendererDialog.appendTo(container);
+    
+    this._handleLightsChange();
+}
+
+_handleLightsChange() {
+    if (!this._rendererDialog || !this._rendererDialog._hasLights)
+        return;
+
+    const lights = this._lightsDialog.getGroups();
+    this._rendererDialog._handleChangeLights(lights);
 }
 
 _handleToneMapperChange(which) {

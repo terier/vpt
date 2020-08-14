@@ -95,6 +95,9 @@ class FCDRenderer extends AbstractRenderer {
         const gl = this._gl;
         let lightDefinition = this._lightDefinitions[index];
 
+        if (this._lightVolumes[index])
+            this._lightVolumes[index].deleteTexture();
+
         this._lightVolumes[index] = new LightVolume(gl,
             lightDefinition.type,
             lightDefinition.light[0], lightDefinition.light[1], lightDefinition.light[2],
@@ -123,6 +126,8 @@ class FCDRenderer extends AbstractRenderer {
         gl.dispatchCompute(Math.ceil(dimensions.width / this._localSizeX),
             Math.ceil(dimensions.height / this._localSizeY),
             dimensions.depth);
+
+
     }
 
     _createConvectionLightVolume() {

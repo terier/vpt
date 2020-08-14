@@ -9,6 +9,7 @@ class FCDRendererDialog extends AbstractDialog {
 
     constructor(renderer, options) {
         super(UISPECS.FCDRendererDialog, options);
+        this._hasLights = true;
 
         this._renderer = renderer;
 
@@ -19,7 +20,7 @@ class FCDRendererDialog extends AbstractDialog {
         this._handleChangeResetLightField = this._handleChangeResetLightField.bind(this);
         this._handleChangeRatio = this._handleChangeRatio.bind(this);
         this._handleTFChange = this._handleTFChange.bind(this);
-        this._handleChangeLights = this._handleChangeLights.bind(this);
+        // this._handleChangeLights = this._handleChangeLights.bind(this);
 
         this._binds.steps.addEventListener('input', this._handleChange);
         this._binds.opacity.addEventListener('input', this._handleChange);
@@ -31,24 +32,9 @@ class FCDRendererDialog extends AbstractDialog {
         this._binds.repeats.addEventListener('input', this._handleChangeResetLightField);
         this._binds.convectionSteps.addEventListener('input', this._handleChangeResetLightField);
 
-        this._setLightsBinds();
-
         this._tfwidget = new TransferFunctionWidget();
         this._binds.tfcontainer.add(this._tfwidget);
         this._tfwidget.addEventListener('change', this._handleTFChange);
-    }
-
-    _setLightsBinds() {
-        for (let i = 1; i < 100; i++) {
-            let name = "light" + i;
-            if (this._binds[name + "_enabled"]) {
-                this._binds[name + "_enabled"].addEventListener('change', this._handleChangeLights);
-                this._binds[name + "_dirpos"].addEventListener('input', this._handleChangeLights);
-                this._binds[name + "_type"].addEventListener('input', this._handleChangeLights);
-            } else {
-                break;
-            }
-        }
     }
 
     _setInitialValues() {
@@ -57,12 +43,6 @@ class FCDRendererDialog extends AbstractDialog {
         this._renderer._absorptionCoefficient = this._binds.absorptionCoefficient.getValue();
         this._renderer._scattering = this._binds.scattering.getValue();
 
-        // this._renderer._lightType = this._binds.lightType.getValue();
-        // const direction = this._binds.direction.getValue();
-        // this._renderer._light[0] = direction.x;
-        // this._renderer._light[1] = direction.y;
-        // this._renderer._light[2] = direction.z;
-        this._setLights();
         this._renderer._convectionLimit = this._binds.repeats.getValue();
         this._renderer._convectionSteps = this._binds.convectionSteps.getValue();
         this._renderer._lightVolumeRatio = this._binds.ratio.getValue();
@@ -90,13 +70,6 @@ class FCDRendererDialog extends AbstractDialog {
     }
 
     _handleChangeResetLightField() {
-        // this._renderer._lightType = this._binds.lightType.getValue();
-        //
-        // const direction = this._binds.direction.getValue();
-        // this._renderer._light[0] = direction.x;
-        // this._renderer._light[1] = direction.y;
-        // this._renderer._light[2] = direction.z;
-
         this._renderer._convectionLimit = this._binds.repeats.getValue();
 
         this._renderer._convectionSteps = this._binds.convectionSteps.getValue();
@@ -114,73 +87,80 @@ class FCDRendererDialog extends AbstractDialog {
         }
     }
 
-    _handleChangeLights() {
+    _handleChangeLights(lights) {
         // console.log("Change")
         if (this._renderer._lightToggling === 0) {
             this._setLightsSimple();
         } else {
-            this._setLights();
+            this._setLights(lights);
         }
         this._renderer.reset();
     }
 
     _setLightsSimple() {
         // let lightDefinitions = [];
-        let hasChanged = false;
+        let doReset = false;
+        const renderer = this._renderer;
+        const oldLightDefinitions = renderer._lightDefinitions;
+        renderer._lightDefinitions = [];
         for (let i = 0; i < 100; i++) {
-            let name = "light" + (i + 1);
-            if (this._binds[name + "_enabled"]) {
-                let oldLightDefinition = this._renderer._lightDefinitions[i];
-                let dirpos = this._binds[name + "_dirpos"].getValue();
-                let lightDefinition = new LightDefinition(
-                    this._binds[name + "_type"].getValue(),
-                    [dirpos.x / 100, dirpos.y / 100, dirpos.z / 100],
-                    this._binds[name + "_enabled"].isChecked()
-                )
-                this._renderer._lightDefinitions[i] = lightDefinition;
-                if (this._renderer._volumeDimensions &&
-                    (lightDefinition.isEnabled() || (oldLightDefinition && oldLightDefinition.isEnabled())) &&
-                    lightDefinition.hasChanged(oldLightDefinition)) {
-                    hasChanged = true;
-                }
-            } else {
-                break;
+            let light = lights[i];
+            let oldLightDefinition = oldLightDefinitions[i];
+            let lightDefinition = new LightDefinition(
+                light.type,
+                [light.dirpos.x / 100, light.dirpos.y / 100, light.dirpos.z / 100],
+                light.enabled
+            )
+            renderer._lightDefinitions[i] = lightDefinition;
+            if (renderer._volumeDimensions &&
+                lightDefinition.isOrWasEnabled(oldLightDefinition) &&
+                lightDefinition.hasChanged(oldLightDefinition)) {
+                doReset = true;
             }
         }
-        if (hasChanged) {
+        if (doReset) {
             this._renderer._resetLightField();
         }
     }
 
-    _setLights() {
+    _setLights(lights) {
         // let lightDefinitions = [];
-        for (let i = 0; i < 100; i++) {
-            let name = "light" + (i + 1);
-            if (this._binds[name + "_enabled"]) {
-                let oldLightDefinition = this._renderer._lightDefinitions[i];
-                let dirpos = this._binds[name + "_dirpos"].getValue();
-                let lightDefinition = new LightDefinition(
-                    this._binds[name + "_type"].getValue(),
-                    [dirpos.x / 100, dirpos.y / 100, dirpos.z / 100],
-                    this._binds[name + "_enabled"].isChecked()
-                )
-                this._renderer._lightDefinitions[i] = lightDefinition;
-                // console.log(lightDefinition)
-                if (!lightDefinition.isEnabled() && this._renderer._lightVolumes[i]) {
-                    this._renderer._removeLightDensity(i);
-                    this._renderer._lightVolumes[i].deleteTexture();
-                    this._renderer._lightVolumes[i] = null;
-                }
-                else if (
-                    this._renderer._volumeDimensions &&
-                    lightDefinition.isEnabled() &&
-                    lightDefinition.hasChanged(oldLightDefinition)) {
-                    this._renderer._removeLightDensity(i);
-                    this._renderer._resetLightVolume(i);
-                }
-            } else {
-                break;
+        const renderer = this._renderer;
+        const oldLightDefinitions = renderer._lightDefinitions;
+        renderer._lightDefinitions = [];
+        for (let i = 0; i < lights.length; i++) {
+            let light = lights[i];
+            let oldLightDefinition = oldLightDefinitions[i];
+            let lightDefinition = new LightDefinition(
+                light.type,
+                [light.dirpos.x / 100, light.dirpos.y / 100, light.dirpos.z / 100],
+                light.enabled
+            )
+            this._renderer._lightDefinitions[i] = lightDefinition;
+            // console.log(lightDefinition)
+            if (!lightDefinition.isEnabled() && this._renderer._lightVolumes[i]) {
+                this._renderer._removeLightDensity(i);
+                this._renderer._lightVolumes[i].deleteTexture();
+                this._renderer._lightVolumes[i] = null;
             }
+            else if (
+                this._renderer._volumeDimensions &&
+                lightDefinition.isEnabled() &&
+                lightDefinition.hasChanged(oldLightDefinition)) {
+                this._renderer._removeLightDensity(i);
+                this._renderer._resetLightVolume(i);
+            }
+        }
+        if (renderer._lightVolumes.length > lights.length) {
+            for (let i = lights.length; i < renderer._lightVolumes.length; i++) {
+                let lightVolume = renderer._lightVolumes[i];
+                if (lightVolume) {
+                    this._renderer._removeLightDensity(i);
+                    lightVolume.deleteTexture();
+                }
+
+            }
+            this._renderer._lightVolumes.length = lights.length;
         }
         // console.log(this._renderer._lightDefinitions)
         // this._renderer._lightDefinitions = lightDefinitions;

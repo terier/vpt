@@ -9,6 +9,7 @@ class RCDRendererDialog extends AbstractDialog {
 
     constructor(renderer, options) {
         super(UISPECS.RCDRendererDialog, options);
+        this._hasLights = true;
 
         this._renderer = renderer;
 
@@ -20,7 +21,7 @@ class RCDRendererDialog extends AbstractDialog {
         this._handleChangeResetLightField = this._handleChangeResetLightField.bind(this);
         this._handleChangeRatio = this._handleChangeRatio.bind(this);
         this._handleTFChange = this._handleTFChange.bind(this);
-        this._handleChangeLights = this._handleChangeLights.bind(this);
+        // this._handleChangeLights = this._handleChangeLights.bind(this);
         this._handleChangeResetLightFieldSimple = this._handleChangeResetLightFieldSimple.bind(this);
         this._handleChangeResetLightFieldMC = this._handleChangeResetLightFieldMC.bind(this);
 
@@ -31,8 +32,6 @@ class RCDRendererDialog extends AbstractDialog {
         this._binds.renderer_type.addEventListener('input', this._handleChangeType);
         this._binds.scattering.addEventListener('input', this._handleChangeScettering);
         this._binds.ratio.addEventListener('input', this._handleChangeRatio);
-
-        this._setLightsBinds();
 
         // Simple
         this._binds.absorptionCoefficient.addEventListener('input', this._handleChangeResetLightFieldSimple);
@@ -45,28 +44,9 @@ class RCDRendererDialog extends AbstractDialog {
         this._binds.extinction.addEventListener('input', this._handleChangeResetLightFieldMC);
         this._binds.ray_steps.addEventListener('input', this._handleChange);
 
-
-
-
-
-        // this._setLightsBinds();
-
         this._tfwidget = new TransferFunctionWidget();
         this._binds.tfcontainer.add(this._tfwidget);
         this._tfwidget.addEventListener('change', this._handleTFChange);
-    }
-
-    _setLightsBinds() {
-        for (let i = 1; i < 100; i++) {
-            let name = "light" + i;
-            if (this._binds[name + "_enabled"]) {
-                this._binds[name + "_enabled"].addEventListener('change', this._handleChangeLights);
-                this._binds[name + "_dirpos"].addEventListener('input', this._handleChangeLights);
-                this._binds[name + "_type"].addEventListener('input', this._handleChangeLights);
-            } else {
-                break;
-            }
-        }
     }
 
     _setInitialValues() {
@@ -97,31 +77,26 @@ class RCDRendererDialog extends AbstractDialog {
         this._renderer._lightVolumeRatio = this._binds.ratio.getValue();
 
         this._renderer._rayCastingStepSize = 1 / this._binds.simple_ray_steps.getValue();
-
-        this._setLights();
     }
 
-    _setLights() {
-        // let lightDefinitions = [];
+    _setLights(lights) {
         let doReset = false;
-        for (let i = 0; i < 100; i++) {
-            let name = "light" + (i + 1);
-            if (this._binds[name + "_enabled"]) {
-                let oldLightDefinition = this._renderer._lightDefinitions[i];
-                let dirpos = this._binds[name + "_dirpos"].getValue();
-                let lightDefinition = new LightDefinition(
-                    this._binds[name + "_type"].getValue(),
-                    [dirpos.x / 100, dirpos.y / 100, dirpos.z / 100],
-                    this._binds[name + "_enabled"].isChecked()
-                )
-                this._renderer._lightDefinitions[i] = lightDefinition;
-                if (this._renderer._volumeDimensions &&
-                    (lightDefinition.isEnabled() || (oldLightDefinition && oldLightDefinition.isEnabled())) &&
-                    lightDefinition.hasChanged(oldLightDefinition)) {
-                    doReset = true;
-                }
-            } else {
-                break;
+        const renderer = this._renderer;
+        const oldLightDefinitions = renderer._lightDefinitions;
+        renderer._lightDefinitions = [];
+        for (let i = 0; i < lights.length; i++) {
+            let light = lights[i];
+            let oldLightDefinition = oldLightDefinitions[i];
+            let lightDefinition = new LightDefinition(
+                light.type,
+                [light.dirpos.x / 100, light.dirpos.y / 100, light.dirpos.z / 100],
+                light.enabled
+            )
+            renderer._lightDefinitions[i] = lightDefinition;
+            if (renderer._volumeDimensions &&
+                lightDefinition.isOrWasEnabled(oldLightDefinition) &&
+                lightDefinition.hasChanged(oldLightDefinition)) {
+                doReset = true;
             }
         }
         if (doReset) {
@@ -208,9 +183,9 @@ class RCDRendererDialog extends AbstractDialog {
         this._renderer.reset();
     }
 
-    _handleChangeLights() {
+    _handleChangeLights(lights) {
         // console.log("Change")
-        this._setLights();
+        this._setLights(lights);
         this._renderer.reset();
     }
 

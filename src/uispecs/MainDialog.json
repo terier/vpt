@@ -65,12 +65,13 @@
                         },
                         {
                           "value": "fcd",
-                          "label": "Convection-Diffusion"
+                          "label": "Convection-Diffusion",
+                          "selected": true
                         },
                         {
                           "value": "rcd",
-                          "label": "Experiment",
-                          "selected": true
+                          "label": "Experiment"
+
                         }
                       ]
                     }
@@ -123,6 +124,10 @@
               "label": "Context"
             }
           ]
+        },
+        "Lights": {
+          "type": "panel",
+          "bind": "lights_container"
         },
         "About": {
           "type": "panel",
