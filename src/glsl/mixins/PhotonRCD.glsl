@@ -4,7 +4,7 @@
 
 struct PhotonRCD {
     vec3 position;
-    vec3 target;
+    vec3 direction;
     float transmittance;
     float radiance;
     float distance;

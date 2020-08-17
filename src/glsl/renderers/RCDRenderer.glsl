@@ -6,6 +6,9 @@
 // #section RCDMonteCarlo/compute
 
 #version 310 es
+#define DIRECTIONAL 0.5
+#define POINT 1.5
+#define FLT_MAX 3.402823466e+38
 precision highp float;
 layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
@@ -32,20 +35,27 @@ uniform mediump sampler2D uTransferFunction;
 
 @rand
 
-vec3 getRandomLight(vec2 randState) {
+vec4 getRandomLight(vec2 randState) {
     float divider = 1.0 / float(lights.length());
     randState = rand(randState);
-    return lights[int(randState.x / divider)].xyz;
+    return lights[int(randState.x / divider)];
 }
 
 void resetPhoton(vec2 randState, inout PhotonRCD photon) {
     vec3 from = vec3(gl_GlobalInvocationID) / vec3(uSize);
-    vec3 to = getRandomLight(randState);
-    photon.target = to;
+    vec4 to = getRandomLight(randState);
+//    photon.direction = normalize(to.xyz - from);
+    if (to.a < DIRECTIONAL) {
+        photon.direction = -normalize(to.xyz);
+        photon.distance = FLT_MAX;
+    } else {
+        photon.direction = normalize(to.xyz - from);
+        photon.distance = distance(from, to.xyz);
+    }
     photon.position = from;
     photon.transmittance = 1.0;
     photon.travelled = 0.0;
-    photon.distance = distance(from, to);
+
 }
 
 vec4 sampleVolumeColor(vec3 position) {
@@ -70,8 +80,7 @@ void main() {
     for (uint i = 0u; i < uSteps; i++) {
         r = rand(r);
         float t = -log(r.x) / uMajorant;
-        vec3 direction = normalize(photon.target - photon.position);
-        vec3 newPosition = photon.position + t * direction;
+        vec3 newPosition = photon.position + t * photon.direction;
         float distance = distance(photon.position, newPosition);
         photon.position = newPosition;
         photon.travelled += distance;
@@ -110,6 +119,9 @@ void main() {
 // #section RCDResetPhotons/compute
 
 #version 310 es
+#define DIRECTIONAL 0.5
+#define POINT 1.5
+#define FLT_MAX 3.402823466e+38
 layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
 uniform float uRandSeed;
@@ -127,21 +139,27 @@ layout (std430, binding = 1) readonly buffer bLights {
     vec4 lights[];
 };
 
-vec3 getRandomLight(vec2 randState) {
+vec4 getRandomLight(vec2 randState) {
     float divider = 1.0 / float(lights.length());
     randState = rand(randState);
-    return lights[int(randState.x / divider)].xyz;
+    return lights[int(randState.x / divider)];
 }
 void main() {
     PhotonRCD photon;
     vec2 randState = rand(vec2(gl_GlobalInvocationID) * uRandSeed);
     vec3 from = vec3(gl_GlobalInvocationID) / vec3(uSize);
-    vec3 to = getRandomLight(randState);
-    photon.target = to;
+    vec4 to = getRandomLight(randState);
+//    photon.direction = normalize(to.xyz - from);
+    if (to.a < DIRECTIONAL) {
+        photon.direction = -normalize(to.xyz);
+        photon.distance = FLT_MAX;
+    } else {
+        photon.direction = normalize(to.xyz - from);
+        photon.distance = distance(from, to.xyz);
+    }
     photon.position = from;
     photon.transmittance = 1.0;
     photon.travelled = 0.0;
-    photon.distance = distance(from, to);
     photon.radiance = 0.05;
     photon.samples = 0u;
     uvec3 globalSize = gl_WorkGroupSize * gl_NumWorkGroups;

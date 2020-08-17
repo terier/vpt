@@ -9,8 +9,8 @@ class RCDRenderer extends AbstractRenderer {
     constructor(gl, volume, environmentTexture, options) {
         super(gl, volume, environmentTexture, options);
         Object.assign(this, {
-            _light                      : [10, 10, 10],
             _lightDefinitions           : [],
+            _nActiveLights              : 0,
             // _lightType                  : 'distant',
             _stepSize                   : 0.00333,
             _alphaCorrection            : 100,
@@ -142,7 +142,7 @@ class RCDRenderer extends AbstractRenderer {
         this._createLightVolume();
         this._resetDiffusionField();
         switch(this._type) {
-            case 0: this.resetPhotons(); this._resetLightsBuffer(); break;
+            case 0: this._resetLightsBuffer(); this.resetPhotons(); break;
             case 1: this._rayCasting(); break;
         }
         this.counter = 0;
@@ -202,17 +202,20 @@ class RCDRenderer extends AbstractRenderer {
         this._lightsBuffer = gl.createBuffer();
         gl.bindBuffer(gl.SHADER_STORAGE_BUFFER, this._lightsBuffer);
         gl.bindBufferBase(gl.SHADER_STORAGE_BUFFER, 1, this._lightsBuffer);
+
         gl.bufferData(gl.SHADER_STORAGE_BUFFER, new Float32Array(this._lightDefinitionArray()), gl.STATIC_DRAW);
     }
 
     _lightDefinitionArray() {
         let lightsArray = [];
+
         for (let i = 0; i < this._lightDefinitions.length; i++) {
             if (!this._lightDefinitions[i].isEnabled())
                 continue;
             let lightArray = this._lightDefinitions[i].getLightArr();
-            lightsArray.push(lightArray[0], lightArray[1], lightArray[2], 0);
+            lightsArray.push(lightArray[0], lightArray[1], lightArray[2], this._lightDefinitions[i].typeToInt());
         }
+        this._nActiveLights = lightsArray.length;
         return lightsArray;
     }
 
@@ -242,6 +245,9 @@ class RCDRenderer extends AbstractRenderer {
     }
 
     _monteCarlo() {
+        if (this._nActiveLights === 0) {
+            return;
+        }
         const gl = this._gl;
         const program = this._programs.monteCarlo;
         gl.useProgram(program.program);

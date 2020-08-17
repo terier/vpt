@@ -30,7 +30,7 @@ class LightsDialog extends AbstractDialog {
     _setInitialLights() {
         const group = this._addGroup();
         group.binds.enabled.setChecked(true);
-        group.binds.type.setValue('distant');
+        group.binds.type.setValue('point');
         group.binds.dirpos.setValue({x: 1, y: 1, z: 1});
         this._handleGroupChange();
     }

@@ -39,7 +39,6 @@ class RCDRendererDialog extends AbstractDialog {
         this._binds.simple_opacity.addEventListener('input', this._handleChangeResetLightFieldSimple);
 
         // MC
-        this._binds.light_pos.addEventListener('input', this._handleChangeResetLightFieldMC);
         this._binds.majorant_ratio.addEventListener('change', this._handleChangeResetLightFieldMC);
         this._binds.extinction.addEventListener('input', this._handleChangeResetLightFieldMC);
         this._binds.ray_steps.addEventListener('input', this._handleChange);
@@ -62,11 +61,6 @@ class RCDRendererDialog extends AbstractDialog {
         this._setTypeAccordions(type);
 
         this._renderer._steps = this._binds.ray_steps.getValue();
-
-        const pos = this._binds.light_pos.getValue();
-        this._renderer._light[0] = pos.x;
-        this._renderer._light[1] = pos.y;
-        this._renderer._light[2] = pos.z;
 
         const extinction = this._binds.extinction.getValue();
         
@@ -158,10 +152,6 @@ class RCDRendererDialog extends AbstractDialog {
         this._renderer._absorptionCoefficientMC = extinction;
 
         this._renderer._majorant = this._binds.majorant_ratio.getValue() * extinction;
-        const pos = this._binds.light_pos.getValue();
-        this._renderer._light[0] = pos.x;
-        this._renderer._light[1] = pos.y;
-        this._renderer._light[2] = pos.z;
 
         if (this._renderer._type === 0) {
             this._renderer._resetLightField();

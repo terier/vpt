@@ -30,4 +30,11 @@ class LightDefinition {
             || this.light[2] !== oldDefinition.light[2]
             || this.enabled !== oldDefinition.enabled
     }
+
+    typeToInt() {
+        switch(this.type) {
+            case "distant": return 0;
+            case "point": return 1;
+        }
+    }
 }

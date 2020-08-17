@@ -59,17 +59,6 @@
     },
     {
       "type": "field",
-      "label": "Light position:",
-      "children": [
-        {
-          "type": "vector",
-          "bind": "light_pos",
-          "value": 1
-        }
-      ]
-    },
-    {
-      "type": "field",
       "label": "Renderer Subtype:",
       "children": [
         {
