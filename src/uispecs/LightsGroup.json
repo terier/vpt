@@ -46,7 +46,8 @@
         },
         {
           "type": "field",
-          "label": "Light direction/position:",
+          "label": "Light direction:",
+          "bind": "dirpos_text",
           "children": [
             {
               "type": "vector",

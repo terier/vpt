@@ -59,6 +59,7 @@ class LightsDialog extends AbstractDialog {
     }
 
     _handleGroupChange() {
+        this._setDirposText();
         this.trigger('change');
     }
 
@@ -81,9 +82,8 @@ class LightsDialog extends AbstractDialog {
         // binds.attribute.setValue(this.attributes[0]);
 
         binds.enabled.setChecked(false);
-        group.binds.type.setValue('distant');
-        group.binds.dirpos.setValue({x: 1, y: 1, z: 1});
-
+        binds.type.setValue('distant');
+        binds.dirpos.setValue({x: 1, y: 1, z: 1});
         // controlPanelButtons.up.addEventListener('click', e => this._moveUp(group));
         // controlPanelButtons.down.addEventListener('click', e => this._moveDown(group));
         controlPanelButtons.delete.addEventListener('click', e => this._delete(group));
@@ -93,6 +93,15 @@ class LightsDialog extends AbstractDialog {
         binds.dirpos.addEventListener('input', this._handleGroupChange);
 
         return group;
+    }
+
+    _setDirposText() {
+        for (const group of this.groups) {
+            switch(group.binds.type.getValue()) {
+                case 'distant': group.binds.dirpos_text.rename("Light direction:"); break;
+                case 'point': group.binds.dirpos_text.rename("Light position (%):"); break;
+            }
+        }
     }
 
     // _moveUp(group) {

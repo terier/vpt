@@ -39,4 +39,9 @@ add(object) {
     }
 }
 
+rename(label) {
+    this.label = label;
+    this._binds.label.textContent = this.label;
+}
+
 }

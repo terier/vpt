@@ -107,6 +107,15 @@ _handleRendererChange(which) {
     this._rendererDialog = new dialogClass(renderer);
     this._rendererDialog.appendTo(container);
     
+    this._handleLightsDialog();
+}
+
+_handleLightsDialog() {
+    if (this._rendererDialog && !this._rendererDialog._hasLights) {
+        this._lightsDialog.hide();
+        return;
+    }
+    this._lightsDialog.show();
     this._handleLightsChange();
 }
 
