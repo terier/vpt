@@ -122,7 +122,7 @@ void main() {
         radiance - imageLoad(uEnergyDensityRead, position + ivec3(0,  0, -1)).r
         );
         // (1 - absorption) * (p - 1/2 deltap)
-        float convectionDelta = -dot(lightDirection, grad) * 0.5 / uRatio;
+        float convectionDelta = -dot(lightDirection, grad) * 0.5 / revAbsorption;
 
         float new = revAbsorption * (radiance + convectionDelta);
 

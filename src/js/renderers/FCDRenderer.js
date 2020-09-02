@@ -9,8 +9,6 @@ class FCDRenderer extends AbstractRenderer {
     constructor(gl, volume, environmentTexture, options) {
         super(gl, volume, environmentTexture, options);
         Object.assign(this, {
-            // _light                      : [10, 10, 10],
-            // _lightType                  : 'distant',
             _lightDefinitions           : [],
             _lightVolumes               : [],
             _stepSize                   : 0.00333,
@@ -284,8 +282,9 @@ class FCDRenderer extends AbstractRenderer {
             }
             this.counter++;
         }
-        else {
+        else if (this._scattering > 0) {
             this._diffusion();
+            console.log("Doing diffusion")
         }
 
         const program = this._programs.generate;
