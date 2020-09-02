@@ -43,6 +43,7 @@ class RCDRendererDialog extends AbstractDialog {
         this._binds.extinction.addEventListener('input', this._handleChangeResetLightFieldMC);
         this._binds.ray_steps.addEventListener('input', this._handleChange);
 
+        this._binds.limit.addEventListener('input', this._handleChange);
         this._tfwidget = new TransferFunctionWidget();
         this._binds.tfcontainer.add(this._tfwidget);
         this._tfwidget.addEventListener('change', this._handleTFChange);
@@ -107,7 +108,7 @@ class RCDRendererDialog extends AbstractDialog {
         this._renderer._stepSize = 1 / this._binds.steps.getValue();
         this._renderer._alphaCorrection = this._binds.opacity.getValue();
         this._renderer._steps = this._binds.ray_steps.getValue();
-
+        this._renderer._limit = this._binds.limit.getValue();
         this._renderer.reset();
     }
 
@@ -160,8 +161,7 @@ class RCDRendererDialog extends AbstractDialog {
     }
 
     _handleChangeResetLightField() {
-
-
+        this._renderer._limit = this._binds.limit.getValue();
         this._renderer._resetLightField();
         this._renderer.reset();
     }

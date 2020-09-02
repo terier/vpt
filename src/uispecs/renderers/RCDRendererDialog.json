@@ -123,6 +123,19 @@
               "step": 0.1
             }
           ]
+        },
+        {
+          "type": "field",
+          "label": "Iterations",
+          "children": [
+            {
+              "type": "spinner",
+              "bind": "limit",
+              "value": 0,
+              "min": 0,
+              "step": 1
+            }
+          ]
         }
       ]
     },

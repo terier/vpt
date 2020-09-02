@@ -25,7 +25,8 @@ class RCDRenderer extends AbstractRenderer {
             _absorptionCoefficientMC    : 100,
             _type                       : 0,
             _rayCastingStepSize         : 0.00333,
-            _rayCastingAlphaCorrection  : 100
+            _rayCastingAlphaCorrection  : 100,
+            _limit                      : 0
         }, options);
 
         this._programs = WebGL.buildPrograms(this._gl, {
@@ -367,10 +368,17 @@ class RCDRenderer extends AbstractRenderer {
 
     _generateFrame() {
         const gl = this._gl;
-        if (this._type === 0) {
+        if (this._type === 0 && (this._limit === 0 || this.counter < this._limit)) {
             this._monteCarlo();
+            this.counter += Math.floor(this._steps);
+            if (this.counter === this._limit) {
+                console.log("Done!")
+            } else {
+                console.log(this.counter)
+            }
         }
-        this._diffusion();
+        if (this._scattering > 0)
+            this._diffusion();
 
         const program = this._programs.generate;
         gl.useProgram(program.program);

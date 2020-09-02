@@ -280,7 +280,7 @@ class FCDRenderer extends AbstractRenderer {
             if (this.counter === this._convectionLimit) {
                 console.log("Convection done!")
             }
-            this.counter++;
+            this.counter += Math.floor(this._convectionSteps);
         }
         else if (this._scattering > 0) {
             this._diffusion();
