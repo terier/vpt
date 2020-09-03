@@ -20,7 +20,8 @@ class FCDRenderer extends AbstractRenderer {
             _convectionSteps            : 5,
             _lightToggling              : 1,
             _localSizeX                 : 16,
-            _localSizeY                 : 16
+            _localSizeY                 : 16,
+            _timer                      : 0
         }, options);
 
         this._programs = WebGL.buildPrograms(this._gl, {
@@ -275,10 +276,13 @@ class FCDRenderer extends AbstractRenderer {
             this._convection();
             this._diffusion();
         }
+        if (this._limit !== 0 && this.counter === 0) {
+            this._timer = new Date().getTime();
+        }
         else if (this.counter <= this._convectionLimit) {
             this._convection();
             if (this.counter === this._convectionLimit) {
-                console.log("Convection done!")
+                console.log("Done!", new Date().getTime() - this._timer)
             }
             this.counter += Math.floor(this._convectionSteps);
         }
