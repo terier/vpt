@@ -64,8 +64,10 @@ class FCDRendererDialog extends AbstractDialog {
 
     _handleChangeScettering() {
         this._renderer._scattering = this._binds.scattering.getValue();
+        if (this._renderer._volumeDimensions) {
+            this._renderer._resetDiffusionField();
+        }
 
-        this._renderer._resetDiffusionField();
         this._renderer.reset();
     }
 
@@ -73,8 +75,10 @@ class FCDRendererDialog extends AbstractDialog {
         this._renderer._convectionLimit = this._binds.repeats.getValue();
 
         this._renderer._convectionSteps = this._binds.convectionSteps.getValue();
+        if (this._renderer._volumeDimensions) {
+            this._renderer._resetLightField();
+        }
 
-        this._renderer._resetLightField();
         this._renderer.reset();
     }
 

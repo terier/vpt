@@ -10,7 +10,7 @@
 #define POINT 1.5
 #define FLT_MAX 3.402823466e+38
 precision highp float;
-layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+layout (local_size_x = 16, local_size_y = 16, local_size_z = 4) in;
 
 @PhotonRCD
 
@@ -122,7 +122,7 @@ void main() {
 #define DIRECTIONAL 0.5
 #define POINT 1.5
 #define FLT_MAX 3.402823466e+38
-layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+layout (local_size_x = 16, local_size_y = 16, local_size_z = 4) in;
 
 uniform float uRandSeed;
 uniform ivec3 uSize;
@@ -175,7 +175,7 @@ void main() {
 
 #version 310 es
 precision highp float;
-layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+layout (local_size_x = 16, local_size_y = 16, local_size_z = 4) in;
 
 uniform ivec3 uSize;
 uniform float uAbsorptionCoefficient;
@@ -224,7 +224,7 @@ void main() {
 
 #version 310 es
 precision highp float;
-layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+layout (local_size_x = 16, local_size_y = 16, local_size_z = 4) in;
 
 uniform ivec3 uSize;
 uniform float scattering;
@@ -246,69 +246,20 @@ void main() {
         radiance += imageLoad(uEnergyDensityDiffusionRead, position).r;
 
         float left      = imageLoad(uEnergyDensityRead, position + ivec3(-1,  0,  0)).r;
-        float leftUp      = imageLoad(uEnergyDensityRead, position + ivec3(-1,  1,  0)).r;
-        float leftDown      = imageLoad(uEnergyDensityRead, position + ivec3(-1,  -1,  0)).r;
         float right     = imageLoad(uEnergyDensityRead, position + ivec3( 1,  0,  0)).r;
-        float rightUp     = imageLoad(uEnergyDensityRead, position + ivec3( 1,  1,  0)).r;
-        float rightDown     = imageLoad(uEnergyDensityRead, position + ivec3( 1,  -1,  0)).r;
         float down      = imageLoad(uEnergyDensityRead, position + ivec3( 0, -1,  0)).r;
         float up        = imageLoad(uEnergyDensityRead, position + ivec3( 0,  1,  0)).r;
-
-        float back          = imageLoad(uEnergyDensityDiffusionRead, position + ivec3( 0, 0, -1)).r;
-        float backLeft      = imageLoad(uEnergyDensityRead, position + ivec3(-1,  0,  -1)).r;
-        float backLeftUp      = imageLoad(uEnergyDensityRead, position + ivec3(-1,  1,  -1)).r;
-        float backLeftDown      = imageLoad(uEnergyDensityRead, position + ivec3(-1,  -1,  -1)).r;
-        float backRight     = imageLoad(uEnergyDensityRead, position + ivec3( 1,  0,  -1)).r;
-        float backRightUp     = imageLoad(uEnergyDensityRead, position + ivec3( 1,  1,  -1)).r;
-        float backRightDown     = imageLoad(uEnergyDensityRead, position + ivec3( 1,  -1,  -1)).r;
-        float backDown      = imageLoad(uEnergyDensityRead, position + ivec3( 0, -1,  -1)).r;
-        float backUp        = imageLoad(uEnergyDensityRead, position + ivec3( 0,  1,  -1)).r;
-
+        float back      = imageLoad(uEnergyDensityRead, position + ivec3( 0, 0, -1)).r;
         float forward   = imageLoad(uEnergyDensityRead, position + ivec3( 0,  0, 1)).r;
-        float forwardLeft      = imageLoad(uEnergyDensityRead, position + ivec3(-1,  0,  1)).r;
-        float forwardLeftUp      = imageLoad(uEnergyDensityRead, position + ivec3(-1,  1,  1)).r;
-        float forwardLeftDown      = imageLoad(uEnergyDensityRead, position + ivec3(-1,  -1,  1)).r;
-        float forwardRight     = imageLoad(uEnergyDensityRead, position + ivec3( 1,  0,  1)).r;
-        float forwardRightUp     = imageLoad(uEnergyDensityRead, position + ivec3( 1,  1,  1)).r;
-        float forwardRightDown     = imageLoad(uEnergyDensityRead, position + ivec3( 1,  -1,  1)).r;
-        float forwardDown      = imageLoad(uEnergyDensityRead, position + ivec3( 0, -1,  1)).r;
-        float forwardUp        = imageLoad(uEnergyDensityRead, position + ivec3( 0,  1,  1)).r;
 
-        left      += imageLoad(uEnergyDensityRead, position + ivec3(-1,  0,  0)).r;
-        leftUp      += imageLoad(uEnergyDensityRead, position + ivec3(-1,  1,  0)).r;
-        leftDown      += imageLoad(uEnergyDensityRead, position + ivec3(-1,  -1,  0)).r;
-        right     += imageLoad(uEnergyDensityRead, position + ivec3( 1,  0,  0)).r;
-        rightUp     += imageLoad(uEnergyDensityRead, position + ivec3( 1,  1,  0)).r;
-        rightDown     += imageLoad(uEnergyDensityRead, position + ivec3( 1,  -1,  0)).r;
-        down      += imageLoad(uEnergyDensityRead, position + ivec3( 0, -1,  0)).r;
-        up        += imageLoad(uEnergyDensityRead, position + ivec3( 0,  1,  0)).r;
+        left      += imageLoad(uEnergyDensityDiffusionRead, position + ivec3(-1,  0,  0)).r;
+        right     += imageLoad(uEnergyDensityDiffusionRead, position + ivec3( 1,  0,  0)).r;
+        down      += imageLoad(uEnergyDensityDiffusionRead, position + ivec3( 0, -1,  0)).r;
+        up        += imageLoad(uEnergyDensityDiffusionRead, position + ivec3( 0,  1,  0)).r;
+        back      += imageLoad(uEnergyDensityDiffusionRead, position + ivec3( 0, 0, -1)).r;
+        forward   += imageLoad(uEnergyDensityDiffusionRead, position + ivec3( 0,  0, 1)).r;
 
-        back          += imageLoad(uEnergyDensityDiffusionRead, position + ivec3( 0, 0, -1)).r;
-        backLeft      += imageLoad(uEnergyDensityRead, position + ivec3(-1,  0,  -1)).r;
-        backLeftUp      += imageLoad(uEnergyDensityRead, position + ivec3(-1,  1,  -1)).r;
-        backLeftDown      += imageLoad(uEnergyDensityRead, position + ivec3(-1,  -1,  -1)).r;
-        backRight     += imageLoad(uEnergyDensityRead, position + ivec3( 1,  0,  -1)).r;
-        backRightUp     += imageLoad(uEnergyDensityRead, position + ivec3( 1,  1,  -1)).r;
-        backRightDown     += imageLoad(uEnergyDensityRead, position + ivec3( 1,  -1,  -1)).r;
-        backDown      += imageLoad(uEnergyDensityRead, position + ivec3( 0, -1,  -1)).r;
-        backUp        += imageLoad(uEnergyDensityRead, position + ivec3( 0,  1,  -1)).r;
-
-        forward   += imageLoad(uEnergyDensityRead, position + ivec3( 0,  0, 1)).r;
-        forwardLeft      += imageLoad(uEnergyDensityRead, position + ivec3(-1,  0,  1)).r;
-        forwardLeftUp      += imageLoad(uEnergyDensityRead, position + ivec3(-1,  1,  1)).r;
-        forwardLeftDown      += imageLoad(uEnergyDensityRead, position + ivec3(-1,  -1,  1)).r;
-        forwardRight     += imageLoad(uEnergyDensityRead, position + ivec3( 1,  0,  1)).r;
-        forwardRightUp     += imageLoad(uEnergyDensityRead, position + ivec3( 1,  1,  1)).r;
-        forwardRightDown     += imageLoad(uEnergyDensityRead, position + ivec3( 1,  -1,  1)).r;
-        forwardDown      += imageLoad(uEnergyDensityRead, position + ivec3( 0, -1,  1)).r;
-        forwardUp        += imageLoad(uEnergyDensityRead, position + ivec3( 0,  1,  1)).r;
-
-        float laplace = 1.0/48.0 * (backLeftUp + backLeftDown + backRightUp + backRightDown +
-        forwardLeftUp + forwardLeftDown + forwardRightUp + forwardRightDown) +
-        1.0/8.0 * (backLeft + backRight + backDown + backUp + forwardLeft + forwardRight + forwardDown + forwardUp +
-        leftUp + leftDown + rightUp + rightDown) +
-        5.0/12.0 * (back + forward + left + right + down + up) -
-        25.0/6.0 * radiance;
+        float laplace = left + right + down + up + back + forward - 6.0 * radiance;
 
         float delta = laplace * radiance * scattering / uRatio;
         vec4 final = vec4(delta, 0, 0, 0);

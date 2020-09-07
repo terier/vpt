@@ -20,6 +20,7 @@ class RCDRenderer extends AbstractRenderer {
             _lightToggling              : 0,
             _localSizeX                 : 16,
             _localSizeY                 : 16,
+            _localSizeZ                 : 4,
             _steps                      : 1,
             _majorant                   : 100,
             _absorptionCoefficientMC    : 100,
@@ -93,7 +94,10 @@ class RCDRenderer extends AbstractRenderer {
         //     uint samples;   // 4B
         //          padding    // ??
         // };                  // Where do we get 20 though???
-        const bufferSize = 12 * 4 * dimensions.width * dimensions.height * dimensions.depth;
+        const bufferSize = 12 * 4 *
+            Math.ceil(dimensions.width / this._localSizeX) * this._localSizeX *
+            Math.ceil(dimensions.height / this._localSizeY) * this._localSizeY *
+            Math.ceil(dimensions.depth / this._localSizeZ) * this._localSizeZ;
         this._photonBuffer = gl.createBuffer();
         gl.bindBuffer(gl.SHADER_STORAGE_BUFFER, this._photonBuffer);
         gl.bindBufferBase(gl.SHADER_STORAGE_BUFFER, 0, this._photonBuffer);
@@ -111,9 +115,7 @@ class RCDRenderer extends AbstractRenderer {
         this._volumeDimensions = volumeDimensions;
         this._setLightVolumeDimensions();
         console.log("Volume Dimensions: " + volumeDimensions.width + " " + volumeDimensions.height + " " + volumeDimensions.depth);
-        if (this._type === 0) {
-            this._initPhotons();
-        }
+
         this._resetLightField();
         this.counter = 0;
     }
@@ -128,6 +130,9 @@ class RCDRenderer extends AbstractRenderer {
             height: Math.floor(volumeDimensions.height / this._lightVolumeRatio),
             depth: Math.floor(volumeDimensions.depth / this._lightVolumeRatio)
         };
+        if (this._type === 0) {
+            this._initPhotons();
+        }
         console.log("Light Volume Dimensions: " + this._lightVolumeDimensions.width + " " +
             this._lightVolumeDimensions.height + " " + this._lightVolumeDimensions.depth);
     }
@@ -284,7 +289,7 @@ class RCDRenderer extends AbstractRenderer {
 
         gl.dispatchCompute(Math.ceil(dimensions.width / this._localSizeX),
             Math.ceil(dimensions.height / this._localSizeY),
-            dimensions.depth);
+            Math.ceil(dimensions.depth / this._localSizeZ));
     }
 
     resetPhotons() {
@@ -307,7 +312,7 @@ class RCDRenderer extends AbstractRenderer {
 
         gl.dispatchCompute(Math.ceil(dimensions.width / this._localSizeX),
             Math.ceil(dimensions.height / this._localSizeY),
-            dimensions.depth);
+            Math.ceil(dimensions.depth / this._localSizeZ));
     }
 
     _rayCasting() {
@@ -364,7 +369,7 @@ class RCDRenderer extends AbstractRenderer {
 
         gl.dispatchCompute(Math.ceil(dimensions.width / this._localSizeX),
             Math.ceil(dimensions.height / this._localSizeY),
-            dimensions.depth);
+            Math.ceil(dimensions.depth / this._localSizeZ));
     }
 
     _generateFrame() {

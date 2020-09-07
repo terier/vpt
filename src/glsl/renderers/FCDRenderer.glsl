@@ -7,7 +7,7 @@
 
 #version 310 es
 precision highp float;
-layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+layout (local_size_x = 16, local_size_y = 16, local_size_z = 4) in;
 
 uniform ivec3 uSize;
 uniform vec3 uLight;
@@ -71,7 +71,7 @@ void main() {
 
 #version 310 es
 precision highp float;
-layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+layout (local_size_x = 16, local_size_y = 16, local_size_z = 4) in;
 
 uniform ivec3 uSize;
 uniform vec3 uLight;
@@ -139,7 +139,7 @@ void main() {
 
 #version 310 es
 precision highp float;
-layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+layout (local_size_x = 16, local_size_y = 16, local_size_z = 4) in;
 
 uniform ivec3 uSize;
 uniform float scattering;
@@ -185,7 +185,7 @@ void main() {
         back            += imageLoad(uEnergyDensityDiffusionRead, position + ivec3( 0, 0, -1)).r;
         forward         += imageLoad(uEnergyDensityDiffusionRead, position + ivec3( 0,  0, 1)).r;
 
-        float laplace = 0.5 * left + 0.5 * right + 0.5 * down + 0.5 * up + 0.5 * back + 0.5 * forward - 3.0 * radiance;
+        float laplace = left + right + down + up + back + forward - 6.0 * radiance;
 
         float delta = laplace * radiance * scattering / uRatio;
         vec4 final = vec4(delta, 0, 0, 0);
@@ -198,7 +198,7 @@ void main() {
 
 #version 310 es
 precision highp float;
-layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+layout (local_size_x = 16, local_size_y = 16, local_size_z = 4) in;
 
 uniform ivec3 uSize;
 

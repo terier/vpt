@@ -21,6 +21,7 @@ class FCDRenderer extends AbstractRenderer {
             _lightToggling              : 1,
             _localSizeX                 : 16,
             _localSizeY                 : 16,
+            _localSizeZ                 : 4,
             _timer                      : 0
         }, options);
 
@@ -124,7 +125,7 @@ class FCDRenderer extends AbstractRenderer {
 
         gl.dispatchCompute(Math.ceil(dimensions.width / this._localSizeX),
             Math.ceil(dimensions.height / this._localSizeY),
-            dimensions.depth);
+            Math.ceil(dimensions.depth / this._localSizeZ));
 
 
     }
@@ -245,7 +246,7 @@ class FCDRenderer extends AbstractRenderer {
 
             gl.dispatchCompute(Math.ceil(dimensions.width / this._localSizeX),
                 Math.ceil(dimensions.height / this._localSizeY),
-                dimensions.depth);
+                Math.ceil(dimensions.depth / this._localSizeZ));
         }
     }
 
@@ -267,7 +268,7 @@ class FCDRenderer extends AbstractRenderer {
 
         gl.dispatchCompute(Math.ceil(dimensions.width / this._localSizeX),
             Math.ceil(dimensions.height / this._localSizeY),
-            dimensions.depth);
+            Math.ceil(dimensions.depth / this._localSizeZ));
     }
 
     _generateFrame() {
@@ -279,16 +280,18 @@ class FCDRenderer extends AbstractRenderer {
         if (this._limit !== 0 && this.counter === 0) {
             this._timer = new Date().getTime();
         }
-        else if (this.counter <= this._convectionLimit) {
+        if (this.counter <= this._convectionLimit) {
             this._convection();
             if (this.counter === this._convectionLimit) {
                 console.log("Done!", new Date().getTime() - this._timer)
             }
+            // else {
+            //     console.log(this.counter)
+            // }
             this.counter += Math.floor(this._convectionSteps);
         }
-        else if (this._scattering > 0) {
+        if (this._scattering > 0) {
             this._diffusion();
-            console.log("Doing diffusion")
         }
 
         const program = this._programs.generate;
