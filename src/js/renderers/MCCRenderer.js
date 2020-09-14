@@ -11,8 +11,8 @@ constructor(gl, volume, environmentTexture, options) {
         scatteringCoefficient : 1,
         scatteringBias        : 0,
         majorant              : 2,
-        maxBounces            : 8,
-        steps                 : 1,
+        maxBounces            : 80,
+        steps                 : 20,
         _resolution           : 512,
         _workgroup            : 8
     }, options);

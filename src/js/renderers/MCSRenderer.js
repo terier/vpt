@@ -66,12 +66,10 @@ _generateFrame() {
 
     // scattering direction
     let x, y, z, length;
-    do {
-        x = Math.random() * 2 - 1;
-        y = Math.random() * 2 - 1;
-        z = Math.random() * 2 - 1;
-        length = Math.sqrt(x * x + y * y + z * z);
-    } while (length > 1);
+    x = -1;
+    y = -1;
+    z = -1;
+    length = Math.sqrt(x * x + y * y + z * z);
     x /= length;
     y /= length;
     z /= length;
