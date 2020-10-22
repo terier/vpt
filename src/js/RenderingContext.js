@@ -8,10 +8,12 @@
 // #include Volume.js
 // #include renderers
 // #include tonemappers
+// #include EventEmitter.js
 
-class RenderingContext {
+class RenderingContext extends EventEmitter {
 
 constructor(options) {
+    super();
     this._render = this._render.bind(this);
     this._webglcontextlostHandler = this._webglcontextlostHandler.bind(this);
     this._webglcontextrestoredHandler = this._webglcontextrestoredHandler.bind(this);
@@ -118,6 +120,10 @@ setVolumes(reader) {
     reader.readMetadata({
         onData: data => {
             data.modalities;
+            let maxDim = Math.max(Math.max(data.modalities[0].dimensions.width, data.modalities[0].dimensions.height), data.modalities[0].dimensions.depth);
+            let dimensions = new Vector(data.modalities[0].dimensions.width / maxDim, data.modalities[0].dimensions.height / maxDim, data.modalities[0].dimensions.depth / maxDim);
+            this.trigger('scaleChange', dimensions);
+            this.trigger('updateTFNumber', data.modalities.length);
             
             for (let i = 0; i < data.modalities.length; i++) {
                 let vol = new Volume(this._gl, reader);
@@ -134,8 +140,10 @@ setVolumes(reader) {
                                     this._volumes.forEach((e) => {
                                         ready = ready && e.ready
                                     });
-                                    if (ready)
+                                    if (ready) {                                    
+                                        this._renderer._numberOfChannels = data.modalities.length;
                                         this.startRendering();
+                                    }
                                 }
                             }
                         });
@@ -230,7 +238,7 @@ _updateMvpInverseMatrix() {
     if (!this._camera.isDirty && !this._isTransformationDirty) {
         return;
     }
-
+    
     this._camera.isDirty = false;
     this._isTransformationDirty = false;
     this._camera.updateMatrices();

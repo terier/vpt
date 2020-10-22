@@ -17,6 +17,8 @@ constructor() {
     this._handleToneMapperChange = this._handleToneMapperChange.bind(this);
     this._handleVolumeLoad = this._handleVolumeLoad.bind(this);
     this._handleEnvmapLoad = this._handleEnvmapLoad.bind(this);
+    this._handleScaleChange = this._handleScaleChange.bind(this);
+    this._handleTFNumberChange = this._handleTFNumberChange.bind(this);
 
     this._renderingContext = new RenderingContext();
     this._canvas = this._renderingContext.getCanvas();
@@ -69,6 +71,9 @@ constructor() {
     this._mainDialog.addEventListener('tonemapperchange', this._handleToneMapperChange);
     this._mainDialog.trigger('rendererchange', this._mainDialog.getSelectedRenderer());
     this._mainDialog.trigger('tonemapperchange', this._mainDialog.getSelectedToneMapper());
+
+    this._renderingContext.addEventListener('scaleChange', this._handleScaleChange);
+    this._renderingContext.addEventListener('updateTFNumber', this._handleTFNumberChange);
 }
 
 _handleFileDrop(e) {
@@ -184,6 +189,15 @@ _getDialogForToneMapper(toneMapper) {
         case 'reinhard' : return ReinhardToneMapperDialog;
         case 'artistic' : return ArtisticToneMapperDialog;
     }
+}
+
+_handleScaleChange(dimensions) {
+    this._renderingContextDialog._binds.scale.setValue(dimensions);
+    this._renderingContext.setScale(dimensions.x, dimensions.y, dimensions.z);
+}
+
+_handleTFNumberChange(numberOfChannels) {
+    this._rendererDialog._updateTFWidgets(numberOfChannels);
 }
 
 }

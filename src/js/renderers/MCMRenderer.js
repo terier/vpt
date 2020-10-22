@@ -117,22 +117,30 @@ _integrateFrame() {
 
     gl.activeTexture(gl.TEXTURE4);
     gl.bindTexture(gl.TEXTURE_2D, this._environmentTexture);
+
     gl.activeTexture(gl.TEXTURE5);
     gl.bindTexture(gl.TEXTURE_2D, this._transferFunctions[0]);
     gl.activeTexture(gl.TEXTURE6);
-    gl.bindTexture(gl.TEXTURE_2D, this._transferFunctions[1]);
-    gl.activeTexture(gl.TEXTURE7);
-    gl.bindTexture(gl.TEXTURE_2D, this._transferFunctions[2]);
-    gl.activeTexture(gl.TEXTURE8);
-    gl.bindTexture(gl.TEXTURE_2D, this._transferFunctions[3]);
-    gl.activeTexture(gl.TEXTURE9);
     gl.bindTexture(gl.TEXTURE_3D, this._volumes[0].getTexture());
-    gl.activeTexture(gl.TEXTURE10);
-    gl.bindTexture(gl.TEXTURE_3D, this._volumes[1].getTexture());
-    gl.activeTexture(gl.TEXTURE11);
-    gl.bindTexture(gl.TEXTURE_3D, this._volumes[2].getTexture());
-    gl.activeTexture(gl.TEXTURE12);
-    gl.bindTexture(gl.TEXTURE_3D, this._volumes[3].getTexture());
+    
+    if (this._numberOfChannels > 1) {
+        gl.activeTexture(gl.TEXTURE7);
+        gl.bindTexture(gl.TEXTURE_2D, this._transferFunctions[1]);
+        gl.activeTexture(gl.TEXTURE8);
+        gl.bindTexture(gl.TEXTURE_3D, this._volumes[1].getTexture());
+    }
+    if (this._numberOfChannels > 2) {
+        gl.activeTexture(gl.TEXTURE9);
+        gl.bindTexture(gl.TEXTURE_2D, this._transferFunctions[2]);
+        gl.activeTexture(gl.TEXTURE10);
+        gl.bindTexture(gl.TEXTURE_3D, this._volumes[2].getTexture());
+    }
+    if (this._numberOfChannels > 3) {
+        gl.activeTexture(gl.TEXTURE11);
+        gl.bindTexture(gl.TEXTURE_2D, this._transferFunctions[3]);
+        gl.activeTexture(gl.TEXTURE12);
+        gl.bindTexture(gl.TEXTURE_3D, this._volumes[3].getTexture());
+    }
 
     gl.uniform1i(program.uniforms.uPosition, 0);
     gl.uniform1i(program.uniforms.uDirection, 1);
@@ -140,14 +148,20 @@ _integrateFrame() {
     gl.uniform1i(program.uniforms.uRadiance, 3);
 
     gl.uniform1i(program.uniforms.uEnvironment, 4);
+
     gl.uniform1i(program.uniforms.uTransferFunction0, 5);
-    gl.uniform1i(program.uniforms.uTransferFunction1, 6);
-    gl.uniform1i(program.uniforms.uTransferFunction2, 7);
-    gl.uniform1i(program.uniforms.uTransferFunction3, 8);
-    gl.uniform1i(program.uniforms.uVolume0, 9);
-    gl.uniform1i(program.uniforms.uVolume1, 10);
-    gl.uniform1i(program.uniforms.uVolume2, 11);
+    gl.uniform1i(program.uniforms.uVolume0, 6);
+
+    gl.uniform1i(program.uniforms.uTransferFunction1, 7);
+    gl.uniform1i(program.uniforms.uVolume1, 8);
+
+    gl.uniform1i(program.uniforms.uTransferFunction2, 9);
+    gl.uniform1i(program.uniforms.uVolume2, 10);
+
+    gl.uniform1i(program.uniforms.uTransferFunction3, 11);
     gl.uniform1i(program.uniforms.uVolume3, 12);
+
+    gl.uniform1i(program.uniforms.uNumberOfChannels, this._numberOfChannels);
 
     gl.uniformMatrix4fv(program.uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
     gl.uniform2f(program.uniforms.uInverseResolution, 1 / this._bufferSize, 1 / this._bufferSize);

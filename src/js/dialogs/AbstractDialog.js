@@ -47,4 +47,6 @@ detach() {
     this._object.detach();
 }
 
+_updateTFWidgets() {}
+
 }

@@ -20,11 +20,10 @@ constructor(renderer, options) {
     this._binds.extinction.addEventListener('input', this._handleChange);
     this._binds.albedo.addEventListener('change', this._handleChange);
     this._binds.bias.addEventListener('change', this._handleChange);
-    this._binds.ratio.addEventListener('change', this._handleChange);
+    this._binds.ratio.addEventListener('change', this._handleChange);   
     this._binds.bounces.addEventListener('input', this._handleChange);
     this._binds.steps.addEventListener('input', this._handleChange);
 
-// ToDo: check no. of modalities and add additional tabs
     this._tfwidgets = [];
     for (let i = 0; i < 4; i++) {
         this._tfwidgets[i] = new TransferFunctionWidget();
@@ -38,6 +37,15 @@ constructor(renderer, options) {
 destroy() {
     this._tfwidget.destroy();
     super.destroy();
+}
+
+_updateTFWidgets(number) {
+    for (let i = 1; i <= 4; i++) {
+        if (i <= number)
+            this._binds.tftabs._binds.headers.children[i].hidden = false;
+        else
+            this._binds.tftabs._binds.headers.children[i].hidden = true;
+    }
 }
 
 _handleChange() {
@@ -61,6 +69,10 @@ _handleChange() {
 _handleTFChange(id) {
     this._renderer.setTransferFunction(this._tfwidgets[id].getTransferFunction(), id);
     this._renderer.reset();
+}
+
+_handleScaleChange(dimensions) {
+    this._binds.scale.setValue(new Vector(dimensions.x, dimensions.y, dimensions.z));
 }
 
 }

@@ -42,16 +42,21 @@ uniform mediump sampler2D uDirection;
 uniform mediump sampler2D uTransmittance;
 uniform mediump sampler2D uRadiance;
 
-// uniform mediump sampler2D uTransferFunction;
-uniform mediump sampler2D uTransferFunction0;
-uniform mediump sampler2D uTransferFunction1;
-uniform mediump sampler2D uTransferFunction2;
-uniform mediump sampler2D uTransferFunction3;
 uniform mediump sampler2D uEnvironment;
+
+uniform mediump sampler2D uTransferFunction0;
 uniform mediump sampler3D uVolume0;
+
+uniform mediump sampler2D uTransferFunction1;
 uniform mediump sampler3D uVolume1;
+
+uniform mediump sampler2D uTransferFunction2;
 uniform mediump sampler3D uVolume2;
+
+uniform mediump sampler2D uTransferFunction3;
 uniform mediump sampler3D uVolume3;
+
+uniform int uNumberOfChannels;
 
 uniform mat4 uMvpInverseMatrix;
 uniform vec2 uInverseResolution;
@@ -93,29 +98,27 @@ vec4 sampleEnvironmentMap(vec3 d) {
 
 vec4 sampleVolumeColor(vec3 position) {
     vec2 volumeSample0 = texture(uVolume0, position).rg ;
-    vec2 volumeSample1 = texture(uVolume1, position).rg ;
-    vec2 volumeSample2 = texture(uVolume2, position).rg ;
-    vec2 volumeSample3 = texture(uVolume3, position).rg ;
-
     vec4 transferSample0 = texture(uTransferFunction0, volumeSample0);
-    vec4 transferSample1 = texture(uTransferFunction1, volumeSample1);
-    vec4 transferSample2 = texture(uTransferFunction2, volumeSample2);
-    vec4 transferSample3 = texture(uTransferFunction3, volumeSample3);
+    vec4 transferSample1 = vec4(0);
+    vec4 transferSample2 = vec4(0);
+    vec4 transferSample3 = vec4(0);
 
-    // return 0.25 * transferSample0 + 0.25 * transferSample1 + 0.25 * transferSample2 + 0.25 * transferSample3;
-    // return transferSample0 + transferSample1 + transferSample2 + transferSample3;
+    if (uNumberOfChannels > 1) {
+        vec2 volumeSample1 = texture(uVolume1, position).rg ;
+        transferSample1 = texture(uTransferFunction1, volumeSample1);
+    }
+    if (uNumberOfChannels > 2) {
+        vec2 volumeSample2 = texture(uVolume2, position).rg ;
+        transferSample2 = texture(uTransferFunction2, volumeSample2);
+    }
+    if (uNumberOfChannels > 3) {
+        vec2 volumeSample3 = texture(uVolume3, position).rg ;
+        transferSample3 = texture(uTransferFunction3, volumeSample3);
+    }
 
-    // float maxR = max(max(transferSample0.r, transferSample1.r), max(transferSample2.r, transferSample3.r));
-    // float maxG = max(max(transferSample0.g, transferSample1.g), max(transferSample2.g, transferSample3.g));
-    // float maxB = max(max(transferSample0.b, transferSample1.b), max(transferSample2.b, transferSample3.b));
-    // float maxA = max(max(transferSample0.a, transferSample1.a), max(transferSample2.a, transferSample3.a));
-    // return vec4(maxR, maxG, maxB, maxA);
     float sumA = (transferSample0.a + transferSample1.a + transferSample2.a + transferSample3.a);
-    float invA = 1.0 / sumA;
-    float sumR = (transferSample0.r + transferSample1.r + transferSample2.r + transferSample3.r) * invA;
-    float sumG = (transferSample0.g + transferSample1.g + transferSample2.g + transferSample3.g) * invA;
-    float sumB = (transferSample0.b + transferSample1.b + transferSample2.b + transferSample3.b) * invA;
-    return vec4(sumR, sumG, sumB, sumA);
+    vec3 sumC = (transferSample0.rgb * transferSample0.a + transferSample1.rgb * transferSample1.a + transferSample2.rgb * transferSample2.a + transferSample3.rgb * transferSample3.a) / sumA;
+    return vec4(sumC, sumA * 0.25);
 }
 
 vec3 randomDirection(vec2 U) {

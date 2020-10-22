@@ -17,6 +17,8 @@ constructor(gl, volume, environmentTexture, options) {
     this._volumes = [this._volume];
     this._environmentTexture = environmentTexture;
 
+    this._numberOfChannels = 0;
+
     this._rebuildBuffers();
 
     this._transferFunction = WebGL.createTexture(gl, {

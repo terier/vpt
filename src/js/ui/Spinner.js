@@ -45,6 +45,7 @@ setEnabled(enabled) {
 
 setValue(value) {
     this.value = value;
+    this._binds.input.value = value;
     if (this.min !== null) {
         this.value = Math.max(this.value, this.min);
     }
