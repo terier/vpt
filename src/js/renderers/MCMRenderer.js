@@ -8,6 +8,48 @@ class MCMRenderer extends AbstractRenderer {
 constructor(gl, volume, environmentTexture, options) {
     super(gl, volume, environmentTexture, options);
 
+    this._transferFunctions = [];
+
+    this._transferFunctions[0] = WebGL.createTexture(gl, {
+        width  : 2,
+        height : 1,
+        data   : new Uint8Array([255, 0, 0, 0, 255, 0, 0, 255]),
+        wrapS  : gl.CLAMP_TO_EDGE,
+        wrapT  : gl.CLAMP_TO_EDGE,
+        min    : gl.LINEAR,
+        mag    : gl.LINEAR
+    });
+
+    this._transferFunctions[1] = WebGL.createTexture(gl, {
+        width  : 2,
+        height : 1,
+        data   : new Uint8Array([255, 0, 0, 0, 255, 0, 0, 255]),
+        wrapS  : gl.CLAMP_TO_EDGE,
+        wrapT  : gl.CLAMP_TO_EDGE,
+        min    : gl.LINEAR,
+        mag    : gl.LINEAR
+    });
+
+    this._transferFunctions[2] = WebGL.createTexture(gl, {
+        width  : 2,
+        height : 1,
+        data   : new Uint8Array([255, 0, 0, 0, 255, 0, 0, 255]),
+        wrapS  : gl.CLAMP_TO_EDGE,
+        wrapT  : gl.CLAMP_TO_EDGE,
+        min    : gl.LINEAR,
+        mag    : gl.LINEAR
+    });
+
+    this._transferFunctions[3] = WebGL.createTexture(gl, {
+        width  : 2,
+        height : 1,
+        data   : new Uint8Array([255, 0, 0, 0, 255, 0, 0, 255]),
+        wrapS  : gl.CLAMP_TO_EDGE,
+        wrapT  : gl.CLAMP_TO_EDGE,
+        min    : gl.LINEAR,
+        mag    : gl.LINEAR
+    });
+
     Object.assign(this, {
         absorptionCoefficient : 1,
         scatteringCoefficient : 1,
@@ -74,20 +116,38 @@ _integrateFrame() {
     gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[3]);
 
     gl.activeTexture(gl.TEXTURE4);
-    gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
-    gl.activeTexture(gl.TEXTURE5);
     gl.bindTexture(gl.TEXTURE_2D, this._environmentTexture);
+    gl.activeTexture(gl.TEXTURE5);
+    gl.bindTexture(gl.TEXTURE_2D, this._transferFunctions[0]);
     gl.activeTexture(gl.TEXTURE6);
-    gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
+    gl.bindTexture(gl.TEXTURE_2D, this._transferFunctions[1]);
+    gl.activeTexture(gl.TEXTURE7);
+    gl.bindTexture(gl.TEXTURE_2D, this._transferFunctions[2]);
+    gl.activeTexture(gl.TEXTURE8);
+    gl.bindTexture(gl.TEXTURE_2D, this._transferFunctions[3]);
+    gl.activeTexture(gl.TEXTURE9);
+    gl.bindTexture(gl.TEXTURE_3D, this._volumes[0].getTexture());
+    gl.activeTexture(gl.TEXTURE10);
+    gl.bindTexture(gl.TEXTURE_3D, this._volumes[1].getTexture());
+    gl.activeTexture(gl.TEXTURE11);
+    gl.bindTexture(gl.TEXTURE_3D, this._volumes[2].getTexture());
+    gl.activeTexture(gl.TEXTURE12);
+    gl.bindTexture(gl.TEXTURE_3D, this._volumes[3].getTexture());
 
     gl.uniform1i(program.uniforms.uPosition, 0);
     gl.uniform1i(program.uniforms.uDirection, 1);
     gl.uniform1i(program.uniforms.uTransmittance, 2);
     gl.uniform1i(program.uniforms.uRadiance, 3);
 
-    gl.uniform1i(program.uniforms.uVolume, 4);
-    gl.uniform1i(program.uniforms.uEnvironment, 5);
-    gl.uniform1i(program.uniforms.uTransferFunction, 6);
+    gl.uniform1i(program.uniforms.uEnvironment, 4);
+    gl.uniform1i(program.uniforms.uTransferFunction0, 5);
+    gl.uniform1i(program.uniforms.uTransferFunction1, 6);
+    gl.uniform1i(program.uniforms.uTransferFunction2, 7);
+    gl.uniform1i(program.uniforms.uTransferFunction3, 8);
+    gl.uniform1i(program.uniforms.uVolume0, 9);
+    gl.uniform1i(program.uniforms.uVolume1, 10);
+    gl.uniform1i(program.uniforms.uVolume2, 11);
+    gl.uniform1i(program.uniforms.uVolume3, 12);
 
     gl.uniformMatrix4fv(program.uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
     gl.uniform2f(program.uniforms.uInverseResolution, 1 / this._bufferSize, 1 / this._bufferSize);
@@ -187,6 +247,13 @@ _getAccumulationBufferSpec() {
         transmittanceBufferSpec,
         radianceBufferSpec
     ];
+}
+
+setTransferFunction(transferFunction, id) {
+    const gl = this._gl;
+    gl.bindTexture(gl.TEXTURE_2D, this._transferFunctions[id]);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, transferFunction);
+    gl.bindTexture(gl.TEXTURE_2D, null);
 }
 
 }

@@ -35,7 +35,7 @@ constructor(options) {
 
     this._cameraController = new OrbitCameraController(this._camera, this._canvas);
 
-    this._volume = new Volume(this._gl);
+    this._volumes = [new Volume(this._gl)];
     this._scale = new Vector(1, 1, 1);
     this._translation = new Vector(0, 0, 0);
     this._isTransformationDirty = true;
@@ -108,11 +108,52 @@ resize(width, height) {
     this._camera.resize(width, height);
 }
 
+setVolumes(reader) {
+    if (this._volumes) {
+        while (this._volumes.length > 0) {
+            this._volumes.pop().destroy();
+        }
+    }
+    // Read metadata
+    reader.readMetadata({
+        onData: data => {
+            data.modalities;
+            
+            for (let i = 0; i < data.modalities.length; i++) {
+                let vol = new Volume(this._gl, reader);
+                this._volumes.push(vol);
+                
+                vol.readMetadata({
+                    onData: () => {
+                        vol.readModality(data.modalities[i].name, {
+                            onLoad: () => {
+                                vol.setFilter(this._filter);
+                                if (this._renderer) {
+                                    this._renderer.addVolume(vol);
+                                    let ready = true;
+                                    this._volumes.forEach((e) => {
+                                        ready = ready && e.ready
+                                    });
+                                    if (ready)
+                                        this.startRendering();
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        }
+    });
+}
+
 setVolume(reader) {
+    if (this._volume) {
+        this._volume.destroy();
+    }
     this._volume = new Volume(this._gl, reader);
     this._volume.readMetadata({
         onData: () => {
-            this._volume.readModality('default', {
+            this._volume.readModality('1', {
                 onLoad: () => {
                     this._volume.setFilter(this._filter);
                     if (this._renderer) {

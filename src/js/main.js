@@ -38,6 +38,7 @@ let SHADERS;
 let MIXINS;
 let TEMPLATES;
 let UISPECS;
+let application;
 
 document.addEventListener('DOMContentLoaded', async () => {
     const rl = ResourceLoader.instance;
@@ -49,5 +50,5 @@ document.addEventListener('DOMContentLoaded', async () => {
     for (const name in UISPECS) {
         UISPECS[name] = JSON.parse(UISPECS[name]);
     }
-    const application = new Application();
+    application = new Application();
 });

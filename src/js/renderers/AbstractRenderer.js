@@ -14,6 +14,7 @@ constructor(gl, volume, environmentTexture, options) {
 
     this._gl = gl;
     this._volume = volume;
+    this._volumes = [this._volume];
     this._environmentTexture = environmentTexture;
 
     this._rebuildBuffers();
@@ -94,6 +95,12 @@ _rebuildBuffers() {
 
 setVolume(volume) {
     this._volume = volume;
+    this.reset();
+}
+
+addVolume(volume) {
+    if (this._volumes[0] == undefined) this._volumes = [];
+    this._volumes.push(volume);
     this.reset();
 }
 

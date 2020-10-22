@@ -5,6 +5,8 @@
 
 // #include ../../../uispecs/renderers/MCMRendererDialog.json
 
+// #include ../../ui
+
 class MCMRendererDialog extends AbstractDialog {
 
 constructor(renderer, options) {
@@ -22,9 +24,15 @@ constructor(renderer, options) {
     this._binds.bounces.addEventListener('input', this._handleChange);
     this._binds.steps.addEventListener('input', this._handleChange);
 
-    this._tfwidget = new TransferFunctionWidget();
-    this._binds.tfcontainer.add(this._tfwidget);
-    this._tfwidget.addEventListener('change', this._handleTFChange);
+// ToDo: check no. of modalities and add additional tabs
+    this._tfwidgets = [];
+    for (let i = 0; i < 4; i++) {
+        this._tfwidgets[i] = new TransferFunctionWidget();
+        let panel = new Panel();
+        panel.add(this._tfwidgets[i]);
+        this._binds.tftabs.add(""+i, panel);
+        this._tfwidgets[i].addEventListener('change', () => {this._handleTFChange(i)});
+    }
 }
 
 destroy() {
@@ -50,8 +58,8 @@ _handleChange() {
     this._renderer.reset();
 }
 
-_handleTFChange() {
-    this._renderer.setTransferFunction(this._tfwidget.getTransferFunction());
+_handleTFChange(id) {
+    this._renderer.setTransferFunction(this._tfwidgets[id].getTransferFunction(), id);
     this._renderer.reset();
 }
 

@@ -90,8 +90,10 @@
       "label": "Transfer function",
       "children": [
         {
-          "type": "panel",
-          "bind": "tfcontainer"
+          "type": "tabs",
+          "bind": "tftabs",
+          "children": {
+          }
         }
       ]
     }
