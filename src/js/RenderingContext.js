@@ -116,6 +116,12 @@ setVolumes(reader) {
             this._volumes.pop().destroy();
         }
     }
+    if (this._renderer && this._renderer._volumes != undefined) {
+        while (this._renderer._volumes.length > 0) {
+            let v = this._renderer._volumes.pop();
+            if (v !== undefined && typeof v.destroy === 'function') v.destroy();
+        }
+    }
     // Read metadata
     reader.readMetadata({
         onData: data => {
