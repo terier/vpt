@@ -130,11 +130,11 @@ setVolumes(reader) {
             let dimensions = new Vector(data.modalities[0].dimensions.width / maxDim, data.modalities[0].dimensions.height / maxDim, data.modalities[0].dimensions.depth / maxDim);
             this.trigger('scaleChange', dimensions);
             this.trigger('updateTFNumber', data.modalities.length);
-            
+
             for (let i = 0; i < data.modalities.length; i++) {
                 let vol = new Volume(this._gl, reader);
                 this._volumes.push(vol);
-                
+
                 vol.readMetadata({
                     onData: () => {
                         vol.readModality(data.modalities[i].name, {
@@ -146,7 +146,7 @@ setVolumes(reader) {
                                     this._volumes.forEach((e) => {
                                         ready = ready && e.ready
                                     });
-                                    if (ready) {                                    
+                                    if (ready) {
                                         this._renderer._numberOfChannels = data.modalities.length;
                                         this.startRendering();
                                     }

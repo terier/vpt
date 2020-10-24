@@ -67,10 +67,7 @@ constructor(options) {
 
     this._$loadButton.addEventListener('click', () => {
         CommonUtils.readTextFile(data => {
-            this._bumps = JSON.parse(data);
-            this.render();
-            this._rebuildHandles();
-            this.trigger('change');
+            this.loadFromJson(JSON.parse(data));
         });
     });
 
@@ -115,6 +112,13 @@ render() {
     });
 }
 
+loadFromJson(json) {
+    this._bumps = json;
+    this.render();
+    this._rebuildHandles();
+    this.trigger('change');
+}
+
 addBump(options) {
     const bumpIndex = this._bumps.length;
     const newBump = {
@@ -152,8 +156,8 @@ _addHandle(index) {
 
     new Draggable($handle, $handle.querySelector('.bump-handle'));
     $handle.addEventListener('draggable', e => {
-        const x = e.currentTarget.offsetLeft / this._width;
-        const y = 1 - (e.currentTarget.offsetTop / this._height);
+        const x = Math.max(0, Math.min(e.currentTarget.offsetLeft / this._width, 1));
+        const y = Math.min(1, Math.max(0, 1 - (e.currentTarget.offsetTop / this._height)));
         const i = parseInt(DOMUtils.data(e.currentTarget, 'index'));
         this._bumps[i].position.x = x;
         this._bumps[i].position.y = y;
@@ -201,7 +205,7 @@ selectBump(index) {
     });
 
     const color = this._bumps[index].color;
-    this._$colorPicker.value = CommonUtils.rgb2hex(color.r, color.g, color.b);
+    this._$colorPicker.value = CommonUtils.rgb2hex(color);
     this._$alphaPicker.value = color.a;
 }
 

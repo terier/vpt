@@ -513,7 +513,7 @@ function computeGradientMagnitude(volumeData, dimensions) {
             }
         }
     }
-    
+
     return gradientData;
 }
 

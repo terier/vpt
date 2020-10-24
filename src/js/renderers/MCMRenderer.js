@@ -122,7 +122,7 @@ _integrateFrame() {
     gl.bindTexture(gl.TEXTURE_2D, this._transferFunctions[0]);
     gl.activeTexture(gl.TEXTURE6);
     gl.bindTexture(gl.TEXTURE_3D, this._volumes[0].getTexture());
-    
+
     if (this._numberOfChannels > 1) {
         gl.activeTexture(gl.TEXTURE7);
         gl.bindTexture(gl.TEXTURE_2D, this._transferFunctions[1]);

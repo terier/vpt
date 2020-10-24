@@ -20,7 +20,7 @@ constructor(renderer, options) {
     this._binds.extinction.addEventListener('input', this._handleChange);
     this._binds.albedo.addEventListener('change', this._handleChange);
     this._binds.bias.addEventListener('change', this._handleChange);
-    this._binds.ratio.addEventListener('change', this._handleChange);   
+    this._binds.ratio.addEventListener('change', this._handleChange);
     this._binds.bounces.addEventListener('input', this._handleChange);
     this._binds.steps.addEventListener('input', this._handleChange);
 

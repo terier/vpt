@@ -52,14 +52,38 @@ static hex2rgb(str) {
     };
 }
 
-static rgb2hex(r, g, b) {
-    r = Number(Math.floor(r * 255)).toString(16);
-    g = Number(Math.floor(g * 255)).toString(16);
-    b = Number(Math.floor(b * 255)).toString(16);
-    r = r.length < 2 ? "0" + r : r;
-    g = g.length < 2 ? "0" + g : g;
-    b = b.length < 2 ? "0" + b : b;
-    return "#" + r + g + b;
+static rgb2hex(color) {
+    const str = {
+        r: Number(Math.floor(color.r * 255)).toString(16),
+        g: Number(Math.floor(color.g * 255)).toString(16),
+        b: Number(Math.floor(color.b * 255)).toString(16),
+    };
+
+    const padded = {
+        r: str.r.length < 2 ? "0" + str.r : str.r,
+        g: str.g.length < 2 ? "0" + str.g : str.g,
+        b: str.b.length < 2 ? "0" + str.b : str.b,
+    };
+
+    return "#" + padded.r + padded.g + padded.b;
+}
+
+static hsv2rgb(color) {
+    const { h, s, v } = color;
+    const i = Math.floor(h * 6);
+    const f = h * 6 - i;
+    const p = v * (1 - s);
+    const q = v * (1 - f * s);
+    const t = v * (1 - (1 - f) * s);
+
+    switch (i % 6) {
+        case 0: return { r: v, g: t, b: p };
+        case 1: return { r: q, g: v, b: p };
+        case 2: return { r: p, g: v, b: t };
+        case 3: return { r: p, g: q, b: v };
+        case 4: return { r: t, g: p, b: v };
+        case 5: return { r: v, g: p, b: q };
+    }
 }
 
 static get noimpl() {

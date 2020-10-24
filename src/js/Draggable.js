@@ -2,67 +2,71 @@
 
 class Draggable {
 
-constructor(element, handle) {
-    this._handleMouseDown = this._handleMouseDown.bind(this);
-    this._handleMouseUp = this._handleMouseUp.bind(this);
-    this._handleMouseMove = this._handleMouseMove.bind(this);
+    constructor(element, handle) {
+        this._handleMouseDown = this._handleMouseDown.bind(this);
+        this._handleMouseUp = this._handleMouseUp.bind(this);
+        this._handleMouseMove = this._handleMouseMove.bind(this);
 
-    this._element = element;
-    this._handle = handle;
-    this._startX = 0;
-    this._startY = 0;
+        this._element = element;
+        this._handle = handle;
+        this._startX = 0;
+        this._startY = 0;
 
-    this._handle.addEventListener('mousedown', this._handleMouseDown);
-}
+        this._handle.addEventListener('mousedown', this._handleMouseDown);
+    }
 
-_handleMouseDown(e) {
-    this._startX = e.pageX;
-    this._startY = e.pageY;
+    _handleMouseDown(e) {
+        this._startX = e.pageX;
+        this._startY = e.pageY;
 
-    document.addEventListener('mousemove', this._handleMouseMove);
-    document.addEventListener('mouseup', this._handleMouseUp);
-    this._handle.removeEventListener('mousedown', this._handleMouseDown);
+        document.addEventListener('mousemove', this._handleMouseMove);
+        document.addEventListener('mouseup', this._handleMouseUp);
+        this._handle.removeEventListener('mousedown', this._handleMouseDown);
 
-    const event = new CustomEvent('draggablestart', {
-        detail: {
-            x: this._startX,
-            y: this._startY
-        }
-    });
-    this._element.dispatchEvent(event);
-}
+        const event = new CustomEvent('draggablestart', {
+            detail: {
+                x: this._startX,
+                y: this._startY
+            }
+        });
+        this._element.dispatchEvent(event);
+    }
 
-_handleMouseUp(e) {
-    document.removeEventListener('mousemove', this._handleMouseMove);
-    document.removeEventListener('mouseup', this._handleMouseUp);
-    this._handle.addEventListener('mousedown', this._handleMouseDown);
+    _handleMouseUp(e) {
+        document.removeEventListener('mousemove', this._handleMouseMove);
+        document.removeEventListener('mouseup', this._handleMouseUp);
+        this._handle.addEventListener('mousedown', this._handleMouseDown);
 
-    const event = new CustomEvent('draggableend', {
-        detail: {
-            x: this._startX,
-            y: this._startY
-        }
-    });
-    this._element.dispatchEvent(event);
-}
+        const event = new CustomEvent('draggableend', {
+            detail: {
+                x: this._startX,
+                y: this._startY
+            }
+        });
+        this._element.dispatchEvent(event);
+    }
 
-_handleMouseMove(e) {
-    const dx = e.pageX - this._startX;
-    const dy = e.pageY - this._startY;
-    const x = this._element.offsetLeft;
-    const y = this._element.offsetTop;
-    this._element.style.left = (x + dx) + 'px';
-    this._element.style.top = (y + dy) + 'px';
-    this._startX = e.pageX;
-    this._startY = e.pageY;
+    _handleMouseMove(e) {
+        const dx = e.pageX - this._startX;
+        const dy = e.pageY - this._startY;
+        const x = this._element.offsetLeft;
+        const y = this._element.offsetTop;
 
-    const event = new CustomEvent('draggable', {
-        detail: {
-            x: this._startX,
-            y: this._startY
-        }
-    });
-    this._element.dispatchEvent(event);
-}
+        const pw = this._element.parentNode.offsetWidth;
+        const ph = this._element.parentNode.offsetHeight;
+
+        this._element.style.left = Math.max(0, Math.min(pw, (x + dx))) + 'px';
+        this._element.style.top = Math.max(0, Math.min(ph, (y + dy))) + 'px';
+        this._startX = e.pageX;
+        this._startY = e.pageY;
+
+        const event = new CustomEvent('draggable', {
+            detail: {
+                x: this._startX,
+                y: this._startY
+            }
+        });
+        this._element.dispatchEvent(event);
+    }
 
 }

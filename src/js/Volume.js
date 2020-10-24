@@ -75,14 +75,14 @@ readModality(modalityName, handlers) {
             onData: data => {
                 const position = placement.position;
                 const block = blocks[placement.index];
-                const blockdim = block.dimensions;                
-                const type = modality.type || gl.UNSIGNED_INT;                
-                const gpuFormat = modality.format || gl.RED_INTEGER;                
+                const blockdim = block.dimensions;
+                const type = modality.type || gl.UNSIGNED_INT;
+                const gpuFormat = modality.format || gl.RED_INTEGER;
                 gl.bindTexture(gl.TEXTURE_3D, this._texture);
                 gl.texSubImage3D(gl.TEXTURE_3D, 0,
                     position.x, position.y, position.z,
                     blockdim.width, blockdim.height, blockdim.depth,
-                    gpuFormat, type, this._typize(data, type));                    
+                    gpuFormat, type, this._typize(data, type));
                 remainingBlocks--;
                 if (remainingBlocks === 0) {
                     this.ready = true;
