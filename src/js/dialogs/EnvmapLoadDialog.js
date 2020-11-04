@@ -14,6 +14,8 @@ constructor(options) {
     this._handleFileChange = this._handleFileChange.bind(this);
     this._handleURLChange = this._handleURLChange.bind(this);
     this._handleDemoChange = this._handleDemoChange.bind(this);
+    this._handleEnvOverrideChange = this._handleEnvOverrideChange.bind(this);
+    this._handleEnvColorChange = this._handleEnvColorChange.bind(this);
 
     this._demos = [];
 
@@ -27,6 +29,8 @@ _addEventListeners() {
     this._binds.file.addEventListener('change', this._handleFileChange);
     this._binds.url.addEventListener('input', this._handleURLChange);
     this._binds.demo.addEventListener('change', this._handleDemoChange);
+    this._binds.envOverride.addEventListener("change", this._handleEnvOverrideChange);
+    this._binds.envColor.addEventListener("change", this._handleEnvColorChange);
 }
 
 _loadDemoJson() {
@@ -115,6 +119,14 @@ _handleURLChange() {
 
 _handleDemoChange() {
     this._updateLoadButtonAndProgressVisibility();
+}
+
+_handleEnvOverrideChange() {
+    this.trigger('envOverride');
+}
+
+_handleEnvColorChange() {
+    this.trigger('envColorChange', CommonUtils.hex2rgb(this._binds.envColor.getValue()));
 }
 
 _updateLoadButtonAndProgressVisibility() {

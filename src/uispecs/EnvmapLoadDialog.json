@@ -107,6 +107,35 @@
           ]
         }
       ]
+    },
+    {
+      "type": "panel",
+      "bind": "environmentColor",
+      "visible": true,
+      "children": [
+        {
+          "type": "field",
+          "label": "Override:",
+          "children": [
+            {
+              "type": "checkbox",
+              "bind": "envOverride",
+              "checked": false
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Color:",
+          "children": [
+            {
+              "type": "color-chooser",
+              "bind": "envColor",
+              "value": "#ffffff"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

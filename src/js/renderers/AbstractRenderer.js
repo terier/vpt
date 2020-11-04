@@ -16,6 +16,8 @@ constructor(gl, volume, environmentTexture, options) {
     this._volume = volume;
     this._volumes = [this._volume];
     this._environmentTexture = environmentTexture;
+    this._environmentTextureOverride = false;
+    this._environmentColor = CommonUtils.hex2rgb("#ffffff");
 
     this._numberOfChannels = 0;
 

@@ -17,6 +17,8 @@ constructor() {
     this._handleToneMapperChange = this._handleToneMapperChange.bind(this);
     this._handleVolumeLoad = this._handleVolumeLoad.bind(this);
     this._handleEnvmapLoad = this._handleEnvmapLoad.bind(this);
+    this._handleEnvMapOverrideChange = this._handleEnvMapOverrideChange.bind(this);
+    this._handleEnvMapColorChange = this._handleEnvMapColorChange.bind(this);
     this._handleScaleChange = this._handleScaleChange.bind(this);
     this._handleTFNumberChange = this._handleTFNumberChange.bind(this);
 
@@ -74,6 +76,9 @@ constructor() {
 
     this._renderingContext.addEventListener('scaleChange', this._handleScaleChange);
     this._renderingContext.addEventListener('updateTFNumber', this._handleTFNumberChange);
+
+    this._envmapLoadDialog.addEventListener('envOverride', this._handleEnvMapOverrideChange);
+    this._envmapLoadDialog.addEventListener('envColorChange', this._handleEnvMapColorChange);
 }
 
 _handleFileDrop(e) {
@@ -161,6 +166,16 @@ _handleEnvmapLoad(options) {
     } else if (options.type === 'url') {
         image.src = options.url;
     }
+}
+
+_handleEnvMapOverrideChange() {
+    this._renderingContext._renderer._environmentTextureOverride = !this._renderingContext._renderer._environmentTextureOverride;
+    this._renderingContext._renderer.reset();
+}
+
+_handleEnvMapColorChange(color) {
+    this._renderingContext._renderer._environmentColor = color;
+    this._renderingContext._renderer.reset();
 }
 
 _getReaderForFileType(type) {

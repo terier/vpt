@@ -70,6 +70,7 @@ uniform float uMajorant;
 uniform uint uMaxBounces;
 uniform uint uSteps;
 
+uniform bool uEnvironmentTextureOverride;
 uniform vec3 uEnvironmentColor;
 
 in vec2 vPosition;
@@ -177,7 +178,7 @@ void main() {
         if (any(greaterThan(photon.position, vec3(1))) || any(lessThan(photon.position, vec3(0)))) {
             // out of bounds
             vec4 envSample = sampleEnvironmentMap(photon.direction);
-            if (photon.bounces < 2u)
+            if (uEnvironmentTextureOverride && photon.bounces < 2u)
                 envSample.rgb = uEnvironmentColor;
             vec3 radiance = photon.transmittance * envSample.rgb;
             photon.samples++;

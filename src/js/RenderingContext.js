@@ -244,7 +244,7 @@ _updateMvpInverseMatrix() {
     if (!this._camera.isDirty && !this._isTransformationDirty) {
         return;
     }
-    
+
     this._camera.isDirty = false;
     this._isTransformationDirty = false;
     this._camera.updateMatrices();
