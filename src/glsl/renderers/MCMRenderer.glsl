@@ -70,6 +70,8 @@ uniform float uMajorant;
 uniform uint uMaxBounces;
 uniform uint uSteps;
 
+uniform vec3 uEnvironmentColor;
+
 in vec2 vPosition;
 
 layout (location = 0) out vec4 oPosition;
@@ -118,7 +120,7 @@ vec4 sampleVolumeColor(vec3 position) {
 
     float sumA = (transferSample0.a + transferSample1.a + transferSample2.a + transferSample3.a);
     vec3 sumC = (transferSample0.rgb * transferSample0.a + transferSample1.rgb * transferSample1.a + transferSample2.rgb * transferSample2.a + transferSample3.rgb * transferSample3.a) / sumA;
-    return vec4(sumC, sumA * float(uNumberOfChannels) * 0.25);
+    return vec4(sumC, sumA * float(uNumberOfChannels) / float(uNumberOfChannels));
 }
 
 vec3 randomDirection(vec2 U) {
@@ -175,6 +177,8 @@ void main() {
         if (any(greaterThan(photon.position, vec3(1))) || any(lessThan(photon.position, vec3(0)))) {
             // out of bounds
             vec4 envSample = sampleEnvironmentMap(photon.direction);
+            if (photon.bounces < 2u)
+                envSample.rgb = uEnvironmentColor;
             vec3 radiance = photon.transmittance * envSample.rgb;
             photon.samples++;
             photon.radiance += (radiance - photon.radiance) / float(photon.samples);
