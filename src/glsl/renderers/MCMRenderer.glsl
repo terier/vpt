@@ -72,6 +72,7 @@ uniform uint uSteps;
 
 uniform bool uEnvironmentTextureOverride;
 uniform vec3 uEnvironmentColor;
+uniform float uEnvironmentContribution;
 
 in vec2 vPosition;
 
@@ -180,7 +181,7 @@ void main() {
             vec4 envSample = sampleEnvironmentMap(photon.direction);
             if (uEnvironmentTextureOverride && photon.bounces < 2u)
                 envSample.rgb = uEnvironmentColor;
-            vec3 radiance = photon.transmittance * envSample.rgb;
+            vec3 radiance = photon.transmittance * envSample.rgb * uEnvironmentContribution;
             photon.samples++;
             photon.radiance += (radiance - photon.radiance) / float(photon.samples);
             resetPhoton(r, photon);

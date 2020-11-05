@@ -134,6 +134,20 @@
               "value": "#ffffff"
             }
           ]
+        },
+        {
+          "type": "field",
+          "label": "Multiplier:",
+          "children": [
+            {
+              "type": "spinner",
+              "bind": "envContribution",
+              "logarithmic": true,
+              "value": 1,
+              "min": 0,
+              "step": 0.02
+            }
+          ]
         }
       ]
     }

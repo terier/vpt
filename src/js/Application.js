@@ -19,6 +19,7 @@ constructor() {
     this._handleEnvmapLoad = this._handleEnvmapLoad.bind(this);
     this._handleEnvMapOverrideChange = this._handleEnvMapOverrideChange.bind(this);
     this._handleEnvMapColorChange = this._handleEnvMapColorChange.bind(this);
+    this._handleEnvMapContributionChange = this._handleEnvMapContributionChange.bind(this);
     this._handleScaleChange = this._handleScaleChange.bind(this);
     this._handleTFNumberChange = this._handleTFNumberChange.bind(this);
 
@@ -79,6 +80,7 @@ constructor() {
 
     this._envmapLoadDialog.addEventListener('envOverride', this._handleEnvMapOverrideChange);
     this._envmapLoadDialog.addEventListener('envColorChange', this._handleEnvMapColorChange);
+    this._envmapLoadDialog.addEventListener('envContribChange', this._handleEnvMapContributionChange);
 }
 
 _handleFileDrop(e) {
@@ -175,6 +177,11 @@ _handleEnvMapOverrideChange() {
 
 _handleEnvMapColorChange(color) {
     this._renderingContext._renderer._environmentColor = color;
+    this._renderingContext._renderer.reset();
+}
+
+_handleEnvMapContributionChange(value) {
+    this._renderingContext._renderer._environmentContribution = value;
     this._renderingContext._renderer.reset();
 }
 

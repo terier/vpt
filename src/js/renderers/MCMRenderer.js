@@ -177,6 +177,7 @@ _integrateFrame() {
 
     gl.uniform1i(program.uniforms.uEnvironmentTextureOverride, this._environmentTextureOverride);
     gl.uniform3f(program.uniforms.uEnvironmentColor, this._environmentColor.r, this._environmentColor.g, this._environmentColor.b);
+    gl.uniform1f(program.uniforms.uEnvironmentContribution, this._environmentContribution);
 
     gl.drawBuffers([
         gl.COLOR_ATTACHMENT0,
