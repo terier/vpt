@@ -25,11 +25,13 @@ constructor(options) {
     }, options);
 
     this._$html = DOMUtils.instantiate(TEMPLATES.TransferFunctionWidget);
-    this._$colorPicker   = this._$html.querySelector('[name="color"]');
-    this._$alphaPicker   = this._$html.querySelector('[name="alpha"]');
-    this._$addBumpButton = this._$html.querySelector('[name="add-bump"]');
-    this._$loadButton    = this._$html.querySelector('[name="load"]');
-    this._$saveButton    = this._$html.querySelector('[name="save"]');
+    this._$colorPicker          = this._$html.querySelector('[name="color"]');
+    this._$alphaPicker          = this._$html.querySelector('[name="alpha"]');
+    this._$addBumpButton        = this._$html.querySelector('[name="add-bump"]');
+    this._$removeSelectedBump   = this._$html.querySelector('[name=remove-selected-bump]')
+    this._$removeAllBumps       = this._$html.querySelector('[name=remove-all-bumps]')
+    this._$loadButton           = this._$html.querySelector('[name="load"]');
+    this._$saveButton           = this._$html.querySelector('[name="save"]');
 
     this._canvas = this._$html.querySelector('canvas');
     this._canvas.width = this._transferFunctionWidth;
@@ -60,6 +62,12 @@ constructor(options) {
     this._bumps = [];
     this._$addBumpButton.addEventListener('click', () => {
         this.addBump();
+    });
+    this._$removeSelectedBump.addEventListener('click', () => {
+        this._removeSelectedBump();
+    });
+    this._$removeAllBumps.addEventListener('click', () => {
+        this._removeAllBumps();
     });
 
     this._$colorPicker.addEventListener('change', this._onColorChange);
@@ -183,6 +191,30 @@ _addHandle(index) {
     });
 }
 
+_removeSelectedBump() {
+    this._removeHandle(this.getSelectedBumpIndex());
+}
+
+_removeAllBumps() {
+    this._bumps = [];
+    this._rebuildHandles();
+    this.render();
+    this.trigger('change');
+}
+
+_removeHandle(index) {
+    const handles = this._$html.querySelectorAll('.bump');
+    handles.forEach(handle => {
+        const i = parseInt(DOMUtils.data(handle, 'index'));
+        if (i == index) {
+            this._bumps.splice(i, 1);
+        }
+    });
+    this._rebuildHandles();
+    this.render();
+    this.trigger('change');
+}
+
 _rebuildHandles() {
     const handles = this._$html.querySelectorAll('.bump');
     handles.forEach(handle => {
@@ -207,6 +239,18 @@ selectBump(index) {
     const color = this._bumps[index].color;
     this._$colorPicker.value = CommonUtils.rgb2hex(color);
     this._$alphaPicker.value = color.a;
+}
+
+getSelectedBumpIndex() {
+    const handles = this._$html.querySelectorAll('.bump');
+    let idx = -1;
+    handles.forEach(handle => {
+        let i = parseInt(DOMUtils.data(handle, 'index'));
+        if (handle.classList.contains('selected')) {
+            idx = i;
+        }
+    });
+    return idx;
 }
 
 getTransferFunction() {
