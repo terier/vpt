@@ -175,6 +175,7 @@ _integrateFrame() {
     gl.uniform1ui(program.uniforms.uMaxBounces, this.maxBounces);
     gl.uniform1ui(program.uniforms.uSteps, this.steps);
 
+    gl.uniformMatrix4fv(program.uniforms.uEnvironmentRotationMatrix, false, this._environmentRotationMatrix.m);
     gl.uniform1i(program.uniforms.uEnvironmentTextureOverride, this._environmentTextureOverride);
     gl.uniform3f(program.uniforms.uEnvironmentColor, this._environmentColor.r, this._environmentColor.g, this._environmentColor.b);
     gl.uniform1f(program.uniforms.uEnvironmentContribution, this._environmentContribution);

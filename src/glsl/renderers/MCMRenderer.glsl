@@ -70,6 +70,7 @@ uniform float uMajorant;
 uniform uint uMaxBounces;
 uniform uint uSteps;
 
+uniform mat4 uEnvironmentRotationMatrix;
 uniform bool uEnvironmentTextureOverride;
 uniform vec3 uEnvironmentColor;
 uniform float uEnvironmentContribution;
@@ -96,7 +97,9 @@ void resetPhoton(inout vec2 randState, inout Photon photon) {
 }
 
 vec4 sampleEnvironmentMap(vec3 d) {
-    vec2 texCoord = vec2(atan(d.x, -d.z), asin(-d.y) * 2.0) * M_INVPI * 0.5 + 0.5;
+    vec4 rotatedD = uEnvironmentRotationMatrix * vec4(d, 1.0);
+    vec2 texCoord = vec2(atan(rotatedD.x, -rotatedD.z), asin(-rotatedD.y) * 2.0) * M_INVPI * 0.5 + 0.5;
+    // vec2 texCoord = vec2(atan(d.x, -d.z), asin(-d.y) * 2.0) * M_INVPI * 0.5 + 0.5;
     return texture(uEnvironment, texCoord);
 }
 

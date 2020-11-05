@@ -14,6 +14,7 @@ constructor(options) {
     this._handleFileChange = this._handleFileChange.bind(this);
     this._handleURLChange = this._handleURLChange.bind(this);
     this._handleDemoChange = this._handleDemoChange.bind(this);
+    this._handleEnvRotation = this._handleEnvRotation.bind(this);
     this._handleEnvOverrideChange = this._handleEnvOverrideChange.bind(this);
     this._handleEnvColorChange = this._handleEnvColorChange.bind(this);
     this._handleEnvContribution = this._handleEnvContribution.bind(this);
@@ -30,6 +31,7 @@ _addEventListeners() {
     this._binds.file.addEventListener('change', this._handleFileChange);
     this._binds.url.addEventListener('input', this._handleURLChange);
     this._binds.demo.addEventListener('change', this._handleDemoChange);
+    this._binds.envRotation.addEventListener("input", this._handleEnvRotation);
     this._binds.envOverride.addEventListener("change", this._handleEnvOverrideChange);
     this._binds.envColor.addEventListener("change", this._handleEnvColorChange);
     this._binds.envContribution.addEventListener("input", this._handleEnvContribution);
@@ -121,6 +123,10 @@ _handleURLChange() {
 
 _handleDemoChange() {
     this._updateLoadButtonAndProgressVisibility();
+}
+
+_handleEnvRotation() {
+    this.trigger('envRotation', this._binds.envRotation.getValue());
 }
 
 _handleEnvOverrideChange() {

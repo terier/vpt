@@ -17,6 +17,7 @@ constructor() {
     this._handleToneMapperChange = this._handleToneMapperChange.bind(this);
     this._handleVolumeLoad = this._handleVolumeLoad.bind(this);
     this._handleEnvmapLoad = this._handleEnvmapLoad.bind(this);
+    this._handleEnvMapRotationChange = this._handleEnvMapRotationChange.bind(this);
     this._handleEnvMapOverrideChange = this._handleEnvMapOverrideChange.bind(this);
     this._handleEnvMapColorChange = this._handleEnvMapColorChange.bind(this);
     this._handleEnvMapContributionChange = this._handleEnvMapContributionChange.bind(this);
@@ -78,6 +79,7 @@ constructor() {
     this._renderingContext.addEventListener('scaleChange', this._handleScaleChange);
     this._renderingContext.addEventListener('updateTFNumber', this._handleTFNumberChange);
 
+    this._envmapLoadDialog.addEventListener('envRotation', this._handleEnvMapRotationChange);
     this._envmapLoadDialog.addEventListener('envOverride', this._handleEnvMapOverrideChange);
     this._envmapLoadDialog.addEventListener('envColorChange', this._handleEnvMapColorChange);
     this._envmapLoadDialog.addEventListener('envContribChange', this._handleEnvMapContributionChange);
@@ -168,6 +170,19 @@ _handleEnvmapLoad(options) {
     } else if (options.type === 'url') {
         image.src = options.url;
     }
+}
+
+_handleEnvMapRotationChange(rotation) {
+    // console.log(rotation);
+    this._renderingContext._renderer._environmentRotationMatrix.identity();
+    let mat = new Matrix();
+    mat.fromRotationZ(rotation.z);
+    this._renderingContext._renderer._environmentRotationMatrix.multiply(this._renderingContext._renderer._environmentRotationMatrix, mat);
+    mat.fromRotationY(rotation.y);
+    this._renderingContext._renderer._environmentRotationMatrix.multiply(this._renderingContext._renderer._environmentRotationMatrix, mat);
+    mat.fromRotationX(rotation.x);
+    this._renderingContext._renderer._environmentRotationMatrix.multiply(this._renderingContext._renderer._environmentRotationMatrix, mat);
+    this._renderingContext._renderer.reset();
 }
 
 _handleEnvMapOverrideChange() {

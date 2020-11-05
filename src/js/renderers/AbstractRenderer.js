@@ -16,6 +16,7 @@ constructor(gl, volume, environmentTexture, options) {
     this._volume = volume;
     this._volumes = [this._volume];
     this._environmentTexture = environmentTexture;
+    this._environmentRotationMatrix = new Matrix();
     this._environmentTextureOverride = false;
     this._environmentColor = CommonUtils.hex2rgb("#ffffff");
     this._environmentContribution = 1.0;
