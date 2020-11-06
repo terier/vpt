@@ -8,6 +8,8 @@ class MCMRenderer extends AbstractRenderer {
 constructor(gl, volume, environmentTexture, options) {
     super(gl, volume, environmentTexture, options);
 
+    this._channelContributions = new Vector(1.0, 1.0, 1.0, 1.0);
+
     this._transferFunctions = [];
 
     this._transferFunctions[0] = WebGL.createTexture(gl, {
@@ -162,6 +164,7 @@ _integrateFrame() {
     gl.uniform1i(program.uniforms.uVolume3, 12);
 
     gl.uniform1i(program.uniforms.uNumberOfChannels, this._numberOfChannels);
+    gl.uniform4f(program.uniforms.uChannelContributions, this._channelContributions.x, this._channelContributions.y, this._channelContributions.z, this._channelContributions.w);
 
     gl.uniformMatrix4fv(program.uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
     gl.uniform2f(program.uniforms.uInverseResolution, 1 / this._bufferSize, 1 / this._bufferSize);

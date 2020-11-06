@@ -27,6 +27,7 @@ constructor(options) {
     this._$html = DOMUtils.instantiate(TEMPLATES.TransferFunctionWidget);
     this._$colorPicker          = this._$html.querySelector('[name="color"]');
     this._$alphaPicker          = this._$html.querySelector('[name="alpha"]');
+    this._$channelContribPicker = this._$html.querySelector('[name="channel-contribution"]');
     this._$addBumpButton        = this._$html.querySelector('[name="add-bump"]');
     this._$removeSelectedBump   = this._$html.querySelector('[name=remove-selected-bump]')
     this._$removeAllBumps       = this._$html.querySelector('[name=remove-all-bumps]')
@@ -70,8 +71,11 @@ constructor(options) {
         this._removeAllBumps();
     });
 
-    this._$colorPicker.addEventListener('change', this._onColorChange);
-    this._$alphaPicker.addEventListener('change', this._onColorChange);
+    this._$colorPicker.addEventListener('input', this._onColorChange);
+    this._$alphaPicker.addEventListener('input', this._onColorChange);
+
+    this._channelContribution = 1.0;
+    this._$channelContribPicker.addEventListener('input', this._onColorChange);
 
     this._$loadButton.addEventListener('click', () => {
         CommonUtils.readTextFile(data => {
@@ -259,13 +263,17 @@ getTransferFunction() {
 
 _onColorChange() {
     const $selectedBump = this._$html.querySelector('.bump.selected');
-    const i = parseInt(DOMUtils.data($selectedBump, 'index'));
-    const color = CommonUtils.hex2rgb(this._$colorPicker.value);
-    const alpha = parseFloat(this._$alphaPicker.value);
-    this._bumps[i].color.r = color.r;
-    this._bumps[i].color.g = color.g;
-    this._bumps[i].color.b = color.b;
-    this._bumps[i].color.a = alpha;
+    if ($selectedBump !== null) {
+        const i = parseInt(DOMUtils.data($selectedBump, 'index'));
+        const color = CommonUtils.hex2rgb(this._$colorPicker.value);
+        const alpha = parseFloat(this._$alphaPicker.value);
+        this._bumps[i].color.r = color.r;
+        this._bumps[i].color.g = color.g;
+        this._bumps[i].color.b = color.b;
+        this._bumps[i].color.a = alpha;
+    }
+    this._channelContribution = parseFloat(this._$channelContribPicker.value);
+
     this.render();
     this.trigger('change');
 }

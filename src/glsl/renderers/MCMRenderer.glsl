@@ -57,6 +57,7 @@ uniform mediump sampler2D uTransferFunction3;
 uniform mediump sampler3D uVolume3;
 
 uniform int uNumberOfChannels;
+uniform vec4 uChannelContributions;
 
 uniform mat4 uMvpInverseMatrix;
 uniform vec2 uInverseResolution;
@@ -104,28 +105,30 @@ vec4 sampleEnvironmentMap(vec3 d) {
 }
 
 vec4 sampleVolumeColor(vec3 position) {
+    vec4 channelContribs = uChannelContributions / max(max(max(uChannelContributions.x, uChannelContributions.y), uChannelContributions.z), uChannelContributions.w);
+
     vec2 volumeSample0 = texture(uVolume0, position).rg ;
-    vec4 transferSample0 = texture(uTransferFunction0, volumeSample0);
+    vec4 transferSample0 = texture(uTransferFunction0, volumeSample0) * channelContribs.x;
     vec4 transferSample1 = vec4(0);
     vec4 transferSample2 = vec4(0);
     vec4 transferSample3 = vec4(0);
 
     if (uNumberOfChannels > 1) {
         vec2 volumeSample1 = texture(uVolume1, position).rg ;
-        transferSample1 = texture(uTransferFunction1, volumeSample1);
+        transferSample1 = texture(uTransferFunction1, volumeSample1) * channelContribs.y;
     }
     if (uNumberOfChannels > 2) {
         vec2 volumeSample2 = texture(uVolume2, position).rg ;
-        transferSample2 = texture(uTransferFunction2, volumeSample2);
+        transferSample2 = texture(uTransferFunction2, volumeSample2) * channelContribs.z;
     }
     if (uNumberOfChannels > 3) {
         vec2 volumeSample3 = texture(uVolume3, position).rg ;
-        transferSample3 = texture(uTransferFunction3, volumeSample3);
+        transferSample3 = texture(uTransferFunction3, volumeSample3) * channelContribs.w;
     }
 
     float sumA = (transferSample0.a + transferSample1.a + transferSample2.a + transferSample3.a);
     vec3 sumC = (transferSample0.rgb * transferSample0.a + transferSample1.rgb * transferSample1.a + transferSample2.rgb * transferSample2.a + transferSample3.rgb * transferSample3.a) / sumA;
-    return vec4(sumC, sumA * float(uNumberOfChannels) / float(uNumberOfChannels));
+    return vec4(sumC, sumA / float(uNumberOfChannels));
 }
 
 vec3 randomDirection(vec2 U) {

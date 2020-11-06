@@ -68,6 +68,12 @@ _handleChange() {
 
 _handleTFChange(id) {
     this._renderer.setTransferFunction(this._tfwidgets[id].getTransferFunction(), id);
+
+    this._renderer._channelContributions.x = this._tfwidgets[0]._channelContribution;
+    this._renderer._channelContributions.y = this._tfwidgets[1]._channelContribution;
+    this._renderer._channelContributions.z = this._tfwidgets[2]._channelContribution;
+    this._renderer._channelContributions.w = this._tfwidgets[3]._channelContribution;
+
     this._renderer.reset();
 }
 
