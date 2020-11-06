@@ -1,5 +1,6 @@
 // #package js/main
 
+// #include ../utils/DOMUtils.js
 // #include UIObject.js
 
 class Tabs extends UIObject {
@@ -71,12 +72,12 @@ selectTab(objectOrIndex) {
 _updateStyle() {
     for (let i = 0; i < this._tabs.length; i++) {
         const tab = this._tabs[i];
-        const offset = -this._index * 100;
-        tab.panel.style.left = offset + '%';
         if (i === this._index) {
+            DOMUtils.show(tab.panel);
             tab.header.classList.add('selected');
             tab.panel.classList.add('selected');
         } else {
+            DOMUtils.hide(tab.panel);
             tab.header.classList.remove('selected');
             tab.panel.classList.remove('selected');
         }

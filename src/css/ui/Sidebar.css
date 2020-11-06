@@ -51,5 +51,6 @@
     flex: 1;
     background-color: var(--background-color);
     border-right: 1px solid var(--border-color);
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
