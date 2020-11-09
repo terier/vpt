@@ -16,6 +16,11 @@ constructor(gl, reader, options) {
     this.modalities = null;
     this.blocks     = null;
     this._texture   = null;
+    this._tfArray   = [];
+    for (let i = 0; i < 256*256; i++) {
+        this._tfArray[i] = 0;
+    }
+    this._tfAccumulatedGM = null;
 }
 
 destroy() {
@@ -78,13 +83,43 @@ readModality(modalityName, handlers) {
                 const blockdim = block.dimensions;
                 const type = modality.type || gl.UNSIGNED_INT;
                 const gpuFormat = modality.format || gl.RED_INTEGER;
+
+                // Accumulate gradient magnitude
+                const typedData = this._typize(data, type);
+                for (let i = 0; i < typedData.length; i+=2) {
+                    this._tfArray[typedData[i+1] * 256 + typedData[i]]++;
+                }
+
                 gl.bindTexture(gl.TEXTURE_3D, this._texture);
                 gl.texSubImage3D(gl.TEXTURE_3D, 0,
                     position.x, position.y, position.z,
                     blockdim.width, blockdim.height, blockdim.depth,
-                    gpuFormat, type, this._typize(data, type));
+                    gpuFormat, type, typedData);
                 remainingBlocks--;
                 if (remainingBlocks === 0) {
+
+                    // Create textur of accumulated gradient magnitude
+                    const m = Math.log(Math.max(...this._tfArray));
+
+                    let tf = new Array(this._tfArray.length * 4);
+                    for (let i = 0; i < this._tfArray.length; i++) {
+                        const v = 255 - Math.log(this._tfArray[i]) / m * 255;
+                        tf[4 * i] = v;
+                        tf[4 * i + 1] = v;
+                        tf[4 * i + 2] = v;
+                        tf[4 * i + 3] = 255;
+                    }
+                    this._tfArray = tf;
+
+                    const imgData = new ImageData(Uint8ClampedArray.from(this._tfArray), 256, 256);
+                    const canv = document.createElement('canvas');
+                    canv.width = 256;
+                    canv.height = 256;
+                    const ctx = canv.getContext('2d');
+                    ctx.putImageData(imgData, 0, 0);
+                    this._tfAccumulatedGM = canv.toDataURL();
+                    // console.log(this._tfAccumulatedGM);
+
                     this.ready = true;
                     handlers.onLoad && handlers.onLoad();
                 }

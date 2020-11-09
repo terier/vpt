@@ -23,6 +23,7 @@ constructor() {
     this._handleEnvMapContributionChange = this._handleEnvMapContributionChange.bind(this);
     this._handleScaleChange = this._handleScaleChange.bind(this);
     this._handleTFNumberChange = this._handleTFNumberChange.bind(this);
+    this._handleTFAccumulationGMChange = this._handleTFAccumulationGMChange.bind(this);
 
     this._renderingContext = new RenderingContext();
     this._canvas = this._renderingContext.getCanvas();
@@ -78,6 +79,7 @@ constructor() {
 
     this._renderingContext.addEventListener('scaleChange', this._handleScaleChange);
     this._renderingContext.addEventListener('updateTFNumber', this._handleTFNumberChange);
+    this._renderingContext.addEventListener("tfAcculumationGMChange", this._handleTFAccumulationGMChange);
 
     this._envmapLoadDialog.addEventListener('envRotation', this._handleEnvMapRotationChange);
     this._envmapLoadDialog.addEventListener('envOverride', this._handleEnvMapOverrideChange);
@@ -114,6 +116,12 @@ _handleRendererChange(which) {
     const dialogClass = this._getDialogForRenderer(which);
     this._rendererDialog = new dialogClass(renderer);
     this._rendererDialog.appendTo(container);
+}
+
+_handleTFAccumulationGMChange(o) {
+    // console.log(o);
+    this._rendererDialog._tfwidgets[o.idx]._canvas.style.backgroundImage = "none";
+    this._rendererDialog._tfwidgets[o.idx]._canvas.style.backgroundImage = 'url('+o.imgData+')';
 }
 
 _handleToneMapperChange(which) {
@@ -173,7 +181,6 @@ _handleEnvmapLoad(options) {
 }
 
 _handleEnvMapRotationChange(rotation) {
-    // console.log(rotation);
     this._renderingContext._renderer._environmentRotationMatrix.identity();
     let mat = new Matrix();
     mat.fromRotationZ(rotation.z);

@@ -142,6 +142,8 @@ setVolumes(reader) {
                                 vol.setFilter(this._filter);
                                 if (this._renderer) {
                                     this._renderer.addVolume(vol);
+                                    // console.log(vol._tfAccumulatedGM);
+                                    this.trigger('tfAcculumationGMChange', {imgData: vol._tfAccumulatedGM, idx: this._renderer._volumes.length - 1});
                                     let ready = true;
                                     this._volumes.forEach((e) => {
                                         ready = ready && e.ready

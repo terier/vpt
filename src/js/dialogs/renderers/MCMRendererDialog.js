@@ -35,7 +35,8 @@ constructor(renderer, options) {
 }
 
 destroy() {
-    this._tfwidget.destroy();
+    if (this._tfwidget)
+        this._tfwidget.destroy();
     super.destroy();
 }
 
