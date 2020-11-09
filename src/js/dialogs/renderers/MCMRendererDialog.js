@@ -23,6 +23,7 @@ constructor(renderer, options) {
     this._binds.ratio.addEventListener('change', this._handleChange);
     this._binds.bounces.addEventListener('input', this._handleChange);
     this._binds.steps.addEventListener('input', this._handleChange);
+    this._binds.maxContribution.addEventListener('change', this._handleChange);
 
     this._tfwidgets = [];
     for (let i = 0; i < 4; i++) {
@@ -56,6 +57,7 @@ _handleChange() {
     const ratio      = this._binds.ratio.getValue();
     const bounces    = this._binds.bounces.getValue();
     const steps      = this._binds.steps.getValue();
+    const maxContrib = this._binds.maxContribution.checked;
 
     this._renderer.absorptionCoefficient = extinction * (1 - albedo);
     this._renderer.scatteringCoefficient = extinction * albedo;
@@ -63,6 +65,7 @@ _handleChange() {
     this._renderer.majorant = extinction * ratio;
     this._renderer.maxBounces = bounces;
     this._renderer.steps = steps;
+    this._renderer.maxContribution = maxContrib;
 
     this._renderer.reset();
 }

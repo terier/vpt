@@ -58,7 +58,8 @@ constructor(gl, volume, environmentTexture, options) {
         scatteringBias        : 0,
         majorant              : 2,
         maxBounces            : 8,
-        steps                 : 1
+        steps                 : 1,
+        maxContribution       : false
     }, options);
 
     this._programs = WebGL.buildPrograms(gl, {
@@ -177,6 +178,7 @@ _integrateFrame() {
     gl.uniform1f(program.uniforms.uMajorant, this.majorant);
     gl.uniform1ui(program.uniforms.uMaxBounces, this.maxBounces);
     gl.uniform1ui(program.uniforms.uSteps, this.steps);
+    gl.uniform1i(program.uniforms.uMaxContribution, this.maxContribution);
 
     gl.uniformMatrix4fv(program.uniforms.uEnvironmentRotationMatrix, false, this._environmentRotationMatrix.m);
     gl.uniform1i(program.uniforms.uEnvironmentTextureOverride, this._environmentTextureOverride);

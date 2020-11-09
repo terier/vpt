@@ -70,6 +70,7 @@ uniform float uScatteringBias;
 uniform float uMajorant;
 uniform uint uMaxBounces;
 uniform uint uSteps;
+uniform bool uMaxContribution;
 
 uniform mat4 uEnvironmentRotationMatrix;
 uniform bool uEnvironmentTextureOverride;
@@ -112,23 +113,41 @@ vec4 sampleVolumeColor(vec3 position) {
     vec4 transferSample1 = vec4(0);
     vec4 transferSample2 = vec4(0);
     vec4 transferSample3 = vec4(0);
+    float maxVolValue = volumeSample0.r;
+    vec4 maxVolSample = transferSample0;
 
     if (uNumberOfChannels > 1) {
         vec2 volumeSample1 = texture(uVolume1, position).rg ;
         transferSample1 = texture(uTransferFunction1, volumeSample1) * channelContribs.y;
+        if (maxVolValue < volumeSample1.r) {
+             maxVolValue = volumeSample1.r;
+             maxVolSample = transferSample1;
+        }
     }
     if (uNumberOfChannels > 2) {
         vec2 volumeSample2 = texture(uVolume2, position).rg ;
         transferSample2 = texture(uTransferFunction2, volumeSample2) * channelContribs.z;
+        if (maxVolValue < volumeSample2.r) {
+             maxVolValue = volumeSample2.r;
+             maxVolSample = transferSample2;
+        }
     }
     if (uNumberOfChannels > 3) {
         vec2 volumeSample3 = texture(uVolume3, position).rg ;
         transferSample3 = texture(uTransferFunction3, volumeSample3) * channelContribs.w;
+        if (maxVolValue < volumeSample3.r) {
+             maxVolValue = volumeSample3.r;
+             maxVolSample = transferSample3;
+        }
     }
 
-    float sumA = (transferSample0.a + transferSample1.a + transferSample2.a + transferSample3.a);
-    vec3 sumC = (transferSample0.rgb * transferSample0.a + transferSample1.rgb * transferSample1.a + transferSample2.rgb * transferSample2.a + transferSample3.rgb * transferSample3.a) / sumA;
-    return vec4(sumC, sumA / float(uNumberOfChannels));
+    if (!uMaxContribution) {
+        float sumA = (transferSample0.a + transferSample1.a + transferSample2.a + transferSample3.a);
+        vec3 sumC = (transferSample0.rgb * transferSample0.a + transferSample1.rgb * transferSample1.a + transferSample2.rgb * transferSample2.a + transferSample3.rgb * transferSample3.a) / sumA;
+        return vec4(sumC, sumA / float(uNumberOfChannels));
+    } else {
+        return maxVolSample;
+    }
 }
 
 vec3 randomDirection(vec2 U) {

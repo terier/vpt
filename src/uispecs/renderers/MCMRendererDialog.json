@@ -86,6 +86,17 @@
       ]
     },
     {
+      "type": "field",
+      "label": "Max. Contribution:",
+      "children": [
+        {
+          "type": "checkbox",
+          "bind": "maxContribution",
+          "checked": false
+        }
+      ]
+    },
+    {
       "type": "accordion",
       "label": "Transfer function",
       "children": [
