@@ -71,6 +71,8 @@ uniform float uMajorant;
 uniform uint uMaxBounces;
 uniform uint uSteps;
 uniform bool uMaxContribution;
+uniform bool uOrigData;
+uniform float uOrigVsSeg;
 
 uniform mat4 uEnvironmentRotationMatrix;
 uniform bool uEnvironmentTextureOverride;
@@ -119,6 +121,8 @@ vec4 sampleVolumeColor(vec3 position) {
     if (uNumberOfChannels > 1) {
         vec2 volumeSample1 = texture(uVolume1, position).rg ;
         transferSample1 = texture(uTransferFunction1, volumeSample1) * channelContribs.y;
+        maxVolValue = volumeSample1.r;
+        maxVolSample = transferSample1;
         if (maxVolValue < volumeSample1.r) {
              maxVolValue = volumeSample1.r;
              maxVolSample = transferSample1;
@@ -146,7 +150,13 @@ vec4 sampleVolumeColor(vec3 position) {
         vec3 sumC = (transferSample0.rgb * transferSample0.a + transferSample1.rgb * transferSample1.a + transferSample2.rgb * transferSample2.a + transferSample3.rgb * transferSample3.a) / sumA;
         return vec4(sumC, sumA / float(uNumberOfChannels));
     } else {
-        return maxVolSample;
+        if (uOrigData) {
+            float alpha = uOrigVsSeg * transferSample0.a + (1.0 - uOrigVsSeg) * maxVolSample.a;
+            vec3 color = (uOrigVsSeg * transferSample0.rgb * transferSample0.a + (1.0 - uOrigVsSeg) * maxVolSample.rgb * maxVolSample.a);
+            return vec4(color, alpha);
+        } else {
+            return maxVolSample;
+        }
     }
 }
 

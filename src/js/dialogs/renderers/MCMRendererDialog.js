@@ -24,6 +24,8 @@ constructor(renderer, options) {
     this._binds.bounces.addEventListener('input', this._handleChange);
     this._binds.steps.addEventListener('input', this._handleChange);
     this._binds.maxContribution.addEventListener('change', this._handleChange);
+    this._binds.origData.addEventListener('change', this._handleChange);
+    this._binds.origVsSeg.addEventListener('change', this._handleChange);
 
     this._tfwidgets = [];
     for (let i = 0; i < 4; i++) {
@@ -58,6 +60,8 @@ _handleChange() {
     const bounces    = this._binds.bounces.getValue();
     const steps      = this._binds.steps.getValue();
     const maxContrib = this._binds.maxContribution.checked;
+    const origData      = this._binds.origData.checked;
+    const origVsSeg = this._binds.origVsSeg.getValue();
 
     this._renderer.absorptionCoefficient = extinction * (1 - albedo);
     this._renderer.scatteringCoefficient = extinction * albedo;
@@ -66,6 +70,8 @@ _handleChange() {
     this._renderer.maxBounces = bounces;
     this._renderer.steps = steps;
     this._renderer.maxContribution = maxContrib;
+    this._renderer.origData = origData;
+    this._renderer.origVsSeg = origVsSeg;
 
     this._renderer.reset();
 }
