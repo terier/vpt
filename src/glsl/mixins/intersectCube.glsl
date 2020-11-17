@@ -2,9 +2,11 @@
 
 // #section intersectCube
 
-vec2 intersectCube(in vec3 origin, in vec3 direction) {
-    vec3 tmin = (vec3(0.0) - origin) / direction;
-    vec3 tmax = (vec3(1.0) - origin) / direction;
+vec2 intersectCube(in vec3 origin, in vec3 direction, in vec3 minCutPlane, in vec3 maxCutPlane) {
+    // vec3 tmin = (vec3(0.0) - origin) / direction;
+    // vec3 tmax = (vec3(1.0) - origin) / direction;
+    vec3 tmin = (minCutPlane - origin) / direction;
+    vec3 tmax = (maxCutPlane - origin) / direction;
     vec3 t1 = min(tmin, tmax);
     vec3 t2 = max(tmin, tmax);
     float tnear = max(max(t1.x, t1.y), t1.z);

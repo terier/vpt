@@ -79,6 +79,9 @@ uniform bool uEnvironmentTextureOverride;
 uniform vec3 uEnvironmentColor;
 uniform float uEnvironmentContribution;
 
+uniform vec3 uMinCutPlaneValues;
+uniform vec3 uMaxCutPlaneValues;
+
 in vec2 vPosition;
 
 layout (location = 0) out vec4 oPosition;
@@ -95,7 +98,7 @@ void resetPhoton(inout vec2 randState, inout Photon photon) {
     unprojectRand(randState, vPosition, uMvpInverseMatrix, uInverseResolution, uBlur, from, to);
     photon.direction = normalize(to - from);
     photon.bounces = 0u;
-    vec2 tbounds = max(intersectCube(from, photon.direction), 0.0);
+    vec2 tbounds = max(intersectCube(from, photon.direction, uMinCutPlaneValues, uMaxCutPlaneValues), 0.0);
     photon.position = from + tbounds.x * photon.direction;
     photon.transmittance = vec3(1);
 }
@@ -211,7 +214,8 @@ void main() {
         float PAbsorption = muAbsorption / muMajorant;
         float PScattering = muScattering / muMajorant;
 
-        if (any(greaterThan(photon.position, vec3(1))) || any(lessThan(photon.position, vec3(0)))) {
+        // if (any(greaterThan(photon.position, vec3(1))) || any(lessThan(photon.position, vec3(0)))) {
+        if (any(greaterThan(photon.position, uMaxCutPlaneValues)) || any(lessThan(photon.position, uMinCutPlaneValues))) {
             // out of bounds
             vec4 envSample = sampleEnvironmentMap(photon.direction);
             if (uEnvironmentTextureOverride && photon.bounces < 2u)
@@ -299,6 +303,9 @@ uniform vec2 uInverseResolution;
 uniform float uRandSeed;
 uniform float uBlur;
 
+uniform vec3 uMinCutPlaneValues;
+uniform vec3 uMaxCutPlaneValues;
+
 in vec2 vPosition;
 
 layout (location = 0) out vec4 oPosition;
@@ -316,7 +323,7 @@ void main() {
     vec2 randState = rand(vPosition * uRandSeed);
     unprojectRand(randState, vPosition, uMvpInverseMatrix, uInverseResolution, uBlur, from, to);
     photon.direction = normalize(to - from);
-    vec2 tbounds = max(intersectCube(from, photon.direction), 0.0);
+    vec2 tbounds = max(intersectCube(from, photon.direction, uMinCutPlaneValues, uMaxCutPlaneValues), 0.0);
     photon.position = from + tbounds.x * photon.direction;
     photon.transmittance = vec3(1);
     photon.radiance = vec3(1);

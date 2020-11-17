@@ -87,6 +87,34 @@
     },
     {
       "type": "field",
+      "label": "Min Cut Planes:",
+      "children": [
+        {
+          "type": "vector",
+          "bind": "minCutPlanes",
+          "value": 0,
+          "step": 0.02,
+          "min": 0,
+          "max": 1
+        }
+      ]
+    },
+    {
+      "type": "field",
+      "label": "MaxCutPlanes:",
+      "children": [
+        {
+          "type": "vector",
+          "bind": "maxCutPlanes",
+          "value": 1,
+          "step": 0.02,
+          "min": 0,
+          "max": 1
+        }
+      ]
+    },
+    {
+      "type": "field",
       "label": "Max. Contribution:",
       "children": [
         {

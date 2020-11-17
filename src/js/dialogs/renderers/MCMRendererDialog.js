@@ -23,6 +23,8 @@ constructor(renderer, options) {
     this._binds.ratio.addEventListener('change', this._handleChange);
     this._binds.bounces.addEventListener('input', this._handleChange);
     this._binds.steps.addEventListener('input', this._handleChange);
+    this._binds.minCutPlanes.addEventListener("input", this._handleChange);
+    this._binds.maxCutPlanes.addEventListener("input", this._handleChange);
     this._binds.maxContribution.addEventListener('change', this._handleChange);
     this._binds.origData.addEventListener('change', this._handleChange);
     this._binds.origVsSeg.addEventListener('change', this._handleChange);
@@ -59,9 +61,11 @@ _handleChange() {
     const ratio      = this._binds.ratio.getValue();
     const bounces    = this._binds.bounces.getValue();
     const steps      = this._binds.steps.getValue();
+    const minCutPlaneValues = this._binds.minCutPlanes.getValue();
+    const maxCutPlaneValues = this._binds.maxCutPlanes.getValue();
     const maxContrib = this._binds.maxContribution.checked;
-    const origData      = this._binds.origData.checked;
-    const origVsSeg = this._binds.origVsSeg.getValue();
+    const origData   = this._binds.origData.checked;
+    const origVsSeg  = this._binds.origVsSeg.getValue();
 
     this._renderer.absorptionCoefficient = extinction * (1 - albedo);
     this._renderer.scatteringCoefficient = extinction * albedo;
@@ -69,6 +73,8 @@ _handleChange() {
     this._renderer.majorant = extinction * ratio;
     this._renderer.maxBounces = bounces;
     this._renderer.steps = steps;
+    this._renderer.minCutPlaneValues = minCutPlaneValues;
+    this._renderer.maxCutPlaneValues = maxCutPlaneValues;
     this._renderer.maxContribution = maxContrib;
     this._renderer.origData = origData;
     this._renderer.origVsSeg = origVsSeg;
