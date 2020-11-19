@@ -63,7 +63,8 @@ constructor(gl, volume, environmentTexture, options) {
         origData              : false,
         origVsSeg             : 0.5,
         minCutPlaneValues     : new Vector(0,0,0),
-        maxCutPlaneValues     : new Vector(1,1,1)
+        maxCutPlaneValues     : new Vector(1,1,1),
+        viewCutDistance       : 0
     }, options);
 
     this._programs = WebGL.buildPrograms(gl, {
@@ -93,9 +94,10 @@ _resetFrame() {
     gl.uniform2f(program.uniforms.uInverseResolution, 1 / this._bufferSize, 1 / this._bufferSize);
     gl.uniform1f(program.uniforms.uRandSeed, Math.random());
     gl.uniform1f(program.uniforms.uBlur, 0);
-    
+
     gl.uniform3f(program.uniforms.uMinCutPlaneValues, this.minCutPlaneValues.x, this.minCutPlaneValues.y, this.minCutPlaneValues.z);
     gl.uniform3f(program.uniforms.uMaxCutPlaneValues, this.maxCutPlaneValues.x, this.maxCutPlaneValues.y, this.maxCutPlaneValues.z);
+    gl.uniform1f(program.uniforms.uViewCutDistance, this.viewCutDistance);
 
     gl.drawBuffers([
         gl.COLOR_ATTACHMENT0,
@@ -191,6 +193,7 @@ _integrateFrame() {
 
     gl.uniform3f(program.uniforms.uMinCutPlaneValues, this.minCutPlaneValues.x, this.minCutPlaneValues.y, this.minCutPlaneValues.z);
     gl.uniform3f(program.uniforms.uMaxCutPlaneValues, this.maxCutPlaneValues.x, this.maxCutPlaneValues.y, this.maxCutPlaneValues.z);
+    gl.uniform1f(program.uniforms.uViewCutDistance, this.viewCutDistance);
 
     gl.uniformMatrix4fv(program.uniforms.uEnvironmentRotationMatrix, false, this._environmentRotationMatrix.m);
     gl.uniform1i(program.uniforms.uEnvironmentTextureOverride, this._environmentTextureOverride);

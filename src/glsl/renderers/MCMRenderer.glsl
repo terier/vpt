@@ -34,6 +34,7 @@ precision mediump float;
 #define M_INVPI 0.31830988618
 #define M_2PI 6.28318530718
 #define EPS 1e-5
+#define SQRT3 1.73205080757
 
 @Photon
 
@@ -81,6 +82,7 @@ uniform float uEnvironmentContribution;
 
 uniform vec3 uMinCutPlaneValues;
 uniform vec3 uMaxCutPlaneValues;
+uniform float uViewCutDistance;
 
 in vec2 vPosition;
 
@@ -98,8 +100,9 @@ void resetPhoton(inout vec2 randState, inout Photon photon) {
     unprojectRand(randState, vPosition, uMvpInverseMatrix, uInverseResolution, uBlur, from, to);
     photon.direction = normalize(to - from);
     photon.bounces = 0u;
-    vec2 tbounds = max(intersectCube(from, photon.direction, uMinCutPlaneValues, uMaxCutPlaneValues), 0.0);
-    photon.position = from + tbounds.x * photon.direction;
+    vec2 tbounds = max(limitedIntersectCube(from, photon.direction, uMinCutPlaneValues, uMaxCutPlaneValues), 0.0);
+    photon.position = from + (tbounds.x + uViewCutDistance * SQRT3) * photon.direction;
+    // photon.position = from + tbounds.x * photon.direction;
     photon.transmittance = vec3(1);
 }
 
@@ -296,6 +299,8 @@ void main() {
 #version 300 es
 precision mediump float;
 
+#define SQRT3 1.73205080757
+
 @Photon
 
 uniform mat4 uMvpInverseMatrix;
@@ -305,6 +310,7 @@ uniform float uBlur;
 
 uniform vec3 uMinCutPlaneValues;
 uniform vec3 uMaxCutPlaneValues;
+uniform float uViewCutDistance;
 
 in vec2 vPosition;
 
@@ -323,8 +329,9 @@ void main() {
     vec2 randState = rand(vPosition * uRandSeed);
     unprojectRand(randState, vPosition, uMvpInverseMatrix, uInverseResolution, uBlur, from, to);
     photon.direction = normalize(to - from);
-    vec2 tbounds = max(intersectCube(from, photon.direction, uMinCutPlaneValues, uMaxCutPlaneValues), 0.0);
-    photon.position = from + tbounds.x * photon.direction;
+    vec2 tbounds = max(limitedIntersectCube(from, photon.direction, uMinCutPlaneValues, uMaxCutPlaneValues), 0.0);
+    photon.position = from + (tbounds.x + uViewCutDistance * SQRT3 ) * photon.direction;
+    // photon.position = from + tbounds.x * photon.direction;
     photon.transmittance = vec3(1);
     photon.radiance = vec3(1);
     photon.bounces = 0u;
