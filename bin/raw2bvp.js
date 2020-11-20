@@ -311,7 +311,6 @@ function createZip(files, stream) {
 
     console.error('Writing EOCD');
     stream.write(createEndOfCentralDirectoryRecord(files.length, cdSize, cdStart));
-    
 }
 
 // -----------------------------------------------------------------------------
@@ -389,7 +388,6 @@ function computeGradientSobel(volumeData, volumeDimensions, idx) {
                     z : idx.z + k - 1
                 }, volumeDimensions);
                 values[kernelIdx] = volumeData[volumeIndex] / 255;
-                
             }
         }
     }
@@ -411,7 +409,7 @@ function computeGradientSobel(volumeData, volumeDimensions, idx) {
         dz += kernelZ[i] * values[i];
     }
     dz /= kernelZ.length;
-    
+
     return { dx, dy, dz };
 }
 
@@ -464,7 +462,7 @@ function computeGradient(volumeData, dimensions) {
                         y: j,
                         z: k
                     });
-                    
+
                     // here, dividing by Math.sqrt(3) would prevent clamping in the worst case
                     gradient.dx = Math.min(Math.max(Math.round(gradient.dx * 255), 0), 255);
                     gradient.dy = Math.min(Math.max(Math.round(gradient.dy * 255), 0), 255);
@@ -476,13 +474,14 @@ function computeGradient(volumeData, dimensions) {
             }
         }
     }
-    
+
     console.error(gradientData[1408830]);
     return gradientData;
 }
 
 function computeGradientMagnitude(volumeData, dimensions) {
     console.error('Computing gradient magnitude');
+    // let gms = new Set();
 
     const gradientData = Buffer.allocUnsafe(totalCount(dimensions));
 
@@ -509,11 +508,14 @@ function computeGradientMagnitude(volumeData, dimensions) {
                     const gradient = Math.sqrt(dx * dx + dy * dy + dz * dz);
                     const normalized = Math.min(Math.max(Math.round(gradient * 255), 0), 255);
                     gradientData[centerIdx] = normalized;
+                    // gms.add(normalized);
                 }
             }
         }
     }
-
+    // console.log(gms.size);
+    // console.log(gms);
+    // fs.appendFileSync("gms.raw", Uint8Array.from(gradientData));
     return gradientData;
 }
 
