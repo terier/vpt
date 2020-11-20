@@ -13,6 +13,7 @@ class TransferFunctionWidget extends EventEmitter {
 
 constructor(options) {
     super();
+    this._removeHandleByKey = this._removeHandleByKey.bind(this);
 
     this._onColorChange = this._onColorChange.bind(this);
 
@@ -193,6 +194,19 @@ _addHandle(index) {
         this.render();
         this.trigger('change');
     });
+    $handle.addEventListener('mouseover', () => {
+        // console.log("hello");
+        document.addEventListener('keydown', this._removeHandleByKey);
+    });
+    $handle.addEventListener('mouseout', () => {
+        // console.log("bye");
+        document.removeEventListener('keydown', this._removeHandleByKey);
+    });
+}
+
+_removeHandleByKey(e) {
+    if (e.key == 'Delete')
+        this._removeSelectedBump();
 }
 
 _removeSelectedBump() {
