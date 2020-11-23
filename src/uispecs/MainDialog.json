@@ -65,14 +65,16 @@
                         },
                         {
                           "value": "fcd",
-                          "label": "Convection-Diffusion"
-
+                          "label": "Convection-Diffusion (compute)"
+                        },
+                        {
+                          "value": "fcn",
+                          "label": "Convection-Diffusion",
+                          "selected": true
                         },
                         {
                           "value": "rcd",
-                          "label": "Experiment",
-                          "selected": true
-
+                          "label": "Experiment"
                         }
                       ]
                     }
