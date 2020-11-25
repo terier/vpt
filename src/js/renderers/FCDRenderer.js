@@ -273,14 +273,14 @@ class FCDRenderer extends AbstractRenderer {
 
     _generateFrame() {
         const gl = this._gl;
+        if (this._limit !== 0 && this.counter === 0) {
+            this._timer = new Date().getTime();
+        }
         if (this._convectionLimit === 0) {
             this._convection();
             this._diffusion();
         }
-        if (this._limit !== 0 && this.counter === 0) {
-            this._timer = new Date().getTime();
-        }
-        if (this.counter <= this._convectionLimit) {
+        else if (this.counter <= this._convectionLimit) {
             this._convection();
             if (this.counter === this._convectionLimit) {
                 console.log("Done!", new Date().getTime() - this._timer)
