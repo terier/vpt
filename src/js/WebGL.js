@@ -39,7 +39,6 @@ static createProgram(gl, shaders) {
         const info = gl.getActiveUniform(program, i);
         uniforms[info.name] = gl.getUniformLocation(program, info.name);
     }
-
     return { program, attributes, uniforms };
 }
 
@@ -83,6 +82,7 @@ static createTexture(gl, options) {
     const format = options.format || gl.RGBA;
     const type = options.type || gl.UNSIGNED_BYTE;
     const texture = options.texture || gl.createTexture();
+    const storage = options.storage || false;
 
     if (options.unit) {
         gl.activeTexture(gl.TEXTURE0 + options.unit);
@@ -92,7 +92,11 @@ static createTexture(gl, options) {
         gl.texImage2D(target, 0, internalFormat, format, type, options.image);
     } else { // if options.data == null, just allocate
         if (target === gl.TEXTURE_3D) {
-            gl.texImage3D(target, 0, internalFormat, options.width, options.height, options.depth, 0, format, type, options.data);
+            if (storage) {
+                gl.texImage3D(target, 0, internalFormat, options.width, options.height, options.depth, 0, format, type, options.data);
+            } else {
+                gl.texStorage3D(target, 1, internalFormat, options.width, options.height, options.depth);
+            }
         } else {
             gl.texImage2D(target, 0, internalFormat, options.width, options.height, 0, format, type, options.data);
         }
@@ -113,6 +117,36 @@ static createFramebuffer(gl, attachments) {
             gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, object, 0);
         } else if (object instanceof WebGLRenderbuffer) {
             gl.framebufferRenderbuffer(gl.FRAMEBUFFER, attachmentPoint, gl.RENDERBUFFER, object);
+        }
+    }
+
+    const framebuffer = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+
+    if (attachments.color) {
+        for (let i = 0; i < attachments.color.length; i++) {
+            attach(gl.COLOR_ATTACHMENT0 + i, attachments.color[i]);
+        }
+    }
+    if (attachments.depth) {
+        attach(gl.DEPTH_ATTACHMENT, attachments.depth);
+    }
+    if (attachments.stencil) {
+        attach(gl.STENCIL_ATTACHMENT, attachments.stencil);
+    }
+
+    const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+    if (status !== gl.FRAMEBUFFER_COMPLETE) {
+        throw new Error('Cannot create framebuffer: ' + status);
+    }
+
+    return framebuffer;
+}
+
+static createFramebuffer3D(gl, attachments, layer) {
+    function attach(attachmentPoint, object) {
+        if (object instanceof WebGLTexture) {
+            gl.framebufferTextureLayer(gl.FRAMEBUFFER, attachmentPoint, object, 0, layer);
         }
     }
 

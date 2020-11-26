@@ -200,7 +200,7 @@ _getDialogForRenderer(renderer) {
         case 'mcm' : return MCMRendererDialog;
         case 'mcc' : return MCMRendererDialog; // yes, the same
         case 'fcd' : return FCDRendererDialog;
-        case 'fcn' : return FCDRendererDialog;
+        case 'fcn' : return FCNRendererDialog;
         case 'rcd' : return RCDRendererDialog;
     }
 }

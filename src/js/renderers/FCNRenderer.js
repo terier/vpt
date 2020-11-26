@@ -10,7 +10,6 @@ class FCNRenderer extends AbstractRenderer {
         super(gl, volume, environmentTexture, options);
         Object.assign(this, {
             _lightDefinitions           : [],
-            _lightVolumes               : [],
             _stepSize                   : 0.00333,
             _alphaCorrection            : 100,
             _absorptionCoefficient      : 0.5,
@@ -26,15 +25,13 @@ class FCNRenderer extends AbstractRenderer {
         }, options);
 
         this._programs = WebGL.buildPrograms(this._gl, {
-            convection: SHADERS.FCDConvection,
-            convectionPL: SHADERS.FCDConvectionPL,
-            removeLightDensity: SHADERS.FCDDeleteTexture,
-            diffusion: SHADERS.FCDDiffusion,
-            generate  : SHADERS.FCDGenerate,
-            integrate : SHADERS.FCDIntegrate,
-            render    : SHADERS.FCDRender,
-            reset     : SHADERS.FCDReset
+            generate  : SHADERS.FCNGenerate,
+            integrate : SHADERS.FCNIntegrate,
+            render    : SHADERS.FCNRender,
+            reset     : SHADERS.FCNReset
         }, MIXINS);
+
+        console.log(this._programs);
 
         this._lightDefinitions = [
             new LightDefinition('distant', [0.05,0.05,0.05], true),
@@ -46,6 +43,25 @@ class FCNRenderer extends AbstractRenderer {
         }
     }
 
+    _rebuildBuffers() {
+        if (this._frameBuffer) {
+            this._frameBuffer.destroy();
+        }
+        // if (this._accumulationBuffer) {
+        //     this._accumulationBuffer.destroy();
+        // }
+        if (this._renderBuffer) {
+            this._renderBuffer.destroy();
+        }
+        const gl = this._gl;
+        this._frameBuffer = new SingleBuffer(gl, this._getFrameBufferSpec());
+        // this._accumulationBuffer = new DoubleBuffer(gl, this._getAccumulationBufferSpec());
+        this._renderBuffer = new SingleBuffer(gl, this._getRenderBufferSpec());
+    }
+
+    reset() {}
+
+
     setVolume(volume) {
         this._volume = volume;
         this._initVolume();
@@ -55,10 +71,16 @@ class FCNRenderer extends AbstractRenderer {
     _initVolume() {
         const volumeDimensions = this._volume.getDimensions('default');
         this._volumeDimensions = volumeDimensions;
-        this._setLightVolumeDimensions();
         console.log("Volume Dimensions: " + volumeDimensions.width + " " + volumeDimensions.height + " " + volumeDimensions.depth)
-        this._resetLightField();
+        this._setLightVolumeDimensions();
+        this._setAccumulationBuffer();
+        this._resetLightVolume();
         this.counter = 0;
+    }
+
+    _setAccumulationBuffer() {
+        this._accumulationBuffer = new DoubleBuffer3D(this._gl, this._getAccumulationBufferSpec());
+        console.log(this._accumulationBuffer)
     }
 
     _setLightVolumeDimensions() {
@@ -72,122 +94,18 @@ class FCNRenderer extends AbstractRenderer {
             this._lightVolumeDimensions.height + " " + this._lightVolumeDimensions.depth);
     }
 
-    _resetLightField() {
+    _resetLightVolume() {
+        console.log("Reset Light Volume")
         const gl = this._gl;
-        console.log("Reset Light Field")
-        if (this._energyDensityConvection) {
-            gl.deleteTexture(this._energyDensityConvection);
-        }
-        this._createConvectionLightVolume();
-        this._deleteLightVolumeTextures();
-        for (let i = 0; i < this._lightDefinitions.length; i++) {
-            if (this._lightDefinitions[i].isEnabled())
-                this._resetLightVolume(i);
-            else
-                this._lightVolumes[i] = null;
-        }
-        // console.log(this._lightDefinitions);
-        this._resetDiffusionField();
+        let lightDefinition = this._lightDefinitions[0];
+        let readLight = this._accumulationBuffer.getReadAttachments().color[0];
+        lightDefinition.light = LightTexture.resetLight(gl, lightDefinition.light[0], lightDefinition.light[1], lightDefinition.light[2],
+            this._lightVolumeDimensions, readLight, lightDefinition.type);
+        let writeLight = this._accumulationBuffer.getWriteAttachments().color[0];
+        lightDefinition.light = LightTexture.resetLight(gl, lightDefinition.light[0], lightDefinition.light[1], lightDefinition.light[2],
+            this._lightVolumeDimensions, writeLight, lightDefinition.type);
+
         this.counter = 0;
-    }
-
-    _resetLightVolume(index) {
-        const gl = this._gl;
-        let lightDefinition = this._lightDefinitions[index];
-
-        if (this._lightVolumes[index])
-            this._lightVolumes[index].deleteTexture();
-
-        this._lightVolumes[index] = new LightVolume(gl,
-            lightDefinition.type,
-            lightDefinition.light[0], lightDefinition.light[1], lightDefinition.light[2],
-            this._lightVolumeDimensions,
-            this._lightVolumeRatio);
-        // console.log(this._lightVolumes[index])
-    }
-
-    _removeLightDensity(index) {
-        const lightVolume = this._lightVolumes[index];
-        if (!lightVolume || !lightVolume.hasEnergyDensity())
-            return;
-
-        const gl = this._gl;
-
-        const program = this._programs.removeLightDensity;
-        gl.useProgram(program.program);
-
-        gl.bindImageTexture(0, lightVolume.getEnergyDensity(), 0, true, 0, gl.READ_ONLY, gl.R32F);
-        gl.bindImageTexture(1, this._energyDensityConvection, 0, true, 0, gl.READ_WRITE, gl.R32F);
-
-        const dimensions = this._lightVolumeDimensions;
-
-        gl.uniform3i(program.uniforms.uSize, dimensions.width, dimensions.height, dimensions.depth);
-
-        gl.dispatchCompute(Math.ceil(dimensions.width / this._localSizeX),
-            Math.ceil(dimensions.height / this._localSizeY),
-            Math.ceil(dimensions.depth / this._localSizeZ));
-
-
-    }
-
-    _createConvectionLightVolume() {
-        const gl = this._gl;
-        const dimensions = this._lightVolumeDimensions;
-        // Energy density
-        this._energyDensityConvection = gl.createTexture();
-
-        // TODO separate function in WebGL.js
-        gl.bindTexture(gl.TEXTURE_3D, this._energyDensityConvection);
-        gl.texStorage3D(gl.TEXTURE_3D, 1, gl.R32F, dimensions.width, dimensions.height, dimensions.depth);
-        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
-        // for (let i = 0; i < dimensions.depth; i++) {
-        //     let energyDensityArray = new Float32Array(dimensions.width * dimensions.height).fill(0);
-        //     gl.texSubImage3D(gl.TEXTURE_3D, 0,
-        //         0, 0, i, dimensions.width, dimensions.height, 1,
-        //         gl.RED, gl.FLOAT, new Float32Array(energyDensityArray));
-        // }
-    }
-    
-    _createDiffusionLightVolume() {
-        const gl = this._gl;
-        const dimensions = this._lightVolumeDimensions;
-        // Energy density
-        this._energyDensityDiffusion = gl.createTexture();
-
-        // TODO separate function in WebGL.js
-        gl.bindTexture(gl.TEXTURE_3D, this._energyDensityDiffusion);
-        gl.texStorage3D(gl.TEXTURE_3D, 1, gl.R32F, dimensions.width, dimensions.height, dimensions.depth);
-        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
-        // for (let i = 0; i < dimensions.depth; i++) {
-        //     let energyDensityArray = new Float32Array(dimensions.width * dimensions.height).fill(0);
-        //     gl.texSubImage3D(gl.TEXTURE_3D, 0,
-        //         0, 0, i, dimensions.width, dimensions.height, 1,
-        //         gl.RED, gl.FLOAT, new Float32Array(energyDensityArray));
-        // }
-    }
-
-    _deleteLightVolumeTextures() {
-        for (let lightVolume of this._lightVolumes) {
-            if (lightVolume)
-                lightVolume.deleteTexture();
-        }
-    }
-
-    _resetDiffusionField() {
-        const gl = this._gl;
-        console.log("Reset Diffusion Light Field")
-        if (this._energyDensityDiffusion)
-            gl.deleteTexture(this._energyDensityDiffusion);
-        this._createDiffusionLightVolume();
-
     }
 
     destroy() {
@@ -195,128 +113,12 @@ class FCNRenderer extends AbstractRenderer {
         Object.keys(this._programs).forEach(programName => {
             gl.deleteProgram(this._programs[programName].program);
         });
-        if (this._energyDensityDiffusion)
-            gl.deleteTexture(this._energyDensityDiffusion);
-        if (this._energyDensityConvection)
-            gl.deleteTexture(this._energyDensityConvection);
-        this._deleteLightVolumeTextures();
         super.destroy();
     }
 
-    _resetFrame() {
-        const gl = this._gl;
+    _resetFrame() {}
 
-        const program = this._programs.reset;
-        gl.useProgram(program.program);
-
-        gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-    }
-
-    _convection() {
-        const gl = this._gl;
-        for (let i = 0; i < this._lightVolumes.length; i++) {
-            let lightVolume = this._lightVolumes[i];
-            if (!this._lightDefinitions[i].isEnabled())
-                continue;
-            const program = this._getProgramFromLightType(i);
-            gl.useProgram(program.program);
-
-            gl.bindImageTexture(0, lightVolume.getEnergyDensity(), 0, true, 0, gl.READ_WRITE, gl.R32F);
-            gl.bindImageTexture(1, this._energyDensityConvection, 0, true, 0, gl.READ_WRITE, gl.R32F);
-
-            gl.activeTexture(gl.TEXTURE1);
-            gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
-
-            gl.activeTexture(gl.TEXTURE2);
-            gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
-
-            gl.uniform1i(program.uniforms.uVolume, 1);
-            gl.uniform1i(program.uniforms.uTransferFunction, 2);
-
-            const dimensions = this._lightVolumeDimensions;
-
-            gl.uniform3i(program.uniforms.uSize, dimensions.width, dimensions.height, dimensions.depth);
-
-            const lightDirection = lightVolume.getDirection();
-            gl.uniform3fv(program.uniforms.uLight, lightDirection);
-            gl.uniform1f(program.uniforms.uAbsorptionCoefficient, this._absorptionCoefficient)
-            gl.uniform1i(program.uniforms.uSteps, Math.floor(this._convectionSteps));
-
-            gl.uniform1f(program.uniforms.uRatio, Math.floor(this._lightVolumeRatio));
-
-            gl.dispatchCompute(Math.ceil(dimensions.width / this._localSizeX),
-                Math.ceil(dimensions.height / this._localSizeY),
-                Math.ceil(dimensions.depth / this._localSizeZ));
-        }
-    }
-
-    _diffusion() {
-        const gl = this._gl;
-
-        const program = this._programs.diffusion;
-        gl.useProgram(program.program);
-
-        gl.bindImageTexture(0, this._energyDensityConvection, 0, true, 0, gl.READ_ONLY, gl.R32F);
-        gl.bindImageTexture(1, this._energyDensityDiffusion, 0, true, 0, gl.READ_WRITE, gl.R32F);
-
-        const dimensions = this._lightVolumeDimensions;
-
-        gl.uniform3i(program.uniforms.uSize, dimensions.width, dimensions.height, dimensions.depth);
-        gl.uniform1f(program.uniforms.scattering, this._scattering);
-
-        gl.uniform1f(program.uniforms.uRatio, Math.floor(this._lightVolumeRatio));
-
-        gl.dispatchCompute(Math.ceil(dimensions.width / this._localSizeX),
-            Math.ceil(dimensions.height / this._localSizeY),
-            Math.ceil(dimensions.depth / this._localSizeZ));
-    }
-
-    _generateFrame() {
-        const gl = this._gl;
-        if (this._convectionLimit === 0) {
-            this._convection();
-            this._diffusion();
-        }
-        if (this._limit !== 0 && this.counter === 0) {
-            this._timer = new Date().getTime();
-        }
-        if (this.counter <= this._convectionLimit) {
-            this._convection();
-            if (this.counter === this._convectionLimit) {
-                console.log("Done!", new Date().getTime() - this._timer)
-            }
-            // else {
-            //     console.log(this.counter)
-            // }
-            this.counter += Math.floor(this._convectionSteps);
-        }
-        if (this._scattering > 0) {
-            this._diffusion();
-        }
-
-        const program = this._programs.generate;
-        gl.useProgram(program.program);
-
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
-        gl.activeTexture(gl.TEXTURE1);
-        gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
-        gl.activeTexture(gl.TEXTURE2);
-        gl.bindTexture(gl.TEXTURE_3D, this._energyDensityConvection);
-        gl.activeTexture(gl.TEXTURE3);
-        gl.bindTexture(gl.TEXTURE_3D, this._energyDensityDiffusion);
-
-        gl.uniform1i(program.uniforms.uVolume, 0);
-        gl.uniform1i(program.uniforms.uTransferFunction, 1);
-        gl.uniform1i(program.uniforms.uEnergyDensity, 2);
-        gl.uniform1i(program.uniforms.uEnergyDensityDiffusion, 3);
-        gl.uniform1f(program.uniforms.uStepSize, this._stepSize);
-        gl.uniform1f(program.uniforms.uAlphaCorrection, this._alphaCorrection);
-        gl.uniform1f(program.uniforms.uOffset, Math.random());
-        gl.uniformMatrix4fv(program.uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
-
-        gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-    }
+    _generateFrame() {}
 
     _integrateFrame() {
         const gl = this._gl;
@@ -324,15 +126,47 @@ class FCNRenderer extends AbstractRenderer {
         const program = this._programs.integrate;
         gl.useProgram(program.program);
 
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[0]);
-        gl.activeTexture(gl.TEXTURE1);
-        gl.bindTexture(gl.TEXTURE_2D, this._frameBuffer.getAttachments().color[0]);
+        for (let i = 0; i < this._lightVolumeDimensions.depth; i++) {
+            this._accumulationBuffer.use(i);
+            // console.log(gl.getParameter(gl.FRAMEBUFFER_BINDING))
 
-        gl.uniform1i(program.uniforms.uAccumulator, 0);
-        gl.uniform1i(program.uniforms.uFrame, 1);
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[0]);
 
-        gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+            gl.activeTexture(gl.TEXTURE1);
+            gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[1]);
+
+            gl.activeTexture(gl.TEXTURE2);
+            gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
+
+            gl.activeTexture(gl.TEXTURE3);
+            gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
+
+            gl.uniform1i(program.uniforms.uEnergyDensity, 0);
+            gl.uniform1i(program.uniforms.uDiffusion, 1);
+            gl.uniform1i(program.uniforms.uVolume, 2);
+            gl.uniform1i(program.uniforms.uTransferFunction, 3);
+
+
+
+            const dimensions = this._lightVolumeDimensions;
+
+            gl.uniform3f(program.uniforms.uSize, 1 / dimensions.width, 1 / dimensions.height, 1 / dimensions.depth);
+
+            const lightDirection = this._lightDefinitions[0].light;
+            gl.uniform3fv(program.uniforms.uLight, lightDirection);
+            gl.uniform1f(program.uniforms.uAbsorptionCoefficient, this._absorptionCoefficient)
+            gl.uniform1i(program.uniforms.uSteps, Math.floor(this._convectionSteps));
+            gl.uniform1f(program.uniforms.uRatio, Math.floor(this._lightVolumeRatio));
+            gl.uniform1i(program.uniforms.uLevel, i);
+            gl.uniform1f(program.uniforms.uScattering, this._scattering);
+            gl.drawBuffers([
+                gl.COLOR_ATTACHMENT0,
+                gl.COLOR_ATTACHMENT1
+            ]);
+
+            gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+        }
     }
 
     _renderFrame() {
@@ -342,9 +176,26 @@ class FCNRenderer extends AbstractRenderer {
         gl.useProgram(program.program);
 
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[0]);
+        gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
+        gl.activeTexture(gl.TEXTURE2);
+        gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[0]);
+        gl.activeTexture(gl.TEXTURE3);
+        gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[1]);
 
-        gl.uniform1i(program.uniforms.uAccumulator, 0);
+        gl.uniform1i(program.uniforms.uVolume, 0);
+        gl.uniform1i(program.uniforms.uTransferFunction, 1);
+        gl.uniform1i(program.uniforms.uEnergyDensity, 2);
+        gl.uniform1i(program.uniforms.uDiffusion, 3);
+        gl.uniform1f(program.uniforms.uStepSize, this._stepSize);
+        gl.uniform1f(program.uniforms.uAlphaCorrection, this._alphaCorrection);
+        gl.uniform1f(program.uniforms.uOffset, Math.random());
+        gl.uniformMatrix4fv(program.uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
+
+        // gl.drawBuffers([
+        //     gl.COLOR_ATTACHMENT0
+        // ]);
 
         gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
     }
@@ -371,15 +222,39 @@ class FCNRenderer extends AbstractRenderer {
 
     _getAccumulationBufferSpec() {
         const gl = this._gl;
-        return [{
-            width          : this._bufferSize,
-            height         : this._bufferSize,
-            min            : gl.NEAREST,
-            mag            : gl.NEAREST,
-            format         : gl.RGBA,
-            internalFormat : gl.RGBA,
-            type           : gl.UNSIGNED_BYTE
-        }];
+        const convectionBufferSpec = {
+            target         : gl.TEXTURE_3D,
+            width          : this._volumeDimensions.width,
+            height         : this._volumeDimensions.height,
+            depth          : this._volumeDimensions.depth,
+            min            : gl.LINEAR,
+            mag            : gl.LINEAR,
+            format         : gl.RED,
+            internalFormat : gl.R32F,
+            type           : gl.FLOAT,
+            wrapS          : gl.CLAMP_TO_EDGE,
+            wrapT          : gl.CLAMP_TO_EDGE,
+            wrapR          : gl.CLAMP_TO_EDGE,
+            storage        : true
+        };
+
+        const diffusionBufferSpec = {
+            target         : gl.TEXTURE_3D,
+            width          : this._volumeDimensions.width,
+            height         : this._volumeDimensions.height,
+            depth          : this._volumeDimensions.depth,
+            min            : gl.LINEAR,
+            mag            : gl.LINEAR,
+            format         : gl.RED,
+            internalFormat : gl.R32F,
+            type           : gl.FLOAT,
+            wrapS          : gl.CLAMP_TO_EDGE,
+            wrapT          : gl.CLAMP_TO_EDGE,
+            wrapR          : gl.CLAMP_TO_EDGE,
+            storage        : true
+        };
+
+        return [convectionBufferSpec, diffusionBufferSpec];
     }
 
 }
