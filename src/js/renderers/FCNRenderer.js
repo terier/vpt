@@ -104,6 +104,7 @@ class FCNRenderer extends AbstractRenderer {
         let writeLight = this._accumulationBuffer.getWriteAttachments().color[0];
         lightDefinition.light = LightTexture.resetLight(gl, lightDefinition.light[0], lightDefinition.light[1], lightDefinition.light[2],
             this._lightVolumeDimensions, writeLight, lightDefinition.type);
+        // console.log(lightDefinition)
 
         this.counter = 0;
     }
@@ -158,7 +159,7 @@ class FCNRenderer extends AbstractRenderer {
             gl.uniform1f(program.uniforms.uAbsorptionCoefficient, this._absorptionCoefficient)
             gl.uniform1i(program.uniforms.uSteps, Math.floor(this._convectionSteps));
             gl.uniform1f(program.uniforms.uRatio, Math.floor(this._lightVolumeRatio));
-            gl.uniform1i(program.uniforms.uLevel, i);
+            gl.uniform1f(program.uniforms.uLayer, (i + 0.5) / this._lightVolumeDimensions.depth);
             gl.uniform1f(program.uniforms.uScattering, this._scattering);
             gl.drawBuffers([
                 gl.COLOR_ATTACHMENT0,

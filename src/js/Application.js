@@ -202,6 +202,7 @@ _getDialogForRenderer(renderer) {
         case 'fcd' : return FCDRendererDialog;
         case 'fcn' : return FCNRendererDialog;
         case 'rcd' : return RCDRendererDialog;
+        case 'rcn' : return RCNRendererDialog;
     }
 }
 

@@ -74,6 +74,10 @@
                         },
                         {
                           "value": "rcd",
+                          "label": "Experiment (compute)"
+                        },
+                        {
+                          "value": "rcn",
                           "label": "Experiment"
                         }
                       ]

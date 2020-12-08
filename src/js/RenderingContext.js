@@ -299,6 +299,7 @@ _getRendererClass(renderer) {
         case 'fcd' : return FCDRenderer;
         case 'fcn' : return FCNRenderer;
         case 'rcd' : return RCDRenderer;
+        case 'rcn' : return RCNRenderer;
     }
 }
 

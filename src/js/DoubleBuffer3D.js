@@ -20,13 +20,11 @@ class DoubleBuffer3D {
         this._writeFramebuffers = this._createFramebuffers(gl, this._writeAttachments);
 
         // console.log(this._readAttachments)
-
-        console.log(spec)
     }
 
     destroy() {
         const gl = this._gl;
-        for (let framebuffer of this._readFramebuffer) {
+        for (let framebuffer of this._readFramebuffers) {
             gl.deleteFramebuffer(framebuffer);
         }
         for (let texture of this._readAttachments.color) {
@@ -54,7 +52,9 @@ class DoubleBuffer3D {
     _createFramebuffers(gl, attachments) {
         let framebuffers = []
         // console.log("depth", this._depth)
+        // console.log(attachments)
         for (let i = 0; i < this._depth; i++) {
+            // console.log(i)
             framebuffers[i] = WebGL.createFramebuffer3D(gl, attachments, i);
             // console.log(framebuffers[i])
         }

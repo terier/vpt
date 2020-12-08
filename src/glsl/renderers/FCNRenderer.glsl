@@ -15,11 +15,14 @@ void main() {}
 
 #version 300 es
 precision mediump float;
+uniform vec3 uSize;
 
 layout(location = 0) in vec2 aPosition;
 out vec2 vPosition;
 
 void main() {
+//    vPosition.x = (aPosition.x + 1.0) * 0.5 * uSize.x;
+//    vPosition.y =  (aPosition.x + 1.0) * 0.5 * uSize.y;
     vPosition = (aPosition + 1.0) * 0.5;
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
@@ -39,7 +42,7 @@ uniform vec3 uLight;
 uniform float uAbsorptionCoefficient;
 uniform int uSteps;
 uniform float uRatio;
-uniform int uLevel;
+uniform float uLayer;
 uniform float uScattering;
 
 in vec2 vPosition;
@@ -48,16 +51,27 @@ layout (location = 0) out vec4 oEnergyDensity;
 layout (location = 1) out vec4 oDiffusion;
 
 void main() {
-    vec3 position = vec3(vPosition, float(uLevel) * uSize.z);
+//    vec3 position = vec3(ivec2(vPosition + 0.5), uLayer);
+    vec3 position = vec3(vPosition, uLayer);
+    float radiance = texture(uEnergyDensity, position).r;
     if (position.x <= uSize.x || position.y <= uSize.y || position.z < uSize.z ||
-    position.x >= 1.0 / uSize.x - 1.0 || position.y >= 1.0 / uSize.y - 1.0 || position.z >=  1.0 / uSize.z - 1.0 ){
+    position.x >= 1.0 - uSize.x || position.y >= 1.0 - uSize.y || position.z >=  1.0 - uSize.z) {
+        oEnergyDensity = vec4(radiance, 0, 0, 0);
+        oDiffusion = vec4(0, 0, 0, 0);
         return;
     }
+//    if (position.x < 1.5 || position.y < 1.5 || position.z < 1.5 ||
+//    position.x >= uSize.x - 1.0 || position.y >= uSize.y - 1.0 || position.z >= uSize.z - 1.0) {
+//        oEnergyDensity = vec4(1, 0, 0, 0);
+//    }
+//    return;
+//    position /= uSize;
     float val = texture(uVolume, position).r;
     vec4 colorSample = texture(uTransferFunction, vec2(val, 0.5));
     float absorption = colorSample.a * uAbsorptionCoefficient;
     float revAbsorption = float(1) - absorption;
-    float radiance = texture(uEnergyDensity, position).r;
+    float newRadiance = 0.0;
+
 
     float left      = texture(uEnergyDensity, position + vec3(-uSize.x,  0,  0)).r;
     float right     = texture(uEnergyDensity, position + vec3(uSize.x,  0,  0)).r;
@@ -66,19 +80,26 @@ void main() {
     float back      = texture(uEnergyDensity, position + vec3( 0, 0, -uSize.z)).r;
     float forward   = texture(uEnergyDensity, position + vec3( 0,  0, uSize.z)).r;
 
+//    float left      = texture(uEnergyDensity, position + vec3(-1,  0,  0)).r;
+//    float right     = texture(uEnergyDensity, position + vec3( 1,  0,  0)).r;
+//    float down      = texture(uEnergyDensity, position + vec3( 0, -1,  0)).r;
+//    float up        = texture(uEnergyDensity, position + vec3( 0,  1,  0)).r;
+//    float back      = texture(uEnergyDensity, position + vec3( 0, 0, -1)).r;
+//    float forward   = texture(uEnergyDensity, position + vec3( 0,  0, 1)).r;
+
     for (int i = 0; i < 1; i++) {
         vec3 grad = vec3(
             uLight.x < 0.0 ? right - radiance : radiance - left,
-            uLight.y < 0.0 ? up - radiance : down,
-            uLight.z < 0.0 ? forward - radiance : back
+            uLight.y < 0.0 ? up - radiance : radiance - down,
+            uLight.z < 0.0 ? forward - radiance : radiance - back
         );
         // (1 - absorption) * (p - 1/2 deltap)
         float convectionDelta = -dot(uLight, grad) * 0.5 / uRatio;
 
-        radiance = revAbsorption * (radiance + convectionDelta);
+        newRadiance = revAbsorption * (radiance + convectionDelta);
     }
 
-    oEnergyDensity = vec4(radiance, 0, 0, 0);
+    oEnergyDensity = vec4(newRadiance, 0, 0, 0);
 
 //    oEnergyDensity = vec4(radiance, 0, 0, 0);
 
@@ -171,7 +192,7 @@ void main() {
             // utezi z energy density
             colorSample.rgb *= colorSample.a * energyDensity;
             //            colorSample.rgb *= colorSample.a;
-            //            colorSample.rgb = vec3(energyDensity);
+//                        colorSample.rgb = vec3(energyDensity);
             accumulator += (1.0 - accumulator.a) * colorSample;
             t += uStepSize;
         }
@@ -180,7 +201,7 @@ void main() {
             accumulator.rgb /= accumulator.a;
         }
 
-        //        oColor = vec4(accumulator.rgb, 1.0);
+//        oColor = vec4(accumulator.rgb, 1.0);
         oColor = mix(vec4(1), vec4(accumulator.rgb, 1), accumulator.a);
     }
 }
