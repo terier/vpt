@@ -40,13 +40,15 @@ uniform mediump sampler3D uPosition;
 uniform mediump sampler3D uDirectionAndTransmittance;
 uniform mediump sampler3D uDistanceTravelledAndSamples;
 uniform mediump sampler3D uRadianceAndDiffusion;
+uniform mediump sampler2D uLights;
 
 uniform uint uSteps;
+//uniform uint uNLights;
 uniform float uLayer;
 uniform float uAbsorptionCoefficient;
 uniform float uMajorant;
 uniform float uRandSeed;
-uniform vec4 uLight;
+//uniform vec4 uLight;
 
 in vec2 vPosition;
 
@@ -57,16 +59,16 @@ layout (location = 3) out vec4 oRadianceAndDiffusion;
 
 @rand
 
-//vec4 getRandomLight(vec2 randState) {
-//    float divider = 1.0 / float(lights.length());
-//    randState = rand(randState);
-//    return lights[int(randState.x / divider)];
-//}
+vec4 getRandomLight(vec2 randState) {
+//    float divider = 1.0 / float(uNLights);
+    randState = rand(randState);
+    return texture(uLights, vec2(randState.x, 0.5));
+}
 
 void resetPhoton(vec2 randState, inout PhotonRCD photon, vec3 mappedPosition) {
     vec3 from = mappedPosition;
-//    vec4 to = getRandomLight(randState);
-    vec4 to = uLight;
+    vec4 to = getRandomLight(randState);
+//    vec4 to = uLight;
     if (to.a < DIRECTIONAL) {
         photon.direction = -normalize(to.xyz);
         photon.distance = FLT_MAX;
@@ -170,49 +172,57 @@ precision mediump float;
 #define POINT 1.5
 #define FLT_MAX 3.402823466e+38
 
-uniform mediump sampler3D uVolume;
-uniform mediump sampler2D uTransferFunction;
+uniform mediump sampler3D uPosition;
+uniform mediump sampler3D uDirectionAndTransmittance;
+uniform mediump sampler3D uDistanceTravelledAndSamples;
 uniform mediump sampler3D uRadianceAndDiffusion;
 
 uniform float uLayer;
-uniform vec3 uSize;
 uniform float uScattering;
 uniform float uRatio;
+uniform vec3 uStep;
+uniform vec3 uSize;
 
 in vec2 vPosition;
 
-layout (location = 0) out vec4 oRadianceAndDiffusion;
+layout (location = 0) out vec4 oPosition;
+layout (location = 1) out vec4 oDirectionAndTransmittance;
+layout (location = 2) out vec4 oDistanceTravelledAndSamples;
+layout (location = 3) out vec4 oRadianceAndDiffusion;
 
 void main() {
     vec3 position = vec3(vPosition,  uLayer);
-    if (position.x < 1 || position.y < 1 || position.z < 1 ||
-    position.x >= uSize.x - 1 || position.y >= uSize.y - 1 || position.z >= uSize.z - 1) {
+    vec4 radianceAndDiffusion = texture(uRadianceAndDiffusion, position);
+    if (position.x <= uStep.x || position.y < uStep.y || position.z < uStep.z ||
+    position.x >= 1.0 - uStep.x || position.y >= 1.0 - uStep.y || position.z >= 1.0 - uStep.z) {
+        oPosition = texture(uPosition, position);
+        oDirectionAndTransmittance = texture(uDirectionAndTransmittance, position);
+        oDistanceTravelledAndSamples = texture(uDistanceTravelledAndSamples, position);
+        oRadianceAndDiffusion = vec4(radianceAndDiffusion.r, radianceAndDiffusion.g, 0, 0);
         return;
     }
 
-    float radiance = imageLoad(uEnergyDensityRead, position).r;
-    radiance += imageLoad(uEnergyDensityDiffusionRead, position).r;
+    float radiance = radianceAndDiffusion.x;
+    float totalRadiance = radianceAndDiffusion.x + radianceAndDiffusion.y;
 
-    float left      = imageLoad(uEnergyDensityRead, position + ivec3(-1,  0,  0)).r;
-    float right     = imageLoad(uEnergyDensityRead, position + ivec3( 1,  0,  0)).r;
-    float down      = imageLoad(uEnergyDensityRead, position + ivec3( 0, -1,  0)).r;
-    float up        = imageLoad(uEnergyDensityRead, position + ivec3( 0,  1,  0)).r;
-    float back      = imageLoad(uEnergyDensityRead, position + ivec3( 0, 0, -1)).r;
-    float forward   = imageLoad(uEnergyDensityRead, position + ivec3( 0,  0, 1)).r;
+    vec4 left      = texture(uRadianceAndDiffusion, position + vec3(-uStep.x,  0,  0));
+    vec4 right     = texture(uRadianceAndDiffusion, position + vec3( uStep.x,  0,  0));
+    vec4 down      = texture(uRadianceAndDiffusion, position + vec3( 0, -uStep.y,  0));
+    vec4 up        = texture(uRadianceAndDiffusion, position + vec3( 0,  uStep.y,  0));
+    vec4 back      = texture(uRadianceAndDiffusion, position + vec3( 0, 0, -uStep.z));
+    vec4 forward   = texture(uRadianceAndDiffusion, position + vec3( 0,  0, uStep.z));
 
-    left      += imageLoad(uEnergyDensityDiffusionRead, position + ivec3(-1,  0,  0)).r;
-    right     += imageLoad(uEnergyDensityDiffusionRead, position + ivec3( 1,  0,  0)).r;
-    down      += imageLoad(uEnergyDensityDiffusionRead, position + ivec3( 0, -1,  0)).r;
-    up        += imageLoad(uEnergyDensityDiffusionRead, position + ivec3( 0,  1,  0)).r;
-    back      += imageLoad(uEnergyDensityDiffusionRead, position + ivec3( 0, 0, -1)).r;
-    forward   += imageLoad(uEnergyDensityDiffusionRead, position + ivec3( 0,  0, 1)).r;
+    float laplace = left.r + left.g + right.r + right.g +
+                    down.r + down.g + up.r + up.g +
+                    back.r + back.g + forward.r + forward.g -
+                    6.0 * totalRadiance;
 
-    float laplace = left + right + down + up + back + forward - 6.0 * radiance;
+    float delta = laplace * totalRadiance * uScattering / uRatio;
 
-    float delta = laplace * radiance * uScattering / uRatio;
-    vec4 final = vec4(delta, 0, 0, 0);
-
-    imageStore(uEnergyDensityDiffusionWrite, position, final);
+    oPosition = texture(uPosition, position);
+    oDirectionAndTransmittance = texture(uDirectionAndTransmittance, position);
+    oDistanceTravelledAndSamples = texture(uDistanceTravelledAndSamples, position);
+    oRadianceAndDiffusion = vec4(radiance, delta, 0, 0);
 }
 
 // #section RCNRender/vertex
@@ -304,7 +314,7 @@ void main() {
     }
 }
 
-// #section RCNReset/vertex
+// #section RCNResetPhotons/vertex
 
 #version 300 es
 precision mediump float;
@@ -317,7 +327,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #section RCNReset/fragment
+// #section RCNResetPhotons/fragment
 
 #version 300 es
 precision mediump float;
@@ -329,20 +339,33 @@ precision mediump float;
 
 in vec2 vPosition;
 
-uniform uint uLayer;
+uniform mediump sampler2D uLights;
+
+//uniform uint uNLights;
+uniform float uLayer;
+uniform float uRandSeed;
 uniform vec3 uSize;
-uniform vec4 uLight;
+//uniform vec4 uLight;
 
 layout (location = 0) out vec4 oPosition;
 layout (location = 1) out vec4 oDirectionAndTransmittance;
 layout (location = 2) out vec4 oDistanceTravelledAndSamples;
 layout (location = 3) out vec4 oRadianceAndDiffusion;
 
+@rand
+
+vec4 getRandomLight(vec2 randState) {
+    randState = rand(randState);
+    return texture(uLights, vec2(randState.x, 0.5));
+}
+
 
 void main() {
     PhotonRCD photon;
     vec3 from = vec3(vPosition,  uLayer);
-    vec4 to = uLight;
+    vec2 randState = rand((from.xy + from.yz) * uRandSeed);
+//    vec4 to = uLight;
+    vec4 to = getRandomLight(randState);
     if (to.a < DIRECTIONAL) {
         photon.direction = -normalize(to.xyz);
         photon.distance = FLT_MAX;
@@ -360,4 +383,48 @@ void main() {
     oDirectionAndTransmittance = vec4(photon.direction, photon.transmittance);
     oDistanceTravelledAndSamples = vec4(photon.distance, photon.travelled, float(photon.samples), 0);
     oRadianceAndDiffusion = vec4(photon.radiance, 0, 0, 0);
+}
+
+// #section RCNResetDiffusion/vertex
+
+#version 300 es
+precision mediump float;
+
+layout(location = 0) in vec2 aPosition;
+out vec2 vPosition;
+
+void main() {
+    vPosition = (aPosition + 1.0) * 0.5;
+    gl_Position = vec4(aPosition, 0.0, 1.0);
+}
+
+// #section RCNResetDiffusion/fragment
+
+#version 300 es
+precision mediump float;
+#define DIRECTIONAL 0.5
+#define POINT 1.5
+#define FLT_MAX 3.402823466e+38
+
+in vec2 vPosition;
+
+uniform mediump sampler3D uPosition;
+uniform mediump sampler3D uDirectionAndTransmittance;
+uniform mediump sampler3D uDistanceTravelledAndSamples;
+uniform mediump sampler3D uRadianceAndDiffusion;
+
+uniform float uLayer;
+
+layout (location = 0) out vec4 oPosition;
+layout (location = 1) out vec4 oDirectionAndTransmittance;
+layout (location = 2) out vec4 oDistanceTravelledAndSamples;
+layout (location = 3) out vec4 oRadianceAndDiffusion;
+
+void main() {
+    vec3 position = vec3(vPosition, uLayer);
+
+    oPosition = texture(uRadianceAndDiffusion, position);
+    oDirectionAndTransmittance = texture(uDirectionAndTransmittance, position);
+    oDistanceTravelledAndSamples = texture(uDistanceTravelledAndSamples, position);
+    oRadianceAndDiffusion = vec4(texture(uRadianceAndDiffusion, position).r, 0, 0, 0);
 }

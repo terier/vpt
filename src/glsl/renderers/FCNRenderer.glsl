@@ -103,18 +103,18 @@ void main() {
 
 //    oEnergyDensity = vec4(radiance, 0, 0, 0);
 
-//    left            += texture(uEnergyDensity, position + vec3(-uSize.x,  0,  0)).r;
-//    right           += texture(uEnergyDensity, position + vec3(uSize.x,  0,  0)).r;
-//    down            += texture(uEnergyDensity, position + vec3( 0, -uSize.y,  0)).r;
-//    up              += texture(uEnergyDensity, position + vec3( 0,  uSize.y,  0)).r;
-//    back            += texture(uEnergyDensity, position + vec3( 0, 0, -uSize.z)).r;
-//    forward         += texture(uEnergyDensity, position + vec3( 0,  0, uSize.z)).r;
-//
-//    float laplace = left + right + down + up + back + forward - 6.0 * radiance;
-//
-//    float delta = laplace * radiance * uScattering / uRatio;
-//    oDiffusion = vec4(delta, 0, 0, 0);
-    oDiffusion = vec4(0, 0, 0, 0);
+    left            += texture(uEnergyDensity, position + vec3(-uSize.x,  0,  0)).r;
+    right           += texture(uEnergyDensity, position + vec3(uSize.x,  0,  0)).r;
+    down            += texture(uEnergyDensity, position + vec3( 0, -uSize.y,  0)).r;
+    up              += texture(uEnergyDensity, position + vec3( 0,  uSize.y,  0)).r;
+    back            += texture(uEnergyDensity, position + vec3( 0, 0, -uSize.z)).r;
+    forward         += texture(uEnergyDensity, position + vec3( 0,  0, uSize.z)).r;
+
+    float laplace = left + right + down + up + back + forward - 6.0 * radiance;
+
+    float delta = laplace * radiance * uScattering / uRatio;
+    oDiffusion = vec4(delta, 0, 0, 0);
+//    oDiffusion = vec4(0, 0, 0, 0);
 }
 
 // #section FCNRender/vertex

@@ -59,129 +59,54 @@
     },
     {
       "type": "field",
-      "label": "Renderer Subtype:",
+      "label": "Ray steps:",
       "children": [
         {
-          "type": "dropdown",
-          "bind": "renderer_type",
-          "options": [
-            {
-              "value": 0,
-              "label": "Monte Carlo",
-              "selected": true
-            },
-            {
-              "value": 1,
-              "label": "Simple",
-              "selected": false
-            }
-          ]
+          "type": "spinner",
+          "bind": "ray_steps",
+          "value": 10,
+          "min": 1,
+          "step": 1
         }
       ]
     },
     {
-      "type": "accordion",
-      "label": "Monte Carlo:",
-      "bind": "accMC",
+      "type": "field",
+      "label": "Absorption Coefficient:",
       "children": [
         {
-          "type": "field",
-          "label": "Ray steps:",
-          "children": [
-            {
-              "type": "spinner",
-              "bind": "ray_steps",
-              "value": 10,
-              "min": 1,
-              "step": 1
-            }
-          ]
-        },
-        {
-          "type": "field",
-          "label": "Absorption Coefficient:",
-          "children": [
-            {
-              "type": "spinner",
-              "bind": "extinction",
-              "value": 100,
-              "min": 0,
-              "step": 1
-            }
-          ]
-        },
-        {
-          "type": "field",
-          "label": "Majorant ratio:",
-          "children": [
-            {
-              "type": "slider",
-              "bind": "majorant_ratio",
-              "value": 1,
-              "min": 0,
-              "max": 1,
-              "step": 0.1
-            }
-          ]
-        },
-        {
-          "type": "field",
-          "label": "Iterations",
-          "children": [
-            {
-              "type": "spinner",
-              "bind": "limit",
-              "value": 0,
-              "min": 0,
-              "step": 1
-            }
-          ]
+          "type": "spinner",
+          "bind": "extinction",
+          "value": 100,
+          "min": 0,
+          "step": 1
         }
       ]
     },
     {
-      "type": "accordion",
-      "label": "Simple",
-      "bind": "accSimple",
+      "type": "field",
+      "label": "Majorant ratio:",
       "children": [
         {
-          "type": "field",
-          "label": "Ray Steps:",
-          "children": [
-            {
-              "type": "spinner",
-              "bind": "simple_ray_steps",
-              "value": 300,
-              "step": 5,
-              "min": 1
-            }
-          ]
-        },
+          "type": "slider",
+          "bind": "majorant_ratio",
+          "value": 1,
+          "min": 0,
+          "max": 1,
+          "step": 0.1
+        }
+      ]
+    },
+    {
+      "type": "field",
+      "label": "Iterations",
+      "children": [
         {
-          "type": "field",
-          "label": "Opacity:",
-          "children": [
-            {
-              "type": "spinner",
-              "bind": "simple_opacity",
-              "value": 100,
-              "step": 5,
-              "min": 1
-            }
-          ]
-        },
-        {
-          "type": "field",
-          "label": "Absorption Coefficient:",
-          "children": [
-            {
-              "type": "spinner",
-              "bind": "absorptionCoefficient",
-              "value": 1,
-              "min": 0,
-              "step": 0.2
-            }
-          ]
+          "type": "spinner",
+          "bind": "limit",
+          "value": 0,
+          "min": 0,
+          "step": 1
         }
       ]
     },
