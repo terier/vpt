@@ -157,7 +157,7 @@ class FCNRenderer extends AbstractRenderer {
             const lightDirection = this._lightDefinitions[0].light;
             gl.uniform3fv(program.uniforms.uLight, lightDirection);
             gl.uniform1f(program.uniforms.uAbsorptionCoefficient, this._absorptionCoefficient)
-            gl.uniform1i(program.uniforms.uSteps, Math.floor(this._convectionSteps));
+            gl.uniform1i(program.uniforms.uNLights, 1);
             gl.uniform1f(program.uniforms.uRatio, Math.floor(this._lightVolumeRatio));
             gl.uniform1f(program.uniforms.uLayer, (i + 0.5) / this._lightVolumeDimensions.depth);
             gl.uniform1f(program.uniforms.uScattering, this._scattering);
