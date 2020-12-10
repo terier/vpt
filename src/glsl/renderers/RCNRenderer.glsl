@@ -167,7 +167,7 @@ void main() {
 // #section RCNDiffuse/fragment
 
 #version 300 es
-precision mediump float;
+precision highp float;
 #define DIRECTIONAL 0.5
 #define POINT 1.5
 #define FLT_MAX 3.402823466e+38
@@ -295,12 +295,18 @@ void main() {
             radianceAndDiffusion = texture(uRadianceAndDiffusion, pos);
             energyDensity = radianceAndDiffusion.r + radianceAndDiffusion.g;
 
+//            energyDensity = radianceAndDiffusion.g;
+
             colorSample = texture(uTransferFunction, vec2(val, 0.5));
             colorSample.a *= rayStepLength * uAlphaCorrection;
             // utezi z energy density
             colorSample.rgb *= colorSample.a * energyDensity;
             //            colorSample.rgb *= colorSample.a;
 //            colorSample.rgb = vec3(energyDensity);
+
+//            if (energyDensity < 0.0) {
+//                colorSample.rgb = vec3(0,0,1);
+//            }
             accumulator += (1.0 - accumulator.a) * colorSample;
             t += uStepSize;
         }
