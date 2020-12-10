@@ -37,7 +37,14 @@ static createProgram(gl, shaders) {
     const activeUniforms = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
     for (let i = 0; i < activeUniforms; i++) {
         const info = gl.getActiveUniform(program, i);
-        uniforms[info.name] = gl.getUniformLocation(program, info.name);
+        if (info.name.includes('[0]')) {
+            for (let j = 0; j < info.size; j++) {
+                let uniformName = info.name.substring(0, info.name.indexOf('[') + 1) + j + info.name.substring(info.name.indexOf(']'));
+                uniforms[uniformName] = gl.getUniformLocation(program, uniformName);
+            }
+        } else {
+            uniforms[info.name] = gl.getUniformLocation(program, info.name);
+        }
     }
     return { program, attributes, uniforms };
 }

@@ -191,7 +191,7 @@ layout (location = 2) out vec4 oDistanceTravelledAndSamples;
 layout (location = 3) out vec4 oRadianceAndDiffusion;
 
 void main() {
-    vec3 position = vec3(vPosition,  uLayer);
+    vec3 position = vec3(vPosition, uLayer);
     vec4 radianceAndDiffusion = texture(uRadianceAndDiffusion, position);
     if (position.x <= uStep.x || position.y < uStep.y || position.z < uStep.z ||
     position.x >= 1.0 - uStep.x || position.y >= 1.0 - uStep.y || position.z >= 1.0 - uStep.z) {

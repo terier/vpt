@@ -25,13 +25,14 @@ class FCNRenderer extends AbstractRenderer {
         }, options);
 
         this._programs = WebGL.buildPrograms(this._gl, {
-            generate  : SHADERS.FCNGenerate,
-            integrate : SHADERS.FCNIntegrate,
-            render    : SHADERS.FCNRender,
-            reset     : SHADERS.FCNReset
+            generate            : SHADERS.FCNGenerate,
+            integrate           : SHADERS.FCNIntegrate,
+            render              : SHADERS.FCNRender,
+            reset               : SHADERS.FCNReset,
+            resetLightTexture   : SHADERS.FCNResetLightTexture
         }, MIXINS);
 
-        console.log(this._programs);
+        // console.log(this._programs);
 
         this._lightDefinitions = [
             new LightDefinition('distant', [0.05,0.05,0.05], true),
@@ -79,8 +80,11 @@ class FCNRenderer extends AbstractRenderer {
     }
 
     _setAccumulationBuffer() {
+        if (this._accumulationBuffer) {
+            this._accumulationBuffer.destroy();
+        }
         this._accumulationBuffer = new DoubleBuffer3D(this._gl, this._getAccumulationBufferSpec());
-        console.log(this._accumulationBuffer)
+        // console.log(this._accumulationBuffer)
     }
 
     _setLightVolumeDimensions() {
@@ -97,16 +101,83 @@ class FCNRenderer extends AbstractRenderer {
     _resetLightVolume() {
         console.log("Reset Light Volume")
         const gl = this._gl;
-        let lightDefinition = this._lightDefinitions[0];
-        let readLight = this._accumulationBuffer.getReadAttachments().color[0];
-        lightDefinition.light = LightTexture.resetLight(gl, lightDefinition.light[0], lightDefinition.light[1], lightDefinition.light[2],
-            this._lightVolumeDimensions, readLight, lightDefinition.type);
-        let writeLight = this._accumulationBuffer.getWriteAttachments().color[0];
-        lightDefinition.light = LightTexture.resetLight(gl, lightDefinition.light[0], lightDefinition.light[1], lightDefinition.light[2],
-            this._lightVolumeDimensions, writeLight, lightDefinition.type);
+        const lightDefinitionArray = this._lightsArray = this._getLightDefinitionArray();
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._clipQuad);
+        gl.enableVertexAttribArray(0); // position always bound to attribute 0
+        gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+
+        const program = this._programs.resetLightTexture;
+
+        gl.useProgram(program.program);
+
+        console.log(lightDefinitionArray)
+
+        for (let i = 0; i < this._lightVolumeDimensions.depth; i++) {
+            this._accumulationBuffer.use(i);
+
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[0]);
+
+            gl.activeTexture(gl.TEXTURE1);
+            gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[1]);
+
+            gl.uniform1i(program.uniforms.uEnergyDensity, 0);
+            gl.uniform1i(program.uniforms.uDiffusion, 1);
+
+            gl.uniform1i(program.uniforms.uNLights, this._nActiveLights);
+            gl.uniform1f(program.uniforms.uLayer, (i + 0.5) / this._lightVolumeDimensions.depth);
+
+            const dimensions = this._lightVolumeDimensions;
+            gl.uniform3f(program.uniforms.uStep, 1 / dimensions.width, 1 / dimensions.height, 1 / dimensions.depth);
+
+            gl.uniform3f(program.uniforms.uSize, dimensions.width, dimensions.height, dimensions.depth);
+
+            gl.uniform4fv(program.uniforms["uLights[0]"], lightDefinitionArray[0]);
+            gl.uniform4fv(program.uniforms["uLights[1]"], lightDefinitionArray[1]);
+            gl.uniform4fv(program.uniforms["uLights[2]"], lightDefinitionArray[2]);
+            gl.uniform4fv(program.uniforms["uLights[3]"], lightDefinitionArray[3]);
+            // const light = this._lightDefinitions[0];
+            // const lightArr = light.getLightArr();
+            // gl.uniform4f(program.uniforms.uLight, lightArr[0], lightArr[1], lightArr[2], light.typeToInt());
+
+            gl.drawBuffers([
+                gl.COLOR_ATTACHMENT0,
+                gl.COLOR_ATTACHMENT1
+            ]);
+            gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+        }
+        this._accumulationBuffer.swap();
+
+        // let readLight = this._accumulationBuffer.getReadAttachments().color[0];
+        // LightTexture.resetLight(gl, lightDefinitions, this._lightVolumeDimensions, readLight);
+        // let writeLight = this._accumulationBuffer.getWriteAttachments().color[0];
+        // lightDefinition.light = LightTexture.resetLight(gl, lightDefinition.light[0], lightDefinition.light[1], lightDefinition.light[2],
+        //     this._lightVolumeDimensions, writeLight, lightDefinition.type);
         // console.log(lightDefinition)
 
         this.counter = 0;
+    }
+
+    _getLightDefinitionArray() {
+        let lightsArray = [];
+        let nLights = 0
+        for (let i = 0; i < this._lightDefinitions.length; i++) {
+            let lightDefinition = this._lightDefinitions[i];
+            if (!lightDefinition.isEnabled())
+                continue;
+            if (nLights >= 4)
+                break;
+            // lightsArray.push(this._lightDefinitions[i]);
+            let lightArray = lightDefinition.getLightArr();
+            lightsArray.push([lightArray[0], lightArray[1], lightArray[2], lightDefinition.typeToInt()]);
+            nLights++;
+        }
+        for (let i = nLights; i < 4; i++) {
+            lightsArray.push([0, 0, 0, 0]);
+        }
+        this._nActiveLights = nLights;
+        return lightsArray;
     }
 
     destroy() {
@@ -121,10 +192,31 @@ class FCNRenderer extends AbstractRenderer {
 
     _generateFrame() {}
 
+    render() {
+        // TODO: put the following logic in VAO
+        const gl = this._gl;
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._clipQuad);
+        gl.enableVertexAttribArray(0); // position always bound to attribute 0
+        gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+
+        this._frameBuffer.use();
+        this._generateFrame();
+
+        for (let i = 0; i < this._convectionSteps; i++) {
+            this._integrateFrame();
+            this._accumulationBuffer.swap();
+        }
+
+        this._renderBuffer.use();
+        this._renderFrame();
+    }
+
     _integrateFrame() {
         const gl = this._gl;
 
+        const dimensions = this._lightVolumeDimensions;
         const program = this._programs.integrate;
+        const lightsArray = this._lightsArray;
         gl.useProgram(program.program);
 
         for (let i = 0; i < this._lightVolumeDimensions.depth; i++) {
@@ -148,19 +240,24 @@ class FCNRenderer extends AbstractRenderer {
             gl.uniform1i(program.uniforms.uVolume, 2);
             gl.uniform1i(program.uniforms.uTransferFunction, 3);
 
-
-
-            const dimensions = this._lightVolumeDimensions;
-
-            gl.uniform3f(program.uniforms.uSize, 1 / dimensions.width, 1 / dimensions.height, 1 / dimensions.depth);
-
-            const lightDirection = this._lightDefinitions[0].light;
-            gl.uniform3fv(program.uniforms.uLight, lightDirection);
             gl.uniform1f(program.uniforms.uAbsorptionCoefficient, this._absorptionCoefficient)
-            gl.uniform1i(program.uniforms.uNLights, 1);
+            gl.uniform1i(program.uniforms.uNLights, this._nActiveLights);
             gl.uniform1f(program.uniforms.uRatio, Math.floor(this._lightVolumeRatio));
             gl.uniform1f(program.uniforms.uLayer, (i + 0.5) / this._lightVolumeDimensions.depth);
             gl.uniform1f(program.uniforms.uScattering, this._scattering);
+
+
+            gl.uniform3f(program.uniforms.uStep, 1 / dimensions.width, 1 / dimensions.height, 1 / dimensions.depth);
+
+            gl.uniform3f(program.uniforms.uSize, dimensions.width, dimensions.height, dimensions.depth);
+
+
+
+            gl.uniform4fv(program.uniforms["uLights[0]"], lightsArray[0]);
+            gl.uniform4fv(program.uniforms["uLights[1]"], lightsArray[1]);
+            gl.uniform4fv(program.uniforms["uLights[2]"], lightsArray[2]);
+            gl.uniform4fv(program.uniforms["uLights[3]"], lightsArray[3]);
+
             gl.drawBuffers([
                 gl.COLOR_ATTACHMENT0,
                 gl.COLOR_ATTACHMENT1
@@ -223,21 +320,38 @@ class FCNRenderer extends AbstractRenderer {
 
     _getAccumulationBufferSpec() {
         const gl = this._gl;
-        const convectionBufferSpec = {
+        let convectionBufferSpec = {
             target         : gl.TEXTURE_3D,
             width          : this._volumeDimensions.width,
             height         : this._volumeDimensions.height,
             depth          : this._volumeDimensions.depth,
             min            : gl.LINEAR,
             mag            : gl.LINEAR,
-            format         : gl.RED,
-            internalFormat : gl.R32F,
+            // format         : gl.RED,
+            // internalFormat : gl.R32F,
+            format         : gl.RGBA,
+            internalFormat : gl.RGBA32F,
             type           : gl.FLOAT,
             wrapS          : gl.CLAMP_TO_EDGE,
             wrapT          : gl.CLAMP_TO_EDGE,
             wrapR          : gl.CLAMP_TO_EDGE,
             storage        : true
         };
+
+        // let nLights = 0;
+        // for (let i = 0; i < this._lightDefinitions.length; i++) {
+        //     if (this._lightDefinitions[i].isEnabled()) {
+        //         nLights++;
+        //     }
+        // }
+
+        // if (nLights >= 3) {
+        //     convectionBufferSpec.format = gl.RGBA
+        //     convectionBufferSpec.internalFormat = gl.RGBA32F
+        // } else if (nLights === 2) {
+        //     convectionBufferSpec.format = gl.RG
+        //     convectionBufferSpec.internalFormat = gl.RG32F
+        // }
 
         const diffusionBufferSpec = {
             target         : gl.TEXTURE_3D,

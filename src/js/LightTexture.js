@@ -4,62 +4,96 @@
 
 class LightTexture {
 
-    static resetLight(gl, x, y, z, dimensions, texture, type) {
-        switch(type) {
-            case 'distant':
-                return this.resetDistantLight(gl, x, y, z, dimensions, texture);
-            case 'point':
-                return this.resetPointLight(gl, x, y, z, dimensions, texture);
+    static resetLight(gl, lights, dimensions, texture) {
+        let lightArrays = []
+        for (let i = 0; i < lights.length; i++) {
+            let lightDefinition = lights[i];
+            switch(lightDefinition.type) {
+                case 'distant':
+                    lightArrays.push(this.getDistantLightArray(gl, lightDefinition, dimensions)); break;
+                case 'point':
+                    lightArrays.push(this.getPointLightArray(gl, lightDefinition, dimensions)); break;
+            }
         }
+        this.fillTexture(gl, lightArrays, dimensions, texture);
     }
 
-    static resetDistantLight(gl, x, y, z, dimensions, texture) {
-        console.log("Reseting distant light");
-        // const gl = this._gl;
-        // const dimensions = this._dimensions;
-        // const unitVector = this.toUnitVector([this._x, this._y, this._z]);
-        const unitVector = this.toUnitVector([x, y, z]);
-        const dirX = x = unitVector[0];
-        const dirY = y = unitVector[1];
-        const dirZ = z = unitVector[2];
-
+    static fillTexture(gl, lightArrays, dimensions, texture) {
+        let format = gl.RED
+        if (lightArrays.length >= 3) {
+            format = gl.RGBA
+        } else if (lightArrays.length === 2) {
+            format = gl.RG
+        }
+        console.log(lightArrays.length)
         gl.bindTexture(gl.TEXTURE_3D, texture);
+        let energyDensityArray = [];
         for (let z = 0; z < dimensions.depth; z++) {
-            let energyDensityArray = [];
             for (let y = 0; y < dimensions.height; y++) {
                 for (let x = 0; x < dimensions.width; x++) {
-                    if (this.lightHitsBoundary(x, y, z, dirX, dirY, dirZ, dimensions)) {
-                        energyDensityArray.push(1);
-                    } else {
+                    for (let i = 0; i < lightArrays.length; i++) {
+                        let val = lightArrays[i][z * dimensions.depth + y * dimensions.height + x]
+                        energyDensityArray.push(val);
+                    }
+                    if (lightArrays.length === 3) {
                         energyDensityArray.push(0);
                     }
                 }
             }
             gl.texSubImage3D(gl.TEXTURE_3D, 0,
                 0, 0, z, dimensions.width, dimensions.height, 1,
-                gl.RED, gl.FLOAT, new Float32Array(energyDensityArray));
+                format, gl.FLOAT, new Float32Array(energyDensityArray));
         }
-
-        return [x, y, z];
     }
 
-    static resetPointLight(gl, x, y, z, dimensions, texture) {
-        let posX = x = Math.floor(x * dimensions.width);
-        let posY = y = Math.floor(y * dimensions.height);
-        let posZ = z = Math.floor(z * dimensions.depth);
-        if (posX === 0)
-            posX = x = 1;
-        if (posY === 0)
-            posY = y = 1;
-        if (posZ === 0)
-            posZ = z = 1;
-        // Energy density
-        gl.bindTexture(gl.TEXTURE_3D, texture);
+    static getDistantLightArray(gl, lightDefinition, dimensions) {
+        console.log("Reseting distant light");
+        // const gl = this._gl;
+        // const dimensions = this._dimensions;
+        // const unitVector = this.toUnitVector([this._x, this._y, this._z]);
+        const unitVector = this.toUnitVector(lightDefinition.getLightArr());
+        const dirX = unitVector[0];
+        const dirY = unitVector[1];
+        const dirZ = unitVector[2];
 
-        if (this.lightOutsideVolume(x, y, z, dimensions)) {
+        // gl.bindTexture(gl.TEXTURE_3D, texture);
+        let energyDensityArray = [];
+        for (let z = 0; z < dimensions.depth; z++) {
+            for (let y = 0; y < dimensions.height; y++) {
+                for (let x = 0; x < dimensions.width; x++) {
+                    if (this.lightHitsBoundary(x, y, z, dirX, dirY, dirZ, dimensions)) {
+                        energyDensityArray.push(1);
+                    }
+                    else {
+                        energyDensityArray.push(0);
+                    }
+                }
+            }
+            // gl.texSubImage3D(gl.TEXTURE_3D, 0,
+            //     0, 0, z, dimensions.width, dimensions.height, 1,
+            //     gl.RED, gl.FLOAT, new Float32Array(energyDensityArray));
+        }
+
+        return energyDensityArray;
+    }
+
+    static getPointLightArray(gl, lightDefinition, dimensions) {
+        let posX = Math.floor(lightDefinition.light[0] * dimensions.width);
+        let posY = Math.floor(lightDefinition.light[1] * dimensions.height);
+        let posZ = Math.floor(lightDefinition.light[2] * dimensions.depth);
+        if (posX === 0)
+            posX = 1;
+        if (posY === 0)
+            posY = 1;
+        if (posZ === 0)
+            posZ = 1;
+        // Energy density
+        // gl.bindTexture(gl.TEXTURE_3D, texture);
+        let energyDensityArray = [];
+        if (this.lightOutsideVolume(posX, posY, posZ, dimensions)) {
             console.log("Creating point light - outside");
             for (let z = 0; z < dimensions.depth; z++) {
-                let energyDensityArray = [];
+
                 for (let y = 0; y < dimensions.height; y++) {
                     for (let x = 0; x < dimensions.width; x++) {
                         let dx = x - posX;
@@ -72,9 +106,9 @@ class LightTexture {
                         }
                     }
                 }
-                gl.texSubImage3D(gl.TEXTURE_3D, 0,
-                    0, 0, z, dimensions.width, dimensions.height, 1,
-                    gl.RED, gl.FLOAT, new Float32Array(energyDensityArray));
+                // gl.texSubImage3D(gl.TEXTURE_3D, 0,
+                //     0, 0, z, dimensions.width, dimensions.height, 1,
+                //     gl.RED, gl.FLOAT, new Float32Array(energyDensityArray));
             }
         } else {
             console.log("Creating point light - inside");
@@ -92,13 +126,12 @@ class LightTexture {
                         }
                     }
                 }
-                gl.texSubImage3D(gl.TEXTURE_3D, 0,
-                    0, 0, z, dimensions.width, dimensions.height, 1,
-                    gl.RED, gl.FLOAT, new Float32Array(energyDensityArray));
+                // gl.texSubImage3D(gl.TEXTURE_3D, 0,
+                //     0, 0, z, dimensions.width, dimensions.height, 1,
+                //     gl.RED, gl.FLOAT, new Float32Array(energyDensityArray));
             }
         }
-
-        return [x, y, z];
+        return energyDensityArray;
     }
 
     static toUnitVector(vector) {

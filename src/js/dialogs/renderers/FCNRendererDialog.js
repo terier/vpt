@@ -20,7 +20,6 @@ class FCNRendererDialog extends AbstractDialog {
         this._handleChangeResetLightField = this._handleChangeResetLightField.bind(this);
         this._handleChangeRatio = this._handleChangeRatio.bind(this);
         this._handleTFChange = this._handleTFChange.bind(this);
-        // this._handleChangeLights = this._handleChangeLights.bind(this);
 
         this._binds.steps.addEventListener('input', this._handleChange);
         this._binds.opacity.addEventListener('input', this._handleChange);
@@ -73,11 +72,10 @@ class FCNRendererDialog extends AbstractDialog {
 
     _handleChangeResetLightField() {
         this._renderer._convectionLimit = this._binds.repeats.getValue();
-
         this._renderer._convectionSteps = this._binds.convectionSteps.getValue();
-        // if (this._renderer._volumeDimensions) {
-        //     this._renderer._resetLightField();
-        // }
+        if (this._renderer._volumeDimensions) {
+            this._renderer._resetLightVolume();
+        }
 
         this._renderer.reset();
     }
@@ -92,7 +90,7 @@ class FCNRendererDialog extends AbstractDialog {
     }
 
     _handleChangeLights(lights) {
-        // console.log("Change")
+        this._setLightsSimple(lights);
         // if (this._renderer._lightToggling === 0) {
         //     this._setLightsSimple();
         // } else {
@@ -101,13 +99,13 @@ class FCNRendererDialog extends AbstractDialog {
         this._renderer.reset();
     }
 
-    _setLightsSimple() {
+    _setLightsSimple(lights) {
         // let lightDefinitions = [];
         let doReset = false;
         const renderer = this._renderer;
         const oldLightDefinitions = renderer._lightDefinitions;
         renderer._lightDefinitions = [];
-        for (let i = 0; i < 100; i++) {
+        for (let i = 0; i < lights.length; i++) {
             let light = lights[i];
             let oldLightDefinition = oldLightDefinitions[i];
             let lightDefinition = new LightDefinition(
@@ -123,7 +121,9 @@ class FCNRendererDialog extends AbstractDialog {
             }
         }
         if (doReset) {
-            this._renderer._resetLightField();
+            // console.log("Reset Light Volume")
+            this._renderer._setAccumulationBuffer();
+            this._renderer._resetLightVolume();
         }
     }
 
