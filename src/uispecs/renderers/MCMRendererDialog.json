@@ -128,38 +128,109 @@
       ]
     },
     {
-      "type": "field",
-      "label": "Max. Contribution:",
+      "type": "accordion",
+      "label": "Advanced settings",
+      "contracted": true,
       "children": [
         {
-          "type": "checkbox",
-          "bind": "maxContribution",
-          "checked": false
-        }
-      ]
-    },
-    {
-      "type": "field",
-      "label": "Original data in Channel #0:",
-      "children": [
+          "type": "field",
+          "label": "Bilateral:",
+          "children": [
+            {
+              "type": "checkbox",
+              "bind": "bilateral",
+              "checked": false
+            }
+          ]
+        },
         {
-          "type": "checkbox",
-          "bind": "origData",
-          "checked": false
-        }
-      ]
-    },
-    {
-      "type": "field",
-      "label": "Orig. vs. Seg.:",
-      "children": [
+          "type": "field",
+          "label": "Bilateral Grad.:",
+          "children": [
+            {
+              "type": "checkbox",
+              "bind": "bilateralGradient",
+              "checked": false
+            }
+          ]
+        },
         {
-          "type": "slider",
-          "bind": "origVsSeg",
-          "value": 0.5,
-          "min": 0,
-          "max": 1,
-          "step": 0.1
+          "type": "field",
+          "label": "Bilateral Sigma:",
+          "children": [
+            {
+              "type": "spinner",
+              "bind": "bilateralSigma",
+              "value": 10,
+              "step": 0.1,
+              "min": 0,
+              "max": 100
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Bilateral BSigma:",
+          "children": [
+            {
+              "type": "spinner",
+              "bind": "bilateralBSigma",
+              "value": 0.1,
+              "step": 0.01,
+              "min": 0,
+              "max": 1
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Bilateral Sigma:",
+          "children": [
+            {
+              "type": "spinner",
+              "bind": "bilateralMSize",
+              "value": 15,
+              "step": 2,
+              "min": 1,
+              "max": 255
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Max. Contribution:",
+          "children": [
+            {
+              "type": "checkbox",
+              "bind": "maxContribution",
+              "checked": false
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Original data in Channel #0:",
+          "children": [
+            {
+              "type": "checkbox",
+              "bind": "origData",
+              "checked": false
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Orig. vs. Seg.:",
+          "children": [
+            {
+              "type": "slider",
+              "bind": "origVsSeg",
+              "value": 0.5,
+              "min": 0,
+              "max": 1,
+              "step": 0.1
+            }
+          ]
         }
       ]
     },

@@ -29,6 +29,11 @@ constructor(renderer, options) {
     this._binds.maxContribution.addEventListener('change', this._handleChange);
     this._binds.origData.addEventListener('change', this._handleChange);
     this._binds.origVsSeg.addEventListener('change', this._handleChange);
+    this._binds.bilateral.addEventListener('change', this._handleChange);
+    this._binds.bilateralGradient.addEventListener('change', this._handleChange);
+    this._binds.bilateralSigma.addEventListener('input', this._handleChange);
+    this._binds.bilateralBSigma.addEventListener('input', this._handleChange);
+    this._binds.bilateralMSize.addEventListener('input', this._handleChange);
 
     this._tfwidgets = [];
     for (let i = 0; i < 4; i++) {
@@ -68,6 +73,11 @@ _handleChange() {
     const maxContrib = this._binds.maxContribution.checked;
     const origData   = this._binds.origData.checked;
     const origVsSeg  = this._binds.origVsSeg.getValue();
+    const bilateral  = this._binds.bilateral.checked;
+    const bilateralGradient  = this._binds.bilateralGradient.checked;
+    const bilateralSigma      = this._binds.bilateralSigma.getValue();
+    const bilateralBSigma     = this._binds.bilateralBSigma.getValue();
+    const bilateralMSize      = this._binds.bilateralMSize.getValue();
 
     this._renderer.absorptionCoefficient = extinction * (1 - albedo);
     this._renderer.scatteringCoefficient = extinction * albedo;
@@ -81,6 +91,11 @@ _handleChange() {
     this._renderer.maxContribution = maxContrib;
     this._renderer.origData = origData;
     this._renderer.origVsSeg = origVsSeg;
+    this._renderer.bilateral = bilateral;
+    this._renderer.bilateralGradient = bilateralGradient;
+    this._renderer.bilateralSigma = bilateralSigma;
+    this._renderer.bilateralBSigma = bilateralBSigma;
+    this._renderer.bilateralMSize = bilateralMSize;
 
     this._renderer.reset();
 }

@@ -36,6 +36,8 @@ precision mediump float;
 #define EPS 1e-5
 #define SQRT3 1.73205080757
 
+#define MSIZE 255
+
 @Photon
 
 uniform mediump sampler2D uPosition;
@@ -74,6 +76,12 @@ uniform uint uSteps;
 uniform bool uMaxContribution;
 uniform bool uOrigData;
 uniform float uOrigVsSeg;
+uniform bool uBilateral;
+uniform bool uBilateralGradient;
+// Slow implementation. For improvement, put this variables int define
+uniform float uBilateralSIGMA; // 10.0
+uniform float uBilateralBSIGMA; // 0.1
+uniform int uBilateralMSIZE; // 15
 
 uniform mat4 uEnvironmentRotationMatrix;
 uniform bool uEnvironmentTextureOverride;
@@ -83,6 +91,7 @@ uniform float uEnvironmentContribution;
 uniform vec3 uMinCutPlaneValues;
 uniform vec3 uMaxCutPlaneValues;
 uniform float uViewCutDistance;
+
 
 in vec2 vPosition;
 
@@ -94,6 +103,95 @@ layout (location = 3) out vec4 oRadiance;
 @rand
 @unprojectRand
 @intersectCube
+
+float normpdf(in float x, in float sigma)
+{
+  return 0.39894*exp(-0.5*x*x/(sigma*sigma))/sigma;
+}
+
+float normpdf2(in vec2 v, in float sigma)
+{
+  return 0.39894*exp(-0.5*dot(v,v)/(sigma*sigma))/sigma;
+}
+
+float normpdf3(in vec3 v, in float sigma)
+{
+  return 0.39894*exp(-0.5*dot(v,v)/(sigma*sigma))/sigma;
+}
+
+float bilateralFiltering3D(vec3 position, float volumeSample) {
+    //declare stuff
+    int kSize = (uBilateralMSIZE-1)/2;
+    float kernel[MSIZE];
+    float bfinal_colour = 0.0;
+
+    float bZ = 0.0;
+
+    //create the 1-D kernel
+    for (int j = 0; j <= kSize; ++j) {
+      kernel[kSize+j] = kernel[kSize-j] = normpdf(float(j), uBilateralSIGMA);
+    }
+
+    float cc;
+    float gfactor;
+    float bfactor;
+    float bZnorm = 1.0/normpdf(0.0, uBilateralBSIGMA);
+    //read out the texels
+    for (int i=-kSize; i <= kSize; ++i) {
+        for (int j=-kSize; j <= kSize; ++j) {
+            for (int k=-kSize; k <= kSize; ++k) {
+                // voxel values in the 2D neighborhood
+                vec3 coord = position.xyz + vec3(float(i), float(j), float(k));
+                cc = texture(uVolume0, coord).r;
+
+                // compute both the gaussian smoothed and bilateral
+                gfactor = kernel[kSize+k]*kernel[kSize+j]*kernel[kSize+i];
+                bfactor = normpdf(cc-volumeSample, uBilateralBSIGMA)*bZnorm*gfactor;
+                bZ += bfactor;
+
+                bfinal_colour += bfactor*cc;
+            }
+        }
+    }
+    return bfinal_colour/bZ;
+}
+
+vec2 bilateralFiltering3D_2(vec3 position, vec2 volumeSample) {
+    //declare stuff
+    int kSize = (uBilateralMSIZE-1)/2;
+    float kernel[MSIZE];
+    vec2 bfinal_colour = vec2(0.0);
+
+    float bZ = 0.0;
+
+    //create the 1-D kernel
+    for (int j = 0; j <= kSize; ++j) {
+      kernel[kSize+j] = kernel[kSize-j] = normpdf(float(j), uBilateralSIGMA);
+    }
+
+    vec2 cc;
+    float gfactor;
+    float bfactor;
+    float bZnorm = 1.0/normpdf(0.0, uBilateralBSIGMA);
+    //read out the texels
+    for (int i=-kSize; i <= kSize; ++i) {
+        for (int j=-kSize; j <= kSize; ++j) {
+            for (int k=-kSize; k <= kSize; ++k) {
+                // voxel values in the 2D neighborhood
+                vec3 coord = position.xyz + vec3(float(i), float(j), float(k));
+                cc = texture(uVolume0, coord).rg;
+
+                // compute both the gaussian smoothed and bilateral
+                gfactor = kernel[kSize+k]*kernel[kSize+j]*kernel[kSize+i];
+                bfactor = normpdf2(cc-volumeSample, uBilateralBSIGMA)*bZnorm*gfactor;
+                bZ += bfactor;
+
+                bfinal_colour += bfactor*cc;
+            }
+        }
+    }
+    return bfinal_colour/bZ;
+}
 
 void resetPhoton(inout vec2 randState, inout Photon photon) {
     vec3 from, to;
@@ -124,9 +222,22 @@ vec4 sampleVolumeColor(vec3 position) {
     float maxVolValue = volumeSample0.r;
     vec4 maxVolSample = transferSample0;
 
+    if (uBilateral && !uBilateralGradient) {
+        volumeSample0.r = bilateralFiltering3D(position, volumeSample0.r);
+    } else if (uBilateral && uBilateralGradient) {
+        volumeSample0.rg = bilateralFiltering3D_2(position, volumeSample0);
+    }
+
     if (uNumberOfChannels > 1) {
         vec2 volumeSample1 = texture(uVolume1, position).rg ;
         transferSample1 = texture(uTransferFunction1, volumeSample1) * channelContribs.y;
+
+        if (uBilateral && !uBilateralGradient) {
+            volumeSample1.r = bilateralFiltering3D(position, volumeSample1.r);
+        } else if (uBilateral && uBilateralGradient) {
+            volumeSample1.rg = bilateralFiltering3D_2(position, volumeSample1);
+        }
+
         maxVolValue = volumeSample1.r;
         maxVolSample = transferSample1;
         if (maxVolValue < volumeSample1.r) {
@@ -137,6 +248,13 @@ vec4 sampleVolumeColor(vec3 position) {
     if (uNumberOfChannels > 2) {
         vec2 volumeSample2 = texture(uVolume2, position).rg ;
         transferSample2 = texture(uTransferFunction2, volumeSample2) * channelContribs.z;
+
+        if (uBilateral && !uBilateralGradient) {
+            volumeSample2.r = bilateralFiltering3D(position, volumeSample2.r);
+        } else if (uBilateral && uBilateralGradient) {
+            volumeSample2.rg = bilateralFiltering3D_2(position, volumeSample2);
+        }
+
         if (maxVolValue < volumeSample2.r) {
              maxVolValue = volumeSample2.r;
              maxVolSample = transferSample2;
@@ -145,6 +263,13 @@ vec4 sampleVolumeColor(vec3 position) {
     if (uNumberOfChannels > 3) {
         vec2 volumeSample3 = texture(uVolume3, position).rg ;
         transferSample3 = texture(uTransferFunction3, volumeSample3) * channelContribs.w;
+
+        if (uBilateral && !uBilateralGradient) {
+            volumeSample3.r = bilateralFiltering3D(position, volumeSample3.r);
+        } else if (uBilateral && uBilateralGradient) {
+            volumeSample3.rg = bilateralFiltering3D_2(position, volumeSample3);
+        }
+
         if (maxVolValue < volumeSample3.r) {
              maxVolValue = volumeSample3.r;
              maxVolSample = transferSample3;

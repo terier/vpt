@@ -64,7 +64,12 @@ constructor(gl, volume, environmentTexture, options) {
         origVsSeg             : 0.5,
         minCutPlaneValues     : new Vector(0,0,0),
         maxCutPlaneValues     : new Vector(1,1,1),
-        viewCutDistance       : 0
+        viewCutDistance       : 0,
+        bilateral             : false,
+        bilateralGradient     : false,
+        bilateralSigma        : 10,
+        bilateralBSigma       : 0.1,
+        bilateralMSize        : 15
     }, options);
 
     this._programs = WebGL.buildPrograms(gl, {
@@ -199,6 +204,12 @@ _integrateFrame() {
     gl.uniform1i(program.uniforms.uEnvironmentTextureOverride, this._environmentTextureOverride);
     gl.uniform3f(program.uniforms.uEnvironmentColor, this._environmentColor.r, this._environmentColor.g, this._environmentColor.b);
     gl.uniform1f(program.uniforms.uEnvironmentContribution, this._environmentContribution);
+
+    gl.uniform1i(program.uniforms.uBilateral, this.bilateral);
+    gl.uniform1i(program.uniforms.uBilateralGradient, this.bilateralGradient);
+    gl.uniform1f(program.uniforms.uBilateralSIGMA, this.bilateralSigma);
+    gl.uniform1f(program.uniforms.uBilateralBSIGMA, this.bilateralBSigma);
+    gl.uniform1i(program.uniforms.uBilateralMSIZE, this.bilateralMSize);
 
     gl.drawBuffers([
         gl.COLOR_ATTACHMENT0,
