@@ -78,6 +78,7 @@ readModality(modalityName, handlers) {
     modality.placements.forEach(placement => {
         this._reader.readBlock(placement.index, {
             onData: data => {
+                console.log(placement.index);
                 const position = placement.position;
                 const block = blocks[placement.index];
                 const blockdim = block.dimensions;
