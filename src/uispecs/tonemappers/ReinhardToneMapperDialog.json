@@ -1,6 +1,4 @@
-// #package uispecs
-
-// #section ReinhardToneMapperDialog
+// #part /uispecs/tonemappers/ReinhardToneMapperDialog
 
 {
   "type": "panel",

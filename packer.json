@@ -1,59 +1,63 @@
 {
-    "sources": [
-        "src/js",
-        "src/css",
-        "src/css/ui",
-        "src/html",
-        "src/html/ui",
-        "src/glsl",
-        "src/glsl/mixins",
-        "src/glsl/renderers",
-        "src/glsl/tonemappers",
-        "src/uispecs",
-        "src/uispecs/renderers",
-        "src/uispecs/tonemappers"
-    ],
-    "static": {
-        "src/images": "build/images",
-        "src/index.html": "build/index.html"
-    },
-    "packages": {
-        "js/main": {
-            "output": "build/js/main.js",
-            "url": "js/main.js",
-            "type": "script",
-            "mode": "concat"
+    "input": [
+        {
+            "input": "src",
+            "output": "/",
+            "filter": "\\.(js|html|css|json|glsl)$",
+            "recursive": true,
+            "parse": true
         },
-        "css/main": {
-            "output": "build/css/main.css",
-            "url": "css/main.css",
-            "type": "style",
-            "mode": "concat"
+        {
+            "input": "src/images",
+            "output": "/images",
+            "recursive": true
         },
-        "html/templates": {
-            "output": "build/html/templates.json",
-            "url": "html/templates.json",
-            "type": "json",
-            "mode": "files"
-        },
-        "glsl/shaders": {
-            "output": "build/glsl/shaders.json",
-            "url": "glsl/shaders.json",
-            "type": "json",
-            "mode": "sections"
-        },
-        "glsl/mixins": {
-            "output": "build/glsl/mixins.json",
-            "url": "glsl/mixins.json",
-            "type": "json",
-            "mode": "sections"
-        },
-        "uispecs": {
-            "output": "build/uispecs.json",
-            "url": "uispecs.json",
-            "type": "json",
-            "mode": "sections"
+        {
+            "input": "src/index.html",
+            "output": "/index.html"
         }
-    },
-    "resources": "build/resources.json"
+    ],
+    "transform": [],
+    "output": [
+        {
+            "input": "/images",
+            "output": "build/images",
+            "mode": "each"
+        },
+        {
+            "input": "/index.html",
+            "output": "build/index.html",
+            "mode": "each"
+        },
+        {
+            "input": "/js",
+            "output": "build/js/main.js",
+            "mode": "concat"
+        },
+        {
+            "input": "/css",
+            "output": "build/css/main.css",
+            "mode": "concat"
+        },
+        {
+            "input": "/html",
+            "output": "build/html/templates.json",
+            "mode": "json"
+        },
+        {
+            "input": "/glsl/shaders",
+            "output": "build/glsl/shaders.json",
+            "mode": "json"
+        },
+        {
+            "input": "/glsl/mixins",
+            "output": "build/glsl/mixins.json",
+            "mode": "json"
+        },
+        {
+            "input": "/uispecs",
+            "output": "build/uispecs.json",
+            "mode": "json"
+        }
+    ]
 }

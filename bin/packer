@@ -2,200 +2,235 @@
 
 const fs = require('fs');
 const path = require('path');
+const { spawnSync } = require('child_process');
 
-// read config from argv, or packer.json by default
+// TODO: output resource declarations for ResourceLoader
+// TODO: link management after transforms, detect external links
 
-const configPath = process.argv.length > 2 ? process.argv[2] : 'packer.json';
-const configDir = path.dirname(configPath);
-const config = JSON.parse(fs.readFileSync(configPath));
+function error(message) {
+    process.stderr.write(`\x1b[31mError:\x1b[0m ${message}\n`);
+    process.exit(1);
+}
 
-// construct dependecy graph
+function warning(message) {
+    process.stderr.write(`\x1b[33mWarning:\x1b[0m ${message}\n`);
+}
 
-let queue = config.sources;
+process.on('uncaughtException', e => error(e.message));
 
-let isDirectory = {};
-let hasBeenRead = {};
+const parts = [];
 
-let filesToFiles = {};
-let filesToPackages = {};
+function isSubpath(basePath, childPath) {
+    return !path.relative(basePath, childPath).startsWith('..');
+}
 
-let fileContents = {};
+function selectParts(basePath) {
+    return parts
+        .filter(part => isSubpath(basePath, part.path))
+        .map(part => ({ ...part })); // copy so that we can change them
+}
 
-while (queue.length > 0) {
-    let next = queue.pop();
-    next = path.normalize(next);
-    if (hasBeenRead[next]) {
-        continue;
-    }
+function writeParts(newParts) {
+    for (const part of newParts) {
+        if (!path.isAbsolute(part.path)) {
+            error([
+                `Part path is not absolute: ${part.path}`,
+                `Defined in: ${part.source}`,
+            ].join('\n'));
+        }
 
-    hasBeenRead[next] = true;
+        const existingParts = selectParts(part.path);
+        if (existingParts.length > 0) {
+            error([
+                `Cannot write part ${part.path}`,
+                `Defined in: ${part.source}`,
+                `Existing parts:`,
+                ...existingParts.map(existing =>
+                    `${existing.path} (defined in ${existing.source})`),
+            ].join('\n'));
+        }
 
-    if (fs.lstatSync(next).isDirectory()) {
-        isDirectory[next] = true;
-
-        const files = fs.readdirSync(next)
-            .map(file => path.join(next, file))
-            .filter(file => !fs.lstatSync(file).isDirectory()); // recursive flag?
-        filesToFiles[next] = files;
-
-        queue = queue.concat(files);
-    } else {
-        const contents = fs.readFileSync(next, 'utf8');
-        fileContents[next] = contents;
-
-        const includesDupl = [...contents.matchAll(/#include (\S+)/g)]
-            .map(match => path.join(path.dirname(next), match[1]));
-        const includes = [...new Set(includesDupl)];
-        filesToFiles[next] = includes;
-
-        const packagesDupl = [...contents.matchAll(/#package (\S+)/g)]
-            .map(match => match[1]);
-        const packages = [...new Set(packagesDupl)];
-        filesToPackages[next] = packages;
-
-        queue = queue.concat(includes);
+        parts.push(part);
     }
 }
 
-let packagesToFiles = {};
-for (const file in filesToPackages) {
-    if (filesToPackages[file].length !== 1) {
-        console.error('Error: exactly 1 package should be declared: ' + file);
-        process.exit(1);
+function parseParts(part) {
+    const partRegex = /^.*#part\s+(\S+).*$/gm;
+    const linkRegex = /^.*#link\s+(\S+).*$/gm;
+    const split = part.content.toString().split(partRegex);
+    let parts = [];
+    for (let i = 1; i < split.length; i += 2) {
+        const partPath = split[i];
+        const stringContent = split[i + 1].trim() + '\n';
+        const content = Buffer.from(stringContent);
+        const links = [...stringContent.matchAll(linkRegex)].map(match => match[1]);
+        const source = part.source;
+        parts.push({ path: partPath, source, content, links });
     }
-    for (const package of filesToPackages[file]) {
-        packagesToFiles[package] = (packagesToFiles[package] || []).concat(file);
-    }
+    return parts;
 }
 
-for (const directory in isDirectory) {
-    filesToPackages[directory] = [];
-}
-
-const packagesToPackages = {};
-for (const file in filesToFiles) {
-    const sourcePackages = filesToPackages[file];
-    const destinationPackages = filesToFiles[file]
-        .map(file => filesToPackages[file])
-        .flat()
-        .filter(package => !sourcePackages.includes(package));
-    for (const package of sourcePackages) {
-        packagesToPackages[package] = (packagesToPackages[package] || []).concat(destinationPackages);
-        packagesToPackages[package] = [...new Set(packagesToPackages[package])];
-    }
-}
-
-// topo sort
-
-function toposort(graph) {
+// TODO: maybe push toposort to writeParts?
+function toposort(parts) {
     let sorted = [];
-    let visited = {};
-    let processing = {};
+    let visited = [];
+    let processing = [];
 
-    Object.keys(graph).forEach(function visit(next) {
-        if (visited[next]) return;
-        if (processing[next]) throw new Error('Cyclic dependencies');
+    parts.forEach(function visit(part) {
+        if (visited.includes(part)) return;
+        if (processing.includes(part)) {
+            error([
+                `Cyclic links:`,
+                ...processing.map(part => part.path),
+            ].join('\n'));
+        }
 
-        processing[next] = true;
-        graph[next].forEach(d => visit(d));
-        processing[next] = false;
+        processing.push(part);
+        for (const link of part.links) {
+            const resolvedLink = path.resolve(path.dirname(part.path), link);
+            const linkedParts = parts.filter(other => isSubpath(resolvedLink, other.path));
+            if (linkedParts.length === 0) {
+                if (path.isAbsolute(link)) {
+                    //warning(`External link in ${part.path}: ${link}`);
+                } else {
+                    // TODO: currently, external relative link check does not
+                    // take into account the parts that are not passed into toposort
+                    error(`External relative link in ${part.path}: ${link}`);
+                }
+            }
+            linkedParts.forEach(part => visit(part));
+        }
+        processing.pop();
 
-        visited[next] = true;
-        sorted.push(next);
+        visited.push(part);
+        sorted.push(part);
     });
 
     return sorted;
 }
 
-let sortedFiles = toposort(filesToFiles);
-let sortedPackages = toposort(packagesToPackages);
-sortedFiles = sortedFiles.filter(file => !isDirectory[file]);
+function transformParts(parts, mode, command, args) {
+    let outputParts = [];
 
-// output statics
-
-function copyRecursive(src, dst) {
-    if (fs.lstatSync(src).isDirectory()) {
-        if (!fs.existsSync(dst)) {
-            fs.mkdirSync(dst, { recursive: true });
+    if (mode === 'each') {
+        outputParts = parts.map(part => ({
+            path    : part.path,
+            source  : part.source,
+            content : Buffer.from(part.content),
+            links   : part.links, // TODO: what to do with original links?
+        }));
+    } else if (mode === 'concat') {
+        outputParts = [{
+            path    : '',
+            source  : 'concat',
+            content : Buffer.concat(parts.map(part => part.content)),
+            links   : [], // TODO: what to do with original links?
+        }];
+    } else if (mode === 'json') {
+        let json = {};
+        for (const part of parts) {
+            const keys = part.path.split('/');
+            const name = keys.pop();
+            let object = json;
+            for (const key of keys) {
+                object[key] = object[key] || {};
+                object = object[key];
+            }
+            object[name] = part.content.toString();
         }
-        for (const file of fs.readdirSync(src)) {
-            copyRecursive(path.join(src, file), path.join(dst, file));
+        outputParts = [{
+            path    : '',
+            source  : 'json',
+            content : Buffer.from(JSON.stringify(json)),
+            links   : [], // TODO: what to do with original links?
+        }];
+    } else {
+        error(`Invalid mode ${mode}`);
+    }
+
+    if (command) {
+        for (const part of outputParts) {
+            const result = spawnSync(command, args, { input: part.content });
+            if (result.error) {
+                error(result.error.message);
+            }
+            if (result.status !== 0) {
+                error(`Transform failed: ${command}`);
+            }
+            part.content = result.stdout;
+            part.source = command;
+        }
+    }
+
+    return outputParts;
+}
+
+const configPath = process.argv.length > 2 ? process.argv[2] : 'packer.json';
+const config = JSON.parse(fs.readFileSync(configPath));
+process.chdir(path.dirname(configPath));
+
+function getFilePaths(filePath, recursive = false, filter = '.*') {
+    if (fs.lstatSync(filePath).isDirectory()) {
+        if (recursive) {
+            return fs.readdirSync(filePath)
+                .map(p => path.join(filePath, p))
+                .map(p => getFilePaths(p, recursive)).flat();
+        } else {
+            return fs.readdirSync(filePath)
+                .map(p => path.join(filePath, p))
+                .filter(p => !fs.lstatSync(p).isDirectory());
         }
     } else {
-        fs.copyFileSync(src, dst);
+        return [ filePath ];
     }
 }
 
-for (const source in config.static) {
-    copyRecursive(source, config.static[source]);
+for (const spec of config.input) {
+    const filterRe = new RegExp(spec.filter || '.*');
+    const filePaths = getFilePaths(spec.input, spec.recursive)
+        .filter(p => filterRe.test(p));
+    if (filePaths.length === 0) {
+        warning(`File path ${spec.input} does not contain any files under filter ${spec.filter}`);
+    }
+    for (const filePath of filePaths) {
+        const inputPart = {
+            path    : path.relative(spec.input, filePath),
+            source  : filePath,
+            content : fs.readFileSync(filePath),
+            links   : [],
+        };
+        const outputParts = spec.parse ? parseParts(inputPart) : [ inputPart ];
+        for (const part of outputParts) {
+            part.path = path.join(spec.output || '/', part.path);
+        }
+        writeParts(outputParts);
+    }
 }
 
-// output packages
-
-function parseSections(data, json = {}) {
-    const split = data.split(/#section (\S+)/g);
-    for (let i = 1; i < split.length; i += 2) {
-        const marker = split[i];
-        const chunk = split[i + 1].trim();
-        let path = marker.split('/');
-        let name = path.pop();
-        let object = json;
-        for (const part of path) {
-            object[part] = object[part] || {};
-            object = object[part];
-        }
-        object[name] = chunk;
+function selectAndTransformParts(spec) {
+    const selectedParts = toposort(selectParts(spec.input));
+    if (selectedParts.length === 0) {
+        warning(`No parts in ${spec.input}`);
     }
-    return json;
+    for (const part of selectedParts) {
+        part.path = path.relative(spec.input, part.path);
+    }
+    const transformedParts = transformParts(selectedParts, spec.mode, spec.command, spec.args);
+    for (const part of transformedParts) {
+        part.path = path.join(spec.output, part.path);
+    }
+    return transformedParts;
 }
 
-let resources = {};
-
-for (const package of sortedPackages) {
-    const packageConfig = config.packages[package];
-    if (!packageConfig) {
-        console.warn(`Warning: package ${package} not declared in config`);
-        continue;
-    }
-
-    const url = packageConfig.url;
-    const type = packageConfig.type;
-    const dependencies = packagesToPackages[package];
-
-    resources[package] = { url, type, dependencies };
-
-    const outputPath = path.join(configDir, packageConfig.output);
-    fs.mkdirSync(path.dirname(outputPath), { recursive: true });
-    const output = fs.createWriteStream(outputPath);
-    const files = sortedFiles.filter(file => packagesToFiles[package].includes(file));
-
-    if (packageConfig.mode === 'concat') {
-        for (const file of files) {
-            output.write(fileContents[file].trim());
-            output.write('\n');
-        }
-    } else if (packageConfig.mode === 'files') {
-        const json = {};
-        for (const file of files) {
-            const key = path.basename(file, path.extname(file));
-            json[key] = fileContents[file].trim();
-        }
-        output.write(JSON.stringify(json));
-    } else if (packageConfig.mode === 'sections') {
-        const json = {};
-        for (const file of files) {
-            parseSections(fileContents[file], json);
-        }
-        output.write(JSON.stringify(json));
-    }
-
-    output.end();
+for (const spec of config.transform) {
+    const transformedParts = selectAndTransformParts(spec);
+    writeParts(transformedParts);
 }
 
-// output resources json
-
-const resourcesPath = path.join(configDir, config.resources);
-fs.mkdirSync(path.dirname(resourcesPath), { recursive: true });
-const output = fs.createWriteStream(resourcesPath);
-output.write(JSON.stringify(resources));
-output.end();
+for (const spec of config.output) {
+    const transformedParts = selectAndTransformParts(spec);
+    for (const part of transformedParts) {
+        fs.mkdirSync(path.dirname(part.path), { recursive: true });
+        fs.writeFileSync(part.path, part.content);
+    }
+}

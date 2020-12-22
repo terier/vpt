@@ -1,6 +1,4 @@
-// #package glsl/mixins
-
-// #section YUVBT601
+// #part /glsl/mixins/YUVBT601
 
 vec3 rgb2yuv(vec3 rgb) {
     const mat3 RGB2YUV = mat3(

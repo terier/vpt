@@ -1,6 +1,6 @@
-// #package js/main
+// #part /js/loaders/BlobLoader
 
-// #include AbstractLoader.js
+// #link AbstractLoader
 
 class BlobLoader extends AbstractLoader {
 

@@ -1,6 +1,6 @@
-// #package js/main
+// #part /js/Camera
 
-// #include math
+// #link math
 
 class Camera {
 

@@ -1,9 +1,4 @@
-// #package glsl/shaders
-
-// #include ../mixins/unproject.glsl
-// #include ../mixins/intersectCube.glsl
-
-// #section MIPGenerate/vertex
+// #part /glsl/shaders/MIPGenerate/vertex
 
 #version 300 es
 precision mediump float;
@@ -14,6 +9,7 @@ layout(location = 0) in vec2 aPosition;
 out vec3 vRayFrom;
 out vec3 vRayTo;
 
+// #link /glsl/mixins/unproject
 @unproject
 
 void main() {
@@ -21,7 +17,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #section MIPGenerate/fragment
+// #part /glsl/shaders/MIPGenerate/fragment
 
 #version 300 es
 precision mediump float;
@@ -34,6 +30,7 @@ in vec3 vRayFrom;
 in vec3 vRayTo;
 out float oColor;
 
+// #link /glsl/mixins/intersectCube
 @intersectCube
 
 void main() {
@@ -59,7 +56,7 @@ void main() {
     }
 }
 
-// #section MIPIntegrate/vertex
+// #part /glsl/shaders/MIPIntegrate/vertex
 
 #version 300 es
 precision mediump float;
@@ -72,7 +69,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #section MIPIntegrate/fragment
+// #part /glsl/shaders/MIPIntegrate/fragment
 
 #version 300 es
 precision mediump float;
@@ -89,7 +86,7 @@ void main() {
     oColor = max(acc, frame);
 }
 
-// #section MIPRender/vertex
+// #part /glsl/shaders/MIPRender/vertex
 
 #version 300 es
 precision mediump float;
@@ -102,7 +99,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #section MIPRender/fragment
+// #part /glsl/shaders/MIPRender/fragment
 
 #version 300 es
 precision mediump float;
@@ -117,7 +114,7 @@ void main() {
     oColor = vec4(acc, acc, acc, 1.0);
 }
 
-// #section MIPReset/vertex
+// #part /glsl/shaders/MIPReset/vertex
 
 #version 300 es
 precision mediump float;
@@ -128,7 +125,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #section MIPReset/fragment
+// #part /glsl/shaders/MIPReset/fragment
 
 #version 300 es
 precision mediump float;

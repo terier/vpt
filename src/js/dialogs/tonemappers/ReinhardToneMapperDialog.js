@@ -1,13 +1,13 @@
-// #package js/main
+// #part /js/dialogs/tonemappers/ReinhardToneMapperDialog
 
-// #include ../AbstractDialog.js
+// #link ../AbstractDialog
 
-// #include ../../../uispecs/tonemappers/ReinhardToneMapperDialog.json
+// #link /uispecs/tonemappers/ReinhardToneMapperDialog
 
 class ReinhardToneMapperDialog extends AbstractDialog {
 
 constructor(toneMapper, options) {
-    super(UISPECS.ReinhardToneMapperDialog, options);
+    super(UISPECS.tonemappers.ReinhardToneMapperDialog, options);
 
     this._toneMapper = toneMapper;
 

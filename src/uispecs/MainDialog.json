@@ -1,6 +1,4 @@
-// #package uispecs
-
-// #section MainDialog
+// #part /uispecs/MainDialog
 
 {
   "type": "sidebar",

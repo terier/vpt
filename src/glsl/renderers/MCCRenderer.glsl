@@ -1,11 +1,4 @@
-// #package glsl/shaders
-
-// #include ../mixins/Photon.glsl
-// #include ../mixins/rand.glsl
-// #include ../mixins/unprojectRand.glsl
-// #include ../mixins/intersectCube.glsl
-
-// #section MCCRender/compute
+// #part /glsl/shaders/MCCRender/compute
 
 #version 310 es
 layout (local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
@@ -14,7 +7,14 @@ layout (local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
 #define M_2PI 6.28318530718
 #define EPS 1e-5
 
+// #link /glsl/mixins/Photon
 @Photon
+// #link /glsl/mixins/rand
+@rand
+// #link /glsl/mixins/unprojectRand
+@unprojectRand
+// #link /glsl/mixins/intersectCube
+@intersectCube
 
 layout (std430, binding = 0) buffer bPhotons {
     Photon sPhotons[];
@@ -37,10 +37,6 @@ uniform float uScatteringBias;
 uniform float uMajorant;
 uniform uint uMaxBounces;
 uniform uint uSteps;
-
-@rand
-@unprojectRand
-@intersectCube
 
 void resetPhoton(inout vec2 randState, inout Photon photon) {
     vec3 from, to;
@@ -141,7 +137,7 @@ void main() {
     sPhotons[globalInvocationIndex] = photon;
 }
 
-// #section MCCReset/compute
+// #part /glsl/shaders/MCCReset/compute
 
 #version 310 es
 layout (local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
@@ -151,11 +147,14 @@ uniform vec2 uInverseResolution;
 uniform float uRandSeed;
 uniform float uBlur;
 
-@rand
-@unprojectRand
-@intersectCube
-
+// #link /glsl/mixins/Photon
 @Photon
+// #link /glsl/mixins/rand
+@rand
+// #link /glsl/mixins/unprojectRand
+@unprojectRand
+// #link /glsl/mixins/intersectCube
+@intersectCube
 
 layout (std430, binding = 0) buffer bPhotons {
     Photon sPhotons[];

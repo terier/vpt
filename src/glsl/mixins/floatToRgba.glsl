@@ -1,6 +1,4 @@
-// #package glsl/mixins
-
-// #section floatToRgba
+// #part /glsl/mixins/floatToRgba
 
 vec4 floatToRgba(float x) {
     const vec4 encoder = vec4(1.0, 255.0, 255.0 * 255.0, 255.0 * 255.0 * 255.0);

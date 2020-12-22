@@ -1,6 +1,6 @@
-// #package js/main
+// #part /js/tonemappers/AbstractToneMapper
 
-// #include ../WebGL.js
+// #link ../WebGL
 
 class AbstractToneMapper {
 

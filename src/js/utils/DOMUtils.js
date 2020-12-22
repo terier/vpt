@@ -1,4 +1,4 @@
-// #package js/main
+// #part /js/utils/DOMUtils
 
 class DOMUtils {
 

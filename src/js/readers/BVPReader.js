@@ -1,7 +1,7 @@
-// #package js/main
+// #part /js/readers/BVPReader
 
-// #include AbstractReader.js
-// #include ZIPReader.js
+// #link AbstractReader
+// #link ZIPReader
 
 class BVPReader extends AbstractReader {
 

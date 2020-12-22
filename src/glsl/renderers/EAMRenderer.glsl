@@ -1,9 +1,4 @@
-// #package glsl/shaders
-
-// #include ../mixins/unproject.glsl
-// #include ../mixins/intersectCube.glsl
-
-// #section EAMGenerate/vertex
+// #part /glsl/shaders/EAMGenerate/vertex
 
 #version 300 es
 precision mediump float;
@@ -14,6 +9,7 @@ layout(location = 0) in vec2 aPosition;
 out vec3 vRayFrom;
 out vec3 vRayTo;
 
+// #link /glsl/mixins/unproject.glsl
 @unproject
 
 void main() {
@@ -21,7 +17,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #section EAMGenerate/fragment
+// #part /glsl/shaders/EAMGenerate/fragment
 
 #version 300 es
 precision mediump float;
@@ -36,6 +32,7 @@ in vec3 vRayFrom;
 in vec3 vRayTo;
 out vec4 oColor;
 
+// #link /glsl/mixins/intersectCube.glsl
 @intersectCube
 
 void main() {
@@ -72,7 +69,7 @@ void main() {
     }
 }
 
-// #section EAMIntegrate/vertex
+// #part /glsl/shaders/EAMIntegrate/vertex
 
 #version 300 es
 precision mediump float;
@@ -85,7 +82,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #section EAMIntegrate/fragment
+// #part /glsl/shaders/EAMIntegrate/fragment
 
 #version 300 es
 precision mediump float;
@@ -100,7 +97,7 @@ void main() {
     oColor = texture(uFrame, vPosition);
 }
 
-// #section EAMRender/vertex
+// #part /glsl/shaders/EAMRender/vertex
 
 #version 300 es
 precision mediump float;
@@ -113,7 +110,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #section EAMRender/fragment
+// #part /glsl/shaders/EAMRender/fragment
 
 #version 300 es
 precision mediump float;
@@ -127,7 +124,7 @@ void main() {
     oColor = texture(uAccumulator, vPosition);
 }
 
-// #section EAMReset/vertex
+// #part /glsl/shaders/EAMReset/vertex
 
 #version 300 es
 precision mediump float;
@@ -138,7 +135,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #section EAMReset/fragment
+// #part /glsl/shaders/EAMReset/fragment
 
 #version 300 es
 precision mediump float;

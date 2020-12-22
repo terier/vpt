@@ -1,6 +1,4 @@
-// #package glsl/mixins
-
-// #section intersectCube
+// #part /glsl/mixins/intersectCube
 
 vec2 intersectCube(in vec3 origin, in vec3 direction) {
     vec3 tmin = (vec3(0.0) - origin) / direction;

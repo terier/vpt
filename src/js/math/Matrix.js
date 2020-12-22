@@ -1,6 +1,6 @@
-// #package js/main
+// #part /js/math/Matrix
 
-// #include Quaternion.js
+// #link Quaternion
 
 class Matrix {
 

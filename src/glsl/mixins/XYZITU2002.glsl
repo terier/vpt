@@ -1,6 +1,4 @@
-// #package glsl/mixins
-
-// #section XYZITU2002
+// #part /glsl/mixins/XYZITU2002
 
 vec3 rgb2xyz(vec3 rgb) {
     const mat3 RGB2XYZ = mat3(

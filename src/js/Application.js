@@ -1,13 +1,11 @@
-// #package js/main
+// #part /js/Application
 
-// #include utils
-// #include readers
-// #include loaders
-// #include dialogs
-// #include dialogs/renderers
-// #include dialogs/tonemappers
-// #include ui
-// #include RenderingContext.js
+// #link utils
+// #link readers
+// #link loaders
+// #link dialogs
+// #link ui
+// #link RenderingContext
 
 class Application {
 

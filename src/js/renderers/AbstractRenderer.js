@@ -1,9 +1,9 @@
-// #package js/main
+// #part /js/renderers/AbstractRenderer
 
-// #include ../math
-// #include ../WebGL.js
-// #include ../SingleBuffer.js
-// #include ../DoubleBuffer.js
+// #link ../math
+// #link ../WebGL
+// #link ../SingleBuffer
+// #link ../DoubleBuffer
 
 class AbstractRenderer {
 

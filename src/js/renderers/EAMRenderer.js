@@ -1,7 +1,7 @@
-// #package js/main
+// #part /js/renderers/EAMRenderer
 
-// #include ../WebGL.js
-// #include AbstractRenderer.js
+// #link ../WebGL
+// #link AbstractRenderer
 
 class EAMRenderer extends AbstractRenderer {
 

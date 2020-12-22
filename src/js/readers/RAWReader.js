@@ -1,6 +1,6 @@
-// #package js/main
+// #part /js/readers/RAWReader
 
-// #include AbstractReader.js
+// #link AbstractReader
 
 class RAWReader extends AbstractReader {
 

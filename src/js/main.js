@@ -1,7 +1,7 @@
-// #package js/main
+// #part /js/main
 
-// #include Application.js
-// #include ResourceLoader.js
+// #link Application
+// #link ResourceLoader
 
 const resources = {
     shaders: {
@@ -46,8 +46,5 @@ document.addEventListener('DOMContentLoaded', async () => {
     MIXINS    = await rl.loadResource('mixins');
     TEMPLATES = await rl.loadResource('templates');
     UISPECS   = await rl.loadResource('uispecs');
-    for (const name in UISPECS) {
-        UISPECS[name] = JSON.parse(UISPECS[name]);
-    }
     const application = new Application();
 });

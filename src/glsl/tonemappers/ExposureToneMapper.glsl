@@ -1,6 +1,4 @@
-// #package glsl/shaders
-
-// #section ExposureToneMapper/vertex
+// #part /glsl/shaders/ExposureToneMapper/vertex
 
 #version 300 es
 precision mediump float;
@@ -13,7 +11,7 @@ void main() {
     vFragmentPosition = (aPosition + vec2(1.0, 1.0)) * 0.5;
 }
 
-// #section ExposureToneMapper/fragment
+// #part /glsl/shaders/ExposureToneMapper/fragment
 
 #version 300 es
 precision mediump float;

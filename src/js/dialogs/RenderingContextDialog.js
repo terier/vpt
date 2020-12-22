@@ -1,8 +1,8 @@
-// #package js/main
+// #part /js/dialogs/RenderingContextDialog
 
-// #include AbstractDialog.js
+// #link AbstractDialog
 
-// #include ../../uispecs/RenderingContextDialog.json
+// #link /uispecs/RenderingContextDialog
 
 class RenderingContextDialog extends AbstractDialog {
 

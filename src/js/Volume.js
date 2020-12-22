@@ -1,6 +1,6 @@
-// #package js/main
+// #part /js/Volume
 
-// #include WebGL.js
+// #link WebGL
 
 class Volume {
 

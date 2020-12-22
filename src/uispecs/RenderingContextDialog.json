@@ -1,6 +1,4 @@
-// #package uispecs
-
-// #section RenderingContextDialog
+// #part /uispecs/RenderingContextDialog
 
 {
   "type": "panel",

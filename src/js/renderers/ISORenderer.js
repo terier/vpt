@@ -1,7 +1,7 @@
-// #package js/main
+// #part /js/renderers/ISORenderer
 
-// #include ../WebGL.js
-// #include AbstractRenderer.js
+// #link ../WebGL
+// #link AbstractRenderer
 
 class ISORenderer extends AbstractRenderer {
 

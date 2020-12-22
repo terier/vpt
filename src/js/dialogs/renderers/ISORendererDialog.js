@@ -1,14 +1,14 @@
-// #package js/main
+// #part /js/dialogs/renderers/ISORendererDialog
 
-// #include ../../utils
-// #include ../AbstractDialog.js
+// #link ../../utils
+// #link ../AbstractDialog
 
-// #include ../../../uispecs/renderers/ISORendererDialog.json
+// #link /uispecs/renderers/ISORendererDialog
 
 class ISORendererDialog extends AbstractDialog {
 
 constructor(renderer, options) {
-    super(UISPECS.ISORendererDialog, options);
+    super(UISPECS.renderers.ISORendererDialog, options);
 
     this._renderer = renderer;
 

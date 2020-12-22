@@ -1,6 +1,4 @@
-// #package glsl/mixins
-
-// #section encodeFloat
+// #part /glsl/mixins/encodeFloat
 
 highp float shiftRight(highp float v, highp float amt) {
     v = floor(v) + 0.5;

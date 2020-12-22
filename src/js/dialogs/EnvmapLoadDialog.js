@@ -1,8 +1,8 @@
-// #package js/main
+// #part /js/dialogs/EnvmapLoadDialog
 
-// #include AbstractDialog.js
+// #link AbstractDialog
 
-// #include ../../uispecs/EnvmapLoadDialog.json
+// #link /uispecs/EnvmapLoadDialog
 
 class EnvmapLoadDialog extends AbstractDialog {
 

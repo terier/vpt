@@ -1,11 +1,11 @@
-// #package js/main
+// #part /js/ui/Panel
 
-// #include UIObject.js
+// #link UIObject
 
 class Panel extends UIObject {
 
 constructor(options) {
-    super(TEMPLATES.Panel, options);
+    super(TEMPLATES.ui.Panel, options);
 }
 
 add(object) {

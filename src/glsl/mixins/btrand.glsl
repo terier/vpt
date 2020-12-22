@@ -1,6 +1,4 @@
-// #package glsl/mixins
-
-// #section btrand
+// #part /glsl/mixins/btrand
 
 float btrand(inout vec4 n) {
     const vec4 q = vec4(   1225.0,    1585.0,    2457.0,    2098.0);

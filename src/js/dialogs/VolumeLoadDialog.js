@@ -1,8 +1,8 @@
-// #package js/main
+// #part /js/dialogs/VolumeLoadDialog
 
-// #include AbstractDialog.js
+// #link AbstractDialog
 
-// #include ../../uispecs/VolumeLoadDialog.json
+// #link /uispecs/VolumeLoadDialog
 
 class VolumeLoadDialog extends AbstractDialog {
 

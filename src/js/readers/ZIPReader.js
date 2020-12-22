@@ -1,6 +1,6 @@
-// #package js/main
+// #part /js/readers/ZIPReader
 
-// #include AbstractReader.js
+// #link AbstractReader
 
 class ZIPReader extends AbstractReader {
 

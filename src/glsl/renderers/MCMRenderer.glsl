@@ -1,19 +1,12 @@
-// #package glsl/shaders
-
-// #include ../mixins/Photon.glsl
-// #include ../mixins/rand.glsl
-// #include ../mixins/unprojectRand.glsl
-// #include ../mixins/intersectCube.glsl
-
-// #section MCMGenerate/vertex
+// #part /glsl/shaders/MCMGenerate/vertex
 
 void main() {}
 
-// #section MCMGenerate/fragment
+// #part /glsl/shaders/MCMGenerate/fragment
 
 void main() {}
 
-// #section MCMIntegrate/vertex
+// #part /glsl/shaders/MCMIntegrate/vertex
 
 #version 300 es
 
@@ -26,7 +19,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #section MCMIntegrate/fragment
+// #part /glsl/shaders/MCMIntegrate/fragment
 
 #version 300 es
 precision mediump float;
@@ -35,7 +28,14 @@ precision mediump float;
 #define M_2PI 6.28318530718
 #define EPS 1e-5
 
+// #link /glsl/mixins/Photon
 @Photon
+// #link /glsl/mixins/rand
+@rand
+// #link /glsl/mixins/unprojectRand
+@unprojectRand
+// #link /glsl/mixins/intersectCube
+@intersectCube
 
 uniform mediump sampler2D uPosition;
 uniform mediump sampler2D uDirection;
@@ -64,10 +64,6 @@ layout (location = 0) out vec4 oPosition;
 layout (location = 1) out vec4 oDirection;
 layout (location = 2) out vec4 oTransmittance;
 layout (location = 3) out vec4 oRadiance;
-
-@rand
-@unprojectRand
-@intersectCube
 
 void resetPhoton(inout vec2 randState, inout Photon photon) {
     vec3 from, to;
@@ -176,7 +172,7 @@ void main() {
     oRadiance = vec4(photon.radiance, float(photon.samples));
 }
 
-// #section MCMRender/vertex
+// #part /glsl/shaders/MCMRender/vertex
 
 #version 300 es
 
@@ -188,7 +184,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #section MCMRender/fragment
+// #part /glsl/shaders/MCMRender/fragment
 
 #version 300 es
 precision mediump float;
@@ -202,7 +198,7 @@ void main() {
     oColor = vec4(texture(uColor, vPosition).rgb, 1);
 }
 
-// #section MCMReset/vertex
+// #part /glsl/shaders/MCMReset/vertex
 
 #version 300 es
 
@@ -215,12 +211,19 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #section MCMReset/fragment
+// #part /glsl/shaders/MCMReset/fragment
 
 #version 300 es
 precision mediump float;
 
+// #link /glsl/mixins/Photon
 @Photon
+// #link /glsl/mixins/rand
+@rand
+// #link /glsl/mixins/unprojectRand
+@unprojectRand
+// #link /glsl/mixins/intersectCube
+@intersectCube
 
 uniform mat4 uMvpInverseMatrix;
 uniform vec2 uInverseResolution;
@@ -233,10 +236,6 @@ layout (location = 0) out vec4 oPosition;
 layout (location = 1) out vec4 oDirection;
 layout (location = 2) out vec4 oTransmittance;
 layout (location = 3) out vec4 oRadiance;
-
-@rand
-@unprojectRand
-@intersectCube
 
 void main() {
     Photon photon;

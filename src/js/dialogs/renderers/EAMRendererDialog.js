@@ -1,14 +1,14 @@
-// #package js/main
+// #part /js/dialogs/renderers/EAMRendererDialog
 
-// #include ../AbstractDialog.js
-// #include ../../TransferFunctionWidget.js
+// #link ../AbstractDialog
+// #link ../../TransferFunctionWidget
 
-// #include ../../../uispecs/renderers/EAMRendererDialog.json
+// #link /uispecs/renderers/EAMRendererDialog
 
 class EAMRendererDialog extends AbstractDialog {
 
 constructor(renderer, options) {
-    super(UISPECS.EAMRendererDialog, options);
+    super(UISPECS.renderers.EAMRendererDialog, options);
 
     this._renderer = renderer;
 

@@ -1,7 +1,7 @@
-// #package js/main
+// #part /js/renderers/MCSRenderer
 
-// #include ../WebGL.js
-// #include AbstractRenderer.js
+// #link ../WebGL
+// #link AbstractRenderer
 
 class MCSRenderer extends AbstractRenderer {
 

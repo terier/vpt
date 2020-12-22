@@ -1,7 +1,7 @@
-// #package js/main
+// #part /js/renderers/MIPRenderer
 
-// #include ../WebGL.js
-// #include AbstractRenderer.js
+// #link ../WebGL
+// #link AbstractRenderer
 
 class MIPRenderer extends AbstractRenderer {
 

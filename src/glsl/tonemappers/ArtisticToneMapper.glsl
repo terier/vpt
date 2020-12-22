@@ -1,6 +1,4 @@
-// #package glsl/shaders
-
-// #section ArtisticToneMapper/vertex
+// #part /glsl/shaders/ArtisticToneMapper/vertex
 
 #version 300 es
 precision mediump float;
@@ -13,7 +11,7 @@ void main() {
     vFragmentPosition = (aPosition + 1.0) * 0.5;
 }
 
-// #section ArtisticToneMapper/fragment
+// #part /glsl/shaders/ArtisticToneMapper/fragment
 
 #version 300 es
 precision mediump float;

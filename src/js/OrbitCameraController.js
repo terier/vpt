@@ -1,7 +1,7 @@
-// #package js/main
+// #part /js/OrbitCameraController
 
-// #include math
-// #include Ticker.js
+// #link math
+// #link Ticker
 
 class OrbitCameraController {
 

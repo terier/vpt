@@ -1,6 +1,6 @@
-// #package js/main
+// #part /js/renderers/MCCRenderer
 
-// #include ../WebGL.js
+// #link ../WebGL
 
 // MCC: Monte Carlo Compute renderer
 class MCCRenderer {

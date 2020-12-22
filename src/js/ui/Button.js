@@ -1,11 +1,11 @@
-// #package js/main
+// #part /js/ui/Button
 
-// #include UIObject.js
+// #link UIObject
 
 class Button extends UIObject {
 
 constructor(options) {
-    super(TEMPLATES.Button, options);
+    super(TEMPLATES.ui.Button, options);
 
     Object.assign(this, {
         label: ''

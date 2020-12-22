@@ -1,11 +1,11 @@
-// #package js/main
+// #part /js/ui/Tabs
 
-// #include UIObject.js
+// #link UIObject
 
 class Tabs extends UIObject {
 
 constructor(options) {
-    super(TEMPLATES.Tabs, options);
+    super(TEMPLATES.ui.Tabs, options);
 
     this._handleClick = this._handleClick.bind(this);
 

@@ -1,7 +1,7 @@
-// #package js/main
+// #part /js/tonemappers/ArtisticToneMapper
 
-// #include ../WebGL.js
-// #include AbstractToneMapper.js
+// #link ../WebGL
+// #link AbstractToneMapper
 
 class ArtisticToneMapper extends AbstractToneMapper {
 

@@ -1,13 +1,13 @@
-// #package js/main
+// #part /js/ui/Accordion
 
-// #include UIObject.js
+// #link UIObject
 
-// #include ../../html/ui/Accordion.html
+// #link /html/ui/Accordion
 
 class Accordion extends UIObject {
 
 constructor(options) {
-    super(TEMPLATES.Accordion, options);
+    super(TEMPLATES.ui.Accordion, options);
 
     Object.assign(this, {
         label      : '',

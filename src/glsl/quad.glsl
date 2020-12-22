@@ -1,6 +1,4 @@
-// #package glsl/shaders
-
-// #section quad/vertex
+// #part /glsl/shaders/quad/vertex
 
 #version 300 es
 precision mediump float;
@@ -13,7 +11,7 @@ void main() {
     vFragmentPosition = (aPosition + vec2(1.0, 1.0)) * 0.5;
 }
 
-// #section quad/fragment
+// #part /glsl/shaders/quad/fragment
 
 #version 300 es
 precision mediump float;

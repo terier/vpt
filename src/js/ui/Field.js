@@ -1,11 +1,11 @@
-// #package js/main
+// #part /js/ui/Field
 
-// #include UIObject.js
+// #link UIObject
 
 class Field extends UIObject {
 
 constructor(options) {
-    super(TEMPLATES.Field, options);
+    super(TEMPLATES.ui.Field, options);
 
     Object.assign(this, {
         label: ''

@@ -1,4 +1,4 @@
-// #package js/main
+// #part /js/math/Vector
 
 class Vector {
 

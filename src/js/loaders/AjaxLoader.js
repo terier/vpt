@@ -1,6 +1,6 @@
-// #package js/main
+// #part /js/loaders/AjaxLoader
 
-// #include AbstractLoader.js
+// #link AbstractLoader
 
 class AjaxLoader extends AbstractLoader {
 

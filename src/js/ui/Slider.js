@@ -1,12 +1,12 @@
-// #package js/main
+// #part /js/ui/Slider
 
-// #include ../utils
-// #include UIObject.js
+// #link ../utils
+// #link UIObject
 
 class Slider extends UIObject {
 
 constructor(options) {
-    super(TEMPLATES.Slider, options);
+    super(TEMPLATES.ui.Slider, options);
 
     Object.assign(this, {
         value       : 0,

@@ -1,11 +1,11 @@
-// #package js/main
+// #part /js/ui/Sidebar
 
-// #include UIObject.js
+// #link UIObject
 
 class Sidebar extends UIObject {
 
 constructor(options) {
-    super(TEMPLATES.Sidebar, options);
+    super(TEMPLATES.ui.Sidebar, options);
 
     Object.assign(this, {
         contracted: false

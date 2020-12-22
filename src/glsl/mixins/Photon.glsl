@@ -1,6 +1,4 @@
-// #package glsl/mixins
-
-// #section Photon
+// #part /glsl/mixins/Photon
 
 struct Photon {
     vec3 position;

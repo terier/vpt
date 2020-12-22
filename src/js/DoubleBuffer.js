@@ -1,6 +1,6 @@
-// #package js/main
+// #part /js/DoubleBuffer
 
-// #include WebGL.js
+// #link WebGL
 
 class DoubleBuffer {
 

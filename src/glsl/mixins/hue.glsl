@@ -1,6 +1,4 @@
-// #package glsl/mixins
-
-// #section hue
+// #part /glsl/mixins/hue
 
 #define HUE_PART 0.16666666666666
 vec4 hue(float x) {

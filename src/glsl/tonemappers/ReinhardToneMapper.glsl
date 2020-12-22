@@ -1,8 +1,4 @@
-// #package glsl/shaders
-
-// #include ../mixins/XYZITU2002.glsl
-
-// #section ReinhardToneMapper/vertex
+// #part /glsl/shaders/ReinhardToneMapper/vertex
 
 #version 300 es
 precision mediump float;
@@ -15,7 +11,7 @@ void main() {
     vFragmentPosition = (aPosition + vec2(1.0, 1.0)) * 0.5;
 }
 
-// #section ReinhardToneMapper/fragment
+// #part /glsl/shaders/ReinhardToneMapper/fragment
 
 #version 300 es
 precision mediump float;
@@ -26,6 +22,7 @@ uniform float uExposure;
 in vec2 vFragmentPosition;
 out vec4 color;
 
+// #link /glsl/mixins/XYZITU2002
 @XYZITU2002
 
 void main() {
