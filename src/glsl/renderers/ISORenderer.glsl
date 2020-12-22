@@ -1,4 +1,4 @@
-// #part /glsl/shaders/ISOGenerate/vertex
+// #part /glsl/shaders/renderers/ISO/generate/vertex
 
 #version 300 es
 precision mediump float;
@@ -20,7 +20,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #part /glsl/shaders/ISOGenerate/fragment
+// #part /glsl/shaders/renderers/ISO/generate/fragment
 
 #version 300 es
 precision mediump float;
@@ -79,7 +79,7 @@ void main() {
     }
 }
 
-// #part /glsl/shaders/ISOIntegrate/vertex
+// #part /glsl/shaders/renderers/ISO/integrate/vertex
 
 #version 300 es
 precision mediump float;
@@ -93,7 +93,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #part /glsl/shaders/ISOIntegrate/fragment
+// #part /glsl/shaders/renderers/ISO/integrate/fragment
 
 #version 300 es
 precision mediump float;
@@ -117,7 +117,7 @@ void main() {
     }
 }
 
-// #part /glsl/shaders/ISORender/vertex
+// #part /glsl/shaders/renderers/ISO/render/vertex
 
 #version 300 es
 precision mediump float;
@@ -131,7 +131,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #part /glsl/shaders/ISORender/fragment
+// #part /glsl/shaders/renderers/ISO/render/fragment
 
 #version 300 es
 precision mediump float;
@@ -172,7 +172,7 @@ void main() {
     }
 }
 
-// #part /glsl/shaders/ISOReset/vertex
+// #part /glsl/shaders/renderers/ISO/reset/vertex
 
 #version 300 es
 precision mediump float;
@@ -183,7 +183,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #part /glsl/shaders/ISOReset/fragment
+// #part /glsl/shaders/renderers/ISO/reset/fragment
 
 #version 300 es
 precision mediump float;

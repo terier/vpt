@@ -15,12 +15,7 @@ constructor(gl, volume, environmentTexture, options) {
         _diffuse  : [0.7, 0.8, 0.9]
     }, options);
 
-    this._programs = WebGL.buildPrograms(this._gl, {
-        generate  : SHADERS.ISOGenerate,
-        integrate : SHADERS.ISOIntegrate,
-        render    : SHADERS.ISORender,
-        reset     : SHADERS.ISOReset
-    }, MIXINS);
+    this._programs = WebGL.buildPrograms(this._gl, SHADERS.renderers.ISO, MIXINS);
 }
 
 destroy() {

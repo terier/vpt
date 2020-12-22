@@ -13,12 +13,7 @@ constructor(gl, volume, environmentTexture, options) {
         _alphaCorrection : 3
     }, options);
 
-    this._programs = WebGL.buildPrograms(this._gl, {
-        generate  : SHADERS.EAMGenerate,
-        integrate : SHADERS.EAMIntegrate,
-        render    : SHADERS.EAMRender,
-        reset     : SHADERS.EAMReset
-    }, MIXINS);
+    this._programs = WebGL.buildPrograms(this._gl, SHADERS.renderers.EAM, MIXINS);
 }
 
 destroy() {

@@ -27,10 +27,7 @@ constructor(gl, volume, environmentTexture, options) {
 _init() {
     const gl = this._gl;
 
-    this._programs = WebGL.buildPrograms(gl, {
-        render : SHADERS.MCCRender,
-        reset  : SHADERS.MCCReset
-    }, MIXINS);
+    this._programs = WebGL.buildPrograms(gl, SHADERS.renderers.MCC, MIXINS);
 
     this._transferFunction = WebGL.createTexture(gl, {
         width  : 2,

@@ -1,4 +1,4 @@
-// #part /glsl/shaders/EAMGenerate/vertex
+// #part /glsl/shaders/renderers/EAM/generate/vertex
 
 #version 300 es
 precision mediump float;
@@ -17,7 +17,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #part /glsl/shaders/EAMGenerate/fragment
+// #part /glsl/shaders/renderers/EAM/generate/fragment
 
 #version 300 es
 precision mediump float;
@@ -69,7 +69,7 @@ void main() {
     }
 }
 
-// #part /glsl/shaders/EAMIntegrate/vertex
+// #part /glsl/shaders/renderers/EAM/integrate/vertex
 
 #version 300 es
 precision mediump float;
@@ -82,7 +82,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #part /glsl/shaders/EAMIntegrate/fragment
+// #part /glsl/shaders/renderers/EAM/integrate/fragment
 
 #version 300 es
 precision mediump float;
@@ -97,7 +97,7 @@ void main() {
     oColor = texture(uFrame, vPosition);
 }
 
-// #part /glsl/shaders/EAMRender/vertex
+// #part /glsl/shaders/renderers/EAM/render/vertex
 
 #version 300 es
 precision mediump float;
@@ -110,7 +110,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #part /glsl/shaders/EAMRender/fragment
+// #part /glsl/shaders/renderers/EAM/render/fragment
 
 #version 300 es
 precision mediump float;
@@ -124,7 +124,7 @@ void main() {
     oColor = texture(uAccumulator, vPosition);
 }
 
-// #part /glsl/shaders/EAMReset/vertex
+// #part /glsl/shaders/renderers/EAM/reset/vertex
 
 #version 300 es
 precision mediump float;
@@ -135,7 +135,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #part /glsl/shaders/EAMReset/fragment
+// #part /glsl/shaders/renderers/EAM/reset/fragment
 
 #version 300 es
 precision mediump float;

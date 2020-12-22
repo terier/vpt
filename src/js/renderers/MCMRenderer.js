@@ -17,12 +17,7 @@ constructor(gl, volume, environmentTexture, options) {
         steps                 : 1
     }, options);
 
-    this._programs = WebGL.buildPrograms(gl, {
-        generate  : SHADERS.MCMGenerate,
-        integrate : SHADERS.MCMIntegrate,
-        render    : SHADERS.MCMRender,
-        reset     : SHADERS.MCMReset
-    }, MIXINS);
+    this._programs = WebGL.buildPrograms(gl, SHADERS.renderers.MCM, MIXINS);
 }
 
 destroy() {

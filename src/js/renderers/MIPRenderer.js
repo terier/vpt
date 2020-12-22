@@ -12,12 +12,7 @@ constructor(gl, volume, environmentTexture, options) {
         _stepSize : 0.05
     }, options);
 
-    this._programs = WebGL.buildPrograms(this._gl, {
-        generate  : SHADERS.MIPGenerate,
-        integrate : SHADERS.MIPIntegrate,
-        render    : SHADERS.MIPRender,
-        reset     : SHADERS.MIPReset
-    }, MIXINS);
+    this._programs = WebGL.buildPrograms(this._gl, SHADERS.renderers.MIP, MIXINS);
 }
 
 destroy() {

@@ -1,12 +1,4 @@
-// #part /glsl/shaders/MCMGenerate/vertex
-
-void main() {}
-
-// #part /glsl/shaders/MCMGenerate/fragment
-
-void main() {}
-
-// #part /glsl/shaders/MCMIntegrate/vertex
+// #part /glsl/shaders/renderers/MCM/integrate/vertex
 
 #version 300 es
 
@@ -19,7 +11,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #part /glsl/shaders/MCMIntegrate/fragment
+// #part /glsl/shaders/renderers/MCM/integrate/fragment
 
 #version 300 es
 precision mediump float;
@@ -172,7 +164,7 @@ void main() {
     oRadiance = vec4(photon.radiance, float(photon.samples));
 }
 
-// #part /glsl/shaders/MCMRender/vertex
+// #part /glsl/shaders/renderers/MCM/render/vertex
 
 #version 300 es
 
@@ -184,7 +176,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #part /glsl/shaders/MCMRender/fragment
+// #part /glsl/shaders/renderers/MCM/render/fragment
 
 #version 300 es
 precision mediump float;
@@ -198,7 +190,7 @@ void main() {
     oColor = vec4(texture(uColor, vPosition).rgb, 1);
 }
 
-// #part /glsl/shaders/MCMReset/vertex
+// #part /glsl/shaders/renderers/MCM/reset/vertex
 
 #version 300 es
 
@@ -211,7 +203,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #part /glsl/shaders/MCMReset/fragment
+// #part /glsl/shaders/renderers/MCM/reset/fragment
 
 #version 300 es
 precision mediump float;

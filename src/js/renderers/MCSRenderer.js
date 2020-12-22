@@ -13,12 +13,7 @@ constructor(gl, volume, environmentTexture, options) {
         _alphaCorrection : 1,
     }, options);
 
-    this._programs = WebGL.buildPrograms(gl, {
-        generate  : SHADERS.MCSGenerate,
-        integrate : SHADERS.MCSIntegrate,
-        render    : SHADERS.MCSRender,
-        reset     : SHADERS.MCSReset
-    }, MIXINS);
+    this._programs = WebGL.buildPrograms(gl, SHADERS.renderers.MCS, MIXINS);
 
     this._frameNumber = 1;
 }

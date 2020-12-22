@@ -1,4 +1,4 @@
-// #part /glsl/shaders/MCCRender/compute
+// #part /glsl/shaders/renderers/MCC/render/compute
 
 #version 310 es
 layout (local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
@@ -137,7 +137,7 @@ void main() {
     sPhotons[globalInvocationIndex] = photon;
 }
 
-// #part /glsl/shaders/MCCReset/compute
+// #part /glsl/shaders/renderers/MCC/reset/compute
 
 #version 310 es
 layout (local_size_x = 8, local_size_y = 8, local_size_z = 1) in;

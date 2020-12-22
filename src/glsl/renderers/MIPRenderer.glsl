@@ -1,4 +1,4 @@
-// #part /glsl/shaders/MIPGenerate/vertex
+// #part /glsl/shaders/renderers/MIP/generate/vertex
 
 #version 300 es
 precision mediump float;
@@ -17,7 +17,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #part /glsl/shaders/MIPGenerate/fragment
+// #part /glsl/shaders/renderers/MIP/generate/fragment
 
 #version 300 es
 precision mediump float;
@@ -56,7 +56,7 @@ void main() {
     }
 }
 
-// #part /glsl/shaders/MIPIntegrate/vertex
+// #part /glsl/shaders/renderers/MIP/integrate/vertex
 
 #version 300 es
 precision mediump float;
@@ -69,7 +69,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #part /glsl/shaders/MIPIntegrate/fragment
+// #part /glsl/shaders/renderers/MIP/integrate/fragment
 
 #version 300 es
 precision mediump float;
@@ -86,7 +86,7 @@ void main() {
     oColor = max(acc, frame);
 }
 
-// #part /glsl/shaders/MIPRender/vertex
+// #part /glsl/shaders/renderers/MIP/render/vertex
 
 #version 300 es
 precision mediump float;
@@ -99,7 +99,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #part /glsl/shaders/MIPRender/fragment
+// #part /glsl/shaders/renderers/MIP/render/fragment
 
 #version 300 es
 precision mediump float;
@@ -114,7 +114,7 @@ void main() {
     oColor = vec4(acc, acc, acc, 1.0);
 }
 
-// #part /glsl/shaders/MIPReset/vertex
+// #part /glsl/shaders/renderers/MIP/reset/vertex
 
 #version 300 es
 precision mediump float;
@@ -125,7 +125,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #part /glsl/shaders/MIPReset/fragment
+// #part /glsl/shaders/renderers/MIP/reset/fragment
 
 #version 300 es
 precision mediump float;
