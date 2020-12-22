@@ -15,7 +15,7 @@
 
     position: absolute;
     width: var(--sidebar-width);
-    height: 100vh;
+    height: 100%;
 
     overflow: hidden;
     transition: width 100ms;
