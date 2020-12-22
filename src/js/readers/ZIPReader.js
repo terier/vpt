@@ -71,10 +71,10 @@ _readEOCD(handlers) {
     }
 
     const readEOCD = function() {
-        var EOCD_SIGNATURE = new Uint8Array([0x50, 0x4b, 0x05, 0x06]);
-        var MIN_EOCD_SIZE = 22;
-        var offset = Math.max(this._length - MIN_EOCD_SIZE, 0);
-        var length = Math.min(this._length, MIN_EOCD_SIZE);
+        const EOCD_SIGNATURE = new Uint8Array([0x50, 0x4b, 0x05, 0x06]);
+        const MIN_EOCD_SIZE = 22;
+        const offset = Math.max(this._length - MIN_EOCD_SIZE, 0);
+        const length = Math.min(this._length, MIN_EOCD_SIZE);
 
         this._loader.readData(offset, offset + length, {
             onData: data => {

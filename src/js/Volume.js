@@ -104,7 +104,7 @@ setFilter(filter) {
         return;
     }
 
-    var gl = this._gl;
+    const gl = this._gl;
     filter = filter === 'linear' ? gl.LINEAR : gl.NEAREST;
     gl.bindTexture(gl.TEXTURE_3D, this._texture);
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, filter);
