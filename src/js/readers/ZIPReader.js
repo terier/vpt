@@ -35,8 +35,8 @@ readFile(fileName, handlers) {
             this._loader.readData(entry.headerOffset, entry.headerOffset + 30, {
                 onData: header => {
                     header = new DataView(header);
-                    const fileNameLength = header.getUint16(26);
-                    const extraFieldLength = header.getUint16(28);
+                    const fileNameLength = header.getUint16(26, true);
+                    const extraFieldLength = header.getUint16(28, true);
                     const dataOffset = entry.headerOffset + 30 + fileNameLength + extraFieldLength;
                     this._loader.readData(dataOffset, dataOffset + entry.compressedSize, {
                         onData: data => {
@@ -61,7 +61,7 @@ readFile(fileName, handlers) {
 
 _readString(data, index, length) {
     const decoder = new TextDecoder('utf-8');
-    const encoded = data.slice(index, index + length);
+    const encoded = data.buffer.slice(index, index + length);
     return decoder.decode(encoded);
 }
 
@@ -80,9 +80,9 @@ _readEOCD(handlers) {
             onData: data => {
                 data = new DataView(data);
                 this._eocd = {
-                    entries: data.getUint16(10),
-                    size   : data.getUint32(12),
-                    offset : data.getUint32(16)
+                    entries: data.getUint16(10, true),
+                    size   : data.getUint32(12, true),
+                    offset : data.getUint32(16, true),
                 };
                 handlers.onData && handlers.onData();
             }
@@ -113,16 +113,16 @@ _readCD(handlers) {
                 let offset = 0;
                 let entries = [];
                 for (let i = 0; i < this._eocd.entries; i++) {
-                    const gpflag = data.getUint16(offset + 8);
-                    const method = data.getUint16(offset + 10);
-                    const compressedSize = data.getUint32(offset + 20);
-                    const uncompressedSize = data.getUint32(offset + 24);
-                    const fileNameLength = data.getUint16(offset + 28);
-                    const extraFieldLength = data.getUint16(offset + 30);
-                    const fileCommentLength = data.getUint16(offset + 32);
+                    const gpflag = data.getUint16(offset + 8, true);
+                    const method = data.getUint16(offset + 10, true);
+                    const compressedSize = data.getUint32(offset + 20, true);
+                    const uncompressedSize = data.getUint32(offset + 24, true);
+                    const fileNameLength = data.getUint16(offset + 28, true);
+                    const extraFieldLength = data.getUint16(offset + 30, true);
+                    const fileCommentLength = data.getUint16(offset + 32, true);
                     const cdEntrySize = 46 + fileNameLength + extraFieldLength + fileCommentLength;
                     const name = this._readString(data, offset + 46, fileNameLength);
-                    const headerOffset = data.getUint32(offset + 42);
+                    const headerOffset = data.getUint32(offset + 42, true);
                     entries[i] = {
                         gpflag           : gpflag,
                         method           : method,
