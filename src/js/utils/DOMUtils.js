@@ -19,11 +19,12 @@ static instantiate(tmpl) {
 }
 
 static bind(element) {
+    const binds = {};
     const elements = element.querySelectorAll('[data-bind]');
-    return Array.prototype.reduce.call(elements, function(map, obj) {
-        map[obj.getAttribute('data-bind')] = obj;
-        return map;
-    }, {});
+    for (const element of elements) {
+        binds[element.dataset.bind] = element;
+    }
+    return binds;
 }
 
 static remove(element) {
