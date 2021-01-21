@@ -191,7 +191,6 @@ _updateMvpInverseMatrix() {
     if (!this._camera.isDirty && !this._isTransformationDirty) {
         return;
     }
-
     this._camera.isDirty = false;
     this._isTransformationDirty = false;
     this._camera.updateMatrices();
@@ -208,6 +207,7 @@ _updateMvpInverseMatrix() {
 
     tr.inverse().transpose();
     if (this._renderer) {
+        // this._renderer._pauseRendering();
         this._renderer.setMvpInverseMatrix(tr);
         this._renderer.reset();
     }

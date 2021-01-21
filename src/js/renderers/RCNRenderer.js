@@ -24,6 +24,7 @@ class RCNRenderer extends AbstractRenderer {
             _rayCastingAlphaCorrection  : 100,
             _limit                      : 0,
             _timer                      : 0,
+            _mcEnabled                  : true
         }, options);
 
         this._programs = WebGL.buildPrograms(this._gl, {
@@ -54,6 +55,18 @@ class RCNRenderer extends AbstractRenderer {
         if (this._volume.ready) {
             this._initVolume();
         }
+    }
+
+    _pauseRendering() {
+        this._mcEnabled = false
+        if (this._timeoutTimer) {
+            clearTimeout(this._timeoutTimer);
+        }
+        this._timeoutTimer = setTimeout(function(){
+                console.log("Timeout")
+                this._mcEnabled = true;
+                this._timeoutTimer = null
+            }.bind(this), 50);
     }
 
     _resetPhotons() {
@@ -243,7 +256,8 @@ class RCNRenderer extends AbstractRenderer {
 
     _integrateFrame() {
         const gl = this._gl;
-
+        if (!this._mcEnabled)
+            return
         let program = this._programs.integrate;
         gl.useProgram(program.program);
 
@@ -326,6 +340,7 @@ class RCNRenderer extends AbstractRenderer {
             gl.uniform1i(program.uniforms.uRadianceAndDiffusion, 3);
 
             gl.uniform1f(program.uniforms.uLayer, (i + 0.5) / dimensions.depth);
+            // console.log(this._scattering, Math.floor(this._lightVolumeRatio))
             gl.uniform1f(program.uniforms.uScattering, this._scattering);
             gl.uniform1f(program.uniforms.uRatio, Math.floor(this._lightVolumeRatio));
 

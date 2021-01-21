@@ -26,6 +26,7 @@ class RCNRendererDialog extends AbstractDialog {
         // Renderer
         this._binds.steps.addEventListener('input', this._handleChange);
         this._binds.opacity.addEventListener('input', this._handleChange);
+        this._binds.mc_enabled.addEventListener('change', this._handleChange);
 
         this._binds.scattering.addEventListener('input', this._handleChangeScettering);
         this._binds.ratio.addEventListener('input', this._handleChangeRatio);
@@ -53,6 +54,8 @@ class RCNRendererDialog extends AbstractDialog {
         this._renderer._majorant = this._binds.majorant_ratio.getValue() * extinction;
 
         this._renderer._lightVolumeRatio = this._binds.ratio.getValue();
+
+        this._renderer._mcEnabled = this._binds.mc_enabled.isChecked();
     }
 
     _setLights(lights) {
@@ -91,6 +94,7 @@ class RCNRendererDialog extends AbstractDialog {
         this._renderer._alphaCorrection = this._binds.opacity.getValue();
         this._renderer._steps = this._binds.ray_steps.getValue();
         this._renderer._limit = this._binds.limit.getValue();
+        this._renderer._mcEnabled = this._binds.mc_enabled.isChecked();
         this._renderer.reset();
     }
 
