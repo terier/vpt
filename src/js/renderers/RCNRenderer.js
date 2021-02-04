@@ -24,7 +24,9 @@ class RCNRenderer extends AbstractRenderer {
             _rayCastingAlphaCorrection  : 100,
             _limit                      : 0,
             _timer                      : 0,
-            _mcEnabled                  : true
+            _mcEnabled                  : true,
+            _iterationsPerFrame         : 100,
+            _currentDepth               : 0
         }, options);
 
         this._programs = WebGL.buildPrograms(this._gl, {
@@ -238,7 +240,7 @@ class RCNRenderer extends AbstractRenderer {
 
         console.log("Light Volume Dimensions: " + this._lightVolumeDimensions.width + " " +
             this._lightVolumeDimensions.height + " " + this._lightVolumeDimensions.depth);
-        // this._lightVolumeDimensions.depth = 256
+        // this._lightVolumeDimensions.depth = 150
     }
 
     destroy() {
@@ -265,6 +267,133 @@ class RCNRenderer extends AbstractRenderer {
         const dimensions = this._lightVolumeDimensions;
         const uSize = [dimensions.width, dimensions.height, dimensions.depth];
         const uStep = [1 / dimensions.width, 1 / dimensions.height, 1 / dimensions.depth];
+
+        const iterations = Math.min(this._iterationsPerFrame, this._lightVolumeDimensions.depth);
+
+        const startingDepth = this._currentDepth;
+        let currentDepth = startingDepth
+
+        for (let i = 0; i < iterations; i++) {
+            this._accumulationBuffer.use(currentDepth);
+
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[0]);
+            gl.activeTexture(gl.TEXTURE1);
+            gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[1]);
+            gl.activeTexture(gl.TEXTURE2);
+            gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[2]);
+            gl.activeTexture(gl.TEXTURE3);
+            gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[3]);
+
+            gl.activeTexture(gl.TEXTURE4);
+            gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
+            gl.activeTexture(gl.TEXTURE5);
+            gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
+
+            gl.activeTexture(gl.TEXTURE6);
+            gl.bindTexture(gl.TEXTURE_2D, this._lightsTexture);
+
+            gl.uniform1i(program.uniforms.uPosition, 0);
+            gl.uniform1i(program.uniforms.uDirectionAndTransmittance, 1);
+            gl.uniform1i(program.uniforms.uDistanceTravelledAndSamples, 2);
+            gl.uniform1i(program.uniforms.uRadianceAndDiffusion, 3);
+            gl.uniform1i(program.uniforms.uVolume, 4);
+            gl.uniform1i(program.uniforms.uTransferFunction, 5);
+            gl.uniform1i(program.uniforms.uLights, 6);
+
+            gl.uniform1ui(program.uniforms.uSteps, this._steps);
+            // gl.uniform1ui(program.uniforms.uNLights, this._nActiveLights);
+            gl.uniform1f(program.uniforms.uLayer, (currentDepth + 0.5) / dimensions.depth);
+
+            gl.uniform1f(program.uniforms.uAbsorptionCoefficient, this._absorptionCoefficientMC)
+            gl.uniform1f(program.uniforms.uMajorant, this._majorant);
+            gl.uniform1f(program.uniforms.uRandSeed, Math.random());
+
+            // const dimensions = this._lightVolumeDimensions;
+            // gl.uniform3f(program.uniforms.uSize, dimensions.width, dimensions.height, dimensions.depth);
+
+            // const light = this._lightDefinitions[0];
+            // const lightArr = light.getLightArr();
+            // gl.uniform4f(program.uniforms.uLight, lightArr[0], lightArr[1], lightArr[2], light.typeToInt());
+
+            gl.drawBuffers([
+                gl.COLOR_ATTACHMENT0,
+                gl.COLOR_ATTACHMENT1,
+                gl.COLOR_ATTACHMENT2,
+                gl.COLOR_ATTACHMENT3
+            ]);
+
+            gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+
+            currentDepth++;
+
+            if (currentDepth >= this._lightVolumeDimensions.depth) {
+                currentDepth = 0
+            }
+        }
+
+        this._accumulationBuffer.swap();
+        program = this._programs.diffuse;
+        gl.useProgram(program.program);
+
+        currentDepth = startingDepth;
+
+        for (let i = 0; i < iterations; i++) {
+            this._accumulationBuffer.use(currentDepth);
+
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[0]);
+            gl.activeTexture(gl.TEXTURE1);
+            gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[1]);
+            gl.activeTexture(gl.TEXTURE2);
+            gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[2]);
+            gl.activeTexture(gl.TEXTURE3);
+            gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[3]);
+
+            gl.uniform1i(program.uniforms.uPosition, 0);
+            gl.uniform1i(program.uniforms.uDirectionAndTransmittance, 1);
+            gl.uniform1i(program.uniforms.uDistanceTravelledAndSamples, 2);
+            gl.uniform1i(program.uniforms.uRadianceAndDiffusion, 3);
+
+            gl.uniform1f(program.uniforms.uLayer, (currentDepth + 0.5) / dimensions.depth);
+            // console.log(this._scattering, Math.floor(this._lightVolumeRatio))
+            gl.uniform1f(program.uniforms.uScattering, this._scattering);
+            gl.uniform1f(program.uniforms.uRatio, Math.floor(this._lightVolumeRatio));
+
+            gl.uniform3fv(program.uniforms.uStep, uStep);
+            gl.uniform3fv(program.uniforms.uSize, uSize);
+
+            gl.drawBuffers([
+                gl.COLOR_ATTACHMENT0,
+                gl.COLOR_ATTACHMENT1,
+                gl.COLOR_ATTACHMENT2,
+                gl.COLOR_ATTACHMENT3
+            ]);
+
+            gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+
+            currentDepth++;
+
+            if (currentDepth >= this._lightVolumeDimensions.depth) {
+                currentDepth = 0
+            }
+        }
+
+        this._currentDepth = currentDepth
+    }
+
+    _integrateFrame2() {
+        const gl = this._gl;
+        if (!this._mcEnabled)
+            return
+        let program = this._programs.integrate;
+        gl.useProgram(program.program);
+
+        const dimensions = this._lightVolumeDimensions;
+        const uSize = [dimensions.width, dimensions.height, dimensions.depth];
+        const uStep = [1 / dimensions.width, 1 / dimensions.height, 1 / dimensions.depth];
+
+        let iteration = 0
 
         for (let i = 0; i < this._lightVolumeDimensions.depth; i++) {
             this._accumulationBuffer.use(i);

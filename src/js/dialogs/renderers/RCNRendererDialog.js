@@ -22,6 +22,7 @@ class RCNRendererDialog extends AbstractDialog {
         this._handleTFChange = this._handleTFChange.bind(this);
         // this._handleChangeLights = this._handleChangeLights.bind(this);
         this._handleChangeResetLightFieldMC = this._handleChangeResetLightFieldMC.bind(this);
+        this._handleChangeIterations = this._handleChangeIterations.bind(this);
 
         // Renderer
         this._binds.steps.addEventListener('input', this._handleChange);
@@ -35,6 +36,7 @@ class RCNRendererDialog extends AbstractDialog {
         this._binds.majorant_ratio.addEventListener('change', this._handleChangeResetLightFieldMC);
         this._binds.extinction.addEventListener('input', this._handleChangeResetLightFieldMC);
         this._binds.ray_steps.addEventListener('input', this._handleChange);
+        this._binds.iterations_per_frame.addEventListener('input', this._handleChangeIterations);
 
         this._binds.limit.addEventListener('input', this._handleChange);
         this._tfwidget = new TransferFunctionWidget();
@@ -136,6 +138,10 @@ class RCNRendererDialog extends AbstractDialog {
         console.log("Lights Reset")
         this._setLights(lights);
         this._renderer.reset();
+    }
+
+    _handleChangeIterations() {
+        this._renderer._iterationsPerFrame = this._binds.iterations_per_frame.getValue();
     }
 
     _handleTFChange() {
