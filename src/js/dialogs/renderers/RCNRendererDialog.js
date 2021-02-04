@@ -124,10 +124,12 @@ class RCNRendererDialog extends AbstractDialog {
 
     _handleChangeRatio() {
         this._renderer._lightVolumeRatio = this._binds.ratio.getValue();
-        this._renderer._setLightVolumeDimensions();
-        this._renderer._setAccumulationBuffer();
-        this._renderer._resetPhotons();
-        this._renderer.reset();
+        if (this._renderer._volumeDimensions) {
+            this._renderer._setLightVolumeDimensions();
+            this._renderer._setAccumulationBuffer();
+            this._renderer._resetPhotons();
+            this._renderer.reset();
+        }
     }
 
     _handleChangeLights(lights) {

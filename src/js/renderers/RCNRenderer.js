@@ -238,6 +238,7 @@ class RCNRenderer extends AbstractRenderer {
 
         console.log("Light Volume Dimensions: " + this._lightVolumeDimensions.width + " " +
             this._lightVolumeDimensions.height + " " + this._lightVolumeDimensions.depth);
+        // this._lightVolumeDimensions.depth = 256
     }
 
     destroy() {
@@ -400,11 +401,15 @@ class RCNRenderer extends AbstractRenderer {
     _getAccumulationBufferSpec() {
         const gl = this._gl;
 
+        const width = this._lightVolumeDimensions.width;
+        const height = this._lightVolumeDimensions.height;
+        const depth = this._lightVolumeDimensions.depth;
+
         const positionBufferSpec = {
             target         : gl.TEXTURE_3D,
-            width          : this._lightVolumeDimensions.width,
-            height         : this._lightVolumeDimensions.height,
-            depth          : this._lightVolumeDimensions.depth,
+            width          : width,
+            height         : height,
+            depth          : depth,
             min            : gl.NEAREST,
             mag            : gl.NEAREST,
             // format         : gl.RGB,
@@ -420,9 +425,9 @@ class RCNRenderer extends AbstractRenderer {
 
         const directionAndTransmittanceBufferSpec = {
             target         : gl.TEXTURE_3D,
-            width          : this._lightVolumeDimensions.width,
-            height         : this._lightVolumeDimensions.height,
-            depth          : this._lightVolumeDimensions.depth,
+            width          : width,
+            height         : height,
+            depth          : depth,
             min            : gl.NEAREST,
             mag            : gl.NEAREST,
             // format         : gl.RGBA,
@@ -438,9 +443,9 @@ class RCNRenderer extends AbstractRenderer {
 
         const distanceTravelledAndSample = {
             target         : gl.TEXTURE_3D,
-            width          : this._lightVolumeDimensions.width,
-            height         : this._lightVolumeDimensions.height,
-            depth          : this._lightVolumeDimensions.depth,
+            width          : width,
+            height         : height,
+            depth          : depth,
             min            : gl.NEAREST,
             mag            : gl.NEAREST,
             // format         : gl.RGB,
@@ -456,9 +461,9 @@ class RCNRenderer extends AbstractRenderer {
 
         const radianceAndDiffusion = {
             target         : gl.TEXTURE_3D,
-            width          : this._lightVolumeDimensions.width,
-            height         : this._lightVolumeDimensions.height,
-            depth          : this._lightVolumeDimensions.depth,
+            width          : width,
+            height         : height,
+            depth          : depth,
             min            : gl.LINEAR,
             mag            : gl.LINEAR,
             format         : gl.RG,

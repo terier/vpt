@@ -100,9 +100,11 @@ static createTexture(gl, options) {
     } else { // if options.data == null, just allocate
         if (target === gl.TEXTURE_3D) {
             if (storage) {
-                gl.texImage3D(target, 0, internalFormat, options.width, options.height, options.depth, 0, format, type, options.data);
-            } else {
                 gl.texStorage3D(target, 1, internalFormat, options.width, options.height, options.depth);
+                // console.log("Creating storage")
+                // console.log(gl.getError())
+            } else {
+                gl.texImage3D(target, 0, internalFormat, options.width, options.height, options.depth, 0, format, type, options.data);
             }
         } else {
             gl.texImage2D(target, 0, internalFormat, options.width, options.height, 0, format, type, options.data);
@@ -159,21 +161,15 @@ static createFramebuffer3D(gl, attachments, layer) {
 
     const framebuffer = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
-
     if (attachments.color) {
         for (let i = 0; i < attachments.color.length; i++) {
             attach(gl.COLOR_ATTACHMENT0 + i, attachments.color[i]);
         }
     }
-    if (attachments.depth) {
-        attach(gl.DEPTH_ATTACHMENT, attachments.depth);
-    }
-    if (attachments.stencil) {
-        attach(gl.STENCIL_ATTACHMENT, attachments.stencil);
-    }
 
     const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
     if (status !== gl.FRAMEBUFFER_COMPLETE) {
+        // console.log("Status: ", status)
         throw new Error('Cannot create framebuffer: ' + status);
     }
 
