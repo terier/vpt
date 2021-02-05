@@ -102,9 +102,10 @@ class RCNRendererDialog extends AbstractDialog {
 
     _handleChangeScettering() {
         this._renderer._scattering = this._binds.scattering.getValue();
-
-        this._renderer._resetDiffusion();
-        this._renderer.reset();
+        if (this._renderer._volumeDimensions) {
+            this._renderer._resetDiffusion();
+            this._renderer.reset();
+        }
     }
 
     _handleChangeResetLightFieldMC() {
