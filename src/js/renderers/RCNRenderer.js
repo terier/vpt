@@ -37,6 +37,7 @@ class RCNRenderer extends AbstractRenderer {
             _movingBoxLength            : 10,
             _baseTimePerFrame           : 0,
             // Deferred Rendering
+            _deferredRendering          : true
         }, options);
 
         this._programs = WebGL.buildPrograms(this._gl, {
@@ -99,13 +100,16 @@ class RCNRenderer extends AbstractRenderer {
         this._integrateFrame();
         this._accumulationBuffer.swap();
 
-        // this._renderBuffer.use();
-        // this._renderFrame();
-        this._defferedRenderBuffer.use();
-        this._deferredRenderFrame();
+        if (this._deferredRendering) {
+            this._defferedRenderBuffer.use();
+            this._deferredRenderFrame();
 
-        this._renderBuffer.use();
-        this._combineRenderFrame();
+            this._renderBuffer.use();
+            this._combineRenderFrame();
+        } else {
+            this._renderBuffer.use();
+            this._renderFrame();
+        }
 
         this._calculateAverageTime()
     }

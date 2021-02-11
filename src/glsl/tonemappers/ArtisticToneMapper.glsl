@@ -69,8 +69,8 @@ vec4 smartDeNoise(sampler2D tex, vec2 uv, float sigma, float kSigma, float thres
 }
 
 void main() {
-    // vec4 color = texture(uTexture, vFragmentPosition);
-    vec4 color = smartDeNoise(uTexture, vFragmentPosition, 5.0, 2.0, .100);
+    vec4 color = texture(uTexture, vFragmentPosition);
+//    vec4 color = smartDeNoise(uTexture, vFragmentPosition, 5.0, 2.0, .100);
     color = (color - uLow) / (uHigh - uLow);
     const vec3 gray = normalize(vec3(1));
     color = vec4(mix(dot(color.rgb, gray) * gray, color.rgb, uSaturation), 1.0);
