@@ -122,10 +122,6 @@ setMvpInverseMatrix(matrix) {
     this._mvpInverseMatrix.copy(matrix);
 }
 
-_pauseRendering() {
-
-}
-
 _resetFrame() {
     // IMPLEMENT
 }
