@@ -41,10 +41,11 @@ let UISPECS;
 
 document.addEventListener('DOMContentLoaded', async () => {
     const rl = ResourceLoader.instance;
-    const res = await rl.loadResource('all');
-    SHADERS   = await rl.loadResource('shaders');
-    MIXINS    = await rl.loadResource('mixins');
-    TEMPLATES = await rl.loadResource('templates');
-    UISPECS   = await rl.loadResource('uispecs');
+    [ SHADERS, MIXINS, TEMPLATES, UISPECS ] = await Promise.all([
+        rl.loadResource('shaders'),
+        rl.loadResource('mixins'),
+        rl.loadResource('templates'),
+        rl.loadResource('uispecs'),
+    ]);
     const application = new Application();
 });
