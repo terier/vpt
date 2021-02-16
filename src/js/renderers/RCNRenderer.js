@@ -37,7 +37,11 @@ class RCNRenderer extends AbstractRenderer {
             _movingBoxLength            : 10,
             _baseTimePerFrame           : 0,
             // Deferred Rendering
-            _deferredRendering          : true
+            _deferredRendering          : true,
+            _smartDeNoise               : true,
+            _smartDeNoiseSigma          : 5,
+            _smartDeNoiseKSigma         : 2,
+            _smartDeNoiseThreshold      : 0.1
         }, options);
 
         this._programs = WebGL.buildPrograms(this._gl, {
@@ -541,6 +545,11 @@ class RCNRenderer extends AbstractRenderer {
 
         gl.uniform1i(program.uniforms.uColor, 0);
         gl.uniform1i(program.uniforms.uLighting, 1);
+
+        gl.uniform1i(program.uniforms.uSmartDeNoise, this._smartDeNoise ? 1 : 0);
+        gl.uniform1f(program.uniforms.uSigma, this._smartDeNoiseSigma);
+        gl.uniform1f(program.uniforms.uKSigma, this._smartDeNoiseKSigma);
+        gl.uniform1f(program.uniforms.uTreshold, this._smartDeNoiseThreshold);
 
         gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
     }

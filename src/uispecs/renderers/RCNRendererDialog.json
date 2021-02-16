@@ -71,6 +71,17 @@
       ]
     },
     {
+      "type": "field",
+      "label": "Deferred Rendering:",
+      "children": [
+        {
+          "type": "checkbox",
+          "bind": "deferred_enabled",
+          "checked": true
+        }
+      ]
+    },
+    {
       "type": "accordion",
       "label": "Monte Carlo",
       "children": [
@@ -135,6 +146,62 @@
               "type": "checkbox",
               "bind": "mc_enabled",
               "checked": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "accordion",
+      "label": "Smart De-Noise",
+      "children": [
+        {
+          "type": "field",
+          "label": "Enabled:",
+          "children": [
+            {
+              "type": "checkbox",
+              "bind": "sd_enabled",
+              "checked": true
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Sigma:",
+          "children": [
+            {
+              "type": "spinner",
+              "bind": "sd_sigma",
+              "value": 5,
+              "min": 0,
+              "step": 0.1
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "K Sigma:",
+          "children": [
+            {
+              "type": "spinner",
+              "bind": "sd_ksigma",
+              "value": 2,
+              "min": 0,
+              "step": 0.1
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "threshold:",
+          "children": [
+            {
+              "type": "spinner",
+              "bind": "sd_threshold",
+              "value": 0.1,
+              "min": 0,
+              "step": 0.001
             }
           ]
         }

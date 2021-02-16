@@ -446,6 +446,10 @@ precision mediump float;
 
 uniform mediump sampler2D uColor;
 uniform mediump sampler2D uLighting;
+uniform int uSmartDeNoise;
+uniform float uSigma;
+uniform float uKSigma;
+uniform float uTreshold;
 
 out vec4 color;
 
@@ -493,9 +497,14 @@ float smartDeNoise(sampler2D tex, vec2 uv, float sigma, float kSigma, float thre
 
 void main() {
     vec4 colorSample = texture(uColor, vPosition);
+    float lightingSample;
+    if (uSmartDeNoise == 1)
+        lightingSample = smartDeNoise(uLighting, vPosition, uSigma, uKSigma, uTreshold); // 5.0, 2.0, .100;
+    else
+        lightingSample = texture(uLighting, vPosition).r;
 //    float lightingSample = texture(uLighting, vPosition).r;
 
-    float lightingSample = smartDeNoise(uLighting, vPosition, 5.0, 2.0, .100);
+
 
     color = mix(colorSample, vec4(0, 0, 0, 1), lightingSample);
 //    color = vec4(vec3(lightingSample), 1);

@@ -23,6 +23,7 @@ class RCNRendererDialog extends AbstractDialog {
         // this._handleChangeLights = this._handleChangeLights.bind(this);
         this._handleChangeResetLightFieldMC = this._handleChangeResetLightFieldMC.bind(this);
         this._handleChangeSlowdown = this._handleChangeSlowdown.bind(this);
+        this._handleChangeDeNoise = this._handleChangeDeNoise.bind(this);
 
         // Renderer
         this._binds.steps.addEventListener('input', this._handleChange);
@@ -37,8 +38,17 @@ class RCNRendererDialog extends AbstractDialog {
         this._binds.extinction.addEventListener('input', this._handleChangeResetLightFieldMC);
         this._binds.ray_steps.addEventListener('input', this._handleChange);
         this._binds.max_slowdown.addEventListener('input', this._handleChangeSlowdown);
-
         this._binds.limit.addEventListener('input', this._handleChange);
+
+        // Deferred Rendering and De-Noise
+        this._binds.deferred_enabled.addEventListener('change', this._handleChange);
+        this._binds.sd_enabled.addEventListener('change', this._handleChangeDeNoise);
+        this._binds.sd_sigma.addEventListener('input', this._handleChangeDeNoise);
+        this._binds.sd_ksigma.addEventListener('input', this._handleChangeDeNoise);
+        this._binds.sd_threshold.addEventListener('input', this._handleChangeDeNoise);
+
+        // Transfer Function
+
         this._tfwidget = new TransferFunctionWidget();
         this._binds.tfcontainer.add(this._tfwidget);
         this._tfwidget.addEventListener('change', this._handleTFChange);
@@ -58,6 +68,12 @@ class RCNRendererDialog extends AbstractDialog {
         this._renderer._lightVolumeRatio = this._binds.ratio.getValue();
 
         this._renderer._mcEnabled = this._binds.mc_enabled.isChecked();
+
+        this._renderer._deferredRendering = this._binds.deferred_enabled.isChecked();
+        this._renderer._smartDeNoise = this._binds.sd_enabled.isChecked();
+        this._renderer._smartDeNoiseSigma = this._binds.sd_sigma.getValue();
+        this._renderer._smartDeNoiseKSigma = this._binds.sd_ksigma.getValue();
+        this._renderer._smartDeNoiseThreshold = this._binds.sd_threshold.getValue();
     }
 
     _setLights(lights) {
@@ -97,6 +113,7 @@ class RCNRendererDialog extends AbstractDialog {
         this._renderer._steps = this._binds.ray_steps.getValue();
         this._renderer._limit = this._binds.limit.getValue();
         this._renderer._mcEnabled = this._binds.mc_enabled.isChecked();
+        this._renderer._deferredRendering = this._binds.deferred_enabled.isChecked();
         this._renderer.reset();
     }
 
@@ -145,6 +162,14 @@ class RCNRendererDialog extends AbstractDialog {
         this._renderer._allowedSlowdown = this._binds.max_slowdown.getValue();
         this._layersPerFrame = 1
         this._renderer._fastStart = true
+    }
+
+    _handleChangeDeNoise() {
+        this._renderer._deferredRendering = this._binds.deferred_enabled.isChecked();
+        this._renderer._smartDeNoise = this._binds.sd_enabled.isChecked();
+        this._renderer._smartDeNoiseSigma = this._binds.sd_sigma.getValue();
+        this._renderer._smartDeNoiseKSigma = this._binds.sd_ksigma.getValue();
+        this._renderer._smartDeNoiseThreshold = this._binds.sd_threshold.getValue();
     }
 
     _handleTFChange() {
