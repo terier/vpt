@@ -55,7 +55,7 @@ in vec2 vPosition;
 layout (location = 0) out vec4 oPosition;
 layout (location = 1) out vec4 oDirectionAndTransmittance;
 layout (location = 2) out vec4 oDistanceTravelledAndSamples;
-layout (location = 3) out vec4 oRadianceAndDiffusion;
+layout (location = 3) out vec2 oRadianceAndDiffusion;
 
 @rand
 
@@ -148,7 +148,7 @@ void main() {
     oPosition = vec4(photon.position, 0);
     oDirectionAndTransmittance = vec4(photon.direction, photon.transmittance);
     oDistanceTravelledAndSamples = vec4(photon.distance, photon.travelled, float(photon.samples), 0);
-    oRadianceAndDiffusion = vec4(photon.radiance, diffusion, 0, 0);
+    oRadianceAndDiffusion = vec2(photon.radiance, diffusion);
 }
 
 // #section RCNDiffuse/vertex
@@ -179,6 +179,7 @@ uniform mediump sampler3D uRadianceAndDiffusion;
 
 uniform float uLayer;
 uniform float uScattering;
+uniform float uAbsorptionCoefficient;
 uniform float uRatio;
 uniform vec3 uStep;
 uniform vec3 uSize;
@@ -188,7 +189,7 @@ in vec2 vPosition;
 layout (location = 0) out vec4 oPosition;
 layout (location = 1) out vec4 oDirectionAndTransmittance;
 layout (location = 2) out vec4 oDistanceTravelledAndSamples;
-layout (location = 3) out vec4 oRadianceAndDiffusion;
+layout (location = 3) out vec2 oRadianceAndDiffusion;
 
 void main() {
     vec3 position = vec3(vPosition, uLayer);
@@ -198,7 +199,7 @@ void main() {
         oPosition = texture(uPosition, position);
         oDirectionAndTransmittance = texture(uDirectionAndTransmittance, position);
         oDistanceTravelledAndSamples = texture(uDistanceTravelledAndSamples, position);
-        oRadianceAndDiffusion = vec4(radianceAndDiffusion.r, radianceAndDiffusion.g, 0, 0);
+        oRadianceAndDiffusion = vec2(radianceAndDiffusion.r, 0);
         return;
     }
 
@@ -217,12 +218,17 @@ void main() {
                     back.r + back.g + forward.r + forward.g -
                     6.0 * totalRadiance;
 
-    float delta = laplace * totalRadiance * uScattering / uRatio;
+    float delta = 0.4 * laplace * totalRadiance * uScattering / uRatio;
+
+    // Jacobi
+//    float diffusion = uScattering * laplace;
+//    float numerator =  diffusion + 4.0 * uScattering * radiance;
+//    float denominator = uAbsorptionCoefficient * dc + 4.0 * uScatteringScale;
 
     oPosition = texture(uPosition, position);
     oDirectionAndTransmittance = texture(uDirectionAndTransmittance, position);
     oDistanceTravelledAndSamples = texture(uDistanceTravelledAndSamples, position);
-    oRadianceAndDiffusion = vec4(radiance, delta, 0, 0);
+    oRadianceAndDiffusion = vec2(radiance, delta);
 }
 
 // #section RCNRender/vertex
@@ -296,6 +302,12 @@ void main() {
             energyDensity = radianceAndDiffusion.r + radianceAndDiffusion.g;
 
 //            energyDensity = radianceAndDiffusion.g;
+//            if (isnan(energyDensity))
+//                energyDensity = 0.0;
+//            else if (isinf(energyDensity))
+//                energyDensity = 0.5;
+//            else
+//                energyDensity = 1.0;
 
             colorSample = texture(uTransferFunction, vec2(val, 0.5));
             colorSample.a *= rayStepLength * uAlphaCorrection;
@@ -456,50 +468,13 @@ out vec4 color;
 //debug
 in vec2 vPosition;
 
-#define INV_SQRT_OF_2PI 0.39894228040143267793994605993439  // 1.0/SQRT_OF_2PI
-#define INV_PI 0.31830988618379067153776752674503
-
-float smartDeNoise(sampler2D tex, vec2 uv, float sigma, float kSigma, float threshold)
-{
-    float radius = round(kSigma*sigma);
-    float radQ = radius * radius;
-
-    float invSigmaQx2 = .5 / (sigma * sigma);      // 1.0 / (sigma^2 * 2.0)
-    float invSigmaQx2PI = INV_PI * invSigmaQx2;    // 1.0 / (sqrt(PI) * sigma)
-
-    float invThresholdSqx2 = .5 / (threshold * threshold);     // 1.0 / (sigma^2 * 2.0)
-    float invThresholdSqrt2PI = INV_SQRT_OF_2PI / threshold;   // 1.0 / (sqrt(2*PI) * sigma)
-
-    float centrPx = texture(tex,uv).r;
-
-    float zBuff = 0.0;
-    float aBuff = 0.0;
-    vec2 size = vec2(textureSize(tex, 0));
-
-    for(float x=-radius; x <= radius; x++) {
-        float pt = sqrt(radQ-x*x);  // pt = yRadius: have circular trend
-        for(float y=-pt; y <= pt; y++) {
-            vec2 d = vec2(x,y);
-
-            float blurFactor = exp( -dot(d , d) * invSigmaQx2 ) * invSigmaQx2PI;
-
-            float walkPx =  texture(tex,uv+d/size).r;
-
-            float dC = walkPx-centrPx;
-            float deltaFactor = exp( -dot(dC, dC) * invThresholdSqx2) * invThresholdSqrt2PI * blurFactor;
-
-            zBuff += deltaFactor;
-            aBuff += deltaFactor*walkPx;
-        }
-    }
-    return aBuff/zBuff;
-}
+@smartDeNoiseF
 
 void main() {
     vec4 colorSample = texture(uColor, vPosition);
     float lightingSample;
     if (uSmartDeNoise == 1)
-        lightingSample = smartDeNoise(uLighting, vPosition, uSigma, uKSigma, uTreshold); // 5.0, 2.0, .100;
+        lightingSample = smartDeNoiseF(uLighting, vPosition, uSigma, uKSigma, uTreshold); // 5.0, 2.0, .100;
     else
         lightingSample = texture(uLighting, vPosition).r;
 //    float lightingSample = texture(uLighting, vPosition).r;
@@ -546,7 +521,7 @@ uniform vec3 uSize;
 layout (location = 0) out vec4 oPosition;
 layout (location = 1) out vec4 oDirectionAndTransmittance;
 layout (location = 2) out vec4 oDistanceTravelledAndSamples;
-layout (location = 3) out vec4 oRadianceAndDiffusion;
+layout (location = 3) out vec2 oRadianceAndDiffusion;
 
 @rand
 
@@ -578,7 +553,7 @@ void main() {
     oPosition = vec4(photon.position, 0);
     oDirectionAndTransmittance = vec4(photon.direction, photon.transmittance);
     oDistanceTravelledAndSamples = vec4(photon.distance, photon.travelled, float(photon.samples), 0);
-    oRadianceAndDiffusion = vec4(photon.radiance, 0, 0, 0);
+    oRadianceAndDiffusion = vec2(photon.radiance, 0);
 }
 
 // #section RCNResetDiffusion/vertex
@@ -614,7 +589,7 @@ uniform float uLayer;
 layout (location = 0) out vec4 oPosition;
 layout (location = 1) out vec4 oDirectionAndTransmittance;
 layout (location = 2) out vec4 oDistanceTravelledAndSamples;
-layout (location = 3) out vec4 oRadianceAndDiffusion;
+layout (location = 3) out vec2 oRadianceAndDiffusion;
 
 void main() {
     vec3 position = vec3(vPosition, uLayer);
@@ -622,5 +597,5 @@ void main() {
     oPosition = texture(uRadianceAndDiffusion, position);
     oDirectionAndTransmittance = texture(uDirectionAndTransmittance, position);
     oDistanceTravelledAndSamples = texture(uDistanceTravelledAndSamples, position);
-    oRadianceAndDiffusion = vec4(texture(uRadianceAndDiffusion, position).r, 0, 0, 0);
+    oRadianceAndDiffusion = vec2(texture(uRadianceAndDiffusion, position).r, 0);
 }

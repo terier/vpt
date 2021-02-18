@@ -444,6 +444,7 @@ class RCNRenderer extends AbstractRenderer {
             gl.uniform1f(program.uniforms.uLayer, (currentDepth + 0.5) / dimensions.depth);
             // console.log(this._scattering, Math.floor(this._lightVolumeRatio))
             gl.uniform1f(program.uniforms.uScattering, this._scattering);
+            gl.uniform1f(program.uniforms.uAbsorptionCoefficient, this._absorptionCoefficientMC);
             gl.uniform1f(program.uniforms.uRatio, Math.floor(this._lightVolumeRatio));
 
             gl.uniform3fv(program.uniforms.uStep, uStep);
@@ -463,6 +464,8 @@ class RCNRenderer extends AbstractRenderer {
             if (currentDepth >= this._lightVolumeDimensions.depth) {
                 currentDepth = 0
             }
+
+            // this._accumulationBuffer.swap();
         }
 
         this._currentDepth = currentDepth
@@ -635,6 +638,8 @@ class RCNRenderer extends AbstractRenderer {
             depth          : depth,
             min            : gl.LINEAR,
             mag            : gl.LINEAR,
+            // min            : gl.NEAREST,
+            // mag            : gl.NEAREST,
             format         : gl.RG,
             internalFormat : gl.RG32F,
             // format         : gl.RGBA,

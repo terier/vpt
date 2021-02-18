@@ -137,7 +137,7 @@ void main() {
     oEnergyDensity = vec4(newRadiance);
 
 //    oEnergyDensity = vec4(radiance, 0, 0, 0);
-
+    float total_convection = componentSum(newRadiance);
     float total_radiance = componentSum(radiance) + texture(uDiffusion, position).r;
 
     float total_left    = componentSum(left) + texture(uDiffusion, position + vec3(-uStep.x,  0,  0)).r;
@@ -149,7 +149,16 @@ void main() {
 
     float laplace = total_left + total_right + total_down + total_up + total_back + total_forward - 6.0 * total_radiance;
 
-    float delta = laplace * total_radiance * uScattering / uRatio;
+//    float delta = laplace * total_radiance * uScattering / uRatio;
+
+    // Jacobi
+    float diffusion = uScattering * laplace;
+    float numerator = total_convection + diffusion + 10.0 * uScattering * total_radiance;
+    float denominator = absorption + 10.0 * uScattering;
+    float jacobiRadiance = numerator / denominator;
+    float delta = jacobiRadiance - total_convection;
+    // END Jacobi
+
     oDiffusion = vec4(delta, 0, 0, 0);
 
 //    oDiffusion = vec4(0, 0, 0, 0);
