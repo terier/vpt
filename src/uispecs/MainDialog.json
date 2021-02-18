@@ -114,6 +114,10 @@
                           "value": "artistic",
                           "label": "Artistic",
                           "selected": true
+                        },
+                        {
+                          "value": "de_noise",
+                          "label": "Artistic (De-Noise)"
                         }
                       ]
                     }

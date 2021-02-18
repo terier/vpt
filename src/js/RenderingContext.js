@@ -308,6 +308,7 @@ _getToneMapperClass(toneMapper) {
         case 'range'    : return RangeToneMapper;
         case 'reinhard' : return ReinhardToneMapper;
         case 'artistic' : return ArtisticToneMapper;
+        case 'de_noise' : return SmartDeNoiseToneMapper;
     }
 }
 

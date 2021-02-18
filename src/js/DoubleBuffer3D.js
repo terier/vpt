@@ -13,10 +13,8 @@ class DoubleBuffer3D {
         this._depth = this._spec[0].depth;
 
         this._readAttachments = this._createAttachmentsFromSpec(gl, this._spec);
-        // this._readFramebuffer = WebGL.createFramebuffer(gl, this._readAttachments);
         this._readFramebuffers = this._createFramebuffers(gl, this._readAttachments);
         this._writeAttachments = this._createAttachmentsFromSpec(gl, this._spec);
-        // this._writeFramebuffer = WebGL.createFramebuffer(gl, this._writeAttachments);
         this._writeFramebuffers = this._createFramebuffers(gl, this._writeAttachments);
 
         // console.log(this._readAttachments)

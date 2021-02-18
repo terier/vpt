@@ -211,6 +211,7 @@ _getDialogForToneMapper(toneMapper) {
         case 'range'    : return RangeToneMapperDialog;
         case 'reinhard' : return ReinhardToneMapperDialog;
         case 'artistic' : return ArtisticToneMapperDialog;
+        case 'de_noise' : return SmartDeNoiseToneMapperDialog;
     }
 }
 
