@@ -21,7 +21,8 @@ class FCNRenderer extends AbstractRenderer {
             _localSizeX                 : 16,
             _localSizeY                 : 16,
             _localSizeZ                 : 4,
-            _timer                      : 0
+            _timer                      : 0,
+            _timeStep                   : 0.1
         }, options);
 
         this._programs = WebGL.buildPrograms(this._gl, {
@@ -245,7 +246,7 @@ class FCNRenderer extends AbstractRenderer {
             gl.uniform1f(program.uniforms.uRatio, Math.floor(this._lightVolumeRatio));
             gl.uniform1f(program.uniforms.uLayer, (i + 0.5) / this._lightVolumeDimensions.depth);
             gl.uniform1f(program.uniforms.uScattering, this._scattering);
-
+            gl.uniform1f(program.uniforms.uTimeStep, this._timeStep);
 
             gl.uniform3f(program.uniforms.uStep, 1 / dimensions.width, 1 / dimensions.height, 1 / dimensions.depth);
 
@@ -337,21 +338,6 @@ class FCNRenderer extends AbstractRenderer {
             wrapR          : gl.CLAMP_TO_EDGE,
             storage        : true
         };
-
-        // let nLights = 0;
-        // for (let i = 0; i < this._lightDefinitions.length; i++) {
-        //     if (this._lightDefinitions[i].isEnabled()) {
-        //         nLights++;
-        //     }
-        // }
-
-        // if (nLights >= 3) {
-        //     convectionBufferSpec.format = gl.RGBA
-        //     convectionBufferSpec.internalFormat = gl.RGBA32F
-        // } else if (nLights === 2) {
-        //     convectionBufferSpec.format = gl.RG
-        //     convectionBufferSpec.internalFormat = gl.RG32F
-        // }
 
         const diffusionBufferSpec = {
             target         : gl.TEXTURE_3D,

@@ -30,6 +30,7 @@ class FCNRendererDialog extends AbstractDialog {
         this._binds.ratio.addEventListener('input', this._handleChangeRatio);
         this._binds.repeats.addEventListener('input', this._handleChangeResetLightField);
         this._binds.convectionSteps.addEventListener('input', this._handleChangeResetLightField);
+        this._binds.time_step.addEventListener('input', this._handleChange);
 
         this._tfwidget = new TransferFunctionWidget();
         this._binds.tfcontainer.add(this._tfwidget);
@@ -57,6 +58,7 @@ class FCNRendererDialog extends AbstractDialog {
         this._renderer._stepSize = 1 / this._binds.steps.getValue();
         this._renderer._alphaCorrection = this._binds.opacity.getValue();
         this._renderer._absorptionCoefficient = this._binds.absorptionCoefficient.getValue();
+        this._renderer._timeStep = this._binds.time_step.getValue();
 
         this._renderer.reset();
     }

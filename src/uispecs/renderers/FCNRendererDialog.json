@@ -97,6 +97,20 @@
       ]
     },
     {
+      "type": "field",
+      "label": "Time Step:",
+      "children": [
+        {
+          "type": "spinner",
+          "bind": "time_step",
+          "value": 0.1,
+          "min": 0,
+          "max": 1,
+          "step": 0.05
+        }
+      ]
+    },
+    {
       "type": "accordion",
       "label": "Transfer function",
       "children": [

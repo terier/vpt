@@ -46,12 +46,13 @@ uniform int uNLights;
 uniform float uRatio;
 uniform float uLayer;
 uniform float uScattering;
+uniform float uTimeStep;
 uniform vec4 uLights[4];
 
 in vec2 vPosition;
 
 layout (location = 0) out vec4 oEnergyDensity;
-layout (location = 1) out vec4 oDiffusion;
+layout (location = 1) out float oDiffusion;
 
 float convection(in float radiance, in float revAbsorption, in vec3 light,
                 in float left, in float right, in float down, in float up, in float back, in float forward) {
@@ -65,19 +66,11 @@ float convection(in float radiance, in float revAbsorption, in vec3 light,
         light.y < 0.0 ? up - radiance : radiance - down,
         light.z < 0.0 ? forward - radiance : radiance - back
     );
-//    vec3 grad = 0.5 * vec3(right - left, up - down, forward - back);
-    // (1 - absorption) * (p - 1/2 deltap)
-//    float convectionDelta = -dot(light, grad) * 0.5 / uRatio;
 
-//    newRadiance = revAbsorption * (radiance + convectionDelta);
-
-    // Jacobi
     float convection = -0.5 * dot(light, grad);
     float absorption = -revAbsorption * radiance;
-    // Jacobi END
 
-    return convection + absorption; // newRadiance
-//    return absorption; // newRadiance
+    return radiance + (convection + absorption) * uTimeStep;
 }
 
 float convectionPL(in float radiance, in float revAbsorption, in vec3 light, in vec3 position,
@@ -92,16 +85,10 @@ in float left, in float right, in float down, in float up, in float back, in flo
         light.y < 0.0 ? up - radiance : radiance - down,
         light.z < 0.0 ? forward - radiance : radiance - back
     );
-    // (1 - absorption) * (p - 1/2 deltap)
-//    float convectionDelta = -dot(light, grad) * 0.5 / uRatio;
 
-//    newRadiance = revAbsorption * (radiance + convectionDelta);
-
-    // Jacobi
     float convection = -0.5 * dot(light, grad);
     float absorption = -revAbsorption * radiance;
-    // Jacobi END
-    return convection + absorption; // newRadiance
+    return radiance + (convection + absorption) * uTimeStep;
 }
 
 
@@ -115,17 +102,13 @@ void main() {
     if (position.x < uStep.x || position.y < uStep.y || position.z < uStep.z ||
     position.x > 1.0 - uStep.x || position.y > 1.0 - uStep.y || position.z > 1.0 - uStep.z) {
         oEnergyDensity = vec4(radiance);
-        oDiffusion = vec4(0, 0, 0, 0);
+        oDiffusion = 0.0;
         return;
     }
 
     float val = texture(uVolume, position).r;
     vec4 colorSample = texture(uTransferFunction, vec2(val, 0.5));
     float absorption = colorSample.a * uAbsorptionCoefficient;
-//    float revAbsorption = float(1) - absorption;
-    float revAbsorption = absorption;
-
-
 
 //    float newRadiance = 0.0;
 
@@ -137,61 +120,39 @@ void main() {
     vec4 forward   = texture(uEnergyDensity, position + vec3( 0,  0,  uStep.z));
 
     vec4 newRadiance = vec4(0);
-//    newRadiance[0] = convection(radiance.r, revAbsorption, left.r, right.r, down.r, up.r, back.r, forward.r);
+    float total_convection = 0.0;
+    float total_radiance = 0.0;
 
     for (int i = 0; i < uNLights; i++) {
         if (uLights[i].a < DIRECTIONAL) {
-            newRadiance[i] = convection(radiance[i], revAbsorption, uLights[i].xyz,
+            newRadiance[i] = convection(radiance[i], absorption, uLights[i].xyz,
                 left[i], right[i], down[i], up[i], back[i], forward[i]);
         } else if (distance(position * uSize, uLights[i].xyz * uSize) <= 2.0) {
             newRadiance[i] = radiance[i];
         } else {
-            newRadiance[i] = convectionPL(radiance[i], revAbsorption, uLights[i].xyz, position,
+            newRadiance[i] = convectionPL(radiance[i], absorption, uLights[i].xyz, position,
                 left[i], right[i], down[i], up[i], back[i], forward[i]);
         }
+        total_convection += newRadiance[i];
+        total_radiance += radiance[i];
     }
 
-//    oEnergyDensity = vec4(newRadiance);
+    oEnergyDensity = vec4(newRadiance);
 
-    float total_convection = componentSum(newRadiance);
-//    float total_radiance = componentSum(radiance); // + texture(uDiffusion, position).r;
-    float total_radiance = radiance.r;
-
-//    float total_left    = componentSum(left) + texture(uDiffusion, position + vec3(-uStep.x,  0,  0)).r;
-//    float total_right   = componentSum(right) + texture(uDiffusion, position + vec3(uStep.x,  0,  0)).r;
-//    float total_down    = componentSum(down) + texture(uDiffusion, position + vec3( 0, -uStep.y,  0)).r;
-//    float total_up      = componentSum(up) + texture(uDiffusion, position + vec3( 0,  uStep.y,  0)).r;
-//    float total_back    = componentSum(back) + texture(uDiffusion, position + vec3( 0, 0, -uStep.z)).r;
-//    float total_forward = componentSum(forward) + texture(uDiffusion, position + vec3( 0,  0, uStep.z)).r;
-    float total_left    = left.r;
-    float total_right   = right.r;
-    float total_down    = down.r;
-    float total_up      = up.r;
-    float total_back    = back.r;
-    float total_forward = forward.r;
+    float total_left    = componentSum(left) + texture(uDiffusion, position + vec3(-uStep.x,  0,  0)).r;
+    float total_right   = componentSum(right) + texture(uDiffusion, position + vec3(uStep.x,  0,  0)).r;
+    float total_down    = componentSum(down) + texture(uDiffusion, position + vec3( 0, -uStep.y,  0)).r;
+    float total_up      = componentSum(up) + texture(uDiffusion, position + vec3( 0,  uStep.y,  0)).r;
+    float total_back    = componentSum(back) + texture(uDiffusion, position + vec3( 0, 0, -uStep.z)).r;
+    float total_forward = componentSum(forward) + texture(uDiffusion, position + vec3( 0,  0, uStep.z)).r;
 
     float laplace = total_left + total_right + total_down + total_up + total_back + total_forward - 6.0 * total_radiance;
 
-//    float delta = laplace * total_radiance * uScattering / uRatio;
-
-    // Jacobi
     float diffusion = uScattering * laplace;
-//    float derivative = diffusion;
-    float derivative = total_convection + diffusion;
-    float eulerRadiance = total_radiance + derivative * 0.1;
-//    float eulerRadiance = total_radiance + 0.001 * 0.1;
+//    float derivative = total_convection + diffusion;
+//    float eulerRadiance = total_radiance + derivative * uTimeStep;
 
-
-//    float numerator = total_convection + diffusion + 4.0 * uScattering * total_radiance;
-//    float denominator = absorption + 4.0 * uScattering;
-//    float jacobiRadiance = numerator / denominator;
-//    float delta = jacobiRadiance - total_convection;
-    // END Jacobi
-
-//    oDiffusion = vec4(delta, 0, 0, 0);
-
-//    oDiffusion = vec4(0, 0, 0, 0);
-    oEnergyDensity = vec4(eulerRadiance);
+    oDiffusion = diffusion * uTimeStep;
 }
 
 // #section FCNRender/vertex
@@ -267,7 +228,7 @@ void main() {
 
             energyDensity = componentSum(texture(uEnergyDensity, pos));
 //            energyDensity = texture(uEnergyDensity, pos).a;
-//            energyDensity += texture(uDiffusion, pos).r;
+            energyDensity += texture(uDiffusion, pos).r;
 
             colorSample = texture(uTransferFunction, vec2(val, 0.5));
             colorSample.a *= rayStepLength * uAlphaCorrection;
