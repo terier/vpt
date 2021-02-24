@@ -194,8 +194,8 @@ layout (location = 3) out vec2 oRadianceAndDiffusion;
 void main() {
     vec3 position = vec3(vPosition, uLayer);
     vec4 radianceAndDiffusion = texture(uRadianceAndDiffusion, position);
-    if (position.x <= uStep.x || position.y <= uStep.y || position.z <= uStep.z ||
-    position.x >= 1.0 - uStep.x || position.y >= 1.0 - uStep.y || position.z >= 1.0 - uStep.z) {
+    if (position.x < uStep.x || position.y < uStep.y || position.z < uStep.z ||
+    position.x > 1.0 - uStep.x || position.y > 1.0 - uStep.y || position.z > 1.0 - uStep.z) {
         oPosition = texture(uPosition, position);
         oDirectionAndTransmittance = texture(uDirectionAndTransmittance, position);
         oDistanceTravelledAndSamples = texture(uDistanceTravelledAndSamples, position);
@@ -218,12 +218,13 @@ void main() {
                     back.r + back.g + forward.r + forward.g -
                     6.0 * totalRadiance;
 
-    float delta = 0.4 * laplace * totalRadiance * uScattering / uRatio;
+//    float delta = 0.4 * laplace * totalRadiance * uScattering / uRatio;
 
     // Jacobi
 //    float diffusion = uScattering * laplace;
 //    float numerator =  diffusion + 4.0 * uScattering * radiance;
 //    float denominator = uAbsorptionCoefficient * dc + 4.0 * uScatteringScale;
+    float delta = laplace * uScattering * 0.2;
 
     oPosition = texture(uPosition, position);
     oDirectionAndTransmittance = texture(uDirectionAndTransmittance, position);
