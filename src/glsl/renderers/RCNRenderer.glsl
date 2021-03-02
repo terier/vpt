@@ -176,6 +176,8 @@ uniform mediump sampler3D uPosition;
 uniform mediump sampler3D uDirectionAndTransmittance;
 uniform mediump sampler3D uDistanceTravelledAndSamples;
 uniform mediump sampler3D uRadianceAndDiffusion;
+uniform mediump sampler3D uVolume;
+uniform mediump sampler2D uTransferFunction;
 
 uniform float uLayer;
 uniform float uScattering;
@@ -203,6 +205,10 @@ void main() {
         return;
     }
 
+    float val = texture(uVolume, position).r;
+    vec4 colorSample = texture(uTransferFunction, vec2(val, 0.5));
+    float absorption = colorSample.a * uAbsorptionCoefficient;
+
     float radiance = radianceAndDiffusion.x;
     float totalRadiance = radianceAndDiffusion.x + radianceAndDiffusion.y;
 
@@ -219,12 +225,8 @@ void main() {
                     6.0 * totalRadiance;
 
 //    float delta = 0.4 * laplace * totalRadiance * uScattering / uRatio;
-
-    // Jacobi
-//    float diffusion = uScattering * laplace;
-//    float numerator =  diffusion + 4.0 * uScattering * radiance;
-//    float denominator = uAbsorptionCoefficient * dc + 4.0 * uScatteringScale;
-    float delta = laplace * uScattering * 0.2;
+    float delta = (colorSample.a * laplace * uScattering) * 0.1; // radianceAndDiffusion.r +
+//    float delta = (laplace * uScattering) * 0.2;
 
     oPosition = texture(uPosition, position);
     oDirectionAndTransmittance = texture(uDirectionAndTransmittance, position);
@@ -413,7 +415,6 @@ void main() {
 
             // Lighting
             lightingSample = 1.0 - (radianceAndDiffusion.r + radianceAndDiffusion.g);
-//            lightingSample *= rayStepLength;
             lightingAccumulator += (1.0 - accumulator.a) * lightingSample * colorSample.a;
 
             accumulator += (1.0 - accumulator.a) * colorSample;
@@ -595,7 +596,7 @@ layout (location = 3) out vec2 oRadianceAndDiffusion;
 void main() {
     vec3 position = vec3(vPosition, uLayer);
 
-    oPosition = texture(uRadianceAndDiffusion, position);
+    oPosition = texture(uPosition, position);
     oDirectionAndTransmittance = texture(uDirectionAndTransmittance, position);
     oDistanceTravelledAndSamples = texture(uDistanceTravelledAndSamples, position);
     oRadianceAndDiffusion = vec2(texture(uRadianceAndDiffusion, position).r, 0);

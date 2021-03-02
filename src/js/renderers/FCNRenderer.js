@@ -22,7 +22,13 @@ class FCNRenderer extends AbstractRenderer {
             _localSizeY                 : 16,
             _localSizeZ                 : 4,
             _timer                      : 0,
-            _timeStep                   : 0.1
+            _timeStep                   : 0.1,
+            // Deferred Rendering
+            _deferredRendering          : true,
+            _smartDeNoise               : true,
+            _smartDeNoiseSigma          : 5,
+            _smartDeNoiseKSigma         : 2,
+            _smartDeNoiseThreshold      : 0.1
         }, options);
 
         this._programs = WebGL.buildPrograms(this._gl, {
@@ -30,7 +36,10 @@ class FCNRenderer extends AbstractRenderer {
             integrate           : SHADERS.FCNIntegrate,
             render              : SHADERS.FCNRender,
             reset               : SHADERS.FCNReset,
-            resetLightTexture   : SHADERS.FCNResetLightTexture
+            resetLightTexture   : SHADERS.FCNResetLightTexture,
+            // Deferred Rendering
+            deferredRender      : SHADERS.FCNDeferredRender,
+            combineRender       : SHADERS.FCNCombineRender
         }, MIXINS);
 
         // console.log(this._programs);
@@ -55,10 +64,26 @@ class FCNRenderer extends AbstractRenderer {
         if (this._renderBuffer) {
             this._renderBuffer.destroy();
         }
+        if (this._deferredRendering) {
+            this._destroyDeferredRenderBuffer();
+        }
         const gl = this._gl;
         this._frameBuffer = new SingleBuffer(gl, this._getFrameBufferSpec());
         // this._accumulationBuffer = new DoubleBuffer(gl, this._getAccumulationBufferSpec());
         this._renderBuffer = new SingleBuffer(gl, this._getRenderBufferSpec());
+        if (this._deferredRendering)
+            this._buildDeferredRenderBuffer();
+    }
+
+    _buildDeferredRenderBuffer() {
+        const gl = this._gl;
+        this._defferedRenderBuffer = new SingleBuffer(gl, this._getDeferredRenderBufferSpec());
+    }
+
+    _destroyDeferredRenderBuffer() {
+        const gl = this._gl;
+        this._defferedRenderBuffer.destroy();
+        this._defferedRenderBuffer = null;
     }
 
     reset() {}
@@ -186,6 +211,8 @@ class FCNRenderer extends AbstractRenderer {
         Object.keys(this._programs).forEach(programName => {
             gl.deleteProgram(this._programs[programName].program);
         });
+        if (this._defferedRenderBuffer)
+            this._defferedRenderBuffer.destroy();
         super.destroy();
     }
 
@@ -208,8 +235,16 @@ class FCNRenderer extends AbstractRenderer {
             this._accumulationBuffer.swap();
         }
 
-        this._renderBuffer.use();
-        this._renderFrame();
+        if (this._deferredRendering) {
+            this._defferedRenderBuffer.use();
+            this._deferredRenderFrame();
+
+            this._renderBuffer.use();
+            this._combineRenderFrame();
+        } else {
+            this._renderBuffer.use();
+            this._renderFrame();
+        }
     }
 
     _integrateFrame() {
@@ -292,18 +327,66 @@ class FCNRenderer extends AbstractRenderer {
         gl.uniform1f(program.uniforms.uOffset, Math.random());
         gl.uniformMatrix4fv(program.uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
 
-        // gl.drawBuffers([
-        //     gl.COLOR_ATTACHMENT0
-        // ]);
+        gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+    }
+
+    _deferredRenderFrame() {
+        const gl = this._gl;
+
+        this._defferedRenderBuffer.use()
+
+        let program = this._programs.deferredRender;
+        gl.useProgram(program.program);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
+        gl.activeTexture(gl.TEXTURE2);
+        gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[0]);
+        gl.activeTexture(gl.TEXTURE3);
+        gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[1]);
+
+        gl.uniform1i(program.uniforms.uVolume, 0);
+        gl.uniform1i(program.uniforms.uTransferFunction, 1);
+        gl.uniform1i(program.uniforms.uEnergyDensity, 2);
+        gl.uniform1i(program.uniforms.uDiffusion, 3);
+
+        gl.uniform1f(program.uniforms.uStepSize, this._stepSize);
+        gl.uniform1f(program.uniforms.uOffset, Math.random());
+        gl.uniform1f(program.uniforms.uAlphaCorrection, this._alphaCorrection);
+
+        gl.uniformMatrix4fv(program.uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
+
+        gl.drawBuffers([
+            gl.COLOR_ATTACHMENT0,
+            gl.COLOR_ATTACHMENT1
+        ]);
 
         gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
     }
 
-    _getProgramFromLightType(index) {
-        switch(this._lightVolumes[index].getType()) {
-            case 'distant': return this._programs.convection;
-            case 'point': return this._programs.convectionPL;
-        }
+    _combineRenderFrame() {
+        const gl = this._gl;
+        const program = this._programs.combineRender;
+        gl.useProgram(program.program);
+
+        this._renderBuffer.use()
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this._defferedRenderBuffer.getAttachments().color[1]);
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, this._defferedRenderBuffer.getAttachments().color[0]);
+
+        gl.uniform1i(program.uniforms.uColor, 0);
+        gl.uniform1i(program.uniforms.uLighting, 1);
+
+        gl.uniform1i(program.uniforms.uSmartDeNoise, this._smartDeNoise ? 1 : 0);
+        gl.uniform1f(program.uniforms.uSigma, this._smartDeNoiseSigma);
+        gl.uniform1f(program.uniforms.uKSigma, this._smartDeNoiseKSigma);
+        gl.uniform1f(program.uniforms.uTreshold, this._smartDeNoiseThreshold);
+
+        gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
     }
 
     _getFrameBufferSpec() {
@@ -358,4 +441,37 @@ class FCNRenderer extends AbstractRenderer {
         return [convectionBufferSpec, diffusionBufferSpec];
     }
 
+    _getDeferredRenderBufferSpec() {
+        const gl = this._gl;
+
+        const lighting = {
+            width          : this._bufferSize,
+            height         : this._bufferSize,
+            min            : gl.NEAREST,
+            mag            : gl.NEAREST,
+            wrapS          : gl.CLAMP_TO_EDGE,
+            wrapT          : gl.CLAMP_TO_EDGE,
+            // format         : gl.RGBA,
+            // internalFormat : gl.RGBA16F,
+            format         : gl.RED,
+            internalFormat : gl.R32F,
+            type           : gl.FLOAT
+        };
+
+        const color = {
+            width          : this._bufferSize,
+            height         : this._bufferSize,
+            min            : gl.NEAREST,
+            mag            : gl.NEAREST,
+            wrapS          : gl.CLAMP_TO_EDGE,
+            wrapT          : gl.CLAMP_TO_EDGE,
+            format         : gl.RGBA,
+            internalFormat : gl.RGBA16F,
+            type           : gl.FLOAT
+        };
+        return [
+            lighting,
+            color
+        ];
+    }
 }

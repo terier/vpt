@@ -148,7 +148,7 @@ void main() {
 
     float laplace = total_left + total_right + total_down + total_up + total_back + total_forward - 6.0 * total_radiance;
 
-    float diffusion = uScattering * laplace;
+    float diffusion = colorSample.a * uScattering * laplace;
 //    float derivative = total_convection + diffusion;
 //    float eulerRadiance = total_radiance + derivative * uTimeStep;
 
@@ -247,6 +247,160 @@ void main() {
 //        oColor = vec4(accumulator.rgb, 1.0);
         oColor = mix(vec4(1), vec4(accumulator.rgb, 1), accumulator.a);
     }
+}
+
+// #section FCNDeferredRender/vertex
+
+#version 300 es
+precision mediump float;
+
+uniform mat4 uMvpInverseMatrix;
+
+layout(location = 0) in vec2 aPosition;
+out vec3 vRayFrom;
+out vec3 vRayTo;
+
+out vec2 vPosition;
+
+@unproject
+
+void main() {
+    unproject(aPosition, uMvpInverseMatrix, vRayFrom, vRayTo);
+    gl_Position = vec4(aPosition, 0.0, 1.0);
+    //debug
+    vPosition = aPosition * 0.5 + 0.5;
+}
+
+// #section FCNDeferredRender/fragment
+
+#version 300 es
+precision mediump float;
+
+uniform mediump sampler3D uVolume;
+uniform mediump sampler2D uTransferFunction;
+uniform mediump sampler3D uEnergyDensity;
+uniform mediump sampler3D uDiffusion;
+uniform float uStepSize;
+uniform float uOffset;
+uniform float uAlphaCorrection;
+
+in vec3 vRayFrom;
+in vec3 vRayTo;
+layout (location = 0) out float oLighting;
+layout (location = 1) out vec4 oColor;
+
+//debug
+in vec2 vPosition;
+
+@intersectCube
+
+float componentSum(in vec4 vector) {
+    return vector.r + vector.g + vector.b + vector.a;
+}
+
+void main() {
+
+    vec3 rayDirection = vRayTo - vRayFrom;
+    vec2 tbounds = max(intersectCube(vRayFrom, rayDirection), 0.0);
+    if (tbounds.x >= tbounds.y) {
+        oColor = vec4(1.0, 1.0, 1.0, 1.0);
+        oLighting = 0.0;
+    } else {
+        vec3 from = mix(vRayFrom, vRayTo, tbounds.x);
+        vec3 to = mix(vRayFrom, vRayTo, tbounds.y);
+        float rayStepLength = distance(from, to) * uStepSize;
+
+        float t = 0.0;
+        vec3 pos;
+        float val;
+        vec4 colorSample;
+        vec4 accumulator = vec4(0.0);
+
+        float lightingAccumulator = 0.0;
+        float lightingSample;
+        float energyDensity = 0.0;
+
+        while (t < 1.0 && accumulator.a < 0.99) {
+            pos = mix(from, to, t);
+            val = texture(uVolume, pos).r;
+
+            energyDensity = componentSum(texture(uEnergyDensity, pos));
+//            energyDensity = texture(uEnergyDensity, pos).r;
+            energyDensity += texture(uDiffusion, pos).r;
+
+            // Color
+            colorSample = texture(uTransferFunction, vec2(val, 0.5));
+            colorSample.a *= rayStepLength * uAlphaCorrection;
+            // utezi z energy density
+            colorSample.rgb *= colorSample.a; // * energyDensity;
+
+            // Lighting
+            lightingSample = 1.0 - energyDensity;
+            lightingAccumulator += (1.0 - accumulator.a) * lightingSample * colorSample.a;
+
+            accumulator += (1.0 - accumulator.a) * colorSample;
+            t += uStepSize;
+        }
+
+        if (accumulator.a > 1.0) {
+            accumulator.rgb /= accumulator.a;
+        }
+
+        //        oColor = vec4(accumulator.rgb, 1.0);
+        oColor = mix(vec4(1), vec4(accumulator.rgb, 1), accumulator.a);
+        oLighting = lightingAccumulator;
+    }
+}
+
+// #section FCNCombineRender/vertex
+
+#version 300 es
+precision mediump float;
+
+uniform mat4 uMvpInverseMatrix;
+
+layout(location = 0) in vec2 aPosition;
+out vec3 vRayFrom;
+out vec3 vRayTo;
+
+out vec2 vPosition;
+
+@unproject
+
+void main() {
+    unproject(aPosition, uMvpInverseMatrix, vRayFrom, vRayTo);
+    gl_Position = vec4(aPosition, 0.0, 1.0);
+    //debug
+    vPosition = aPosition * 0.5 + 0.5;
+}
+
+// #section FCNCombineRender/fragment
+
+#version 300 es
+precision mediump float;
+
+uniform mediump sampler2D uColor;
+uniform mediump sampler2D uLighting;
+uniform int uSmartDeNoise;
+uniform float uSigma;
+uniform float uKSigma;
+uniform float uTreshold;
+
+out vec4 color;
+
+//debug
+in vec2 vPosition;
+
+@smartDeNoiseF
+
+void main() {
+    vec4 colorSample = texture(uColor, vPosition);
+    float lightingSample;
+    if (uSmartDeNoise == 1)
+        lightingSample = smartDeNoiseF(uLighting, vPosition, uSigma, uKSigma, uTreshold); // 5.0, 2.0, .100;
+    else
+        lightingSample = texture(uLighting, vPosition).r;
+    color = mix(colorSample, vec4(0, 0, 0, 1), lightingSample);
 }
 
 // #section FCNReset/vertex

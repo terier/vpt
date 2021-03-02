@@ -165,6 +165,11 @@ class RCNRenderer extends AbstractRenderer {
         Object.keys(this._programs).forEach(programName => {
             gl.deleteProgram(this._programs[programName].program);
         });
+        if (this._defferedRenderBuffer)
+            this._defferedRenderBuffer.destroy();
+        if (this._lightsTexture && gl.isTexture(this._lightsTexture)) {
+            gl.deleteTexture(this._lightsTexture);
+        }
         super.destroy();
     }
 
@@ -332,11 +337,26 @@ class RCNRenderer extends AbstractRenderer {
         if (this._renderBuffer) {
             this._renderBuffer.destroy();
         }
+        if (this._deferredRendering) {
+            this._destroyDeferredRenderBuffer();
+        }
         const gl = this._gl;
         this._frameBuffer = new SingleBuffer(gl, this._getFrameBufferSpec());
         // this._accumulationBuffer = new DoubleBuffer(gl, this._getAccumulationBufferSpec());
         this._renderBuffer = new SingleBuffer(gl, this._getRenderBufferSpec());
+        if (this._deferredRendering)
+            this._buildDeferredRenderBuffer();
+    }
+
+    _buildDeferredRenderBuffer() {
+        const gl = this._gl;
         this._defferedRenderBuffer = new SingleBuffer(gl, this._getDeferredRenderBufferSpec());
+    }
+
+    _destroyDeferredRenderBuffer() {
+        const gl = this._gl;
+        this._defferedRenderBuffer.destroy();
+        this._defferedRenderBuffer = null;
     }
 
     _resetFrame() {}
@@ -435,11 +455,17 @@ class RCNRenderer extends AbstractRenderer {
             gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[2]);
             gl.activeTexture(gl.TEXTURE3);
             gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[3]);
+            gl.activeTexture(gl.TEXTURE4);
+            gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
+            gl.activeTexture(gl.TEXTURE5);
+            gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
 
             gl.uniform1i(program.uniforms.uPosition, 0);
             gl.uniform1i(program.uniforms.uDirectionAndTransmittance, 1);
             gl.uniform1i(program.uniforms.uDistanceTravelledAndSamples, 2);
             gl.uniform1i(program.uniforms.uRadianceAndDiffusion, 3);
+            gl.uniform1i(program.uniforms.uVolume, 4);
+            gl.uniform1i(program.uniforms.uTransferFunction, 5);
 
             gl.uniform1f(program.uniforms.uLayer, (currentDepth + 0.5) / dimensions.depth);
             // console.log(this._scattering, Math.floor(this._lightVolumeRatio))
@@ -528,10 +554,6 @@ class RCNRenderer extends AbstractRenderer {
         ]);
 
         gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-
-
-
-
     }
 
     _combineRenderFrame() {
@@ -692,5 +714,4 @@ class RCNRenderer extends AbstractRenderer {
             color
         ];
     }
-
 }

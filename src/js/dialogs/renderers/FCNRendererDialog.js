@@ -20,6 +20,8 @@ class FCNRendererDialog extends AbstractDialog {
         this._handleChangeResetLightField = this._handleChangeResetLightField.bind(this);
         this._handleChangeRatio = this._handleChangeRatio.bind(this);
         this._handleTFChange = this._handleTFChange.bind(this);
+        this._handleChangeDeferredRendering = this._handleChangeDeferredRendering.bind(this);
+        this._handleChangeDeNoise = this._handleChangeDeNoise.bind(this);
 
         this._binds.steps.addEventListener('input', this._handleChange);
         this._binds.opacity.addEventListener('input', this._handleChange);
@@ -29,8 +31,15 @@ class FCNRendererDialog extends AbstractDialog {
         this._binds.absorptionCoefficient.addEventListener('input', this._handleChange);
         this._binds.ratio.addEventListener('input', this._handleChangeRatio);
         this._binds.repeats.addEventListener('input', this._handleChangeResetLightField);
-        this._binds.convectionSteps.addEventListener('input', this._handleChangeResetLightField);
+        this._binds.convectionSteps.addEventListener('input', this._handleChange);
         this._binds.time_step.addEventListener('input', this._handleChange);
+
+        // Deferred Rendering and De-Noise
+        this._binds.deferred_enabled.addEventListener('change', this._handleChangeDeferredRendering);
+        this._binds.sd_enabled.addEventListener('change', this._handleChangeDeNoise);
+        this._binds.sd_sigma.addEventListener('input', this._handleChangeDeNoise);
+        this._binds.sd_ksigma.addEventListener('input', this._handleChangeDeNoise);
+        this._binds.sd_threshold.addEventListener('input', this._handleChangeDeNoise);
 
         this._tfwidget = new TransferFunctionWidget();
         this._binds.tfcontainer.add(this._tfwidget);
@@ -47,6 +56,11 @@ class FCNRendererDialog extends AbstractDialog {
         this._renderer._convectionSteps = this._binds.convectionSteps.getValue();
         this._renderer._lightVolumeRatio = this._binds.ratio.getValue();
 
+        this._renderer._deferredRendering = this._binds.deferred_enabled.isChecked();
+        this._renderer._smartDeNoise = this._binds.sd_enabled.isChecked();
+        this._renderer._smartDeNoiseSigma = this._binds.sd_sigma.getValue();
+        this._renderer._smartDeNoiseKSigma = this._binds.sd_ksigma.getValue();
+        this._renderer._smartDeNoiseThreshold = this._binds.sd_threshold.getValue();
     }
 
     destroy() {
@@ -59,7 +73,7 @@ class FCNRendererDialog extends AbstractDialog {
         this._renderer._alphaCorrection = this._binds.opacity.getValue();
         this._renderer._absorptionCoefficient = this._binds.absorptionCoefficient.getValue();
         this._renderer._timeStep = this._binds.time_step.getValue();
-
+        this._renderer._convectionSteps = this._binds.convectionSteps.getValue();
         this._renderer.reset();
     }
 
@@ -170,6 +184,22 @@ class FCNRendererDialog extends AbstractDialog {
         }
         // console.log(this._renderer._lightDefinitions)
         // this._renderer._lightDefinitions = lightDefinitions;
+    }
+
+    _handleChangeDeferredRendering() {
+        const deferredRendering = this._binds.deferred_enabled.isChecked();
+        if (deferredRendering && !this._renderer._defferedRenderBuffer)
+            this._renderer._buildDeferredRenderBuffer();
+        else if (!deferredRendering && this._renderer._deferredRendering)
+            this._renderer._destroyDeferredRenderBuffer();
+        this._renderer._deferredRendering = deferredRendering;
+    }
+
+    _handleChangeDeNoise() {
+        this._renderer._smartDeNoise = this._binds.sd_enabled.isChecked();
+        this._renderer._smartDeNoiseSigma = this._binds.sd_sigma.getValue();
+        this._renderer._smartDeNoiseKSigma = this._binds.sd_ksigma.getValue();
+        this._renderer._smartDeNoiseThreshold = this._binds.sd_threshold.getValue();
     }
 
     _handleTFChange() {

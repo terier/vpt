@@ -85,6 +85,17 @@
     },
     {
       "type": "field",
+      "label": "Deferred Rendering:",
+      "children": [
+        {
+          "type": "checkbox",
+          "bind": "deferred_enabled",
+          "checked": false
+        }
+      ]
+    },
+    {
+      "type": "field",
       "label": "Convections before diffusion:",
       "children": [
         {
@@ -107,6 +118,62 @@
           "min": 0,
           "max": 1,
           "step": 0.05
+        }
+      ]
+    },
+    {
+      "type": "accordion",
+      "label": "Smart De-Noise",
+      "children": [
+        {
+          "type": "field",
+          "label": "Enabled:",
+          "children": [
+            {
+              "type": "checkbox",
+              "bind": "sd_enabled",
+              "checked": true
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Sigma:",
+          "children": [
+            {
+              "type": "spinner",
+              "bind": "sd_sigma",
+              "value": 5,
+              "min": 0,
+              "step": 0.1
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "K Sigma:",
+          "children": [
+            {
+              "type": "spinner",
+              "bind": "sd_ksigma",
+              "value": 2,
+              "min": 0,
+              "step": 0.1
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "threshold:",
+          "children": [
+            {
+              "type": "spinner",
+              "bind": "sd_threshold",
+              "value": 0.1,
+              "min": 0,
+              "step": 0.001
+            }
+          ]
         }
       ]
     },

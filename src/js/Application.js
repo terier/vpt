@@ -73,6 +73,9 @@ constructor() {
 
     this._mainDialog.addEventListener('rendererchange', this._handleRendererChange);
     this._mainDialog.addEventListener('tonemapperchange', this._handleToneMapperChange);
+
+    // const lastRenderer = localStorage.getItem("vpt_renderer")
+    // if (lastRenderer)
     this._mainDialog.trigger('rendererchange', this._mainDialog.getSelectedRenderer());
     this._mainDialog.trigger('tonemapperchange', this._mainDialog.getSelectedToneMapper());
 }
