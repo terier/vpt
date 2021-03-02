@@ -54,7 +54,7 @@ in vec2 vPosition;
 layout (location = 0) out vec4 oEnergyDensity;
 layout (location = 1) out float oDiffusion;
 
-float convection(in float radiance, in float revAbsorption, in vec3 light,
+vec2 convection(in float radiance, in float baseAbsorption, in vec3 light,
                 in float left, in float right, in float down, in float up, in float back, in float forward) {
 
     float newRadiance = 0.0;
@@ -68,12 +68,13 @@ float convection(in float radiance, in float revAbsorption, in vec3 light,
     );
 
     float convection = -0.5 * dot(light, grad);
-    float absorption = -revAbsorption * radiance;
+    float absorption = -baseAbsorption * radiance;
 
-    return radiance + (convection + absorption) * uTimeStep;
+//    return radiance + (convection + absorption) * uTimeStep;
+    return vec2(convection, absorption);
 }
 
-float convectionPL(in float radiance, in float revAbsorption, in vec3 light, in vec3 position,
+vec2 convectionPL(in float radiance, in float baseAbsorption, in vec3 light, in vec3 position,
 in float left, in float right, in float down, in float up, in float back, in float forward) {
 
     float newRadiance = 0.0;
@@ -87,8 +88,9 @@ in float left, in float right, in float down, in float up, in float back, in flo
     );
 
     float convection = -0.5 * dot(light, grad);
-    float absorption = -revAbsorption * radiance;
-    return radiance + (convection + absorption) * uTimeStep;
+    float absorption = -baseAbsorption * radiance;
+//    return radiance + (convection + absorption) * uTimeStep;
+    return vec2(convection, absorption);
 }
 
 
@@ -108,7 +110,7 @@ void main() {
 
     float val = texture(uVolume, position).r;
     vec4 colorSample = texture(uTransferFunction, vec2(val, 0.5));
-    float absorption = colorSample.a * uAbsorptionCoefficient;
+    float baseAbsorption = colorSample.a * uAbsorptionCoefficient;
 
 //    float newRadiance = 0.0;
 
@@ -122,22 +124,30 @@ void main() {
     vec4 newRadiance = vec4(0);
     float total_convection = 0.0;
     float total_radiance = 0.0;
+    vec2 convectionAbsorption;
+    float denominator = baseAbsorption + 4.0 * uScattering;
 
     for (int i = 0; i < uNLights; i++) {
+        total_radiance += radiance[i];
         if (uLights[i].a < DIRECTIONAL) {
-            newRadiance[i] = convection(radiance[i], absorption, uLights[i].xyz,
+            convectionAbsorption = convection(radiance[i], baseAbsorption, uLights[i].xyz,
                 left[i], right[i], down[i], up[i], back[i], forward[i]);
         } else if (distance(position * uSize, uLights[i].xyz * uSize) <= 2.0) {
-            newRadiance[i] = radiance[i];
+            convectionAbsorption = vec2(radiance[i], 0);
         } else {
-            newRadiance[i] = convectionPL(radiance[i], absorption, uLights[i].xyz, position,
+            convectionAbsorption = convectionPL(radiance[i], baseAbsorption, uLights[i].xyz, position,
                 left[i], right[i], down[i], up[i], back[i], forward[i]);
         }
-        total_convection += newRadiance[i];
-        total_radiance += radiance[i];
+        float derivative = convectionAbsorption.x + convectionAbsorption.y;
+        float eulerRadiance = radiance[i] + derivative * uTimeStep;
+
+        float jacobiRadiance = (convectionAbsorption.x) / denominator;
+        float weightedJacobi = mix(radiance[i], jacobiRadiance, 0.1);
+//        weightedJacobi = 1.0 / 0.0;
+        newRadiance[i] = mix(eulerRadiance, weightedJacobi, 0.0);
     }
 
-    oEnergyDensity = vec4(newRadiance);
+    oEnergyDensity = newRadiance;
 
     float total_left    = componentSum(left) + texture(uDiffusion, position + vec3(-uStep.x,  0,  0)).r;
     float total_right   = componentSum(right) + texture(uDiffusion, position + vec3(uStep.x,  0,  0)).r;
@@ -151,6 +161,12 @@ void main() {
     float diffusion = colorSample.a * uScattering * laplace;
 //    float derivative = total_convection + diffusion;
 //    float eulerRadiance = total_radiance + derivative * uTimeStep;
+
+    // Jacobi relaxation
+//    float numerator = convection + diffusion + 4.0 * uScatteringScale * rc;
+//    float denominator = uAbsorptionScale * dc + 4.0 * uScatteringScale;
+//    float jacobiRadiance = numerator / denominator;
+//    float weightedJacobi = mix(rc, jacobiRadiance, uJacobiWeight);
 
     oDiffusion = diffusion * uTimeStep;
 }
