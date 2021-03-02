@@ -74,9 +74,14 @@ constructor() {
     this._mainDialog.addEventListener('rendererchange', this._handleRendererChange);
     this._mainDialog.addEventListener('tonemapperchange', this._handleToneMapperChange);
 
-    // const lastRenderer = localStorage.getItem("vpt_renderer")
-    // if (lastRenderer)
-    this._mainDialog.trigger('rendererchange', this._mainDialog.getSelectedRenderer());
+    const lastRenderer = localStorage.getItem("vpt_renderer");
+    if (lastRenderer) {
+        this._mainDialog.setSelectedRenderer(lastRenderer);
+        this._mainDialog.trigger('rendererchange', lastRenderer);
+    } else {
+        this._mainDialog.trigger('rendererchange', this._mainDialog.getSelectedRenderer());
+    }
+
     this._mainDialog.trigger('tonemapperchange', this._mainDialog.getSelectedToneMapper());
 }
 
@@ -109,7 +114,8 @@ _handleRendererChange(which) {
     const dialogClass = this._getDialogForRenderer(which);
     this._rendererDialog = new dialogClass(renderer);
     this._rendererDialog.appendTo(container);
-    
+    localStorage.setItem("vpt_renderer", which);
+
     this._handleLightsDialog();
 }
 
@@ -206,6 +212,7 @@ _getDialogForRenderer(renderer) {
         case 'fcn' : return FCNRendererDialog;
         case 'rcd' : return RCDRendererDialog;
         case 'rcn' : return RCNRendererDialog;
+        default    : return MIPRendererDialog;
     }
 }
 

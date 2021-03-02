@@ -42,6 +42,10 @@ getRenderingContextSettingsContainer() {
     return this._binds.renderingContextSettingsContainer;
 }
 
+setSelectedRenderer(which) {
+    return this._binds.rendererSelect.setValue(which);
+}
+
 getSelectedRenderer() {
     return this._binds.rendererSelect.getValue();
 }

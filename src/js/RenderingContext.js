@@ -300,7 +300,7 @@ _getRendererClass(renderer) {
         case 'fcn' : return FCNRenderer;
         case 'rcd' : return RCDRenderer;
         case 'rcn' : return RCNRenderer;
-        // default    :
+        default    : return MIPRenderer;
     }
 }
 
