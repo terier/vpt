@@ -64,6 +64,10 @@
                           "label": "Multiple scattering (compute)"
                         },
                         {
+                          "value": "mcd",
+                          "label": "Multiple scattering (lights)"
+                        },
+                        {
                           "value": "fcd",
                           "label": "Convection-Diffusion (compute)"
                         },

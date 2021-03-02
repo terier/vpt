@@ -212,6 +212,7 @@ _getDialogForRenderer(renderer) {
         case 'fcn' : return FCNRendererDialog;
         case 'rcd' : return RCDRendererDialog;
         case 'rcn' : return RCNRendererDialog;
+        case 'mcd' : return MCDRendererDialog;
         default    : return MIPRendererDialog;
     }
 }
