@@ -152,19 +152,17 @@ void main() {
         if (any(greaterThan(photon.position, vec3(1))) || any(lessThan(photon.position, vec3(0)))) {
             // out of bounds
             if (photon.done < 1u && !(all(equal(photon.transmittance, vec3(1.0))))) { //  && photon.bounces > 0u
-//                vec2 tbounds = intersectCube(photon.position, photon.direction);
-//                photon.position = photon.position + photon.direction * tbounds.y;
                 photon.position = prevPosition;
-                photon.done = 10u;
+                photon.done = 1u;
                 photon.direction = -normalize(photon.light);
                 photon.bounces = uMaxBounces + 10u;
             }
             else {
-                vec4 envSample = vec4(0.0);
-                if (any(lessThan(photon.position, vec3(0))) || all(equal(photon.transmittance, vec3(1.0)))) {
-                    envSample = vec4(1.0);
-                }
-                vec3 radiance = photon.transmittance * envSample.rgb;
+//                vec4 envSample = vec4(0.0);
+//                if (any(lessThan(photon.position, vec3(0))) || all(equal(photon.transmittance, vec3(1.0)))) {
+//                    envSample = vec4(1.0);
+//                }
+                vec3 radiance = photon.transmittance;  //* envSample.rgb;
                 photon.samples++;
                 photon.radiance += (radiance - photon.radiance) / float(photon.samples);
                 if (length(photon.radiance) > 10.0) {
@@ -172,15 +170,22 @@ void main() {
                 }
                 resetPhoton(r, photon);
             }
-//             SIMPLE
-//            vec4 envSample = vec4(0.0);
-//            if (any(lessThan(photon.position, vec3(0))) || all(equal(photon.transmittance, vec3(1.0)))) {
-//                envSample = vec4(1.0);
+//            if (photon.done < 1u && !(all(equal(photon.transmittance, vec3(1.0))))) { //
+//                vec3 radiance = vec3(0.0);
+//                photon.samples++;
+//                photon.radiance += (radiance - photon.radiance) / float(photon.samples);
+//                resetPhoton(r, photon);
 //            }
-//            vec3 radiance = photon.transmittance * envSample.rgb;
-//            photon.samples++;
-//            photon.radiance += (radiance - photon.radiance) / float(photon.samples);
-//            resetPhoton(r, photon);
+//            else {
+////                vec4 envSample = vec4(0.0);
+////                if (any(lessThan(photon.position, vec3(0))) || all(equal(photon.transmittance, vec3(1.0)))) {
+////                    envSample = vec4(1.0);
+////                }
+//                vec3 radiance = photon.transmittance;
+//                photon.samples++;
+//                photon.radiance += (radiance - photon.radiance) / float(photon.samples);
+//                resetPhoton(r, photon);
+//            }
         } else if (photon.bounces >= uMaxBounces) {
             // max bounces achieved -> only estimate transmittance
             float weightAS = (muAbsorption + muScattering) / uMajorant;
@@ -189,13 +194,23 @@ void main() {
             // absorption
             float weightA = muAbsorption / (uMajorant * PAbsorption);
             photon.transmittance *= 1.0 - weightA;
-        } else if (r.y < PAbsorption + PScattering ) {
+        } else if (r.y < PAbsorption + PScattering) {
             // scattering
             r = rand(r);
             float weightS = muScattering / (uMajorant * PScattering);
             photon.transmittance *= volumeSample.rgb * weightS;
             photon.direction = sampleHenyeyGreenstein(uScatteringBias, r, photon.direction);
             photon.bounces++;
+            r = rand(r);
+            if (r.x < 0.05 || photon.bounces >= uMaxBounces) {
+                photon.done = 1u;
+                photon.direction = -normalize(photon.light);
+                photon.bounces = uMaxBounces + 10u;
+//                photon.transmittance /= 1.0 - 0.05;
+            }
+//            else {
+//                photon.transmittance /= 0.05;
+//            }
         } else {
             // null collision
             float weightN = muNull / (uMajorant * PNull);

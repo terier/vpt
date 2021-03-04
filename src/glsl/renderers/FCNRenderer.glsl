@@ -145,8 +145,10 @@ void main() {
 
         float jacobiRadiance = (convectionAbsorption.x) / denominator;
         float weightedJacobi = mix(radiance[i], jacobiRadiance, 0.1);
-//        weightedJacobi = 1.0 / 0.0;
         newRadiance[i] = mix(eulerRadiance, weightedJacobi, 0.0);
+//        if (isinf(weightedJacobi)) {
+//            newRadiance[i] = 0.5;
+//        }
     }
 
     oEnergyDensity = newRadiance;
