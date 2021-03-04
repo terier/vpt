@@ -47,6 +47,8 @@ uniform float uRatio;
 uniform float uLayer;
 uniform float uScattering;
 uniform float uTimeStep;
+uniform float uJacobiWeight;
+uniform float uEulerJacobiMix;
 uniform vec4 uLights[4];
 
 in vec2 vPosition;
@@ -142,9 +144,9 @@ void main() {
         float eulerRadiance = radiance[i] + derivative * uTimeStep;
 
         float jacobiRadiance = (convectionAbsorption.x) / denominator;
-        float weightedJacobi = mix(radiance[i], jacobiRadiance, 0.1);
+        float weightedJacobi = mix(radiance[i], jacobiRadiance, uJacobiWeight);
 //        weightedJacobi = 1.0 / 0.0;
-        newRadiance[i] = mix(eulerRadiance, weightedJacobi, 0.0);
+        newRadiance[i] = mix(eulerRadiance, weightedJacobi, uEulerJacobiMix);
     }
 
     oEnergyDensity = newRadiance;

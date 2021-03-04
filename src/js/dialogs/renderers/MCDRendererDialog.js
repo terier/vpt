@@ -15,6 +15,7 @@ class MCDRendererDialog extends AbstractDialog {
 
         this._handleChange = this._handleChange.bind(this);
         this._handleTFChange = this._handleTFChange.bind(this);
+        this._handleChangeLights = this._handleChangeLights.bind(this);
 
         this._binds.extinction.addEventListener('input', this._handleChange);
         this._binds.albedo.addEventListener('change', this._handleChange);
@@ -78,15 +79,14 @@ class MCDRendererDialog extends AbstractDialog {
                 light.enabled
             )
             renderer._lightDefinitions[i] = lightDefinition;
-            if (renderer._volumeDimensions &&
-                lightDefinition.isOrWasEnabled(oldLightDefinition) &&
+            if (lightDefinition.isOrWasEnabled(oldLightDefinition) &&
                 lightDefinition.hasChanged(oldLightDefinition)) {
                 doReset = true;
             }
         }
         if (doReset) {
             this._renderer._setLightTexture();
-            this._renderer._resetPhotons();
+            this._renderer._resetFrame();
         }
     }
 }

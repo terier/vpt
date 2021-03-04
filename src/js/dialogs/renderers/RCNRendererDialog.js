@@ -20,7 +20,7 @@ class RCNRendererDialog extends AbstractDialog {
         this._handleChangeResetLightField = this._handleChangeResetLightField.bind(this);
         this._handleChangeRatio = this._handleChangeRatio.bind(this);
         this._handleTFChange = this._handleTFChange.bind(this);
-        // this._handleChangeLights = this._handleChangeLights.bind(this);
+        this._handleChangeLights = this._handleChangeLights.bind(this);
         this._handleChangeResetLightFieldMC = this._handleChangeResetLightFieldMC.bind(this);
         this._handleChangeSlowdown = this._handleChangeSlowdown.bind(this);
         this._handleChangeDeferredRendering = this._handleChangeDeferredRendering.bind(this);

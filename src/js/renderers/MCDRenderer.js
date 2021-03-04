@@ -31,6 +31,12 @@ class MCDRenderer extends AbstractRenderer {
         ]
     }
 
+    setVolume(volume) {
+        this._volume = volume;
+        this._setLightTexture();
+        this.reset();
+    }
+
     _setLightTexture() {
         const gl = this._gl;
         if (this._lightsTexture && gl.isTexture(this._lightsTexture)) {
@@ -84,6 +90,11 @@ class MCDRenderer extends AbstractRenderer {
         const program = this._programs.reset;
         gl.useProgram(program.program);
 
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this._lightsTexture);
+
+        gl.uniform1i(program.uniforms.uLights, 0);
+
         gl.uniformMatrix4fv(program.uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
         gl.uniform2f(program.uniforms.uInverseResolution, 1 / this._bufferSize, 1 / this._bufferSize);
         gl.uniform1f(program.uniforms.uRandSeed, Math.random());
@@ -93,7 +104,8 @@ class MCDRenderer extends AbstractRenderer {
             gl.COLOR_ATTACHMENT0,
             gl.COLOR_ATTACHMENT1,
             gl.COLOR_ATTACHMENT2,
-            gl.COLOR_ATTACHMENT3
+            gl.COLOR_ATTACHMENT3,
+            gl.COLOR_ATTACHMENT4
         ]);
 
         gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
@@ -116,22 +128,25 @@ class MCDRenderer extends AbstractRenderer {
         gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[2]);
         gl.activeTexture(gl.TEXTURE3);
         gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[3]);
-
         gl.activeTexture(gl.TEXTURE4);
-        gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
+        gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[4]);
+
         gl.activeTexture(gl.TEXTURE5);
-        gl.bindTexture(gl.TEXTURE_2D, this._environmentTexture);
+        gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
         gl.activeTexture(gl.TEXTURE6);
+        gl.bindTexture(gl.TEXTURE_2D, this._lightsTexture);
+        gl.activeTexture(gl.TEXTURE7);
         gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
 
         gl.uniform1i(program.uniforms.uPosition, 0);
         gl.uniform1i(program.uniforms.uDirection, 1);
         gl.uniform1i(program.uniforms.uTransmittance, 2);
         gl.uniform1i(program.uniforms.uRadiance, 3);
+        gl.uniform1i(program.uniforms.uLightDirection, 4);
 
-        gl.uniform1i(program.uniforms.uVolume, 4);
-        gl.uniform1i(program.uniforms.uEnvironment, 5);
-        gl.uniform1i(program.uniforms.uTransferFunction, 6);
+        gl.uniform1i(program.uniforms.uVolume, 5);
+        gl.uniform1i(program.uniforms.uLights, 6);
+        gl.uniform1i(program.uniforms.uTransferFunction, 7);
 
         gl.uniformMatrix4fv(program.uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
         gl.uniform2f(program.uniforms.uInverseResolution, 1 / this._bufferSize, 1 / this._bufferSize);
@@ -149,7 +164,8 @@ class MCDRenderer extends AbstractRenderer {
             gl.COLOR_ATTACHMENT0,
             gl.COLOR_ATTACHMENT1,
             gl.COLOR_ATTACHMENT2,
-            gl.COLOR_ATTACHMENT3
+            gl.COLOR_ATTACHMENT3,
+            gl.COLOR_ATTACHMENT4
         ]);
 
         gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
@@ -225,11 +241,22 @@ class MCDRenderer extends AbstractRenderer {
             type           : gl.FLOAT
         };
 
+        const lightDirBufferSpec = {
+            width          : this._bufferSize,
+            height         : this._bufferSize,
+            min            : gl.NEAREST,
+            mag            : gl.NEAREST,
+            format         : gl.RGBA,
+            internalFormat : gl.RGBA32F,
+            type           : gl.FLOAT
+        };
+
         return [
             positionBufferSpec,
             directionBufferSpec,
             transmittanceBufferSpec,
-            radianceBufferSpec
+            radianceBufferSpec,
+            lightDirBufferSpec
         ];
     }
 

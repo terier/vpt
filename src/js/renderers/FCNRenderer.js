@@ -23,6 +23,8 @@ class FCNRenderer extends AbstractRenderer {
             _localSizeZ                 : 4,
             _timer                      : 0,
             _timeStep                   : 0.1,
+            _jacobiWeight               : 0.1,
+            _eulerJacobiMix             : 0.0,
             // Deferred Rendering
             _deferredRendering          : true,
             _smartDeNoise               : true,
