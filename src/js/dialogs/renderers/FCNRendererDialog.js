@@ -33,6 +33,8 @@ class FCNRendererDialog extends AbstractDialog {
         this._binds.repeats.addEventListener('input', this._handleChangeResetLightField);
         this._binds.convectionSteps.addEventListener('input', this._handleChange);
         this._binds.time_step.addEventListener('input', this._handleChange);
+        this._binds.jacobi_weight.addEventListener('change', this._handleChangeResetLightField);
+        this._binds.euler_jacobi_mix.addEventListener('change', this._handleChangeResetLightField);
 
         // Deferred Rendering and De-Noise
         this._binds.deferred_enabled.addEventListener('change', this._handleChangeDeferredRendering);
@@ -56,6 +58,9 @@ class FCNRendererDialog extends AbstractDialog {
         this._renderer._convectionSteps = this._binds.convectionSteps.getValue();
         this._renderer._lightVolumeRatio = this._binds.ratio.getValue();
 
+        this._renderer._jacobiWeight = this._binds.jacobi_weight.getValue();
+        this._renderer._eulerJacobiMix = this._binds.euler_jacobi_mix.getValue();
+
         this._renderer._deferredRendering = this._binds.deferred_enabled.isChecked();
         this._renderer._smartDeNoise = this._binds.sd_enabled.isChecked();
         this._renderer._smartDeNoiseSigma = this._binds.sd_sigma.getValue();
@@ -74,6 +79,9 @@ class FCNRendererDialog extends AbstractDialog {
         this._renderer._absorptionCoefficient = this._binds.absorptionCoefficient.getValue();
         this._renderer._timeStep = this._binds.time_step.getValue();
         this._renderer._convectionSteps = this._binds.convectionSteps.getValue();
+
+        this._renderer._jacobiWeight = this._binds.jacobi_weight.getValue();
+        this._renderer._eulerJacobiMix = this._binds.euler_jacobi_mix.getValue();
         this._renderer.reset();
     }
 
@@ -89,6 +97,9 @@ class FCNRendererDialog extends AbstractDialog {
     _handleChangeResetLightField() {
         this._renderer._convectionLimit = this._binds.repeats.getValue();
         this._renderer._convectionSteps = this._binds.convectionSteps.getValue();
+
+        this._renderer._jacobiWeight = this._binds.jacobi_weight.getValue();
+        this._renderer._eulerJacobiMix = this._binds.euler_jacobi_mix.getValue();
         if (this._renderer._volumeDimensions) {
             this._renderer._resetLightVolume();
         }

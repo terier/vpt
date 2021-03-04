@@ -284,6 +284,8 @@ class FCNRenderer extends AbstractRenderer {
             gl.uniform1f(program.uniforms.uLayer, (i + 0.5) / this._lightVolumeDimensions.depth);
             gl.uniform1f(program.uniforms.uScattering, this._scattering);
             gl.uniform1f(program.uniforms.uTimeStep, this._timeStep);
+            gl.uniform1f(program.uniforms.uJacobiWeight, this._jacobiWeight);
+            gl.uniform1f(program.uniforms.uEulerJacobiMix, this._eulerJacobiMix);
 
             gl.uniform3f(program.uniforms.uStep, 1 / dimensions.width, 1 / dimensions.height, 1 / dimensions.depth);
 

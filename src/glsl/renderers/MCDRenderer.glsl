@@ -137,6 +137,7 @@ void main() {
     for (uint i = 0u; i < uSteps; i++) {
         r = rand(r);
         float t = -log(r.x) / uMajorant;
+        vec3 prevPosition = photon.position;
         photon.position += t * photon.direction;
 
         vec4 volumeSample = sampleVolumeColor(photon.position);
@@ -151,8 +152,9 @@ void main() {
         if (any(greaterThan(photon.position, vec3(1))) || any(lessThan(photon.position, vec3(0)))) {
             // out of bounds
             if (photon.done < 1u && !(all(equal(photon.transmittance, vec3(1.0))))) { //  && photon.bounces > 0u
-                vec2 tbounds = intersectCube(photon.position, photon.direction);
-                photon.position = photon.position + photon.direction * tbounds.y;
+//                vec2 tbounds = intersectCube(photon.position, photon.direction);
+//                photon.position = photon.position + photon.direction * tbounds.y;
+                photon.position = prevPosition;
                 photon.done = 10u;
                 photon.direction = -normalize(photon.light);
                 photon.bounces = uMaxBounces + 10u;
@@ -165,9 +167,12 @@ void main() {
                 vec3 radiance = photon.transmittance * envSample.rgb;
                 photon.samples++;
                 photon.radiance += (radiance - photon.radiance) / float(photon.samples);
+                if (length(photon.radiance) > 10.0) {
+                    photon.radiance = vec3(1.0, 0.0, 1.0);
+                }
                 resetPhoton(r, photon);
             }
-            // SIMPLE
+//             SIMPLE
 //            vec4 envSample = vec4(0.0);
 //            if (any(lessThan(photon.position, vec3(0))) || all(equal(photon.transmittance, vec3(1.0)))) {
 //                envSample = vec4(1.0);
