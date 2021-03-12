@@ -63,6 +63,8 @@ vec2 convection(in float radiance, in float baseAbsorption, in vec3 light,
 
     light = normalize(light);
 
+//    vec3 grad = 0.5 * vec3(right - left, up - down, forward - back);
+
     vec3 grad = vec3(
         light.x < 0.0 ? right - radiance : radiance - left,
         light.y < 0.0 ? up - radiance : radiance - down,
@@ -127,7 +129,23 @@ void main() {
     float total_convection = 0.0;
     float total_radiance = 0.0;
     vec2 convectionAbsorption;
-    float denominator = baseAbsorption + 4.0 * uScattering;
+    float denominator = baseAbsorption + 6.0 * uScattering;
+
+
+
+    float total_left    = componentSum(left) + texture(uDiffusion, position + vec3(-uStep.x,  0,  0)).r;
+    float total_right   = componentSum(right) + texture(uDiffusion, position + vec3(uStep.x,  0,  0)).r;
+    float total_down    = componentSum(down) + texture(uDiffusion, position + vec3( 0, -uStep.y,  0)).r;
+    float total_up      = componentSum(up) + texture(uDiffusion, position + vec3( 0,  uStep.y,  0)).r;
+    float total_back    = componentSum(back) + texture(uDiffusion, position + vec3( 0, 0, -uStep.z)).r;
+    float total_forward = componentSum(forward) + texture(uDiffusion, position + vec3( 0,  0, uStep.z)).r;
+
+    float laplace = total_left + total_right + total_down + total_up + total_back + total_forward - 6.0 * componentSum(radiance);
+
+    float diffusion = colorSample.a * uScattering * laplace;
+
+
+
 
     for (int i = 0; i < uNLights; i++) {
         total_radiance += radiance[i];
@@ -141,11 +159,11 @@ void main() {
                 left[i], right[i], down[i], up[i], back[i], forward[i]);
         }
         float derivative = convectionAbsorption.x + convectionAbsorption.y;
-        float eulerRadiance = radiance[i] + derivative * uTimeStep;
+        float eulerRadiance = radiance[i] + (derivative + diffusion) * uTimeStep;
 
-        float jacobiRadiance = (convectionAbsorption.x) / denominator;
-        float weightedJacobi = mix(radiance[i], jacobiRadiance, 0.1);
-        newRadiance[i] = mix(eulerRadiance, weightedJacobi, 0.0);
+        float jacobiRadiance = (convectionAbsorption.x + diffusion + 6.0 * uScattering * radiance[i]) / (denominator);
+        float weightedJacobi = mix(radiance[i], jacobiRadiance, uJacobiWeight);
+        newRadiance[i] = mix(eulerRadiance, weightedJacobi, uEulerJacobiMix);
 //        if (isinf(weightedJacobi)) {
 //            newRadiance[i] = 0.5;
 //        }
@@ -153,16 +171,18 @@ void main() {
 
     oEnergyDensity = newRadiance;
 
-    float total_left    = componentSum(left) + texture(uDiffusion, position + vec3(-uStep.x,  0,  0)).r;
-    float total_right   = componentSum(right) + texture(uDiffusion, position + vec3(uStep.x,  0,  0)).r;
-    float total_down    = componentSum(down) + texture(uDiffusion, position + vec3( 0, -uStep.y,  0)).r;
-    float total_up      = componentSum(up) + texture(uDiffusion, position + vec3( 0,  uStep.y,  0)).r;
-    float total_back    = componentSum(back) + texture(uDiffusion, position + vec3( 0, 0, -uStep.z)).r;
-    float total_forward = componentSum(forward) + texture(uDiffusion, position + vec3( 0,  0, uStep.z)).r;
+//    float total_left    = componentSum(left) + texture(uDiffusion, position + vec3(-uStep.x,  0,  0)).r;
+//    float total_right   = componentSum(right) + texture(uDiffusion, position + vec3(uStep.x,  0,  0)).r;
+//    float total_down    = componentSum(down) + texture(uDiffusion, position + vec3( 0, -uStep.y,  0)).r;
+//    float total_up      = componentSum(up) + texture(uDiffusion, position + vec3( 0,  uStep.y,  0)).r;
+//    float total_back    = componentSum(back) + texture(uDiffusion, position + vec3( 0, 0, -uStep.z)).r;
+//    float total_forward = componentSum(forward) + texture(uDiffusion, position + vec3( 0,  0, uStep.z)).r;
+//
+//    float laplace = total_left + total_right + total_down + total_up + total_back + total_forward - 6.0 * total_radiance;
+//
+//    float diffusion = colorSample.a * uScattering * laplace;
 
-    float laplace = total_left + total_right + total_down + total_up + total_back + total_forward - 6.0 * total_radiance;
 
-    float diffusion = colorSample.a * uScattering * laplace;
 //    float derivative = total_convection + diffusion;
 //    float eulerRadiance = total_radiance + derivative * uTimeStep;
 
@@ -172,7 +192,8 @@ void main() {
 //    float jacobiRadiance = numerator / denominator;
 //    float weightedJacobi = mix(rc, jacobiRadiance, uJacobiWeight);
 
-    oDiffusion = diffusion * uTimeStep;
+//    oDiffusion = diffusion * uTimeStep;
+    oDiffusion = 0.0;
 }
 
 // #section FCNRender/vertex

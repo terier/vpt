@@ -33,8 +33,8 @@ class FCNRendererDialog extends AbstractDialog {
         this._binds.repeats.addEventListener('input', this._handleChangeResetLightField);
         this._binds.convectionSteps.addEventListener('input', this._handleChange);
         this._binds.time_step.addEventListener('input', this._handleChange);
-        this._binds.jacobi_weight.addEventListener('change', this._handleChangeResetLightField);
-        this._binds.euler_jacobi_mix.addEventListener('change', this._handleChangeResetLightField);
+        this._binds.jacobi_weight.addEventListener('change', this._handleChange);
+        this._binds.euler_jacobi_mix.addEventListener('change', this._handleChange);
 
         // Deferred Rendering and De-Noise
         this._binds.deferred_enabled.addEventListener('change', this._handleChangeDeferredRendering);
