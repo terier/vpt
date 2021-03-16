@@ -195,6 +195,7 @@ layout (location = 3) out vec2 oRadianceAndDiffusion;
 
 void main() {
     vec3 position = vec3(vPosition, uLayer);
+    ivec3 positionTexel = ivec3(position * uSize);
     vec4 radianceAndDiffusion = texture(uRadianceAndDiffusion, position);
     if (position.x < uStep.x || position.y < uStep.y || position.z < uStep.z ||
     position.x > 1.0 - uStep.x || position.y > 1.0 - uStep.y || position.z > 1.0 - uStep.z) {
@@ -205,27 +206,39 @@ void main() {
         return;
     }
 
-    float val = texture(uVolume, position).r;
-    vec4 colorSample = texture(uTransferFunction, vec2(val, 0.5));
-    float absorption = colorSample.a * uAbsorptionCoefficient;
+//    float val = texture(uVolume, position).r;
+//    vec4 colorSample = texture(uTransferFunction, vec2(val, 0.5));
+//    float absorption = colorSample.a * uAbsorptionCoefficient;
 
     float radiance = radianceAndDiffusion.x;
     float totalRadiance = radianceAndDiffusion.x + radianceAndDiffusion.y;
 
-    vec4 left      = texture(uRadianceAndDiffusion, position + vec3(-uStep.x,  0,  0));
-    vec4 right     = texture(uRadianceAndDiffusion, position + vec3( uStep.x,  0,  0));
-    vec4 down      = texture(uRadianceAndDiffusion, position + vec3( 0, -uStep.y,  0));
-    vec4 up        = texture(uRadianceAndDiffusion, position + vec3( 0,  uStep.y,  0));
-    vec4 back      = texture(uRadianceAndDiffusion, position + vec3( 0, 0, -uStep.z));
-    vec4 forward   = texture(uRadianceAndDiffusion, position + vec3( 0,  0, uStep.z));
+//    vec4 left      = texture(uRadianceAndDiffusion, position + vec3(-uStep.x,  0,  0));
+//    vec4 right     = texture(uRadianceAndDiffusion, position + vec3( uStep.x,  0,  0));
+//    vec4 down      = texture(uRadianceAndDiffusion, position + vec3( 0, -uStep.y,  0));
+//    vec4 up        = texture(uRadianceAndDiffusion, position + vec3( 0,  uStep.y,  0));
+//    vec4 back      = texture(uRadianceAndDiffusion, position + vec3( 0, 0, -uStep.z));
+//    vec4 forward   = texture(uRadianceAndDiffusion, position + vec3( 0,  0, uStep.z));
+
+    vec4 left      = texelFetch(uRadianceAndDiffusion, positionTexel + ivec3(-1,  0,  0), 0);
+    vec4 right     = texelFetch(uRadianceAndDiffusion, positionTexel + ivec3( 1,  0,  0), 0);
+    vec4 down      = texelFetch(uRadianceAndDiffusion, positionTexel + ivec3( 0, -1,  0), 0);
+    vec4 up        = texelFetch(uRadianceAndDiffusion, positionTexel + ivec3( 0,  1,  0), 0);
+    vec4 back      = texelFetch(uRadianceAndDiffusion, positionTexel + ivec3( 0,  0, -1), 0);
+    vec4 forward   = texelFetch(uRadianceAndDiffusion, positionTexel + ivec3( 0,  0,  1), 0);
 
     float laplace = left.r + left.g + right.r + right.g +
                     down.r + down.g + up.r + up.g +
                     back.r + back.g + forward.r + forward.g -
                     6.0 * totalRadiance;
 
-//    float delta = 0.4 * laplace * totalRadiance * uScattering / uRatio;
-    float delta = (colorSample.a * laplace * uScattering) * 0.1; // radianceAndDiffusion.r +
+    float delta = laplace * totalRadiance * uScattering / uRatio;
+//    float delta = (left.r + left.g + right.r + right.g +
+//                    down.r + down.g + up.r + up.g +
+//                    back.r + back.g + forward.r + forward.g) / 6.0;
+
+
+//    float delta = (colorSample.a * laplace * uScattering) * 0.1; // radianceAndDiffusion.r +
 //    float delta = (laplace * uScattering) * 0.2;
 
     oPosition = texture(uPosition, position);
@@ -302,7 +315,7 @@ void main() {
             val = texture(uVolume, pos).r;
 
             radianceAndDiffusion = texture(uRadianceAndDiffusion, pos);
-            energyDensity = radianceAndDiffusion.r + radianceAndDiffusion.g;
+            energyDensity = radianceAndDiffusion.g; // radianceAndDiffusion.r +
 
 //            energyDensity = radianceAndDiffusion.g;
 //            if (isnan(energyDensity))

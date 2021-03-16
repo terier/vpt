@@ -249,15 +249,15 @@ void main() {
         float right     = imageLoad(uEnergyDensityRead, position + ivec3( 1,  0,  0)).r;
         float down      = imageLoad(uEnergyDensityRead, position + ivec3( 0, -1,  0)).r;
         float up        = imageLoad(uEnergyDensityRead, position + ivec3( 0,  1,  0)).r;
-        float back      = imageLoad(uEnergyDensityRead, position + ivec3( 0, 0, -1)).r;
-        float forward   = imageLoad(uEnergyDensityRead, position + ivec3( 0,  0, 1)).r;
+        float back      = imageLoad(uEnergyDensityRead, position + ivec3( 0,  0, -1)).r;
+        float forward   = imageLoad(uEnergyDensityRead, position + ivec3( 0,  0,  1)).r;
 
         left      += imageLoad(uEnergyDensityDiffusionRead, position + ivec3(-1,  0,  0)).r;
         right     += imageLoad(uEnergyDensityDiffusionRead, position + ivec3( 1,  0,  0)).r;
         down      += imageLoad(uEnergyDensityDiffusionRead, position + ivec3( 0, -1,  0)).r;
         up        += imageLoad(uEnergyDensityDiffusionRead, position + ivec3( 0,  1,  0)).r;
-        back      += imageLoad(uEnergyDensityDiffusionRead, position + ivec3( 0, 0, -1)).r;
-        forward   += imageLoad(uEnergyDensityDiffusionRead, position + ivec3( 0,  0, 1)).r;
+        back      += imageLoad(uEnergyDensityDiffusionRead, position + ivec3( 0,  0, -1)).r;
+        forward   += imageLoad(uEnergyDensityDiffusionRead, position + ivec3( 0,  0,  1)).r;
 
         float laplace = left + right + down + up + back + forward - 6.0 * radiance;
 
