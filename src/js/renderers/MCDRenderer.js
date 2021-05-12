@@ -9,12 +9,12 @@ class MCDRenderer extends AbstractRenderer {
         super(gl, volume, environmentTexture, options);
 
         Object.assign(this, {
-            absorptionCoefficient : 1,
-            scatteringCoefficient : 1,
+            absorptionCoefficient : 80, // 1
+            scatteringCoefficient : 20, // 1
             scatteringBias        : 0,
-            majorant              : 2,
-            maxBounces            : 8,
-            steps                 : 1,
+            majorant              : 100, // 2
+            maxBounces            : 80, // 8
+            steps                 : 20, // 1
             _nActiveLights        : 0
         }, options);
 
