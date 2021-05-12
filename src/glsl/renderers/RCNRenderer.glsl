@@ -315,7 +315,7 @@ void main() {
             val = texture(uVolume, pos).r;
 
             radianceAndDiffusion = texture(uRadianceAndDiffusion, pos);
-            energyDensity = radianceAndDiffusion.g; // radianceAndDiffusion.r +
+            energyDensity = radianceAndDiffusion.r + radianceAndDiffusion.g;
 
 //            energyDensity = radianceAndDiffusion.g;
 //            if (isnan(energyDensity))
