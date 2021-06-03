@@ -97,7 +97,8 @@ void main() {
         if (photon.travelled >= photon.distance ||
             any(greaterThan(photon.position, vec3(1))) || any(lessThan(photon.position, vec3(0)))) {
             // out of bounds
-            float radiance = photon.transmittance;
+//            float radiance = photon.transmittance;
+            float radiance = photon.transmittance * float(lights.length());
             photon.samples++;
             photon.radiance += (radiance - photon.radiance) / float(photon.samples);
             imageStore(uEnergyDensityWrite, ivec3(gl_GlobalInvocationID), vec4(photon.radiance));

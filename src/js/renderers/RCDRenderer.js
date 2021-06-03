@@ -98,6 +98,7 @@ class RCDRenderer extends AbstractRenderer {
             Math.ceil(dimensions.width / this._localSizeX) * this._localSizeX *
             Math.ceil(dimensions.height / this._localSizeY) * this._localSizeY *
             Math.ceil(dimensions.depth / this._localSizeZ) * this._localSizeZ;
+        console.log(bufferSize)
         this._photonBuffer = gl.createBuffer();
         gl.bindBuffer(gl.SHADER_STORAGE_BUFFER, this._photonBuffer);
         gl.bindBufferBase(gl.SHADER_STORAGE_BUFFER, 0, this._photonBuffer);
@@ -374,16 +375,26 @@ class RCDRenderer extends AbstractRenderer {
 
     _generateFrame() {
         const gl = this._gl;
-        if (this._limit !== 0 && this.counter === 0) {
-            this._timer = new Date().getTime();
+        if (this._limit !== 0) {
+            if (this.counter === 0) {
+                this.counter += Math.floor(this._steps);
+                this._timer = new Date().getTime();
+            }
+            else if (this.counter < this._limit) {
+                this.counter += Math.floor(this._steps);
+                console.log("Counter:", this.counter);
+            }
+            else {
+                return
+            }
         }
-        if (this._type === 0 && (this._limit === 0 || this.counter < this._limit)) {
+
+        if (this._type === 0) { //  && (this._limit === 0 || this.counter < this._limit)
             this._monteCarlo();
             //gl.flush();
-            this.counter += Math.floor(this._steps);
-            if (this.counter === this._limit) {
-                console.log("Done!", new Date().getTime() - this._timer)
-            }
+            // if (this._limit !== 0 && this.counter === this._limit) {
+            //     console.log("Done!", new Date().getTime() - this._timer)
+            // }
             // else {
             //     console.log(this.counter)
             // }

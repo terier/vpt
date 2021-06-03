@@ -17,7 +17,7 @@ constructor(options) {
     this._webglcontextrestoredHandler = this._webglcontextrestoredHandler.bind(this);
 
     Object.assign(this, {
-        _resolution : 512,
+        _resolution : 1024,
         _filter     : 'linear'
     }, options);
 

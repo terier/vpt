@@ -38,7 +38,7 @@
         {
           "type": "spinner",
           "bind": "convectionSteps",
-          "value": 5,
+          "value": 1,
           "min": 0,
           "step": 1
         }
@@ -93,6 +93,19 @@
           "value": 0,
           "min": 0,
           "step": 1
+        }
+      ]
+    },
+    {
+      "type": "field",
+      "label": "Iterations:",
+      "children": [
+        {
+          "type": "spinner",
+          "bind": "limit",
+          "value": 0,
+          "min": 0,
+          "step": 10
         }
       ]
     },
