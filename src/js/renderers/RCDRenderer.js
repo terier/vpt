@@ -383,6 +383,8 @@ class RCDRenderer extends AbstractRenderer {
             else if (this.counter < this._limit) {
                 this.counter += Math.floor(this._steps);
                 console.log("Counter:", this.counter);
+                if (this.counter === this._limit)
+                    console.log("Done!", new Date().getTime() - this._timer)
             }
             else {
                 return

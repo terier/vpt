@@ -283,6 +283,8 @@ class FCDRenderer extends AbstractRenderer {
                 return
             this.counter += Math.floor(this._convectionSteps);
             console.log("Counter:", this.counter)
+            if (this.counter === this._limit)
+                console.log("Done!", new Date().getTime() - this._timer)
         }
         if (this._convectionLimit === 0) {
             this._convection();
