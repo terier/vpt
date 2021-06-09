@@ -36,10 +36,10 @@ constructor(options) {
     this._cameraController = new OrbitCameraController(this._camera, this._canvas);
 
     this._volume = new Volume(this._gl);
-    // this._scale = new Vector(1, 1, 1);
-    this._scale = new Vector(1, 1, 0.5); // Hardcoded, couse why not
-    // this._translation = new Vector(0, 0, 0);
-    this._translation = new Vector(0, 0, 1.3);
+    this._scale = new Vector(1, 1, 1);
+    // this._scale = new Vector(1, 1, 0.5); // Hardcoded, couse why not
+    this._translation = new Vector(0, 0, 0);
+    // this._translation = new Vector(0, 0, 1.3);
 
     this._isTransformationDirty = true;
     this._updateMvpInverseMatrix();

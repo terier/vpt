@@ -207,7 +207,6 @@ void main() {
                 photon.done = 1u;
                 photon.direction = -normalize(photon.light);
                 photon.bounces = uMaxBounces + 10u;
-//                photon.transmittance /= 1.0 - 0.05;
             }
 //            else {
 //                photon.transmittance /= 0.05;

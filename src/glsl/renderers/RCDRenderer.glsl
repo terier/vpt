@@ -60,8 +60,8 @@ void resetPhoton(vec2 randState, inout PhotonRCD photon) {
 
 vec4 sampleVolumeColor(vec3 position) {
     vec2 volumeSample = texture(uVolume, position).rg;
-//    vec4 transferSample = texture(uTransferFunction, volumeSample);
-    vec4 transferSample = texture(uTransferFunction, vec2(volumeSample.r, 0.5));
+    vec4 transferSample = texture(uTransferFunction, volumeSample);
+//    vec4 transferSample = texture(uTransferFunction, vec2(volumeSample.r, 0.5));
     return transferSample;
 }
 
@@ -190,8 +190,10 @@ uniform mediump sampler3D uVolume;
 uniform mediump sampler2D uTransferFunction;
 
 vec4 sampleVolumeColor(vec3 position) {
-    float volumeSample = texture(uVolume, position).r;
-    vec4 transferSample = texture(uTransferFunction, vec2(volumeSample, 0.5));
+//    float volumeSample = texture(uVolume, position).r;
+//    vec4 transferSample = texture(uTransferFunction, vec2(volumeSample, 0.5));
+    vec2 volumeSample = texture(uVolume, position).rg;
+    vec4 transferSample = texture(uTransferFunction, volumeSample);
     return transferSample;
 }
 
@@ -333,7 +335,7 @@ void main() {
 
         float t = 0.0;
         vec3 pos;
-        float val;
+//        float val;
         vec4 colorSample;
         vec4 accumulator = vec4(0.0);
 
@@ -341,12 +343,17 @@ void main() {
 
         while (t < 1.0 && accumulator.a < 0.99) {
             pos = mix(from, to, t);
-            val = texture(uVolume, pos).r;
+
 
             energyDensity = texture(uEnergyDensity, pos).r;
             energyDensity += texture(uEnergyDensityDiffusion, pos).r;
 
-            colorSample = texture(uTransferFunction, vec2(val, 0.5));
+//            val = texture(uVolume, pos).r;
+//            colorSample = texture(uTransferFunction, vec2(val, 0.5));
+
+            vec2 volumeSample = texture(uVolume, pos).rg;
+            colorSample = texture(uTransferFunction, volumeSample);
+
             colorSample.a *= rayStepLength * uAlphaCorrection;
             // utezi z energy density
             colorSample.rgb *= colorSample.a * energyDensity;
