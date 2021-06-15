@@ -141,7 +141,7 @@ addBump(options) {
 }
 
 _addHandle(index) {
-    const $handle = DOMUtils.instantiate(TEMPLATES.TransferFunctionWidgetBumpHandle);
+    const $handle = DOMUtils.instantiate(TEMPLATES.TransferFunctionWidgetBump);
     this._$html.querySelector('.widget').appendChild($handle);
     DOMUtils.data($handle, 'index', index);
 
