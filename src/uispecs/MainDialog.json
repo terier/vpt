@@ -54,7 +54,6 @@
                               "label": "Emission-absorption model"
                             },
                             {
-                              "selected": true,
                               "value": "dos",
                               "label": "Directional occlusion shading"
                             },
@@ -63,6 +62,7 @@
                               "label": "Single scattering"
                             },
                             {
+                              "selected": true,
                               "value": "mcm",
                               "label": "Multiple scattering"
                             },
