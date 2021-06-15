@@ -66,16 +66,6 @@ readModality(modalityName, handlers) {
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
-    // TODO: here read modality format & number of components, ...
-    let format, internalFormat;
-    if (components === 2) {
-        internalFormat = gl.RG8;
-        format = gl.RG;
-    } else {
-        internalFormat = gl.R8;
-        format = gl.RED;
-    }
-
     gl.texStorage3D(gl.TEXTURE_3D, 1, modality.internalFormat,
         dimensions.width, dimensions.height, dimensions.depth);
     let remainingBlocks = modality.placements.length;

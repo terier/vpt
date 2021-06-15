@@ -1,6 +1,4 @@
-// #package uispecs
-
-// #section DOSRendererDialog
+// #part /uispecs/renderers/DOSRendererDialog
 
 {
   "type": "panel",

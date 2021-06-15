@@ -1,14 +1,14 @@
-// #package js/main
+// #part /js/dialogs/renderers/DOSRendererDialog
 
-// #include ../AbstractDialog.js
-// #include ../../TransferFunctionWidget.js
+// #link ../AbstractDialog
+// #link ../../TransferFunctionWidget
 
-// #include ../../../uispecs/renderers/DOSRendererDialog.json
+// #link /uispecs/renderers/DOSRendererDialog
 
 class DOSRendererDialog extends AbstractDialog {
 
 constructor(renderer, options) {
-    super(UISPECS.DOSRendererDialog, options);
+    super(UISPECS.renderers.DOSRendererDialog, options);
 
     this._renderer = renderer;
 

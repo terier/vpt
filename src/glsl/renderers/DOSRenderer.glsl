@@ -1,6 +1,4 @@
-// #package glsl/shaders
-
-// #section DOSIntegrate/vertex
+// #part /glsl/shaders/renderers/DOS/integrate/vertex
 
 #version 300 es
 precision mediump float;
@@ -20,7 +18,7 @@ void main() {
     gl_Position = vec4(aPosition, 0, 1);
 }
 
-// #section DOSIntegrate/fragment
+// #part /glsl/shaders/renderers/DOS/integrate/fragment
 
 #version 300 es
 precision mediump float;
@@ -96,7 +94,7 @@ void main() {
     }
 }
 
-// #section DOSRender/vertex
+// #part /glsl/shaders/renderers/DOS/render/vertex
 
 #version 300 es
 precision mediump float;
@@ -109,7 +107,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #section DOSRender/fragment
+// #part /glsl/shaders/renderers/DOS/render/fragment
 
 #version 300 es
 precision mediump float;
@@ -124,7 +122,7 @@ void main() {
     oColor = mix(vec4(1), vec4(color.rgb, 1), color.a);
 }
 
-// #section DOSReset/vertex
+// #part /glsl/shaders/renderers/DOS/reset/vertex
 
 #version 300 es
 precision mediump float;
@@ -135,7 +133,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #section DOSReset/fragment
+// #part /glsl/shaders/renderers/DOS/reset/fragment
 
 #version 300 es
 precision mediump float;

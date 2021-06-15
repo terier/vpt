@@ -1,8 +1,8 @@
-// #package js/main
+// #part /js/renderers/DOSRenderer
 
-// #include ../math
-// #include ../WebGL.js
-// #include AbstractRenderer.js
+// #link ../math
+// #link ../WebGL
+// #link AbstractRenderer
 
 class DOSRenderer extends AbstractRenderer {
 
@@ -20,11 +20,7 @@ constructor(gl, volume, environmentTexture, options) {
         _maxDepth      : 1
     }, options);
 
-    this._programs = WebGL.buildPrograms(this._gl, {
-        integrate : SHADERS.DOSIntegrate,
-        render    : SHADERS.DOSRender,
-        reset     : SHADERS.DOSReset
-    }, MIXINS);
+    this._programs = WebGL.buildPrograms(this._gl, SHADERS.renderers.DOS, MIXINS);
 }
 
 destroy() {
