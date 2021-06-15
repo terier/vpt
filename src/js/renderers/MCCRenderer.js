@@ -101,13 +101,13 @@ setResolution(resolution) {
 reset() {
     const gl = this._gl;
 
-    const program = this._programs.reset;
-    gl.useProgram(program.program);
+    const { program, uniforms } = this._programs.reset;
+    gl.useProgram(program);
 
-    gl.uniformMatrix4fv(program.uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
-    gl.uniform2f(program.uniforms.uInverseResolution, 1 / this._resolution, 1 / this._resolution);
-    gl.uniform1f(program.uniforms.uRandSeed, Math.random());
-    gl.uniform1f(program.uniforms.uBlur, 0);
+    gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
+    gl.uniform2f(uniforms.uInverseResolution, 1 / this._resolution, 1 / this._resolution);
+    gl.uniform1f(uniforms.uRandSeed, Math.random());
+    gl.uniform1f(uniforms.uBlur, 0);
 
     gl.bindBuffer(gl.SHADER_STORAGE_BUFFER, this._photonBuffer);
     gl.bindBufferBase(gl.SHADER_STORAGE_BUFFER, 0, this._photonBuffer);
@@ -121,8 +121,8 @@ reset() {
 render() {
     const gl = this._gl;
 
-    const program = this._programs.render;
-    gl.useProgram(program.program);
+    const { program, uniforms } = this._programs.render;
+    gl.useProgram(program);
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
@@ -131,21 +131,21 @@ render() {
     gl.activeTexture(gl.TEXTURE2);
     gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
 
-    gl.uniform1i(program.uniforms.uVolume, 0);
-    gl.uniform1i(program.uniforms.uEnvironment, 1);
-    gl.uniform1i(program.uniforms.uTransferFunction, 2);
+    gl.uniform1i(uniforms.uVolume, 0);
+    gl.uniform1i(uniforms.uEnvironment, 1);
+    gl.uniform1i(uniforms.uTransferFunction, 2);
 
-    gl.uniformMatrix4fv(program.uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
-    gl.uniform2f(program.uniforms.uInverseResolution, 1 / this._resolution, 1 / this._resolution);
-    gl.uniform1f(program.uniforms.uRandSeed, Math.random());
-    gl.uniform1f(program.uniforms.uBlur, 0);
+    gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
+    gl.uniform2f(uniforms.uInverseResolution, 1 / this._resolution, 1 / this._resolution);
+    gl.uniform1f(uniforms.uRandSeed, Math.random());
+    gl.uniform1f(uniforms.uBlur, 0);
 
-    gl.uniform1f(program.uniforms.uAbsorptionCoefficient, this.absorptionCoefficient);
-    gl.uniform1f(program.uniforms.uScatteringCoefficient, this.scatteringCoefficient);
-    gl.uniform1f(program.uniforms.uScatteringBias, this.scatteringBias);
-    gl.uniform1f(program.uniforms.uMajorant, this.majorant);
-    gl.uniform1ui(program.uniforms.uMaxBounces, this.maxBounces);
-    gl.uniform1ui(program.uniforms.uSteps, this.steps);
+    gl.uniform1f(uniforms.uAbsorptionCoefficient, this.absorptionCoefficient);
+    gl.uniform1f(uniforms.uScatteringCoefficient, this.scatteringCoefficient);
+    gl.uniform1f(uniforms.uScatteringBias, this.scatteringBias);
+    gl.uniform1f(uniforms.uMajorant, this.majorant);
+    gl.uniform1ui(uniforms.uMaxBounces, this.maxBounces);
+    gl.uniform1ui(uniforms.uSteps, this.steps);
 
     gl.bindBuffer(gl.SHADER_STORAGE_BUFFER, this._photonBuffer);
     gl.bindBufferBase(gl.SHADER_STORAGE_BUFFER, 0, this._photonBuffer);

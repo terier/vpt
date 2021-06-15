@@ -60,7 +60,6 @@ _resetFrame() {
     const gl = this._gl;
 
     const [minDepth, maxDepth] = this.calculateDepth();
-    //console.log(minDepth, maxDepth);
     this._minDepth = minDepth;
     this._maxDepth = maxDepth;
     this._depth = minDepth;
@@ -70,8 +69,8 @@ _resetFrame() {
         gl.COLOR_ATTACHMENT1
     ]);
 
-    const program = this._programs.reset;
-    gl.useProgram(program.program);
+    const { program, uniforms } = this._programs.reset;
+    gl.useProgram(program);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 }
@@ -79,8 +78,8 @@ _resetFrame() {
 _integrateFrame() {
     const gl = this._gl;
 
-    const program = this._programs.integrate;
-    gl.useProgram(program.program);
+    const { program, uniforms } = this._programs.integrate;
+    gl.useProgram(program);
 
     gl.drawBuffers([
         gl.COLOR_ATTACHMENT0,
@@ -88,17 +87,17 @@ _integrateFrame() {
     ]);
 
     gl.activeTexture(gl.TEXTURE2);
-    gl.uniform1i(program.uniforms.uVolume, 2);
+    gl.uniform1i(uniforms.uVolume, 2);
     gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
 
     gl.activeTexture(gl.TEXTURE3);
-    gl.uniform1i(program.uniforms.uTransferFunction, 3);
+    gl.uniform1i(uniforms.uTransferFunction, 3);
     gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
 
     // TODO: calculate correct blur radius (occlusion scale)
-    gl.uniform2f(program.uniforms.uOcclusionScale, this.occlusionScale, this.occlusionScale);
-    gl.uniform1f(program.uniforms.uOcclusionDecay, this.occlusionDecay);
-    gl.uniformMatrix4fv(program.uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
+    gl.uniform2f(uniforms.uOcclusionScale, this.occlusionScale, this.occlusionScale);
+    gl.uniform1f(uniforms.uOcclusionDecay, this.occlusionDecay);
+    gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
 
     const depthStep = (this._maxDepth - this._minDepth) / this.slices;
     for (let step = 0; step < this.steps; step++) {
@@ -107,14 +106,14 @@ _integrateFrame() {
         }
 
         gl.activeTexture(gl.TEXTURE0);
-        gl.uniform1i(program.uniforms.uColor, 0);
+        gl.uniform1i(uniforms.uColor, 0);
         gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[0]);
 
         gl.activeTexture(gl.TEXTURE1);
-        gl.uniform1i(program.uniforms.uOcclusion, 1);
+        gl.uniform1i(uniforms.uOcclusion, 1);
         gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[1]);
 
-        gl.uniform1f(program.uniforms.uDepth, this._depth);
+        gl.uniform1f(uniforms.uDepth, this._depth);
 
         this._accumulationBuffer.use();
         gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
@@ -130,13 +129,13 @@ _integrateFrame() {
 _renderFrame() {
     const gl = this._gl;
 
-    const program = this._programs.render;
-    gl.useProgram(program.program);
+    const { program, uniforms } = this._programs.render;
+    gl.useProgram(program);
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[0]);
 
-    gl.uniform1i(program.uniforms.uAccumulator, 0);
+    gl.uniform1i(uniforms.uAccumulator, 0);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 }

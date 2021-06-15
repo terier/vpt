@@ -30,17 +30,17 @@ destroy() {
 _renderFrame() {
     const gl = this._gl;
 
-    const program = this._program;
-    gl.useProgram(program.program);
+    const { program, uniforms } = this._program;
+    gl.useProgram(program);
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this._texture);
 
-    gl.uniform1i(program.uniforms.uTexture, 0);
-    gl.uniform1f(program.uniforms.uLow, this.low);
-    gl.uniform1f(program.uniforms.uMid, this.mid);
-    gl.uniform1f(program.uniforms.uHigh, this.high);
-    gl.uniform1f(program.uniforms.uSaturation, this.saturation);
+    gl.uniform1i(uniforms.uTexture, 0);
+    gl.uniform1f(uniforms.uLow, this.low);
+    gl.uniform1f(uniforms.uMid, this.mid);
+    gl.uniform1f(uniforms.uHigh, this.high);
+    gl.uniform1f(uniforms.uSaturation, this.saturation);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 }

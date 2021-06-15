@@ -30,8 +30,8 @@ destroy() {
 _resetFrame() {
     const gl = this._gl;
 
-    const program = this._programs.reset;
-    gl.useProgram(program.program);
+    const { program, uniforms } = this._programs.reset;
+    gl.useProgram(program);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 }
@@ -39,20 +39,20 @@ _resetFrame() {
 _generateFrame() {
     const gl = this._gl;
 
-    const program = this._programs.generate;
-    gl.useProgram(program.program);
+    const { program, uniforms } = this._programs.generate;
+    gl.useProgram(program);
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[0]);
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
 
-    gl.uniform1i(program.uniforms.uClosest, 0);
-    gl.uniform1i(program.uniforms.uVolume, 1);
-    gl.uniform1f(program.uniforms.uStepSize, this._stepSize);
-    gl.uniform1f(program.uniforms.uOffset, Math.random());
-    gl.uniform1f(program.uniforms.uIsovalue, this._isovalue);
-    gl.uniformMatrix4fv(program.uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
+    gl.uniform1i(uniforms.uClosest, 0);
+    gl.uniform1i(uniforms.uVolume, 1);
+    gl.uniform1f(uniforms.uStepSize, this._stepSize);
+    gl.uniform1f(uniforms.uOffset, Math.random());
+    gl.uniform1f(uniforms.uIsovalue, this._isovalue);
+    gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 }
@@ -60,16 +60,16 @@ _generateFrame() {
 _integrateFrame() {
     const gl = this._gl;
 
-    const program = this._programs.integrate;
-    gl.useProgram(program.program);
+    const { program, uniforms } = this._programs.integrate;
+    gl.useProgram(program);
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[0]);
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, this._frameBuffer.getAttachments().color[0]);
 
-    gl.uniform1i(program.uniforms.uAccumulator, 0);
-    gl.uniform1i(program.uniforms.uFrame, 1);
+    gl.uniform1i(uniforms.uAccumulator, 0);
+    gl.uniform1i(uniforms.uFrame, 1);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 }
@@ -77,18 +77,18 @@ _integrateFrame() {
 _renderFrame() {
     const gl = this._gl;
 
-    const program = this._programs.render;
-    gl.useProgram(program.program);
+    const { program, uniforms } = this._programs.render;
+    gl.useProgram(program);
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[0]);
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
 
-    gl.uniform1i(program.uniforms.uClosest, 0);
-    gl.uniform1i(program.uniforms.uVolume, 1);
-    gl.uniform3fv(program.uniforms.uLight, this._light);
-    gl.uniform3fv(program.uniforms.uDiffuse, this._diffuse);
+    gl.uniform1i(uniforms.uClosest, 0);
+    gl.uniform1i(uniforms.uVolume, 1);
+    gl.uniform3fv(uniforms.uLight, this._light);
+    gl.uniform3fv(uniforms.uDiffuse, this._diffuse);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 }
