@@ -1,10 +1,9 @@
 // #part /glsl/shaders/renderers/DOS/integrate/vertex
 
 #version 300 es
-precision mediump float;
 
 uniform mat4 uMvpInverseMatrix;
-uniform float uDepth;
+uniform mediump float uDepth;
 
 layout (location = 0) in vec2 aPosition;
 
@@ -22,16 +21,13 @@ void main() {
 
 #version 300 es
 precision mediump float;
-precision mediump sampler2D;
-precision mediump usampler3D;
 
-uniform usampler3D uVolume;
-uniform sampler2D uTransferFunction;
+uniform mediump sampler3D uVolume;
+uniform mediump sampler2D uTransferFunction;
 
-uniform sampler2D uColor;
-uniform sampler2D uOcclusion;
+uniform mediump sampler2D uColor;
+uniform mediump sampler2D uOcclusion;
 
-uniform float uVisibility;
 uniform float uDepth;
 
 uniform vec2 uOcclusionScale;
@@ -43,15 +39,10 @@ in vec3 vPosition3D;
 layout (location = 0) out vec4 oColor;
 layout (location = 1) out float oOcclusion;
 
-vec4 getSample(vec3 position) {
-    uvec4 volumeSample = texture(uVolume, position);
-    uint header = volumeSample.r;
-    uint id = volumeSample.g;
-    uint value = volumeSample.b;
-
-    if (float(id) / 255.0 < uVisibility) {
-        return texture(uTransferFunction, vec2(float(value) / 255.0, 0));
-    }
+vec4 sampleVolumeColor(vec3 position) {
+    vec2 volumeSample = texture(uVolume, position).rg;
+    vec4 transferSample = texture(uTransferFunction, volumeSample);
+    return transferSample;
 }
 
 void main() {
@@ -85,7 +76,7 @@ void main() {
         oColor = prevColor;
         oOcclusion = occlusion;
     } else {
-        vec4 transferSample = getSample(vPosition3D);
+        vec4 transferSample = sampleVolumeColor(vPosition3D);
         transferSample.rgb *= transferSample.a * occlusion;
 
         oColor = prevColor + transferSample * (1.0 - prevColor.a);
@@ -97,7 +88,6 @@ void main() {
 // #part /glsl/shaders/renderers/DOS/render/vertex
 
 #version 300 es
-precision mediump float;
 
 layout (location = 0) in vec2 aPosition;
 out vec2 vPosition;
@@ -125,7 +115,6 @@ void main() {
 // #part /glsl/shaders/renderers/DOS/reset/vertex
 
 #version 300 es
-precision mediump float;
 
 layout (location = 0) in vec2 aPosition;
 
