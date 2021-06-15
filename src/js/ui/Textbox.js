@@ -1,11 +1,11 @@
-// #package js/main
+// #part /js/ui/Textbox
 
-// #include UIObject.js
+// #link UIObject
 
 class Textbox extends UIObject {
 
 constructor(options) {
-    super(TEMPLATES.Textbox, options);
+    super(TEMPLATES.ui.Textbox, options);
 
     Object.assign(this, {
         value       : null,

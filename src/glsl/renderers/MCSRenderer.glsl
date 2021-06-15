@@ -1,9 +1,4 @@
-// #package glsl/shaders
-
-// #include ../mixins/unproject.glsl
-// #include ../mixins/intersectCube.glsl
-
-// #section MCSGenerate/vertex
+// #part /glsl/shaders/renderers/MCS/generate/vertex
 
 #version 300 es
 precision mediump float;
@@ -15,6 +10,7 @@ out vec3 vRayFrom;
 out vec3 vRayTo;
 out vec2 vPosition;
 
+// #link /glsl/mixins/unproject
 @unproject
 
 void main() {
@@ -23,7 +19,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #section MCSGenerate/fragment
+// #part /glsl/shaders/renderers/MCS/generate/fragment
 
 #version 300 es
 precision mediump float;
@@ -43,6 +39,7 @@ in vec3 vRayTo;
 in vec2 vPosition;
 out vec4 oColor;
 
+// #link /glsl/mixins/intersectCube
 @intersectCube
 
 vec2 rand(vec2 p) {
@@ -143,7 +140,7 @@ void main() {
     }
 }
 
-// #section MCSIntegrate/vertex
+// #part /glsl/shaders/renderers/MCS/integrate/vertex
 
 #version 300 es
 precision mediump float;
@@ -156,7 +153,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #section MCSIntegrate/fragment
+// #part /glsl/shaders/renderers/MCS/integrate/fragment
 
 #version 300 es
 precision mediump float;
@@ -174,7 +171,7 @@ void main() {
     oColor = acc + (frame - acc) * uInvFrameNumber;
 }
 
-// #section MCSRender/vertex
+// #part /glsl/shaders/renderers/MCS/render/vertex
 
 #version 300 es
 precision mediump float;
@@ -187,7 +184,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #section MCSRender/fragment
+// #part /glsl/shaders/renderers/MCS/render/fragment
 
 #version 300 es
 precision mediump float;
@@ -202,7 +199,7 @@ void main() {
     oColor = acc;
 }
 
-// #section MCSReset/vertex
+// #part /glsl/shaders/renderers/MCS/reset/vertex
 
 #version 300 es
 precision mediump float;
@@ -213,7 +210,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #section MCSReset/fragment
+// #part /glsl/shaders/renderers/MCS/reset/fragment
 
 #version 300 es
 precision mediump float;

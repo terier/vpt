@@ -1,10 +1,10 @@
-// #package js/main
+// #part /js/dialogs/MainDialog
 
-// #include ../utils
-// #include AbstractDialog.js
+// #link ../utils
+// #link AbstractDialog
 
-// #include ../../uispecs/MainDialog.json
-// #include ../../html/AboutText.html
+// #link /uispecs/MainDialog
+// #link /html/AboutText
 
 class MainDialog extends AbstractDialog {
 

@@ -1,7 +1,7 @@
-// #package js/main
+// #part /js/tonemappers/ReinhardToneMapper
 
-// #include ../WebGL.js
-// #include AbstractToneMapper.js
+// #link ../WebGL
+// #link AbstractToneMapper
 
 class ReinhardToneMapper extends AbstractToneMapper {
 

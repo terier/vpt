@@ -1,13 +1,13 @@
-// #package js/main
+// #part /js/TransferFunctionWidget
 
-// #include utils
-// #include EventEmitter.js
-// #include WebGL.js
-// #include Draggable.js
+// #link utils
+// #link EventEmitter
+// #link WebGL
+// #link Draggable
 
-// #include ../html/TransferFunctionWidget.html
-// #include ../html/TransferFunctionWidgetBumpHandle.html
-// #include ../css/TransferFunctionWidget.css
+// #link /html/TransferFunctionWidget
+// #link /html/TransferFunctionWidgetBumpHandle
+// #link /css/TransferFunctionWidget
 
 class TransferFunctionWidget extends EventEmitter {
 

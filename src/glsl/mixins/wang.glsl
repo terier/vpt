@@ -1,6 +1,4 @@
-// #package glsl/mixins
-
-// #section wang
+// #part /glsl/mixins/wang
 
 uint wang(uint seed) {
     seed = (seed ^ 61) ^ (seed >> 16);

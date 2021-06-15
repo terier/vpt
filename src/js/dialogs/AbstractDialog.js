@@ -1,7 +1,7 @@
-// #package js/main
+// #part /js/dialogs/AbstractDialog
 
-// #include ../ui
-// #include ../EventEmitter.js
+// #link ../ui
+// #link ../EventEmitter
 
 class AbstractDialog extends EventEmitter {
 
@@ -14,7 +14,7 @@ constructor(spec, options) {
 
     this._spec = spec;
 
-    const creation = UI.create(this._spec);
+    const creation = UI.create(JSON.parse(this._spec));
     this._object = creation.object;
     this._binds = creation.binds;
 }

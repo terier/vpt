@@ -1,4 +1,4 @@
-// #package js/main
+// #part /js/WebGL
 
 class WebGL {
 
@@ -58,7 +58,7 @@ static buildPrograms(gl, shaders, mixins) {
     let programs = {};
     Object.keys(cooked).forEach(function(name) {
         try {
-            var program = cooked[name];
+            const program = cooked[name];
             if (program.vertex && program.fragment) {
                 programs[name] = WebGL.createProgram(gl, [
                     WebGL.createShader(gl, program.vertex, gl.VERTEX_SHADER),

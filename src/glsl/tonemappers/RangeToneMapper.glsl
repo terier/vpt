@@ -1,6 +1,4 @@
-// #package glsl/shaders
-
-// #section RangeToneMapper/vertex
+// #part /glsl/shaders/RangeToneMapper/vertex
 
 #version 300 es
 precision mediump float;
@@ -13,7 +11,7 @@ void main() {
     vFragmentPosition = (aPosition + vec2(1.0, 1.0)) * 0.5;
 }
 
-// #section RangeToneMapper/fragment
+// #part /glsl/shaders/RangeToneMapper/fragment
 
 #version 300 es
 precision mediump float;

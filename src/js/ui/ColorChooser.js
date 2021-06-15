@@ -1,11 +1,11 @@
-// #package js/main
+// #part /js/ui/ColorChooser
 
-// #include UIObject.js
+// #link UIObject
 
 class ColorChooser extends UIObject {
 
 constructor(options) {
-    super(TEMPLATES.ColorChooser, options);
+    super(TEMPLATES.ui.ColorChooser, options);
 
     Object.assign(this, {
         value: null

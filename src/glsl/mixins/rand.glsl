@@ -1,6 +1,4 @@
-// #package glsl/mixins
-
-// #section rand
+// #part /glsl/mixins/rand
 
 vec2 rand(vec2 p) {
     const mat2 M = mat2(

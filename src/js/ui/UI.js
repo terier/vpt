@@ -1,23 +1,23 @@
-// #package js/main
+// #part /js/ui/UI
 
-// #include Accordion.js
-// #include Button.js
-// #include Checkbox.js
-// #include ColorChooser.js
-// #include Dropdown.js
-// #include Field.js
-// #include FileChooser.js
-// #include Panel.js
-// #include ProgressBar.js
-// #include Radio.js
-// #include Sidebar.js
-// #include Slider.js
-// #include Spacer.js
-// #include Spinner.js
-// #include StatusBar.js
-// #include Tabs.js
-// #include Textbox.js
-// #include VectorSpinner.js
+// #link Accordion
+// #link Button
+// #link Checkbox
+// #link ColorChooser
+// #link Dropdown
+// #link Field
+// #link FileChooser
+// #link Panel
+// #link ProgressBar
+// #link Radio
+// #link Sidebar
+// #link Slider
+// #link Spacer
+// #link Spinner
+// #link StatusBar
+// #link Tabs
+// #link Textbox
+// #link VectorSpinner
 
 class UI {
 

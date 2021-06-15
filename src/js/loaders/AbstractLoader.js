@@ -1,4 +1,4 @@
-// #package js/main
+// #part /js/loaders/AbstractLoader
 
 class AbstractLoader {
 

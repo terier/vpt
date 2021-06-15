@@ -1,11 +1,11 @@
-// #package js/main
+// #part /js/ui/Checkbox
 
-// #include UIObject.js
+// #link UIObject
 
 class Checkbox extends UIObject {
 
 constructor(options) {
-    super(TEMPLATES.Checkbox, options);
+    super(TEMPLATES.ui.Checkbox, options);
 
     Object.assign(this, {
         checked : true

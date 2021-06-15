@@ -1,6 +1,6 @@
-// #package js/main
+// #part /js/readers/RAWReader
 
-// #include AbstractReader.js
+// #link AbstractReader
 
 class RAWReader extends AbstractReader {
 
@@ -16,7 +16,7 @@ constructor(loader, options) {
 }
 
 readMetadata(handlers) {
-    handlers.onData && handlers.onData({
+    let metadata = {
         meta: {
             version: 1
         },
@@ -24,9 +24,9 @@ readMetadata(handlers) {
             {
                 name: 'default',
                 dimensions: {
-                    width: this.width,
-                    height: this.height,
-                    depth: this.depth
+                    width  : this.width,
+                    height : this.height,
+                    depth  : this.depth
                 },
                 transform: {
                     matrix: [
@@ -38,34 +38,37 @@ readMetadata(handlers) {
                 },
                 components: 1,
                 bits: this.bits,
-                placements: [
-                    {
-                        index: 0,
-                        position: {
-                            x: 0,
-                            y: 0,
-                            z: 0
-                        }
-                    }
-                ]
+                placements: []
             }
         ],
-        blocks: [
-            {
-                url: 'default',
-                format: 'raw',
-                dimensions: {
-                    width: this.width,
-                    height: this.height,
-                    depth: this.depth
-                }
+        blocks: []
+    };
+
+    for (let i = 0; i < this.depth; i++) {
+        metadata.modalities[0].placements.push({
+            index: i,
+            position: { x: 0, y: 0, z: i }
+        });
+
+        metadata.blocks.push({
+            url: 'default',
+            format: 'raw',
+            dimensions: {
+                width  : this.width,
+                height : this.height,
+                depth  : 1
             }
-        ]
-    });
+        });
+    }
+
+    handlers.onData && handlers.onData(metadata);
 }
 
 readBlock(block, handlers) {
-    this._loader.readData(0, this.width * this.height * this.depth * (this.bits / 8), {
+    const sliceBytes = this.width * this.height * (this.bits / 8);
+    const start = block * sliceBytes;
+    const end = (block + 1) * sliceBytes;
+    this._loader.readData(start, end, {
         onData: data => {
             handlers.onData && handlers.onData(data);
         }

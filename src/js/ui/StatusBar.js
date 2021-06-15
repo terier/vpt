@@ -1,12 +1,12 @@
-// #package js/main
+// #part /js/ui/StatusBar
 
-// #include ../utils
-// #include UIObject.js
+// #link ../utils
+// #link UIObject
 
 class StatusBar extends UIObject {
 
 constructor(options) {
-    super(TEMPLATES.StatusBar, options);
+    super(TEMPLATES.ui.StatusBar, options);
 }
 
 _log(text, level) {

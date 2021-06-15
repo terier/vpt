@@ -1,6 +1,6 @@
-// #package js/main
+// #part /js/SingleBuffer
 
-// #include WebGL.js
+// #link WebGL
 
 class SingleBuffer {
 

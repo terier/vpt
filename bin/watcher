@@ -12,8 +12,12 @@ let debounced = true;
 function watcher() {
     if (debounced) {
         console.log(command);
-        const output = cp.execSync(command);
-        process.stdout.write(output);
+        try {
+            const output = cp.execSync(command);
+            process.stdout.write(output);
+        } catch (e) {
+            process.stdout.write(e.message);
+        }
         debounced = false;
         setTimeout(() => debounced = true, 0);
     }

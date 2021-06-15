@@ -1,6 +1,4 @@
-// #package uispecs
-
-// #section ISORendererDialog
+// #part /uispecs/renderers/ISORendererDialog
 
 {
   "type": "panel",

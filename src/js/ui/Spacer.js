@@ -1,11 +1,11 @@
-// #package js/main
+// #part /js/ui/Spacer
 
-// #include UIObject.js
+// #link UIObject
 
 class Spacer extends UIObject {
 
 constructor(options) {
-    super(TEMPLATES.Spacer, options);
+    super(TEMPLATES.ui.Spacer, options);
 
     Object.assign(this, {
         width  : null,

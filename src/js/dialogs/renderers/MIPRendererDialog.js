@@ -1,13 +1,13 @@
-// #package js/main
+// #part /js/dialogs/renderers/MIPRendererDialog
 
-// #include ../AbstractDialog.js
+// #link ../AbstractDialog
 
-// #include ../../../uispecs/renderers/MIPRendererDialog.json
+// #link /uispecs/renderers/MIPRendererDialog
 
 class MIPRendererDialog extends AbstractDialog {
 
 constructor(renderer, options) {
-    super(UISPECS.MIPRendererDialog, options);
+    super(UISPECS.renderers.MIPRendererDialog, options);
 
     this._renderer = renderer;
 

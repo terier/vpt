@@ -1,12 +1,12 @@
-// #package js/main
+// #part /js/ui/Dropdown
 
-// #include ../utils
-// #include UIObject.js
+// #link ../utils
+// #link UIObject
 
 class Dropdown extends UIObject {
 
 constructor(options) {
-    super(TEMPLATES.Dropdown, options);
+    super(TEMPLATES.ui.Dropdown, options);
 
     Object.assign(this, {
         options: []

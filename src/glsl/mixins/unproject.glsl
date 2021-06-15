@@ -1,6 +1,4 @@
-// #package glsl/mixins
-
-// #section unproject
+// #part /glsl/mixins/unproject
 
 void unproject(in vec2 position, in mat4 inverseMvp, out vec3 from, out vec3 to) {
     vec4 nearPosition = vec4(position, -1.0, 1.0);

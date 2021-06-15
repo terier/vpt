@@ -1,13 +1,13 @@
-// #package js/main
+// #part /js/dialogs/tonemappers/ArtisticToneMapperDialog
 
-// #include ../AbstractDialog.js
+// #link ../AbstractDialog
 
-// #include ../../../uispecs/tonemappers/ArtisticToneMapperDialog.json
+// #link /uispecs/tonemappers/ArtisticToneMapperDialog
 
 class ArtisticToneMapperDialog extends AbstractDialog {
 
 constructor(toneMapper, options) {
-    super(UISPECS.ArtisticToneMapperDialog, options);
+    super(UISPECS.tonemappers.ArtisticToneMapperDialog, options);
 
     this._toneMapper = toneMapper;
 

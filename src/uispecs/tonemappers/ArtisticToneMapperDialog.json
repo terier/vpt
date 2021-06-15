@@ -1,6 +1,4 @@
-// #package uispecs
-
-// #section ArtisticToneMapperDialog
+// #part /uispecs/tonemappers/ArtisticToneMapperDialog
 
 {
   "type": "panel",

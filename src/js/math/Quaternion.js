@@ -1,4 +1,4 @@
-// #package js/main
+// #part /js/math/Quaternion
 
 class Quaternion {
 
@@ -43,8 +43,8 @@ inverse() {
 }
 
 multiply(a, b) {
-    var ax = a.x, ay = a.y, az = a.z, aw = a.w;
-    var bx = b.x, by = b.y, bz = b.z, bw = b.w;
+    const ax = a.x, ay = a.y, az = a.z, aw = a.w;
+    const bx = b.x, by = b.y, bz = b.z, bw = b.w;
 
     this.x = ax * bw + aw * bx + ay * bz - az * by;
     this.y = ay * bw + aw * by + az * bx - ax * bz;
@@ -59,7 +59,7 @@ length() {
 }
 
 normalize() {
-    var length = this.length();
+    const length = this.length();
 
     this.x /= length;
     this.y /= length;
@@ -70,8 +70,8 @@ normalize() {
 }
 
 fromAxisAngle() {
-    var s = Math.sin(this.w / 2);
-    var c = Math.cos(this.w / 2);
+    const s = Math.sin(this.w / 2);
+    const c = Math.cos(this.w / 2);
 
     this.x *= s;
     this.y *= s;
@@ -82,17 +82,17 @@ fromAxisAngle() {
 }
 
 fromDevice(alpha, beta, gamma) {
-    var degtorad = Math.PI / 180;
-    var x = beta * degtorad / 2;
-    var y = gamma * degtorad / 2;
-    var z = alpha * degtorad / 2;
+    const degtorad = Math.PI / 180;
+    const x = beta * degtorad / 2;
+    const y = gamma * degtorad / 2;
+    const z = alpha * degtorad / 2;
 
-    var cx = Math.cos(x);
-    var sx = Math.sin(x);
-    var cy = Math.cos(y);
-    var sy = Math.sin(y);
-    var cz = Math.cos(z);
-    var sz = Math.sin(z);
+    const cx = Math.cos(x);
+    const sx = Math.sin(x);
+    const cy = Math.cos(y);
+    const sy = Math.sin(y);
+    const cz = Math.cos(z);
+    const sz = Math.sin(z);
 
     this.x = sx * cy * cz - cx * sy * sz;
     this.y = cx * sy * cz + sx * cy * sz;
@@ -103,11 +103,11 @@ fromDevice(alpha, beta, gamma) {
 }
 
 toRotationMatrix(m) {
-    var x = this.x, y = this.y, z = this.z, w = this.w;
-    var x2 = x + x, y2 = y + y, z2 = z + z;
-    var xx = x * x2, xy = x * y2, xz = x * z2;
-    var yy = y * y2, yz = y * z2, zz = z * z2;
-    var wx = w * x2, wy = w * y2, wz = w * z2;
+    const x = this.x, y = this.y, z = this.z, w = this.w;
+    const x2 = x + x, y2 = y + y, z2 = z + z;
+    const xx = x * x2, xy = x * y2, xz = x * z2;
+    const yy = y * y2, yz = y * z2, zz = z * z2;
+    const wx = w * x2, wy = w * y2, wz = w * z2;
 
     m[0] = 1 - (yy + zz);
     m[4] = xy - wz;

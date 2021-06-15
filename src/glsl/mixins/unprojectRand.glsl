@@ -1,6 +1,4 @@
-// #package glsl/mixins
-
-// #section unprojectRand
+// #part /glsl/mixins/unprojectRand
 
 void unprojectRand(
         inout vec2 randState,

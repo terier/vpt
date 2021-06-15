@@ -1,6 +1,4 @@
-// #package uispecs
-
-// #section RangeToneMapperDialog
+// #part /uispecs/tonemappers/RangeToneMapperDialog
 
 {
   "type": "panel",

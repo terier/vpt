@@ -1,12 +1,12 @@
-// #package js/main
+// #part /js/ui/Radio
 
-// #include ../utils
-// #include UIObject.js
+// #link ../utils
+// #link UIObject
 
 class Radio extends UIObject {
 
 constructor(options) {
-    super(TEMPLATES.Radio, options);
+    super(TEMPLATES.ui.Radio, options);
 
     Object.assign(this, {
         options  : [],
@@ -23,7 +23,7 @@ constructor(options) {
 }
 
 addOption(value, label, selected) {
-    const option = DOMUtils.instantiate(TEMPLATES.RadioOption);
+    const option = DOMUtils.instantiate(TEMPLATES.ui.RadioOption);
     let binds = DOMUtils.bind(option);
     binds.input.name = this._radioName;
     binds.input.value = value;

@@ -1,13 +1,13 @@
-// #package js/main
+// #part /js/RenderingContext
 
-// #include math
-// #include WebGL.js
-// #include Ticker.js
-// #include Camera.js
-// #include OrbitCameraController.js
-// #include Volume.js
-// #include renderers
-// #include tonemappers
+// #link math
+// #link WebGL
+// #link Ticker
+// #link Camera
+// #link OrbitCameraController
+// #link Volume
+// #link renderers
+// #link tonemappers
 
 class RenderingContext {
 

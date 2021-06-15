@@ -1,14 +1,14 @@
-// #package js/main
+// #part /js/dialogs/renderers/MCSRendererDialog
 
-// #include ../AbstractDialog.js
-// #include ../../TransferFunctionWidget.js
+// #link ../AbstractDialog
+// #link ../../TransferFunctionWidget
 
-// #include ../../../uispecs/renderers/MCSRendererDialog.json
+// #link /uispecs/renderers/MCSRendererDialog
 
 class MCSRendererDialog extends AbstractDialog {
 
 constructor(renderer, options) {
-    super(UISPECS.MCSRendererDialog, options);
+    super(UISPECS.renderers.MCSRendererDialog, options);
 
     this._renderer = renderer;
 

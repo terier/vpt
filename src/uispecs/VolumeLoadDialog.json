@@ -1,6 +1,4 @@
-// #package uispecs
-
-// #section VolumeLoadDialog
+// #part /uispecs/VolumeLoadDialog
 
 {
   "type": "panel",

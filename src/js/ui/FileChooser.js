@@ -1,11 +1,11 @@
-// #package js/main
+// #part /js/ui/FileChooser
 
-// #include UIObject.js
+// #link UIObject
 
 class FileChooser extends UIObject {
 
 constructor(options) {
-    super(TEMPLATES.FileChooser, options);
+    super(TEMPLATES.ui.FileChooser, options);
 
     this._handleChange = this._handleChange.bind(this);
     this._handleClick = this._handleClick.bind(this);

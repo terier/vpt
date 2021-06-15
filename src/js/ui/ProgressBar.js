@@ -1,12 +1,12 @@
-// #package js/main
+// #part /js/ui/ProgressBar
 
-// #include ../utils
-// #include UIObject.js
+// #link ../utils
+// #link UIObject
 
 class ProgressBar extends UIObject {
 
 constructor(options) {
-    super(TEMPLATES.ProgressBar, options);
+    super(TEMPLATES.ui.ProgressBar, options);
 
     Object.assign(this, {
         progress: 0

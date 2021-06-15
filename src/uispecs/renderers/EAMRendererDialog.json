@@ -1,6 +1,4 @@
-// #package uispecs
-
-// #section EAMRendererDialog
+// #part /uispecs/renderers/EAMRendererDialog
 
 {
   "type": "panel",

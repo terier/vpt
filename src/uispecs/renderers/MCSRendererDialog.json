@@ -1,6 +1,4 @@
-// #package uispecs
-
-// #section MCSRendererDialog
+// #part /uispecs/renderers/MCSRendererDialog
 
 {
   "type": "panel",

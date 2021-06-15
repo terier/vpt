@@ -1,6 +1,6 @@
-// #package js/main
+// #part /js/Volume
 
-// #include WebGL.js
+// #link WebGL
 
 class Volume {
 
@@ -16,6 +16,13 @@ constructor(gl, reader, options) {
     this.modalities = null;
     this.blocks     = null;
     this._texture   = null;
+}
+
+destroy() {
+    const gl = this._gl;
+    if (this._texture) {
+        gl.deleteTexture(this._texture);
+    }
 }
 
 readMetadata(handlers) {
@@ -68,9 +75,9 @@ readModality(modalityName, handlers) {
         internalFormat = gl.R8;
         format = gl.RED;
     }
-    internalFormat = gl.RGBA8UI;
-    format = gl.RGBA_INTEGER;
-    gl.texStorage3D(gl.TEXTURE_3D, 1, internalFormat, dimensions.width, dimensions.height, dimensions.depth);
+
+    gl.texStorage3D(gl.TEXTURE_3D, 1, modality.internalFormat,
+        dimensions.width, dimensions.height, dimensions.depth);
     let remainingBlocks = modality.placements.length;
     modality.placements.forEach(placement => {
         this._reader.readBlock(placement.index, {
@@ -82,7 +89,7 @@ readModality(modalityName, handlers) {
                 gl.texSubImage3D(gl.TEXTURE_3D, 0,
                     position.x, position.y, position.z,
                     blockdim.width, blockdim.height, blockdim.depth,
-                    format, gl.UNSIGNED_BYTE, new Uint8Array(data));
+                    modality.format, modality.type, this._typize(data, modality.type));
                 remainingBlocks--;
                 if (remainingBlocks === 0) {
                     this.ready = true;
@@ -91,6 +98,29 @@ readModality(modalityName, handlers) {
             }
         });
     });
+}
+
+_typize(data, type) {
+    const gl = this._gl;
+    switch (type) {
+        case gl.BYTE:                         return new Int8Array(data);
+        case gl.UNSIGNED_BYTE:                return new Uint8Array(data);
+        case gl.UNSIGNED_BYTE:                return new Uint8ClampedArray(data);
+        case gl.SHORT:                        return new Int16Array(data);
+        case gl.UNSIGNED_SHORT:               return new Uint16Array(data);
+        case gl.UNSIGNED_SHORT_5_6_5:         return new Uint16Array(data);
+        case gl.UNSIGNED_SHORT_5_5_5_1:       return new Uint16Array(data);
+        case gl.UNSIGNED_SHORT_4_4_4_4:       return new Uint16Array(data);
+        case gl.INT:                          return new Int32Array(data);
+        case gl.UNSIGNED_INT:                 return new Uint32Array(data);
+        case gl.UNSIGNED_INT_5_9_9_9_REV:     return new Uint32Array(data);
+        case gl.UNSIGNED_INT_2_10_10_10_REV:  return new Uint32Array(data);
+        case gl.UNSIGNED_INT_10F_11F_11F_REV: return new Uint32Array(data);
+        case gl.UNSIGNED_INT_24_8:            return new Uint32Array(data);
+        case gl.HALF_FLOAT:                   return new Uint16Array(data);
+        case gl.FLOAT:                        return new Float32Array(data);
+        default: throw new Error('Unknown volume datatype: ' + type);
+    }
 }
 
 getTexture() {
@@ -106,7 +136,7 @@ setFilter(filter) {
         return;
     }
 
-    var gl = this._gl;
+    const gl = this._gl;
     filter = filter === 'linear' ? gl.LINEAR : gl.NEAREST;
     gl.bindTexture(gl.TEXTURE_3D, this._texture);
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, filter);

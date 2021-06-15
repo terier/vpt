@@ -1,12 +1,12 @@
-// #package js/main
+// #part /js/ui/VectorSpinner
 
-// #include UIObject.js
-// #include Spinner.js
+// #link UIObject
+// #link Spinner
 
 class VectorSpinner extends UIObject {
 
 constructor(options) {
-    super(TEMPLATES.VectorSpinner, options);
+    super(TEMPLATES.ui.VectorSpinner, options);
 
     Object.assign(this, {
         value : 0,

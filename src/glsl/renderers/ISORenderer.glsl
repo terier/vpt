@@ -1,9 +1,4 @@
-// #package glsl/shaders
-
-// #include ../mixins/unproject.glsl
-// #include ../mixins/intersectCube.glsl
-
-// #section ISOGenerate/vertex
+// #part /glsl/shaders/renderers/ISO/generate/vertex
 
 #version 300 es
 precision mediump float;
@@ -16,6 +11,7 @@ out vec2 vPosition;
 out vec3 vRayFrom;
 out vec3 vRayTo;
 
+// #link /glsl/mixins/unproject
 @unproject
 
 void main() {
@@ -24,7 +20,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #section ISOGenerate/fragment
+// #part /glsl/shaders/renderers/ISO/generate/fragment
 
 #version 300 es
 precision mediump float;
@@ -41,6 +37,7 @@ in vec3 vRayTo;
 
 out vec4 oClosest;
 
+// #link /glsl/mixins/intersectCube
 @intersectCube
 
 void main() {
@@ -82,7 +79,7 @@ void main() {
     }
 }
 
-// #section ISOIntegrate/vertex
+// #part /glsl/shaders/renderers/ISO/integrate/vertex
 
 #version 300 es
 precision mediump float;
@@ -96,7 +93,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #section ISOIntegrate/fragment
+// #part /glsl/shaders/renderers/ISO/integrate/fragment
 
 #version 300 es
 precision mediump float;
@@ -120,7 +117,7 @@ void main() {
     }
 }
 
-// #section ISORender/vertex
+// #part /glsl/shaders/renderers/ISO/render/vertex
 
 #version 300 es
 precision mediump float;
@@ -134,7 +131,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #section ISORender/fragment
+// #part /glsl/shaders/renderers/ISO/render/fragment
 
 #version 300 es
 precision mediump float;
@@ -175,7 +172,7 @@ void main() {
     }
 }
 
-// #section ISOReset/vertex
+// #part /glsl/shaders/renderers/ISO/reset/vertex
 
 #version 300 es
 precision mediump float;
@@ -186,7 +183,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #section ISOReset/fragment
+// #part /glsl/shaders/renderers/ISO/reset/fragment
 
 #version 300 es
 precision mediump float;

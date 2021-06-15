@@ -1,6 +1,4 @@
-// #package uispecs
-
-// #section EnvmapLoadDialog
+// #part /uispecs/EnvmapLoadDialog
 
 {
   "type": "panel",

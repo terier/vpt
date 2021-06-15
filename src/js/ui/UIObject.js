@@ -1,6 +1,6 @@
-// #package js/main
+// #part /js/ui/UIObject
 
-// #include ../utils
+// #link ../utils
 
 class UIObject {
 

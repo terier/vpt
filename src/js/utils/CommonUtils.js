@@ -1,4 +1,4 @@
-// #package js/main
+// #part /js/utils/CommonUtils
 
 class CommonUtils {
 
@@ -42,6 +42,15 @@ static readTextFile(onLoad, onError) {
 
 static trigger(event, element) {
     element.dispatchEvent(new Event(event));
+}
+
+static bind(object, { prefix = '', suffix = 'Listener'} = {}) {
+    const methods = Object.getOwnPropertyNames(object.constructor.prototype);
+    for (const method of methods) {
+        if (method.startsWith(prefix) && method.endsWith(suffix)) {
+            object[method] = object[method].bind(object);
+        }
+    }
 }
 
 static hex2rgb(str) {

@@ -1,6 +1,4 @@
-// #package glsl/shaders
-
-// #section test/vertex
+// #part /glsl/shaders/test/vertex
 
 #version 300 es
 precision mediump float;
@@ -11,7 +9,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #section test/fragment
+// #part /glsl/shaders/test/fragment
 
 #version 300 es
 precision mediump float;

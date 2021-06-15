@@ -1,6 +1,4 @@
-// #package uispecs
-
-// #section MIPRendererDialog
+// #part /uispecs/renderers/MIPRendererDialog
 
 {
   "type": "panel",

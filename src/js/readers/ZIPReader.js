@@ -1,6 +1,6 @@
-// #package js/main
+// #part /js/readers/ZIPReader
 
-// #include AbstractReader.js
+// #link AbstractReader
 
 class ZIPReader extends AbstractReader {
 
@@ -34,9 +34,9 @@ readFile(fileName, handlers) {
         if (entry) {
             this._loader.readData(entry.headerOffset, entry.headerOffset + 30, {
                 onData: header => {
-                    header = new Uint8Array(header);
-                    const fileNameLength = this._readShort(header, 26);
-                    const extraFieldLength = this._readShort(header, 28);
+                    header = new DataView(header);
+                    const fileNameLength = header.getUint16(26, true);
+                    const extraFieldLength = header.getUint16(28, true);
                     const dataOffset = entry.headerOffset + 30 + fileNameLength + extraFieldLength;
                     this._loader.readData(dataOffset, dataOffset + entry.compressedSize, {
                         onData: data => {
@@ -59,25 +59,9 @@ readFile(fileName, handlers) {
     }
 }
 
-_readByte(data, index) {
-    return data[index];
-}
-
-_readShort(data, index) {
-    return data[index]
-        | (data[index + 1] << 8);
-}
-
-_readInt(data, index) {
-    return data[index]
-        | (data[index + 1] << 8)
-        | (data[index + 2] << 16)
-        | (data[index + 3] << 24);
-}
-
 _readString(data, index, length) {
     const decoder = new TextDecoder('utf-8');
-    const encoded = data.slice(index, index + length);
+    const encoded = data.buffer.slice(index, index + length);
     return decoder.decode(encoded);
 }
 
@@ -87,18 +71,18 @@ _readEOCD(handlers) {
     }
 
     const readEOCD = function() {
-        var EOCD_SIGNATURE = new Uint8Array([0x50, 0x4b, 0x05, 0x06]);
-        var MIN_EOCD_SIZE = 22;
-        var offset = Math.max(this._length - MIN_EOCD_SIZE, 0);
-        var length = Math.min(this._length, MIN_EOCD_SIZE);
+        const EOCD_SIGNATURE = new Uint8Array([0x50, 0x4b, 0x05, 0x06]);
+        const MIN_EOCD_SIZE = 22;
+        const offset = Math.max(this._length - MIN_EOCD_SIZE, 0);
+        const length = Math.min(this._length, MIN_EOCD_SIZE);
 
         this._loader.readData(offset, offset + length, {
             onData: data => {
-                data = new Uint8Array(data);
+                data = new DataView(data);
                 this._eocd = {
-                    entries: this._readShort(data, 10),
-                    size   : this._readInt(data, 12),
-                    offset : this._readInt(data, 16)
+                    entries: data.getUint16(10, true),
+                    size   : data.getUint32(12, true),
+                    offset : data.getUint32(16, true),
                 };
                 handlers.onData && handlers.onData();
             }
@@ -125,20 +109,20 @@ _readCD(handlers) {
     const readCD = function() {
         this._loader.readData(this._eocd.offset, this._eocd.offset + this._eocd.size, {
             onData: data => {
-                data = new Uint8Array(data);
+                data = new DataView(data);
                 let offset = 0;
                 let entries = [];
                 for (let i = 0; i < this._eocd.entries; i++) {
-                    const gpflag = this._readShort(data, offset + 8);
-                    const method = this._readShort(data, offset + 10);
-                    const compressedSize = this._readInt(data, offset + 20);
-                    const uncompressedSize = this._readInt(data, offset + 24);
-                    const fileNameLength = this._readShort(data, offset + 28);
-                    const extraFieldLength = this._readShort(data, offset + 30);
-                    const fileCommentLength = this._readShort(data, offset + 32);
+                    const gpflag = data.getUint16(offset + 8, true);
+                    const method = data.getUint16(offset + 10, true);
+                    const compressedSize = data.getUint32(offset + 20, true);
+                    const uncompressedSize = data.getUint32(offset + 24, true);
+                    const fileNameLength = data.getUint16(offset + 28, true);
+                    const extraFieldLength = data.getUint16(offset + 30, true);
+                    const fileCommentLength = data.getUint16(offset + 32, true);
                     const cdEntrySize = 46 + fileNameLength + extraFieldLength + fileCommentLength;
                     const name = this._readString(data, offset + 46, fileNameLength);
-                    const headerOffset = this._readInt(data, offset + 42);
+                    const headerOffset = data.getUint32(offset + 42, true);
                     entries[i] = {
                         gpflag           : gpflag,
                         method           : method,

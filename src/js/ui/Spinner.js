@@ -1,11 +1,11 @@
-// #package js/main
+// #part /js/ui/Spinner
 
-// #include UIObject.js
+// #link UIObject
 
 class Spinner extends UIObject {
 
 constructor(options) {
-    super(TEMPLATES.Spinner, options);
+    super(TEMPLATES.ui.Spinner, options);
 
     Object.assign(this, {
         value : 0,
