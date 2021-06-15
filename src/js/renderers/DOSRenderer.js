@@ -10,16 +10,19 @@ constructor(gl, volume, environmentTexture, options) {
     super(gl, volume, environmentTexture, options);
 
     Object.assign(this, {
-        steps          : 10,
-        slices         : 200,
-        occlusionScale : 0.01,
-        occlusionDecay : 0.9,
-        _depth         : 1,
-        _minDepth      : -1,
-        _maxDepth      : 1
+        steps      : 10,
+        slices     : 200,
+        extinction : 100,
+        aperture   : 85,
+        samples    : 10,
+        _depth     : 1,
+        _minDepth  : -1,
+        _maxDepth  : 1,
     }, options);
 
     this._programs = WebGL.buildPrograms(this._gl, SHADERS.renderers.DOS, MIXINS);
+
+    this.generateOcclusionSamples();
 }
 
 destroy() {
@@ -31,6 +34,32 @@ destroy() {
     super.destroy();
 }
 
+generateOcclusionSamples() {
+    const data = new Float32Array(this.samples * 2);
+    for (let i = 0; i < this.samples; i++) {
+        const r = Math.sqrt(Math.random());
+        const phi = Math.random() * 2 * Math.PI;
+        const x = r * Math.cos(phi);
+        const y = r * Math.sin(phi);
+        data[2 * i + 0] = x;
+        data[2 * i + 1] = y;
+    }
+    const gl = this._gl;
+    this._occlusionSamples = WebGL.createTexture(gl, {
+        texture        : this._occlusionSamples,
+        width          : this.samples,
+        height         : 1,
+        format         : gl.RG,
+        internalFormat : gl.RG32F,
+        type           : gl.FLOAT,
+        min            : gl.NEAREST,
+        mag            : gl.NEAREST,
+        wrapS          : gl.CLAMP_TO_EDGE,
+        wrapT          : gl.CLAMP_TO_EDGE,
+        data           : data,
+    });
+}
+
 calculateDepth() {
     const vertices = [
         new Vector(0, 0, 0),
@@ -40,7 +69,7 @@ calculateDepth() {
         new Vector(1, 0, 0),
         new Vector(1, 0, 1),
         new Vector(1, 1, 0),
-        new Vector(1, 1, 1)
+        new Vector(1, 1, 1),
     ];
 
     let minDepth = 1;
@@ -94,12 +123,16 @@ _integrateFrame() {
     gl.uniform1i(uniforms.uTransferFunction, 3);
     gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
 
-    // TODO: calculate correct blur radius (occlusion scale)
-    gl.uniform2f(uniforms.uOcclusionScale, this.occlusionScale, this.occlusionScale);
-    gl.uniform1f(uniforms.uOcclusionDecay, this.occlusionDecay);
-    gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
+    gl.activeTexture(gl.TEXTURE4);
+    gl.uniform1i(uniforms.uOcclusionSamples, 4);
+    gl.bindTexture(gl.TEXTURE_2D, this._occlusionSamples);
 
-    const depthStep = (this._maxDepth - this._minDepth) / this.slices;
+    gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
+    gl.uniform1ui(uniforms.uOcclusionSamplesCount, this.samples);
+    gl.uniform1f(uniforms.uExtinction, this.extinction);
+
+    const sliceDistance = (this._maxDepth - this._minDepth) / this.slices;
+    gl.uniform1f(uniforms.uSliceDistance, sliceDistance);
     for (let step = 0; step < this.steps; step++) {
         if (this._depth > this._maxDepth) {
             break;
@@ -113,13 +146,17 @@ _integrateFrame() {
         gl.uniform1i(uniforms.uOcclusion, 1);
         gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[1]);
 
+        // TODO: projection matrix
+        const occlusionExtent = sliceDistance * Math.tan(this.aperture * Math.PI / 180);
+        const occlusionScale = occlusionExtent / this._depth;
+        gl.uniform2f(uniforms.uOcclusionScale, occlusionScale, occlusionScale);
         gl.uniform1f(uniforms.uDepth, this._depth);
 
         this._accumulationBuffer.use();
         gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
         this._accumulationBuffer.swap();
 
-        this._depth += depthStep;
+        this._depth += sliceDistance;
     }
 
     // Swap again to undo the last swap by AbstractRenderer
@@ -169,8 +206,8 @@ _getAccumulationBufferSpec() {
     const occlusionBuffer = {
         width          : this._bufferSize,
         height         : this._bufferSize,
-        min            : gl.NEAREST,
-        mag            : gl.NEAREST,
+        min            : gl.LINEAR,
+        mag            : gl.LINEAR,
         format         : gl.RED,
         internalFormat : gl.R32F,
         type           : gl.FLOAT

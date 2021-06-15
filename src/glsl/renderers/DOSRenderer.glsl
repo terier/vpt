@@ -3,7 +3,7 @@
 #version 300 es
 
 uniform mat4 uMvpInverseMatrix;
-uniform mediump float uDepth;
+uniform float uDepth;
 
 layout (location = 0) in vec2 aPosition;
 
@@ -27,11 +27,12 @@ uniform mediump sampler2D uTransferFunction;
 
 uniform mediump sampler2D uColor;
 uniform mediump sampler2D uOcclusion;
+uniform mediump sampler2D uOcclusionSamples;
 
-uniform float uDepth;
-
+uniform float uExtinction;
+uniform float uSliceDistance;
 uniform vec2 uOcclusionScale;
-uniform float uOcclusionDecay;
+uniform uint uOcclusionSamplesCount;
 
 in vec2 vPosition2D;
 in vec3 vPosition3D;
@@ -45,43 +46,31 @@ vec4 sampleVolumeColor(vec3 position) {
     return transferSample;
 }
 
-void main() {
-    const vec2 offsets[9] = vec2[](
-        vec2(-1, -1),
-        vec2( 0, -1),
-        vec2( 1, -1),
-        vec2(-1,  0),
-        vec2( 0,  0),
-        vec2( 1,  0),
-        vec2(-1,  1),
-        vec2( 0,  1),
-        vec2( 1,  1)
-    );
-
-    const float weights[9] = float[](
-        1.0 / 16.0, 2.0 / 16.0, 1.0 / 16.0,
-        2.0 / 16.0, 4.0 / 16.0, 2.0 / 16.0,
-        1.0 / 16.0, 2.0 / 16.0, 1.0 / 16.0
-    );
-
+float calculateOcclusion(float extinction) {
     float occlusion = 0.0;
-    for (int i = 0; i < 9; i++) {
-        vec2 occlusionPos = vPosition2D + offsets[i] * uOcclusionScale / uDepth;
-        occlusion += texture(uOcclusion, occlusionPos).r * weights[i];
+    for (uint i = 0u; i < uOcclusionSamplesCount; i++) {
+        vec2 occlusionSampleOffset = texelFetch(uOcclusionSamples, ivec2(i, 0), 0).rg;
+        vec2 occlusionSamplePosition = vPosition2D + occlusionSampleOffset * uOcclusionScale;
+        occlusion += texture(uOcclusion, occlusionSamplePosition).r;
     }
+    return (occlusion / float(uOcclusionSamplesCount)) * exp(-extinction * uSliceDistance);
+}
 
+void main() {
     vec4 prevColor = texture(uColor, vPosition2D);
+    float prevOcclusion = texture(uOcclusion, vPosition2D).r;
 
     if (any(greaterThan(vPosition3D, vec3(1))) || any(lessThan(vPosition3D, vec3(0)))) {
         oColor = prevColor;
-        oOcclusion = occlusion;
+        oOcclusion = prevOcclusion;
     } else {
         vec4 transferSample = sampleVolumeColor(vPosition3D);
-        transferSample.rgb *= transferSample.a * occlusion;
-
-        oColor = prevColor + transferSample * (1.0 - prevColor.a);
-        // TODO: do this calculation right
-        oOcclusion = 1.0 - ((1.0 - (occlusion - transferSample.a)) * uOcclusionDecay);
+        float extinction = transferSample.a * uExtinction;
+        float alpha = 1.0 - exp(-extinction * uSliceDistance);
+        vec3 color = transferSample.rgb * prevOcclusion * alpha;
+        oColor = prevColor + vec4(color * (1.0 - prevColor.a), alpha);
+        oColor.a = min(oColor.a, 1.0);
+        oOcclusion = calculateOcclusion(extinction);
     }
 }
 
@@ -93,8 +82,8 @@ layout (location = 0) in vec2 aPosition;
 out vec2 vPosition;
 
 void main() {
-    vPosition = (aPosition + 1.0) * 0.5;
-    gl_Position = vec4(aPosition, 0.0, 1.0);
+    vPosition = aPosition * 0.5 + 0.5;
+    gl_Position = vec4(aPosition, 0, 1);
 }
 
 // #part /glsl/shaders/renderers/DOS/render/fragment
@@ -119,7 +108,7 @@ void main() {
 layout (location = 0) in vec2 aPosition;
 
 void main() {
-    gl_Position = vec4(aPosition, 0.0, 1.0);
+    gl_Position = vec4(aPosition, 0, 1);
 }
 
 // #part /glsl/shaders/renderers/DOS/reset/fragment
@@ -131,6 +120,6 @@ layout (location = 0) out vec4 oColor;
 layout (location = 1) out float oOcclusion;
 
 void main() {
-    oColor = vec4(0, 0, 0, 0);
+    oColor = vec4(0);
     oOcclusion = 1.0;
 }

@@ -65,9 +65,14 @@ _initGL() {
     const gl = this._gl;
     this._extLoseContext = gl.getExtension('WEBGL_lose_context');
     this._extColorBufferFloat = gl.getExtension('EXT_color_buffer_float');
+    this._extTextureFloatLinear = gl.getExtension('OES_texture_float_linear');
 
     if (!this._extColorBufferFloat) {
         console.error('EXT_color_buffer_float not supported!');
+    }
+
+    if (!this._extTextureFloatLinear) {
+        console.error('OES_texture_float_linear not supported!');
     }
 
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
