@@ -36,14 +36,23 @@ destroy() {
 
 generateOcclusionSamples() {
     const data = new Float32Array(this.samples * 2);
+    let averagex = 0;
+    let averagey = 0;
     for (let i = 0; i < this.samples; i++) {
         const r = Math.sqrt(Math.random());
         const phi = Math.random() * 2 * Math.PI;
         const x = r * Math.cos(phi);
         const y = r * Math.sin(phi);
+        averagex += x / this.samples;
+        averagey += y / this.samples;
         data[2 * i + 0] = x;
         data[2 * i + 1] = y;
     }
+    for (let i = 0; i < this.samples; i++) {
+        data[2 * i + 0] -= averagex;
+        data[2 * i + 1] -= averagey;
+    }
+
     const gl = this._gl;
     this._occlusionSamples = WebGL.createTexture(gl, {
         texture        : this._occlusionSamples,
@@ -128,6 +137,7 @@ _integrateFrame() {
     gl.bindTexture(gl.TEXTURE_2D, this._occlusionSamples);
 
     gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
+    // TODO: bias occlusion samples for "directional" light
     gl.uniform1ui(uniforms.uOcclusionSamplesCount, this.samples);
     gl.uniform1f(uniforms.uExtinction, this.extinction);
 
