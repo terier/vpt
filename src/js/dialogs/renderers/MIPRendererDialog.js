@@ -17,7 +17,7 @@ constructor(renderer, options) {
 }
 
 _handleChange() {
-    this._renderer._stepSize = 1 / this._binds.steps.getValue();
+    this._renderer.steps = this._binds.steps.getValue();
 }
 
 }

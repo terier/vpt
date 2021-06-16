@@ -9,7 +9,7 @@ constructor(gl, volume, environmentTexture, options) {
     super(gl, volume, environmentTexture, options);
 
     Object.assign(this, {
-        _stepSize : 0.05
+        steps : 64
     }, options);
 
     this._programs = WebGL.buildPrograms(this._gl, SHADERS.renderers.MIP, MIXINS);
@@ -43,7 +43,7 @@ _generateFrame() {
     gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
 
     gl.uniform1i(uniforms.uVolume, 0);
-    gl.uniform1f(uniforms.uStepSize, this._stepSize);
+    gl.uniform1f(uniforms.uStepSize, 1 / this.steps);
     gl.uniform1f(uniforms.uOffset, Math.random());
     gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
 

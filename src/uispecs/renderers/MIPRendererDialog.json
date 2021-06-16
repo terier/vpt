@@ -10,7 +10,7 @@
         {
           "type": "spinner",
           "bind": "steps",
-          "value": 10,
+          "value": 64,
           "min": 1
         }
       ]

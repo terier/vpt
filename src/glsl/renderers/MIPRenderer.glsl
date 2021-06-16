@@ -1,7 +1,6 @@
 // #part /glsl/shaders/renderers/MIP/generate/vertex
 
 #version 300 es
-precision mediump float;
 
 uniform mat4 uMvpInverseMatrix;
 
@@ -14,7 +13,7 @@ out vec3 vRayTo;
 
 void main() {
     unproject(aPosition, uMvpInverseMatrix, vRayFrom, vRayTo);
-    gl_Position = vec4(aPosition, 0.0, 1.0);
+    gl_Position = vec4(aPosition, 0, 1);
 }
 
 // #part /glsl/shaders/renderers/MIP/generate/fragment
@@ -59,14 +58,13 @@ void main() {
 // #part /glsl/shaders/renderers/MIP/integrate/vertex
 
 #version 300 es
-precision mediump float;
 
 layout(location = 0) in vec2 aPosition;
 out vec2 vPosition;
 
 void main() {
-    vPosition = (aPosition + 1.0) * 0.5;
-    gl_Position = vec4(aPosition, 0.0, 1.0);
+    vPosition = aPosition * 0.5 + 0.5;
+    gl_Position = vec4(aPosition, 0, 1);
 }
 
 // #part /glsl/shaders/renderers/MIP/integrate/fragment
@@ -89,14 +87,13 @@ void main() {
 // #part /glsl/shaders/renderers/MIP/render/vertex
 
 #version 300 es
-precision mediump float;
 
 layout(location = 0) in vec2 aPosition;
 out vec2 vPosition;
 
 void main() {
-    vPosition = (aPosition + 1.0) * 0.5;
-    gl_Position = vec4(aPosition, 0.0, 1.0);
+    vPosition = aPosition * 0.5 + 0.5;
+    gl_Position = vec4(aPosition, 0, 1);
 }
 
 // #part /glsl/shaders/renderers/MIP/render/fragment
@@ -111,18 +108,17 @@ out vec4 oColor;
 
 void main() {
     float acc = texture(uAccumulator, vPosition).r;
-    oColor = vec4(acc, acc, acc, 1.0);
+    oColor = vec4(acc, acc, acc, 1);
 }
 
 // #part /glsl/shaders/renderers/MIP/reset/vertex
 
 #version 300 es
-precision mediump float;
 
 layout(location = 0) in vec2 aPosition;
 
 void main() {
-    gl_Position = vec4(aPosition, 0.0, 1.0);
+    gl_Position = vec4(aPosition, 0, 1);
 }
 
 // #part /glsl/shaders/renderers/MIP/reset/fragment
