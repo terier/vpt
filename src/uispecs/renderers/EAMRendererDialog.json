@@ -5,25 +5,25 @@
   "children": [
     {
       "type": "field",
-      "label": "Steps:",
+      "label": "Slices:",
       "children": [
         {
           "type": "spinner",
-          "bind": "steps",
-          "value": 10,
+          "bind": "slices",
+          "value": 64,
           "min": 1
         }
       ]
     },
     {
       "type": "field",
-      "label": "Opacity:",
+      "label": "Extinction:",
       "children": [
         {
           "type": "spinner",
-          "bind": "opacity",
+          "bind": "extinction",
           "logarithmic": true,
-          "value": 1,
+          "value": 100,
           "min": 0,
           "step": 0.1
         }

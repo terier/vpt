@@ -9,8 +9,9 @@ constructor(gl, volume, environmentTexture, options) {
     super(gl, volume, environmentTexture, options);
 
     Object.assign(this, {
-        _stepSize        : 0.05,
-        _alphaCorrection : 3
+        extinction : 100,
+        slices     : 64,
+        steps      : 64,
     }, options);
 
     this._programs = WebGL.buildPrograms(this._gl, SHADERS.renderers.EAM, MIXINS);
@@ -47,8 +48,8 @@ _generateFrame() {
 
     gl.uniform1i(uniforms.uVolume, 0);
     gl.uniform1i(uniforms.uTransferFunction, 1);
-    gl.uniform1f(uniforms.uStepSize, this._stepSize);
-    gl.uniform1f(uniforms.uAlphaCorrection, this._alphaCorrection);
+    gl.uniform1f(uniforms.uStepSize, 1 / this.slices);
+    gl.uniform1f(uniforms.uExtinction, this.extinction);
     gl.uniform1f(uniforms.uOffset, Math.random());
     gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
 
