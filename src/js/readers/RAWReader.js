@@ -11,7 +11,6 @@ constructor(loader, options) {
         width  : 0,
         height : 0,
         depth  : 0,
-        bits   : 8
     }, options);
 }
 
@@ -36,8 +35,9 @@ readMetadata(handlers) {
                         0, 0, 0, 1
                     ]
                 },
-                components: 1,
-                bits: this.bits,
+                format: 6403,
+                internalFormat: 33321,
+                type: 5121,
                 placements: []
             }
         ],
@@ -65,7 +65,7 @@ readMetadata(handlers) {
 }
 
 readBlock(block, handlers) {
-    const sliceBytes = this.width * this.height * (this.bits / 8);
+    const sliceBytes = this.width * this.height;
     const start = block * sliceBytes;
     const end = (block + 1) * sliceBytes;
     this._loader.readData(start, end, {
