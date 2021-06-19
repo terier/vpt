@@ -13,8 +13,8 @@ class MCDRenderer extends AbstractRenderer {
             scatteringCoefficient : 20, // 1
             scatteringBias        : 0,
             majorant              : 100, // 2
-            maxBounces            : 80, // 8
-            steps                 : 20, // 1
+            maxBounces            : 20, // 8
+            steps                 : 200, // 1
             _nActiveLights        : 0,
             counter               : 0,
             _limit                : 0,
