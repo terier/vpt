@@ -33,19 +33,6 @@
     },
     {
       "type": "field",
-      "label": "Scattering:",
-      "children": [
-        {
-          "type": "spinner",
-          "bind": "scattering",
-          "value": 0.2,
-          "min": 0,
-          "step": 0.1
-        }
-      ]
-    },
-    {
-      "type": "field",
       "label": "Volume to Light Volume ratio:",
       "children": [
         {
@@ -67,6 +54,19 @@
           "value": 0,
           "min": 0,
           "step": 1
+        }
+      ]
+    },
+    {
+      "type": "field",
+      "label": "Maximum Slowdown:",
+      "children": [
+        {
+          "type": "spinner",
+          "bind": "max_slowdown",
+          "value": 1.5,
+          "min": 1,
+          "step": 0.1
         }
       ]
     },
@@ -127,25 +127,64 @@
         },
         {
           "type": "field",
-          "label": "Maximum Slowdown:",
+          "label": "Renderer Subtype:",
           "children": [
             {
-              "type": "spinner",
-              "bind": "max_slowdown",
-              "value": 1.5,
-              "min": 1,
-              "step": 0.1
+              "type": "dropdown",
+              "bind": "renderer_type",
+              "options": [
+                {
+                  "value": 0,
+                  "label": "Monte Carlo hybrid (lights)",
+                  "selected": false
+                },
+                {
+                  "value": 1,
+                  "label": "Monte Carlo (env)",
+                  "selected": true
+                }
+              ]
             }
           ]
         },
         {
           "type": "field",
-          "label": "Enabled:",
+          "label": "Enable MC",
           "children": [
             {
               "type": "checkbox",
               "bind": "mc_enabled",
               "checked": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "accordion",
+      "label": "Diffusion",
+      "children": [
+        {
+          "type": "field",
+          "label": "Diffusion:",
+          "children": [
+            {
+              "type": "checkbox",
+              "bind": "diffusion_enabled",
+              "checked": false
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Scattering:",
+          "children": [
+            {
+              "type": "spinner",
+              "bind": "scattering",
+              "value": 0.2,
+              "min": 0,
+              "step": 0.1
             }
           ]
         }

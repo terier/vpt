@@ -16,6 +16,7 @@ class RCNRendererDialog extends AbstractDialog {
         this._setInitialValues();
 
         this._handleChange = this._handleChange.bind(this);
+        this._handleChangeType = this._handleChangeType.bind(this);
         this._handleChangeScettering = this._handleChangeScettering.bind(this);
         this._handleChangeResetLightField = this._handleChangeResetLightField.bind(this);
         this._handleChangeRatio = this._handleChangeRatio.bind(this);
@@ -32,6 +33,7 @@ class RCNRendererDialog extends AbstractDialog {
         this._binds.mc_enabled.addEventListener('change', this._handleChange);
 
         this._binds.scattering.addEventListener('input', this._handleChangeScettering);
+        this._binds.diffusion_enabled.addEventListener('input', this._handleChangeScettering);
         this._binds.ratio.addEventListener('input', this._handleChangeRatio);
 
         // MC
@@ -40,6 +42,8 @@ class RCNRendererDialog extends AbstractDialog {
         this._binds.ray_steps.addEventListener('input', this._handleChange);
         this._binds.max_slowdown.addEventListener('input', this._handleChangeSlowdown);
         this._binds.limit.addEventListener('input', this._handleChange);
+        this._binds.ratio.addEventListener('input', this._handleChangeRatio);
+        this._binds.renderer_type.addEventListener('input', this._handleChangeType);
 
         // Deferred Rendering and De-Noise
         this._binds.deferred_enabled.addEventListener('change', this._handleChangeDeferredRendering);
@@ -57,18 +61,14 @@ class RCNRendererDialog extends AbstractDialog {
 
     _setInitialValues() {
         this._renderer._scattering = this._binds.scattering.getValue();
-
         this._renderer._steps = this._binds.ray_steps.getValue();
-
         const extinction = this._binds.extinction.getValue();
-        
         this._renderer._absorptionCoefficientMC = extinction;
-
         this._renderer._majorant = this._binds.majorant_ratio.getValue() * extinction;
-
         this._renderer._lightVolumeRatio = this._binds.ratio.getValue();
-
         this._renderer._mcEnabled = this._binds.mc_enabled.isChecked();
+        this._renderer._diffusionEnabled = this._binds.diffusion_enabled.isChecked();
+        this._renderer._type = parseInt(this._binds.renderer_type.getValue());
 
         this._renderer._deferredRendering = this._binds.deferred_enabled.isChecked();
         this._renderer._smartDeNoise = this._binds.sd_enabled.isChecked();
@@ -117,8 +117,17 @@ class RCNRendererDialog extends AbstractDialog {
         this._renderer.reset();
     }
 
+    _handleChangeType() {
+        this._renderer._type = parseInt(this._binds.renderer_type.getValue());
+        if (this._renderer._volumeDimensions) {
+            this._renderer._resetPhotons();
+            this._handleChangeSlowdown()
+        }
+    }
+
     _handleChangeScettering() {
         this._renderer._scattering = this._binds.scattering.getValue();
+        this._renderer._diffusionEnabled = this._binds.diffusion_enabled.isChecked();
         if (this._renderer._volumeDimensions) {
             // this._renderer._resetDiffusion();
             this._renderer.reset();

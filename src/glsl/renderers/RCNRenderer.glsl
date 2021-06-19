@@ -55,7 +55,7 @@ in vec2 vPosition;
 layout (location = 0) out vec4 oPosition;
 layout (location = 1) out vec4 oDirectionAndTransmittance;
 layout (location = 2) out vec4 oDistanceTravelledAndSamples;
-layout (location = 3) out vec2 oRadianceAndDiffusion;
+layout (location = 3) out vec4 oRadianceAndDiffusion;
 
 @rand
 
@@ -105,9 +105,6 @@ void main() {
     photon.samples = uint(distanceTravelledAndSamples.z + 0.5);
 
     vec2 r = rand((mappedPosition.xy + mappedPosition.yz) * uRandSeed);
-    //    float d = distance(photon.position, light / vec3(uSize));
-    //    imageStore(uEnergyDensityWrite, ivec3(gl_GlobalInvocationID), vec4(d));
-    //    imageStore(uEnergyDensityWrite, ivec3(gl_GlobalInvocationID), vec4(photon.transmittance, 0));
 
     for (uint i = 0u; i < uSteps; i++) {
         r = rand(r);
@@ -148,7 +145,144 @@ void main() {
     oPosition = vec4(photon.position, 0);
     oDirectionAndTransmittance = vec4(photon.direction, photon.transmittance);
     oDistanceTravelledAndSamples = vec4(photon.distance, photon.travelled, float(photon.samples), 0);
-    oRadianceAndDiffusion = vec2(photon.radiance, diffusion);
+    oRadianceAndDiffusion = vec4(photon.radiance, diffusion, 0, 0);
+}
+
+// #section RCNIntegrateENV/vertex
+
+#version 300 es
+
+layout (location = 0) in vec2 aPosition;
+
+out vec2 vPosition;
+
+void main() {
+//    vPosition = aPosition;
+//    gl_Position = vec4(aPosition, 0.0, 1.0);
+
+    vPosition = (aPosition + 1.0) * 0.5;
+    gl_Position = vec4(aPosition, 0.0, 1.0);
+}
+
+// #section RCNIntegrateENV/fragment
+
+#version 300 es
+precision mediump float;
+
+#define M_INVPI 0.31830988618
+#define M_2PI 6.28318530718
+#define EPS 1e-5
+
+@Photon
+
+uniform mediump sampler3D uVolume;
+uniform mediump sampler2D uTransferFunction;
+uniform mediump sampler3D uPosition;
+uniform mediump sampler3D uDirection;
+uniform mediump sampler3D uTransmittance;
+uniform mediump sampler3D uRadiance;
+uniform mediump sampler2D uEnvironment;
+
+uniform float uRandSeed;
+uniform float uAbsorptionCoefficient;
+uniform float uMajorant;
+uniform float uLayer;
+uniform uint uSteps;
+
+in vec2 vPosition;
+
+layout (location = 0) out vec4 oPosition;
+layout (location = 1) out vec4 oDirection;
+layout (location = 2) out vec4 oTransmittance;
+layout (location = 3) out vec4 oRadiance;
+
+@rand
+
+//vec3 randomDirection(inout vec2 randState) {
+//    randState = rand(randState);
+//    vec3 direction = vec3(0,0,0);
+//    direction.x = randState.x * 2 - 1;
+//    direction.y = randState.y * 2 - 1;
+//    randState = rand(randState);
+//    direction.z = randState.x * 2 - 1;
+//    return normalize(direction);
+//}
+
+vec3 randomDirection(vec2 U) {
+    float phi = U.x * M_2PI;
+    float z = U.y * 2.0 - 1.0;
+    float k = sqrt(1.0 - z * z);
+    return vec3(k * cos(phi), k * sin(phi), z);
+}
+
+void resetPhoton(vec2 randState, inout Photon photon, vec3 mappedPosition) {
+    randState = rand(randState);
+    photon.direction = normalize(randomDirection(randState));
+    photon.bounces = 0u;
+    photon.position = mappedPosition;
+    photon.transmittance = vec3(1);
+}
+
+vec4 sampleEnvironmentMap(vec3 d) {
+    vec2 texCoord = vec2(atan(d.x, -d.z), asin(-d.y) * 2.0) * M_INVPI * 0.5 + 0.5;
+    return texture(uEnvironment, texCoord);
+}
+
+vec4 sampleVolumeColor(vec3 position) {
+    vec2 volumeSample = texture(uVolume, position).rg;
+    vec4 transferSample = texture(uTransferFunction, volumeSample);
+    return transferSample;
+}
+
+void main() {
+    Photon photon;
+    vec3 mappedPosition = vec3(vPosition,  uLayer);
+    vec4 positionAndSamples = texture(uPosition, mappedPosition);
+    photon.position = positionAndSamples.xyz;
+    photon.samples = uint(positionAndSamples.w + 0.5);
+    vec4 directionAndBounces = texture(uDirection, mappedPosition);
+    photon.direction = directionAndBounces.xyz;
+    photon.bounces = uint(directionAndBounces.w + 0.5);
+    photon.transmittance = texture(uTransmittance, mappedPosition).rgb;
+    vec4 radianceAndSamples = texture(uRadiance, mappedPosition);
+    photon.radiance = radianceAndSamples.rgb;
+
+    vec2 r = rand((mappedPosition.xy + mappedPosition.yz) * uRandSeed);
+    for (uint i = 0u; i < uSteps; i++) {
+        r = rand(r);
+        float t = -log(r.x) / uMajorant;
+        photon.position += t * photon.direction;
+
+        vec4 volumeSample = sampleVolumeColor(photon.position);
+        float muAbsorption = volumeSample.a * uAbsorptionCoefficient;
+        float muNull = uMajorant - muAbsorption;
+        float muMajorant = muAbsorption + abs(muNull);
+        float PNull = abs(muNull) / muMajorant;
+        float PAbsorption = muAbsorption / muMajorant;
+
+        if (any(greaterThan(photon.position, vec3(1))) || any(lessThan(photon.position, vec3(0)))) {
+            // out of bounds
+            vec4 envSample = sampleEnvironmentMap(photon.direction);
+            vec3 radiance = photon.transmittance * envSample.rgb;
+            photon.samples++;
+            photon.radiance += (radiance - photon.radiance) / float(photon.samples);
+            photon.radiance = vec3(photon.radiance.x, 0, 0);
+            resetPhoton(r, photon, mappedPosition);
+        } else if (r.y < PAbsorption) {
+            // absorption
+            float weightA = muAbsorption / (uMajorant * PAbsorption);
+            photon.transmittance *= 1.0 - weightA;
+        } else {
+            // null collision
+            float weightN = muNull / (uMajorant * PNull);
+            photon.transmittance *= weightN;
+        }
+    }
+
+    oPosition = vec4(photon.position, float(photon.samples));
+    oDirection = vec4(photon.direction, float(photon.bounces));
+    oTransmittance = vec4(photon.transmittance, 0);
+    oRadiance = vec4(photon.radiance, 0);
 }
 
 // #section RCNDiffuse/vertex
@@ -191,7 +325,7 @@ in vec2 vPosition;
 layout (location = 0) out vec4 oPosition;
 layout (location = 1) out vec4 oDirectionAndTransmittance;
 layout (location = 2) out vec4 oDistanceTravelledAndSamples;
-layout (location = 3) out vec2 oRadianceAndDiffusion;
+layout (location = 3) out vec4 oRadianceAndDiffusion;
 
 void main() {
     vec3 position = vec3(vPosition, uLayer);
@@ -202,7 +336,7 @@ void main() {
         oPosition = texture(uPosition, position);
         oDirectionAndTransmittance = texture(uDirectionAndTransmittance, position);
         oDistanceTravelledAndSamples = texture(uDistanceTravelledAndSamples, position);
-        oRadianceAndDiffusion = vec2(radianceAndDiffusion.r, 0);
+        oRadianceAndDiffusion = vec4(radianceAndDiffusion.r, 0, 0, 0);
         return;
     }
 
@@ -244,7 +378,7 @@ void main() {
     oPosition = texture(uPosition, position);
     oDirectionAndTransmittance = texture(uDirectionAndTransmittance, position);
     oDistanceTravelledAndSamples = texture(uDistanceTravelledAndSamples, position);
-    oRadianceAndDiffusion = vec2(radiance, delta);
+    oRadianceAndDiffusion = vec4(radiance, delta, 0, 0);
 }
 
 // #section RCNRender/vertex
@@ -530,13 +664,12 @@ uniform mediump sampler2D uLights;
 //uniform uint uNLights;
 uniform float uLayer;
 uniform float uRandSeed;
-uniform vec3 uSize;
 //uniform vec4 uLight;
 
 layout (location = 0) out vec4 oPosition;
 layout (location = 1) out vec4 oDirectionAndTransmittance;
 layout (location = 2) out vec4 oDistanceTravelledAndSamples;
-layout (location = 3) out vec2 oRadianceAndDiffusion;
+layout (location = 3) out vec4 oRadianceAndDiffusion;
 
 @rand
 
@@ -568,7 +701,63 @@ void main() {
     oPosition = vec4(photon.position, 0);
     oDirectionAndTransmittance = vec4(photon.direction, photon.transmittance);
     oDistanceTravelledAndSamples = vec4(photon.distance, photon.travelled, float(photon.samples), 0);
-    oRadianceAndDiffusion = vec2(photon.radiance, 0);
+    oRadianceAndDiffusion = vec4(photon.radiance, 0, 0, 0);
+}
+
+// #section RCNResetPhotonsENV/vertex
+
+#version 300 es
+
+layout (location = 0) in vec2 aPosition;
+
+out vec2 vPosition;
+
+void main() {
+    vPosition = (aPosition + 1.0) * 0.5;
+    gl_Position = vec4(aPosition, 0.0, 1.0);
+}
+
+// #section RCNResetPhotonsENV/fragment
+
+#version 300 es
+precision mediump float;
+
+#define M_2PI 6.28318530718
+
+@Photon
+uniform float uRandSeed;
+uniform float uLayer;
+
+in vec2 vPosition;
+
+layout (location = 0) out vec4 oPosition;
+layout (location = 1) out vec4 oDirection;
+layout (location = 2) out vec4 oTransmittance;
+layout (location = 3) out vec4 oRadiance;
+
+@rand
+
+vec3 randomDirection(vec2 U) {
+    float phi = U.x * M_2PI;
+    float z = U.y * 2.0 - 1.0;
+    float k = sqrt(1.0 - z * z);
+    return vec3(k * cos(phi), k * sin(phi), z);
+}
+
+void main() {
+    Photon photon;
+    vec3 from = vec3(vPosition,  uLayer);
+    vec2 randState = rand((from.xy + from.yz) * uRandSeed);
+    photon.direction = normalize(randomDirection(randState));
+    photon.position = from;
+    photon.transmittance = vec3(1);
+    photon.radiance = vec3(0.05, 0, 0);
+    photon.bounces = 0u;
+    photon.samples = 0u;
+    oPosition = vec4(photon.position, float(photon.samples));
+    oDirection = vec4(photon.direction, float(photon.bounces));
+    oTransmittance = vec4(photon.transmittance, 0);
+    oRadiance = vec4(photon.radiance, 0);
 }
 
 // #section RCNResetDiffusion/vertex
@@ -604,7 +793,7 @@ uniform float uLayer;
 layout (location = 0) out vec4 oPosition;
 layout (location = 1) out vec4 oDirectionAndTransmittance;
 layout (location = 2) out vec4 oDistanceTravelledAndSamples;
-layout (location = 3) out vec2 oRadianceAndDiffusion;
+layout (location = 3) out vec4 oRadianceAndDiffusion;
 
 void main() {
     vec3 position = vec3(vPosition, uLayer);
@@ -612,5 +801,5 @@ void main() {
     oPosition = texture(uPosition, position);
     oDirectionAndTransmittance = texture(uDirectionAndTransmittance, position);
     oDistanceTravelledAndSamples = texture(uDistanceTravelledAndSamples, position);
-    oRadianceAndDiffusion = vec2(texture(uRadianceAndDiffusion, position).r, 0);
+    oRadianceAndDiffusion = vec4(texture(uRadianceAndDiffusion, position).r, 0, 0, 0);
 }

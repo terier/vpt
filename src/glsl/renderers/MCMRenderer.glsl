@@ -247,7 +247,7 @@ void main() {
     vec2 tbounds = max(intersectCube(from, photon.direction), 0.0);
     photon.position = from + tbounds.x * photon.direction;
     photon.transmittance = vec3(1);
-    photon.radiance = vec3(1);
+    photon.radiance = vec3(0.05);
     photon.bounces = 0u;
     photon.samples = 0u;
     oPosition = vec4(photon.position, 0);
