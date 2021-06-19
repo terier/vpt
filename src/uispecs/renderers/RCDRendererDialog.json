@@ -91,7 +91,7 @@
             {
               "type": "spinner",
               "bind": "ray_steps",
-              "value": 10,
+              "value": 1,
               "min": 1,
               "step": 1
             }
@@ -133,7 +133,7 @@
               "bind": "limit",
               "value": 0,
               "min": 0,
-              "step": 1
+              "step": 10
             }
           ]
         }

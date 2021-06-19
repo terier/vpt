@@ -26,7 +26,7 @@
         {
           "type": "slider",
           "bind": "albedo",
-          "value": 0.8,
+          "value": 1,
           "min": 0,
           "max": 1,
           "step": 0.1
@@ -68,7 +68,7 @@
         {
           "type": "spinner",
           "bind": "bounces",
-          "value": 80,
+          "value": 20,
           "min": 0
         }
       ]
@@ -80,8 +80,21 @@
         {
           "type": "spinner",
           "bind": "steps",
-          "value": 20,
+          "value": 200,
           "min": 1
+        }
+      ]
+    },
+    {
+      "type": "field",
+      "label": "Iterations:",
+      "children": [
+        {
+          "type": "spinner",
+          "bind": "limit",
+          "value": 0,
+          "min": 0,
+          "step": 10
         }
       ]
     },

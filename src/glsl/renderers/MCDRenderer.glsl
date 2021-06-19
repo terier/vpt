@@ -58,6 +58,7 @@ uniform float uScatteringBias;
 uniform float uMajorant;
 uniform uint uMaxBounces;
 uniform uint uSteps;
+uniform uint uNLights;
 
 in vec2 vPosition;
 
@@ -162,12 +163,12 @@ void main() {
 //                if (any(lessThan(photon.position, vec3(0))) || all(equal(photon.transmittance, vec3(1.0)))) {
 //                    envSample = vec4(1.0);
 //                }
-                vec3 radiance = photon.transmittance;  //* envSample.rgb;
+                vec3 radiance = photon.transmittance * float(uNLights);  //* envSample.rgb;
                 photon.samples++;
                 photon.radiance += (radiance - photon.radiance) / float(photon.samples);
-                if (length(photon.radiance) > 10.0) {
-                    photon.radiance = vec3(1.0, 0.0, 1.0);
-                }
+//                if (length(photon.radiance) > 10.0) {
+//                    photon.radiance = vec3(1.0, 0.0, 1.0);
+//                }
                 resetPhoton(r, photon);
             }
 //            if (photon.done < 1u && !(all(equal(photon.transmittance, vec3(1.0))))) { //
@@ -206,7 +207,6 @@ void main() {
                 photon.done = 1u;
                 photon.direction = -normalize(photon.light);
                 photon.bounces = uMaxBounces + 10u;
-//                photon.transmittance /= 1.0 - 0.05;
             }
 //            else {
 //                photon.transmittance /= 0.05;

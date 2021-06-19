@@ -31,9 +31,11 @@ void main() {
         return;
     }
 
-    float val = texture(uVolume, vec3(position) / vec3(uSize)).r;
+//    float val = texture(uVolume, vec3(position) / vec3(uSize)).r;
+//    vec4 colorSample = texture(uTransferFunction, vec2(val, 0.5));
+    vec2 val = texture(uVolume, vec3(position) / vec3(uSize)).rg;
+    vec4 colorSample = texture(uTransferFunction, val);
 
-    vec4 colorSample = texture(uTransferFunction, vec2(val, 0.5));
 
     float absorption = colorSample.a * uAbsorptionCoefficient;
     float revAbsorption = float(1) - absorption;
@@ -99,9 +101,11 @@ void main() {
     vec3 lightDirection = normalize(vec3(position) - uLight);
 //    imageStore(uEnergyDensityWrite, position, vec4(lightDirection, 0));
 //    return;
-    float val = texture(uVolume, vec3(position) / vec3(uSize)).r;
+//    float val = texture(uVolume, vec3(position) / vec3(uSize)).r;
+//    vec4 colorSample = texture(uTransferFunction, vec2(val, 0.5));
 
-    vec4 colorSample = texture(uTransferFunction, vec2(val, 0.5));
+    vec2 val = texture(uVolume, vec3(position) / vec3(uSize)).rg;
+    vec4 colorSample = texture(uTransferFunction, val);
 
     float absorption = colorSample.a * uAbsorptionCoefficient;
     float revAbsorption = float(1) - absorption;
@@ -281,7 +285,7 @@ void main() {
 
         float t = 0.0;
         vec3 pos;
-        float val;
+//        float val;
         vec4 colorSample;
         vec4 accumulator = vec4(0.0);
 
@@ -289,12 +293,15 @@ void main() {
 
         while (t < 1.0 && accumulator.a < 0.99) {
             pos = mix(from, to, t);
-            val = texture(uVolume, pos).r;
 
             energyDensity = texture(uEnergyDensity, pos).r;
             energyDensity += texture(uEnergyDensityDiffusion, pos).r;
 
-            colorSample = texture(uTransferFunction, vec2(val, 0.5));
+//            val = texture(uVolume, pos).r;
+//            colorSample = texture(uTransferFunction, vec2(val, 0.5));
+            vec2 val = texture(uVolume, pos).rg;
+            vec4 colorSample = texture(uTransferFunction, val);
+
             colorSample.a *= rayStepLength * uAlphaCorrection;
             // utezi z energy density
             colorSample.rgb *= colorSample.a * energyDensity;

@@ -63,13 +63,13 @@ vec2 convection(in float radiance, in float baseAbsorption, in vec3 light,
 
     light = normalize(light);
 
-//    vec3 grad = 0.5 * vec3(right - left, up - down, forward - back);
+    vec3 grad = 0.5 * vec3(right - left, up - down, forward - back);
 
-    vec3 grad = vec3(
-        light.x < 0.0 ? right - radiance : radiance - left,
-        light.y < 0.0 ? up - radiance : radiance - down,
-        light.z < 0.0 ? forward - radiance : radiance - back
-    );
+//    vec3 grad = vec3(
+//        light.x < 0.0 ? right - radiance : radiance - left,
+//        light.y < 0.0 ? up - radiance : radiance - down,
+//        light.z < 0.0 ? forward - radiance : radiance - back
+//    );
 
     float convection = -0.5 * dot(light, grad);
     float absorption = -baseAbsorption * radiance;
@@ -144,9 +144,6 @@ void main() {
 
     float diffusion = colorSample.a * uScattering * laplace;
 
-
-
-
     for (int i = 0; i < uNLights; i++) {
         total_radiance += radiance[i];
         if (uLights[i].a < DIRECTIONAL) {
@@ -161,9 +158,12 @@ void main() {
         float derivative = convectionAbsorption.x + convectionAbsorption.y;
         float eulerRadiance = radiance[i] + (derivative + diffusion) * uTimeStep;
 
-        float jacobiRadiance = (convectionAbsorption.x + diffusion + 6.0 * uScattering * radiance[i]) / (denominator);
-        float weightedJacobi = mix(radiance[i], jacobiRadiance, uJacobiWeight);
-        newRadiance[i] = mix(eulerRadiance, weightedJacobi, uEulerJacobiMix);
+//        float jacobiRadiance = (convectionAbsorption.x + diffusion + 6.0 * uScattering * radiance[i]) / (denominator);
+//        float weightedJacobi = mix(radiance[i], jacobiRadiance, uJacobiWeight);
+//        float jacobiRadiance = (convectionAbsorption.x) / (baseAbsorption);
+        newRadiance[i] = eulerRadiance;
+
+//        newRadiance[i] = mix(eulerRadiance, weightedJacobi, uEulerJacobiMix);
 //        if (isinf(weightedJacobi)) {
 //            newRadiance[i] = 0.5;
 //        }
@@ -269,7 +269,7 @@ void main() {
 
             energyDensity = componentSum(texture(uEnergyDensity, pos));
 //            energyDensity = texture(uEnergyDensity, pos).a;
-            energyDensity += texture(uDiffusion, pos).r;
+//            energyDensity += texture(uDiffusion, pos).r;
 
             colorSample = texture(uTransferFunction, vec2(val, 0.5));
             colorSample.a *= rayStepLength * uAlphaCorrection;

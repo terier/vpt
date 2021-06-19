@@ -31,6 +31,7 @@ class FCDRendererDialog extends AbstractDialog {
         this._binds.ratio.addEventListener('input', this._handleChangeRatio);
         this._binds.repeats.addEventListener('input', this._handleChangeResetLightField);
         this._binds.convectionSteps.addEventListener('input', this._handleChangeResetLightField);
+        this._binds.limit.addEventListener('input', this._handleChange);
 
         this._tfwidget = new TransferFunctionWidget();
         this._binds.tfcontainer.add(this._tfwidget);
@@ -46,7 +47,7 @@ class FCDRendererDialog extends AbstractDialog {
         this._renderer._convectionLimit = this._binds.repeats.getValue();
         this._renderer._convectionSteps = this._binds.convectionSteps.getValue();
         this._renderer._lightVolumeRatio = this._binds.ratio.getValue();
-
+        this._renderer._limit = this._binds.limit.getValue();
     }
 
     destroy() {
@@ -58,6 +59,10 @@ class FCDRendererDialog extends AbstractDialog {
         this._renderer._stepSize = 1 / this._binds.steps.getValue();
         this._renderer._alphaCorrection = this._binds.opacity.getValue();
         this._renderer._absorptionCoefficient = this._binds.absorptionCoefficient.getValue();
+        this._renderer._limit = this._binds.limit.getValue();
+        if (this._renderer._limit < this._renderer.counter) {
+            this._renderer._resetLightField();
+        }
 
         this._renderer.reset();
     }
@@ -75,6 +80,8 @@ class FCDRendererDialog extends AbstractDialog {
         this._renderer._convectionLimit = this._binds.repeats.getValue();
 
         this._renderer._convectionSteps = this._binds.convectionSteps.getValue();
+
+        this._renderer._limit = this._binds.limit.getValue();
         if (this._renderer._volumeDimensions) {
             this._renderer._resetLightField();
         }

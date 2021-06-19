@@ -16,6 +16,7 @@ class MCDRendererDialog extends AbstractDialog {
         this._handleChange = this._handleChange.bind(this);
         this._handleTFChange = this._handleTFChange.bind(this);
         this._handleChangeLights = this._handleChangeLights.bind(this);
+        this._handleChangeNoReset = this._handleChangeNoReset.bind(this);
 
         this._binds.extinction.addEventListener('input', this._handleChange);
         this._binds.albedo.addEventListener('change', this._handleChange);
@@ -23,6 +24,7 @@ class MCDRendererDialog extends AbstractDialog {
         this._binds.ratio.addEventListener('change', this._handleChange);
         this._binds.bounces.addEventListener('input', this._handleChange);
         this._binds.steps.addEventListener('input', this._handleChange);
+        this._binds.limit.addEventListener('input', this._handleChangeNoReset);
 
         this._handleChange();
 
@@ -43,6 +45,7 @@ class MCDRendererDialog extends AbstractDialog {
         const ratio      = this._binds.ratio.getValue();
         const bounces    = this._binds.bounces.getValue();
         const steps      = this._binds.steps.getValue();
+        // const limit      = this._binds.limit.getValue();
 
         this._renderer.absorptionCoefficient = extinction * (1 - albedo);
         this._renderer.scatteringCoefficient = extinction * albedo;
@@ -50,8 +53,13 @@ class MCDRendererDialog extends AbstractDialog {
         this._renderer.majorant = extinction * ratio;
         this._renderer.maxBounces = bounces;
         this._renderer.steps = steps;
+        // this._renderer._limit = limit;
 
         this._renderer.reset();
+    }
+
+    _handleChangeNoReset() {
+        this._renderer._limit = this._binds.limit.getValue();
     }
 
     _handleTFChange() {

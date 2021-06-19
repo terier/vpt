@@ -9,13 +9,16 @@ class MCDRenderer extends AbstractRenderer {
         super(gl, volume, environmentTexture, options);
 
         Object.assign(this, {
-            absorptionCoefficient : 1,
-            scatteringCoefficient : 1,
+            absorptionCoefficient : 80, // 1
+            scatteringCoefficient : 20, // 1
             scatteringBias        : 0,
-            majorant              : 2,
-            maxBounces            : 8,
-            steps                 : 1,
-            _nActiveLights        : 0
+            majorant              : 100, // 2
+            maxBounces            : 20, // 8
+            steps                 : 200, // 1
+            _nActiveLights        : 0,
+            counter               : 0,
+            _limit                : 0,
+            _timer                : 0
         }, options);
 
         this._programs = WebGL.buildPrograms(gl, {
@@ -109,6 +112,43 @@ class MCDRenderer extends AbstractRenderer {
         ]);
 
         gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+        this.counter = 0;
+    }
+
+    render() {
+        // TODO: put the following logic in VAO
+        if (this._limit !== 0) {
+            if (this.counter === 0) {
+                this.counter += Math.floor(this.steps);
+                this._timer = new Date().getTime();
+                if (this.counter >= this._limit)
+                    console.log("Done!", new Date().getTime() - this._timer)
+            }
+            else if (this.counter < this._limit) {
+                this.counter += Math.floor(this.steps);
+                console.log("Counter:", this.counter);
+                if (this.counter >= this._limit)
+                    console.log("Done!", new Date().getTime() - this._timer)
+            }
+            else {
+                return
+            }
+        }
+
+        const gl = this._gl;
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._clipQuad);
+        gl.enableVertexAttribArray(0); // position always bound to attribute 0
+        gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+
+        this._frameBuffer.use();
+        this._generateFrame();
+
+        this._accumulationBuffer.use();
+        this._integrateFrame();
+        this._accumulationBuffer.swap();
+
+        this._renderBuffer.use();
+        this._renderFrame();
     }
 
     _generateFrame() {
@@ -159,6 +199,7 @@ class MCDRenderer extends AbstractRenderer {
         gl.uniform1f(program.uniforms.uMajorant, this.majorant);
         gl.uniform1ui(program.uniforms.uMaxBounces, this.maxBounces);
         gl.uniform1ui(program.uniforms.uSteps, this.steps);
+        gl.uniform1ui(program.uniforms.uNLights, this._nActiveLights);
 
         gl.drawBuffers([
             gl.COLOR_ATTACHMENT0,
@@ -173,7 +214,9 @@ class MCDRenderer extends AbstractRenderer {
 
     _renderFrame() {
         const gl = this._gl;
-
+        // if (this._limit !== 0 && this.counter >= this._limit + 1) {
+        //     return
+        // }
         const program = this._programs.render;
         gl.useProgram(program.program);
 
