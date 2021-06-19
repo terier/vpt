@@ -189,7 +189,6 @@ class RCNRenderer extends AbstractRenderer {
 
         console.log("Volume Dimensions: " + volumeDimensions.width + " " + volumeDimensions.height + " " + volumeDimensions.depth);
         this._setLightVolumeDimensions();
-        this._setAccumulationBuffer();
         this._setLightTexture();
         this._resetPhotons();
         this._initDynamicIterationValues();
@@ -257,6 +256,9 @@ class RCNRenderer extends AbstractRenderer {
 
     _resetPhotons() {
         const gl = this._gl;
+
+        this._setAccumulationBuffer();
+
         gl.bindBuffer(gl.ARRAY_BUFFER, this._clipQuad);
         gl.enableVertexAttribArray(0); // position always bound to attribute 0
         gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
@@ -543,7 +545,6 @@ class RCNRenderer extends AbstractRenderer {
         for (let i = 0; i < iterations; i++) {
         // for (let currentDepth = 0; currentDepth < this._lightVolumeDimensions.depth; currentDepth++) {
             this._accumulationBuffer.use(currentDepth);
-
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[0]);
             gl.activeTexture(gl.TEXTURE1);
@@ -791,10 +792,10 @@ class RCNRenderer extends AbstractRenderer {
             mag            : gl.NEAREST,
             wrapS          : gl.CLAMP_TO_EDGE,
             wrapT          : gl.CLAMP_TO_EDGE,
-            // format         : gl.RGBA,
-            // internalFormat : gl.RGBA16F,
-            format         : gl.RED,
-            internalFormat : gl.R32F,
+            format         : gl.RGBA,
+            internalFormat : gl.RGBA16F,
+            // format         : gl.RED,
+            // internalFormat : gl.R32F,
             type           : gl.FLOAT
         };
 
