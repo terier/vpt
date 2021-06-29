@@ -186,9 +186,12 @@ uniform mediump sampler2D uEnvironment;
 
 uniform float uRandSeed;
 uniform float uAbsorptionCoefficient;
+uniform float uScatteringCoefficient;
+uniform float uScatteringBias;
 uniform float uMajorant;
 uniform float uLayer;
 uniform uint uSteps;
+uniform uint uMaxBounces;
 
 in vec2 vPosition;
 
@@ -214,6 +217,23 @@ vec3 randomDirection(vec2 U) {
     float z = U.y * 2.0 - 1.0;
     float k = sqrt(1.0 - z * z);
     return vec3(k * cos(phi), k * sin(phi), z);
+}
+
+float sampleHenyeyGreensteinAngleCosine(float g, float U) {
+    float g2 = g * g;
+    float c = (1.0 - g2) / (1.0 - g + 2.0 * g * U);
+    return (1.0 + g2 - c * c) / (2.0 * g);
+}
+
+vec3 sampleHenyeyGreenstein(float g, vec2 U, vec3 direction) {
+    // generate random direction and adjust it so that the angle is HG-sampled
+    vec3 u = randomDirection(U);
+    if (abs(g) < EPS) {
+        return u;
+    }
+    float hgcos = sampleHenyeyGreensteinAngleCosine(g, fract(sin(U.x * 12345.6789) + 0.816723));
+    float lambda = hgcos - dot(direction, u);
+    return normalize(u + lambda * direction);
 }
 
 void resetPhoton(vec2 randState, inout Photon photon, vec3 mappedPosition) {
@@ -245,6 +265,7 @@ void main() {
     photon.direction = directionAndBounces.xyz;
     photon.bounces = uint(directionAndBounces.w + 0.5);
     photon.transmittance = texture(uTransmittance, mappedPosition).rgb;
+
     vec4 radianceAndSamples = texture(uRadiance, mappedPosition);
     photon.radiance = radianceAndSamples.rgb;
 
@@ -255,11 +276,19 @@ void main() {
         photon.position += t * photon.direction;
 
         vec4 volumeSample = sampleVolumeColor(photon.position);
+//        float muAbsorption = volumeSample.a * uAbsorptionCoefficient;
+//        float muNull = uMajorant - muAbsorption;
+//        float muMajorant = muAbsorption + abs(muNull);
+//        float PNull = abs(muNull) / muMajorant;
+//        float PAbsorption = muAbsorption / muMajorant;
+
         float muAbsorption = volumeSample.a * uAbsorptionCoefficient;
-        float muNull = uMajorant - muAbsorption;
-        float muMajorant = muAbsorption + abs(muNull);
+        float muScattering = volumeSample.a * uScatteringCoefficient;
+        float muNull = uMajorant - muAbsorption - muScattering;
+        float muMajorant = muAbsorption + muScattering + abs(muNull);
         float PNull = abs(muNull) / muMajorant;
         float PAbsorption = muAbsorption / muMajorant;
+        float PScattering = muScattering / muMajorant;
 
         if (any(greaterThan(photon.position, vec3(1))) || any(lessThan(photon.position, vec3(0)))) {
             // out of bounds
@@ -267,17 +296,37 @@ void main() {
             vec3 radiance = photon.transmittance * envSample.rgb;
             photon.samples++;
             photon.radiance += (radiance - photon.radiance) / float(photon.samples);
-//            photon.radiance = vec3(photon.radiance.x, 0, 0);
             resetPhoton(r, photon, mappedPosition);
+        } else if (photon.bounces >= uMaxBounces) {
+            // max bounces achieved -> only estimate transmittance
+            float weightAS = (muAbsorption + muScattering) / uMajorant;
+            photon.transmittance *= 1.0 - weightAS;
         } else if (r.y < PAbsorption) {
             // absorption
             float weightA = muAbsorption / (uMajorant * PAbsorption);
             photon.transmittance *= 1.0 - weightA;
+        } else if (r.y < PAbsorption + PScattering) {
+            // scattering
+            r = rand(r);
+            float weightS = muScattering / (uMajorant * PScattering);
+            photon.transmittance *= volumeSample.a * weightS;
+            photon.direction = sampleHenyeyGreenstein(uScatteringBias, r, photon.direction);
+            photon.bounces++;
         } else {
             // null collision
             float weightN = muNull / (uMajorant * PNull);
             photon.transmittance *= weightN;
         }
+
+//        else if (r.y < PAbsorption) {
+//            // absorption
+//            float weightA = muAbsorption / (uMajorant * PAbsorption);
+//            photon.transmittance *= 1.0 - weightA;
+//        } else {
+//            // null collision
+//            float weightN = muNull / (uMajorant * PNull);
+//            photon.transmittance *= weightN;
+//        }
     }
 
     oPosition = vec4(photon.position, float(photon.samples));
@@ -744,7 +793,7 @@ void main() {
     photon.direction = normalize(randomDirection(randState));
     photon.position = from;
     photon.transmittance = vec3(1);
-    photon.radiance = vec3(0.05);
+    photon.radiance = vec3(0.5);
     photon.bounces = 0u;
     photon.samples = 0u;
     oPosition = vec4(photon.position, float(photon.samples));

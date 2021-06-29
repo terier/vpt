@@ -11,22 +11,25 @@ class RCNRenderer extends AbstractRenderer {
         Object.assign(this, {
             _lightDefinitions           : [],
             _nActiveLights              : 0,
-            // _lightType                  : 'distant',
+            // Ray Marching
             _stepSize                   : 0.00333,
             _alphaCorrection            : 100,
-            _absorptionCoefficient      : 1,
-            _scattering                 : 0.5,
+            _absorptionCoefficient      : 0,
+            // Monte Carlo
             _lightVolumeRatio           : 1,
             _steps                      : 1,
             _majorant                   : 100,
-            _absorptionCoefficientMC    : 100,
-            _rayCastingStepSize         : 0.00333,
-            _rayCastingAlphaCorrection  : 100,
+            _absorptionCoefficientMC    : 1,
+            _scatteringCoefficientMC    : 1,
+            _scatteringBias             : 0,
+            _maxBounces                 : 20,
             _limit                      : 0,
             _timer                      : 0,
             _mcEnabled                  : true,
             _diffusionEnabled           : false,
             _type                       : 1,
+            // Hybrid
+            _scattering                 : 0.5,
             // Dynamic Iterations length
             _layersPerFrame             : 1,
             _fastStart                  : true,
@@ -101,10 +104,10 @@ class RCNRenderer extends AbstractRenderer {
         gl.enableVertexAttribArray(0); // position always bound to attribute 0
         gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
 
-        this._frameBuffer.use();
-        this._generateFrame();
+        // this._frameBuffer.use();
+        // this._generateFrame();
 
-        this._accumulationBuffer.use();
+        // this._accumulationBuffer.use();
         switch (this._type){
             case 0: this._integrateFrame(); break;
             case 1: this._integrateFrameENV(); break;
@@ -113,10 +116,10 @@ class RCNRenderer extends AbstractRenderer {
         // this._accumulationBuffer.swap();
 
         if (this._deferredRendering) {
-            this._defferedRenderBuffer.use();
+            // this._defferedRenderBuffer.use();
             this._deferredRenderFrame();
 
-            this._renderBuffer.use();
+            // this._renderBuffer.use();
             this._combineRenderFrame();
         } else {
             this._renderBuffer.use();
@@ -181,17 +184,26 @@ class RCNRenderer extends AbstractRenderer {
         super.destroy();
     }
 
-    reset() {}
+    resetLightVolume() {
+        if (this._volumeDimensions) {
+            this._resetPhotons();
+            // this._layersPerFrame = 1
+            // this._fastStart = true
+            this._initDynamicIterationValues()
+        }
+    }
 
     _initVolume() {
         const volumeDimensions = this._volume.getDimensions('default');
         this._volumeDimensions = volumeDimensions;
 
         console.log("Volume Dimensions: " + volumeDimensions.width + " " + volumeDimensions.height + " " + volumeDimensions.depth);
+        // this._mcEnabled = false
         this._setLightVolumeDimensions();
         this._setLightTexture();
         this._resetPhotons();
         this._initDynamicIterationValues();
+        // this._mcEnabled = true
         this.counter = 0;
     }
 
@@ -279,9 +291,6 @@ class RCNRenderer extends AbstractRenderer {
 
                 gl.uniform1f(program.uniforms.uLayer, (i + 0.5) / this._lightVolumeDimensions.depth);
 
-                const dimensions = this._lightVolumeDimensions;
-                gl.uniform3f(program.uniforms.uSize, dimensions.width, dimensions.height, dimensions.depth);
-
                 // const light = this._lightDefinitions[0];
                 // const lightArr = light.getLightArr();
                 // gl.uniform4f(program.uniforms.uLight, lightArr[0], lightArr[1], lightArr[2], light.typeToInt());
@@ -298,7 +307,7 @@ class RCNRenderer extends AbstractRenderer {
         else {
             const program = this._programs.resetPhotonsENV;
             gl.useProgram(program.program);
-
+            console.log("Photons")
             for (let i = 0; i < this._lightVolumeDimensions.depth; i++) {
                 this._accumulationBuffer.use(i);
 
@@ -313,7 +322,7 @@ class RCNRenderer extends AbstractRenderer {
                 gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
             }
         }
-
+        this._currentDepth = 0
         this._accumulationBuffer.swap();
     }
 
@@ -384,10 +393,11 @@ class RCNRenderer extends AbstractRenderer {
     }
 
     _destroyDeferredRenderBuffer() {
-        const gl = this._gl;
         this._defferedRenderBuffer.destroy();
         this._defferedRenderBuffer = null;
     }
+
+    _reset() {}
 
     _resetFrame() {}
 
@@ -537,14 +547,17 @@ class RCNRenderer extends AbstractRenderer {
         gl.useProgram(program.program);
 
         const dimensions = this._lightVolumeDimensions;
-
-        const iterations = Math.min(this._layersPerFrame, this._lightVolumeDimensions.depth);
-
-        let currentDepth = this._currentDepth
-
+        console.log(this._layersPerFrame)
+        // const iterations = Math.min(this._layersPerFrame, this._lightVolumeDimensions.depth);
+        const iterations = this._lightVolumeDimensions.depth
+        // let currentDepth = this._currentDepth
+        let currentDepth = 0
+        // console.log("IT:", iterations, "CD:", this._currentDepth)
         for (let i = 0; i < iterations; i++) {
         // for (let currentDepth = 0; currentDepth < this._lightVolumeDimensions.depth; currentDepth++) {
             this._accumulationBuffer.use(currentDepth);
+
+
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[0]);
             gl.activeTexture(gl.TEXTURE1);
@@ -575,6 +588,11 @@ class RCNRenderer extends AbstractRenderer {
             gl.uniform1f(program.uniforms.uLayer, (currentDepth + 0.5) / dimensions.depth);
 
             gl.uniform1f(program.uniforms.uAbsorptionCoefficient, this._absorptionCoefficientMC)
+
+            gl.uniform1f(program.uniforms.uScatteringCoefficient, this._scatteringCoefficientMC);
+            gl.uniform1f(program.uniforms.uScatteringBias, this._scatteringBias);
+            gl.uniform1ui(program.uniforms.uMaxBounces, this._maxBounces);
+
             gl.uniform1f(program.uniforms.uMajorant, this._majorant);
             gl.uniform1f(program.uniforms.uRandSeed, Math.random());
 
@@ -588,8 +606,9 @@ class RCNRenderer extends AbstractRenderer {
             gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 
             currentDepth++;
-
+            // console.log(currentDepth, this._lightVolumeDimensions.depth)
             if (currentDepth >= this._lightVolumeDimensions.depth) {
+                // console.log("LALA")
                 currentDepth = 0
                 this._accumulationBuffer.swap();
             }

@@ -22,7 +22,7 @@ class RCNRendererDialog extends AbstractDialog {
         this._handleChangeRatio = this._handleChangeRatio.bind(this);
         this._handleTFChange = this._handleTFChange.bind(this);
         this._handleChangeLights = this._handleChangeLights.bind(this);
-        this._handleChangeResetLightFieldMC = this._handleChangeResetLightFieldMC.bind(this);
+        this._handleChangeMCParameters = this._handleChangeMCParameters.bind(this);
         this._handleChangeSlowdown = this._handleChangeSlowdown.bind(this);
         this._handleChangeDeferredRendering = this._handleChangeDeferredRendering.bind(this);
         this._handleChangeDeNoise = this._handleChangeDeNoise.bind(this);
@@ -35,14 +35,17 @@ class RCNRendererDialog extends AbstractDialog {
         this._binds.scattering.addEventListener('input', this._handleChangeScettering);
         this._binds.diffusion_enabled.addEventListener('input', this._handleChangeScettering);
         this._binds.ratio.addEventListener('input', this._handleChangeRatio);
-
-        // MC
-        this._binds.majorant_ratio.addEventListener('change', this._handleChangeResetLightFieldMC);
-        this._binds.extinction.addEventListener('input', this._handleChangeResetLightFieldMC);
-        this._binds.ray_steps.addEventListener('input', this._handleChange);
         this._binds.max_slowdown.addEventListener('input', this._handleChangeSlowdown);
         this._binds.limit.addEventListener('input', this._handleChange);
         this._binds.ratio.addEventListener('input', this._handleChangeRatio);
+
+        // MC
+        this._binds.majorant_ratio.addEventListener('change', this._handleChangeMCParameters);
+        this._binds.extinction_MS.addEventListener('input', this._handleChangeMCParameters);
+        this._binds.albedo_MS.addEventListener('change', this._handleChangeMCParameters);
+        this._binds.bias_MS.addEventListener('change', this._handleChangeMCParameters);
+        this._binds.bounces_MS.addEventListener('input', this._handleChangeMCParameters);
+        this._binds.ray_steps.addEventListener('input', this._handleChange);
         this._binds.renderer_type.addEventListener('input', this._handleChangeType);
 
         // Deferred Rendering and De-Noise
@@ -62,9 +65,17 @@ class RCNRendererDialog extends AbstractDialog {
     _setInitialValues() {
         this._renderer._scattering = this._binds.scattering.getValue();
         this._renderer._steps = this._binds.ray_steps.getValue();
-        const extinction = this._binds.extinction.getValue();
-        this._renderer._absorptionCoefficientMC = extinction;
-        this._renderer._majorant = this._binds.majorant_ratio.getValue() * extinction;
+
+        const extinction = this._binds.extinction_MS.getValue();
+        const albedo     = this._binds.albedo_MS.getValue();
+        const ratio      = this._binds.majorant_ratio.getValue();
+
+        this._renderer._absorptionCoefficientMC = extinction * (1 - albedo);
+        this._renderer._scatteringCoefficientMC = extinction * albedo;
+        this._renderer._scatteringBias = this._binds.bias_MS.getValue();
+        this._renderer._majorant = extinction * ratio;
+        this._renderer._maxBounces = this._binds.bounces_MS.getValue();
+
         this._renderer._lightVolumeRatio = this._binds.ratio.getValue();
         this._renderer._mcEnabled = this._binds.mc_enabled.isChecked();
         this._renderer._diffusionEnabled = this._binds.diffusion_enabled.isChecked();
@@ -99,7 +110,7 @@ class RCNRendererDialog extends AbstractDialog {
         }
         if (doReset) {
             this._renderer._setLightTexture();
-            this._renderer._resetPhotons();
+            this._renderer.resetLightVolume();
         }
     }
 
@@ -114,41 +125,46 @@ class RCNRendererDialog extends AbstractDialog {
         this._renderer._steps = this._binds.ray_steps.getValue();
         this._renderer._limit = this._binds.limit.getValue();
         this._renderer._mcEnabled = this._binds.mc_enabled.isChecked();
-        this._renderer.reset();
     }
 
     _handleChangeType() {
         this._renderer._type = parseInt(this._binds.renderer_type.getValue());
-        if (this._renderer._volumeDimensions) {
-            this._renderer._resetPhotons();
-            this._handleChangeSlowdown()
-        }
+        this._resetPhotons();
     }
 
     _handleChangeScettering() {
         this._renderer._scattering = this._binds.scattering.getValue();
         this._renderer._diffusionEnabled = this._binds.diffusion_enabled.isChecked();
-        if (this._renderer._volumeDimensions) {
+        // if (this._renderer._volumeDimensions) {
             // this._renderer._resetDiffusion();
-            this._renderer.reset();
-        }
+            // this._renderer.resetLightVolume();
+        // }
     }
 
-    _handleChangeResetLightFieldMC() {
-        const extinction = this._binds.extinction.getValue();
+    _handleChangeMCParameters() {
+        const extinction = this._binds.extinction_MS.getValue();
+        const albedo     = this._binds.albedo_MS.getValue();
+        const bias       = this._binds.bias_MS.getValue();
+        const ratio      = this._binds.majorant_ratio.getValue();
+        const bounces    = this._binds.bounces_MS.getValue();
 
-        this._renderer._absorptionCoefficientMC = extinction;
+        // console.log("Lala")
 
-        this._renderer._majorant = this._binds.majorant_ratio.getValue() * extinction;
+        // this._renderer._absorptionCoefficientMC = extinction;
 
-        this._renderer._resetPhotons();
-        this._renderer.reset();
+        // this._renderer._majorant = this._binds.majorant_ratio.getValue() * extinction;
+
+        this._renderer._absorptionCoefficientMC = extinction * (1 - albedo);
+        this._renderer._scatteringCoefficientMC = extinction * albedo;
+        this._renderer._scatteringBias = bias;
+        this._renderer._majorant = extinction * ratio;
+        this._renderer._maxBounces = bounces;
+
+        this._renderer.resetLightVolume();
     }
 
     _handleChangeResetLightField() {
-        this._renderer._limit = this._binds.limit.getValue();
-        this._renderer._resetPhotons();
-        this._renderer.reset();
+        this._renderer.resetLightVolume();
     }
 
     _handleChangeRatio() {
@@ -156,20 +172,18 @@ class RCNRendererDialog extends AbstractDialog {
         if (this._renderer._volumeDimensions) {
             this._renderer._setLightVolumeDimensions();
             this._renderer._setAccumulationBuffer();
-            this._renderer._resetPhotons();
-            this._renderer.reset();
+            this._renderer.resetLightVolume();
         }
     }
 
     _handleChangeLights(lights) {
         console.log("Lights Reset")
         this._setLights(lights);
-        this._renderer.reset();
     }
 
     _handleChangeSlowdown() {
         this._renderer._allowedSlowdown = this._binds.max_slowdown.getValue();
-        this._layersPerFrame = 1
+        this._renderer._layersPerFrame = 1
         this._renderer._fastStart = true
     }
 
@@ -191,9 +205,6 @@ class RCNRendererDialog extends AbstractDialog {
 
     _handleTFChange() {
         this._renderer.setTransferFunction(this._tfwidget.getTransferFunction());
-        if (this._renderer._type === 1)
-            this._renderer._resetLightField();
-        this._renderer.reset();
+        this._renderer.resetLightVolume()
     }
-
 }

@@ -100,14 +100,42 @@
         },
         {
           "type": "field",
-          "label": "Absorption Coefficient:",
+          "label": "Extinction:",
           "children": [
             {
               "type": "spinner",
-              "bind": "extinction",
+              "bind": "extinction_MS",
               "value": 100,
               "min": 0,
               "step": 1
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Scattering albedo:",
+          "children": [
+            {
+              "type": "slider",
+              "bind": "albedo_MS",
+              "value": 0.8,
+              "min": 0,
+              "max": 1,
+              "step": 0.1
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Scattering bias:",
+          "children": [
+            {
+              "type": "slider",
+              "bind": "bias_MS",
+              "value": 0,
+              "min": -1,
+              "max": 1,
+              "step": 0.2
             }
           ]
         },
@@ -122,6 +150,18 @@
               "min": 0,
               "max": 1,
               "step": 0.1
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Max bounces:",
+          "children": [
+            {
+              "type": "spinner",
+              "bind": "bounces_MS",
+              "value": 1,
+              "min": 0
             }
           ]
         },
