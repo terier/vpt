@@ -14,6 +14,7 @@ constructor(renderer, options) {
 
     this._handleChange = this._handleChange.bind(this);
     this._handleTFChange = this._handleTFChange.bind(this);
+    this._handleChangeLimit = this._handleChangeLimit.bind(this);
 
     this._binds.extinction.addEventListener('input', this._handleChange);
     this._binds.albedo.addEventListener('change', this._handleChange);
@@ -21,6 +22,7 @@ constructor(renderer, options) {
     this._binds.ratio.addEventListener('change', this._handleChange);
     this._binds.bounces.addEventListener('input', this._handleChange);
     this._binds.steps.addEventListener('input', this._handleChange);
+    this._binds.timer.addEventListener('input', this._handleChangeLimit);
 
     this._handleChange();
 
@@ -50,6 +52,18 @@ _handleChange() {
     this._renderer.steps = steps;
 
     this._renderer.reset();
+}
+
+_handleChangeLimit() {
+    const timer = this._binds.timer.getValue();
+    this._renderer._timer = timer;
+    // console.log(iterationsLimit, timer, this._renderer._done)
+    if (this._renderer._done &&
+        (timer === 0 || timer * 1000 > this._renderer._elapsedTime)) {
+        this._renderer._previousTime = new Date().getTime()
+        this._renderer._done = false;
+        console.log("Restarting")
+    }
 }
 
 _handleTFChange() {

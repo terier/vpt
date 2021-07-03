@@ -53,7 +53,20 @@
           "bind": "limit",
           "value": 0,
           "min": 0,
-          "step": 1
+          "step": 10
+        }
+      ]
+    },
+    {
+      "type": "field",
+      "label": "Time Limit (s)",
+      "children": [
+        {
+          "type": "spinner",
+          "bind": "timer",
+          "value": 0,
+          "min": 0,
+          "step": 10
         }
       ]
     },

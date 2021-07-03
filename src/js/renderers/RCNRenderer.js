@@ -11,6 +11,11 @@ class RCNRenderer extends AbstractRenderer {
         Object.assign(this, {
             _lightDefinitions           : [],
             _nActiveLights              : 0,
+            _counter                    : 0,
+            _iterationsLimit            : 0,
+            _elapsedTime                : 0,
+            _timer                      : 0,
+            _done                       : false,
             // Ray Marching
             _stepSize                   : 0.00333,
             _alphaCorrection            : 100,
@@ -23,8 +28,6 @@ class RCNRenderer extends AbstractRenderer {
             _scatteringCoefficientMC    : 1,
             _scatteringBias             : 0,
             _maxBounces                 : 20,
-            _limit                      : 0,
-            _timer                      : 0,
             _mcEnabled                  : true,
             _diffusionEnabled           : false,
             _type                       : 1,
@@ -113,7 +116,7 @@ class RCNRenderer extends AbstractRenderer {
             case 1: this._integrateFrameENV(); break;
             default: this._integrateFrameENV(); break;
         }
-        // this._accumulationBuffer.swap();
+        this._accumulationBuffer.swap();
 
         if (this._deferredRendering) {
             // this._defferedRenderBuffer.use();
@@ -125,8 +128,13 @@ class RCNRenderer extends AbstractRenderer {
             this._renderBuffer.use();
             this._renderFrame();
         }
-
-        this._calculateAverageTime()
+        console.log(this._elapsedTime)
+        if (!this._done) {
+            const currentTime = new Date().getTime();
+            this._elapsedTime += currentTime - this._previousTime;
+            this._previousTime = currentTime;
+        }
+        // this._calculateAverageTime()
     }
 
     _calculateAverageTime() {
@@ -201,10 +209,10 @@ class RCNRenderer extends AbstractRenderer {
         // this._mcEnabled = false
         this._setLightVolumeDimensions();
         this._setLightTexture();
+        this._setAccumulationBuffer();
         this._resetPhotons();
         this._initDynamicIterationValues();
         // this._mcEnabled = true
-        this.counter = 0;
     }
 
     _setLightVolumeDimensions() {
@@ -268,8 +276,9 @@ class RCNRenderer extends AbstractRenderer {
 
     _resetPhotons() {
         const gl = this._gl;
+        this._previousTime = new Date().getTime()
 
-        this._setAccumulationBuffer();
+        // this._setAccumulationBuffer();
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._clipQuad);
         gl.enableVertexAttribArray(0); // position always bound to attribute 0
@@ -322,8 +331,11 @@ class RCNRenderer extends AbstractRenderer {
                 gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
             }
         }
-        this._currentDepth = 0
+        this._currentDepth = 0;
         this._accumulationBuffer.swap();
+        this._counter = 0;
+        this._elapsedTime = 0;
+        this._done = false;
     }
 
     _resetDiffusion() {
@@ -397,7 +409,7 @@ class RCNRenderer extends AbstractRenderer {
         this._defferedRenderBuffer = null;
     }
 
-    _reset() {}
+    reset() {}
 
     _resetFrame() {}
 
@@ -541,13 +553,23 @@ class RCNRenderer extends AbstractRenderer {
 
     _integrateFrameENV() {
         const gl = this._gl;
-        if (!this._mcEnabled || !this._preIterationsDone)
-            return;
+        // if (!this._mcEnabled || !this._preIterationsDone)
+        //     return;
+        if (!this._mcEnabled || this._done)
+            return
+        if ((this._iterationsLimit !== 0  && this._counter >= this._iterationsLimit) ||
+            (this._timer !== 0 && this._elapsedTime >= this._timer * 1000)) {
+            if (!this._done) {
+                this._done = true
+                console.log("Rendering stopped, total time:", this._elapsedTime)
+            }
+            return
+        }
         let program = this._programs.integrateENV;
         gl.useProgram(program.program);
 
         const dimensions = this._lightVolumeDimensions;
-        console.log(this._layersPerFrame)
+        // console.log(this._layersPerFrame)
         // const iterations = Math.min(this._layersPerFrame, this._lightVolumeDimensions.depth);
         const iterations = this._lightVolumeDimensions.depth
         // let currentDepth = this._currentDepth
@@ -607,11 +629,11 @@ class RCNRenderer extends AbstractRenderer {
 
             currentDepth++;
             // console.log(currentDepth, this._lightVolumeDimensions.depth)
-            if (currentDepth >= this._lightVolumeDimensions.depth) {
-                // console.log("LALA")
-                currentDepth = 0
-                this._accumulationBuffer.swap();
-            }
+            // if (currentDepth >= this._lightVolumeDimensions.depth) {
+            //     // console.log("LALA")
+            //     currentDepth = 0
+            //     this._accumulationBuffer.swap();
+            // }
         }
 
         this._currentDepth = currentDepth

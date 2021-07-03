@@ -14,7 +14,10 @@ constructor(gl, volume, environmentTexture, options) {
         scatteringBias        : 0,
         majorant              : 2,
         maxBounces            : 8,
-        steps                 : 1
+        steps                 : 1,
+        _elapsedTime          : 0,
+        _previousTime         : new Date().getTime(),
+        _done                 : false
     }, options);
 
     this._programs = WebGL.buildPrograms(gl, {
@@ -53,6 +56,10 @@ _resetFrame() {
     ]);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+
+    this._done = false;
+    this._previousTime = new Date().getTime();
+    this._elapsedTime = 0;
 }
 
 _generateFrame() {
@@ -60,6 +67,16 @@ _generateFrame() {
 
 _integrateFrame() {
     const gl = this._gl;
+    console.log(this._elapsedTime)
+    if (this._done)
+        return
+    if (this._timer !== 0 && this._elapsedTime >= this._timer * 1000) {
+        if (!this._done) {
+            this._done = true
+            console.log("Rendering stopped, total time:", this._elapsedTime)
+        }
+        return
+    }
 
     const program = this._programs.integrate;
     gl.useProgram(program.program);
@@ -109,6 +126,10 @@ _integrateFrame() {
     ]);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+
+    const currentTime = new Date().getTime();
+    this._elapsedTime += currentTime - this._previousTime;
+    this._previousTime = currentTime;
 }
 
 _renderFrame() {

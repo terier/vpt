@@ -26,6 +26,7 @@ class RCNRendererDialog extends AbstractDialog {
         this._handleChangeSlowdown = this._handleChangeSlowdown.bind(this);
         this._handleChangeDeferredRendering = this._handleChangeDeferredRendering.bind(this);
         this._handleChangeDeNoise = this._handleChangeDeNoise.bind(this);
+        this._handleChangeLimit = this._handleChangeLimit.bind(this);
 
         // Renderer
         this._binds.steps.addEventListener('input', this._handleChange);
@@ -36,7 +37,8 @@ class RCNRendererDialog extends AbstractDialog {
         this._binds.diffusion_enabled.addEventListener('input', this._handleChangeScettering);
         this._binds.ratio.addEventListener('input', this._handleChangeRatio);
         this._binds.max_slowdown.addEventListener('input', this._handleChangeSlowdown);
-        this._binds.limit.addEventListener('input', this._handleChange);
+        this._binds.limit.addEventListener('input', this._handleChangeLimit);
+        this._binds.timer.addEventListener('input', this._handleChangeLimit);
         this._binds.ratio.addEventListener('input', this._handleChangeRatio);
 
         // MC
@@ -65,6 +67,8 @@ class RCNRendererDialog extends AbstractDialog {
     _setInitialValues() {
         this._renderer._scattering = this._binds.scattering.getValue();
         this._renderer._steps = this._binds.ray_steps.getValue();
+        this._renderer._iterationsLimit = this._binds.limit.getValue();
+        this._renderer._timer = this._binds.timer.getValue();
 
         const extinction = this._binds.extinction_MS.getValue();
         const albedo     = this._binds.albedo_MS.getValue();
@@ -123,8 +127,24 @@ class RCNRendererDialog extends AbstractDialog {
         this._renderer._stepSize = 1 / this._binds.steps.getValue();
         this._renderer._alphaCorrection = this._binds.opacity.getValue();
         this._renderer._steps = this._binds.ray_steps.getValue();
-        this._renderer._limit = this._binds.limit.getValue();
+        // this._renderer._iterationsLimit = this._binds.limit.getValue();
+        // this._renderer._timer = this._binds.timer.getValue();
         this._renderer._mcEnabled = this._binds.mc_enabled.isChecked();
+    }
+
+    _handleChangeLimit() {
+        const iterationsLimit = this._binds.limit.getValue();
+        const timer = this._binds.timer.getValue();
+        this._renderer._iterationsLimit = iterationsLimit;
+        this._renderer._timer = timer;
+        // console.log(iterationsLimit, timer, this._renderer._done)
+        if (this._renderer._done &&
+            (iterationsLimit === 0 || iterationsLimit > this._renderer._counter) &&
+            (timer === 0 || timer * 1000 > this._renderer._elapsedTime)) {
+            this._renderer._previousTime = new Date().getTime()
+            this._renderer._done = false;
+            console.log("Restarting")
+        }
     }
 
     _handleChangeType() {

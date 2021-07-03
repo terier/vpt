@@ -226,4 +226,21 @@ _getDialogForToneMapper(toneMapper) {
     }
 }
 
+getMVP() {
+    const rc = this._renderingContext;
+    const renderer = rc._renderer;
+    if (renderer) {
+        return Array.from(renderer._mvpInverseMatrix.m)
+    }
+}
+
+setMVP(m) {
+    const rc = this._renderingContext;
+    const renderer = rc._renderer;
+    if (renderer) {
+        renderer.setMvpInverseMatrix(new Matrix(m));
+        renderer.reset();
+    }
+}
+
 }

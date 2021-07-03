@@ -84,7 +84,7 @@ void resetPhoton(vec2 randState, inout PhotonRCN photon, vec3 mappedPosition) {
 vec4 sampleVolumeColor(vec3 position) {
     vec2 volumeSample = texture(uVolume, position).rg;
     //    vec4 transferSample = texture(uTransferFunction, volumeSample);
-    vec4 transferSample = texture(uTransferFunction, vec2(volumeSample.r, 0.5));
+    vec4 transferSample = texture(uTransferFunction, volumeSample);
     return transferSample;
 }
 
@@ -297,26 +297,29 @@ void main() {
             photon.samples++;
             photon.radiance += (radiance - photon.radiance) / float(photon.samples);
             resetPhoton(r, photon, mappedPosition);
-        } else if (photon.bounces >= uMaxBounces) {
+        } else {
             // max bounces achieved -> only estimate transmittance
             float weightAS = (muAbsorption + muScattering) / uMajorant;
             photon.transmittance *= 1.0 - weightAS;
-        } else if (r.y < PAbsorption) {
-            // absorption
-            float weightA = muAbsorption / (uMajorant * PAbsorption);
-            photon.transmittance *= 1.0 - weightA;
-        } else if (r.y < PAbsorption + PScattering) {
-            // scattering
-            r = rand(r);
-            float weightS = muScattering / (uMajorant * PScattering);
-            photon.transmittance *= volumeSample.a * weightS;
-            photon.direction = sampleHenyeyGreenstein(uScatteringBias, r, photon.direction);
-            photon.bounces++;
-        } else {
-            // null collision
-            float weightN = muNull / (uMajorant * PNull);
-            photon.transmittance *= weightN;
         }
+
+
+//        else if (r.y < PAbsorption) {
+//            // absorption
+//            float weightA = muAbsorption / (uMajorant * PAbsorption);
+//            photon.transmittance *= 1.0 - weightA;
+//        } else if (r.y < PAbsorption + PScattering) {
+//            // scattering
+//            r = rand(r);
+//            float weightS = muScattering / (uMajorant * PScattering);
+//            photon.transmittance *= volumeSample.a * weightS;
+//            photon.direction = sampleHenyeyGreenstein(uScatteringBias, r, photon.direction);
+//            photon.bounces++;
+//        } else {
+//            // null collision
+//            float weightN = muNull / (uMajorant * PNull);
+//            photon.transmittance *= weightN;
+//        }
 
 //        else if (r.y < PAbsorption) {
 //            // absorption
@@ -487,7 +490,7 @@ void main() {
 
         float t = 0.0;
         vec3 pos;
-        float val;
+        vec2 val;
         vec4 colorSample;
         vec4 accumulator = vec4(0.0);
         vec4 radianceAndDiffusion;
@@ -496,12 +499,12 @@ void main() {
 
         while (t < 1.0 && accumulator.a < 0.99) {
             pos = mix(from, to, t);
-            val = texture(uVolume, pos).r;
+            val = texture(uVolume, pos).rg;
 
             radianceAndDiffusion = texture(uRadianceAndDiffusion, pos);
 //            energyDensity = radianceAndDiffusion.r + radianceAndDiffusion.g;
 
-            colorSample = texture(uTransferFunction, vec2(val, 0.5));
+            colorSample = texture(uTransferFunction, val);
             colorSample.a *= rayStepLength * uAlphaCorrection;
             // utezi z energy density
             colorSample.rgb *= radianceAndDiffusion.rbg;
@@ -580,7 +583,7 @@ void main() {
 
         float t = 0.0;
         vec3 pos;
-        float val;
+        vec2 val;
         vec4 colorSample;
         vec4 accumulator = vec4(0.0);
         vec4 radianceAndDiffusion;
@@ -590,12 +593,12 @@ void main() {
 
         while (t < 1.0 && accumulator.a < 0.99) {
             pos = mix(from, to, t);
-            val = texture(uVolume, pos).r;
+            val = texture(uVolume, pos).rg;
 
             radianceAndDiffusion = texture(uRadianceAndDiffusion, pos);
 
             // Color
-            colorSample = texture(uTransferFunction, vec2(val, 0.5));
+            colorSample = texture(uTransferFunction, val);
             colorSample.a *= rayStepLength * uAlphaCorrection;
             colorSample.rgb *= colorSample.a; // * energyDensity;
 
@@ -668,9 +671,6 @@ void main() {
     else
         lightingSample = texture(uLighting, vPosition).rgb;
 //    float lightingSample = texture(uLighting, vPosition).r;
-
-
-
 //    color = mix(colorSample, vec4(0, 0, 0, 1), lightingSample);
     color = vec4((vec3(1) - lightingSample) * colorSample.rgb, 1);
 //    color = vec4(vec3(lightingSample), 1);
@@ -793,7 +793,7 @@ void main() {
     photon.direction = normalize(randomDirection(randState));
     photon.position = from;
     photon.transmittance = vec3(1);
-    photon.radiance = vec3(0.5);
+    photon.radiance = vec3(0.05);
     photon.bounces = 0u;
     photon.samples = 0u;
     oPosition = vec4(photon.position, float(photon.samples));
