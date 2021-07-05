@@ -12,7 +12,7 @@
         {
           "type": "spinner",
           "bind": "steps",
-          "value": 300,
+          "value": 800,
           "min": 1
         }
       ]
