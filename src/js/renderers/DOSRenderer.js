@@ -91,6 +91,7 @@ _resetFrame() {
     const gl = this._gl;
 
     [this._minDepth, this._maxDepth] = this.calculateDepth();
+    this._minDepth = Math.max(this._minDepth, 0);
     this._depth = this._minDepth;
 
     gl.drawBuffers([
