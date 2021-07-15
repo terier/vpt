@@ -205,16 +205,17 @@ _updateMvpInverseMatrix() {
     const volumeScale = new Matrix().fromScale(
         this._scale.x, this._scale.y, this._scale.z);
 
-    const mvp = new Matrix();
-    mvp.multiply(volumeScale, centerTranslation);
-    mvp.multiply(volumeTranslation, mvp);
-    mvp.multiply(this._camera.transformationMatrix, mvp);
-    mvp.transpose();
-    const mvpit = mvp.clone().inverse();
+    const modelMatrix = new Matrix();
+    modelMatrix.multiply(volumeScale, centerTranslation);
+    modelMatrix.multiply(volumeTranslation, modelMatrix);
+
+    const viewMatrix = this._camera.viewMatrix;
+    const projectionMatrix = this._camera.projectionMatrix;
 
     if (this._renderer) {
-        this._renderer.setMvpMatrix(mvp);
-        this._renderer.setMvpInverseMatrix(mvpit);
+        this._renderer.modelMatrix.copy(modelMatrix);
+        this._renderer.viewMatrix.copy(viewMatrix);
+        this._renderer.projectionMatrix.copy(projectionMatrix);
         this._renderer.reset();
     }
 }

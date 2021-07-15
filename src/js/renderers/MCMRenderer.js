@@ -35,7 +35,8 @@ _resetFrame() {
     const { program, uniforms } = this._programs.reset;
     gl.useProgram(program);
 
-    gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
+    const mvpit = this.calculateMVPInverseTranspose();
+    gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, mvpit.m);
     gl.uniform2f(uniforms.uInverseResolution, 1 / this._bufferSize, 1 / this._bufferSize);
     gl.uniform1f(uniforms.uRandSeed, Math.random());
     gl.uniform1f(uniforms.uBlur, 0);
@@ -84,7 +85,8 @@ _integrateFrame() {
     gl.uniform1i(uniforms.uEnvironment, 5);
     gl.uniform1i(uniforms.uTransferFunction, 6);
 
-    gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
+    const mvpit = this.calculateMVPInverseTranspose();
+    gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, mvpit.m);
     gl.uniform2f(uniforms.uInverseResolution, 1 / this._bufferSize, 1 / this._bufferSize);
     gl.uniform1f(uniforms.uRandSeed, Math.random());
     gl.uniform1f(uniforms.uBlur, 0);

@@ -147,6 +147,8 @@ transform(v) {
     v.y = m21 * x + m22 * y + m23 * z + m24 * w;
     v.z = m31 * x + m32 * y + m33 * z + m34 * w;
     v.w = m41 * x + m42 * y + m43 * z + m44 * w;
+
+    return v;
 }
 
 print() {

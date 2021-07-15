@@ -21,6 +21,10 @@ constructor(gl, volume, environmentTexture, options) {
     this._volume = volume;
     this._envmap = environmentTexture;
 
+    this.modelMatrix = new Matrix();
+    this.viewMatrix = new Matrix();
+    this.projectionMatrix = new Matrix();
+
     this.init();
 }
 
@@ -98,13 +102,21 @@ setResolution(resolution) {
     gl.texStorage2D(gl.TEXTURE_2D, 1, gl.RGBA32F, this._resolution, this._resolution);
 }
 
+calculateMVPInverseTranspose() {
+    const mvpit = new Matrix();
+    mvpit.multiply(this.viewMatrix, this.modelMatrix);
+    mvpit.multiply(this.projectionMatrix, mvpit);
+    return mvpit.inverse().transpose();
+}
+
 reset() {
     const gl = this._gl;
 
     const { program, uniforms } = this._programs.reset;
     gl.useProgram(program);
 
-    gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
+    const mvpit = this.calculateMVPInverseTranspose();
+    gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, mvpit.m);
     gl.uniform2f(uniforms.uInverseResolution, 1 / this._resolution, 1 / this._resolution);
     gl.uniform1f(uniforms.uRandSeed, Math.random());
     gl.uniform1f(uniforms.uBlur, 0);
@@ -135,7 +147,8 @@ render() {
     gl.uniform1i(uniforms.uEnvironment, 1);
     gl.uniform1i(uniforms.uTransferFunction, 2);
 
-    gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
+    const mvpit = this.calculateMVPInverseTranspose();
+    gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, mvpit.m);
     gl.uniform2f(uniforms.uInverseResolution, 1 / this._resolution, 1 / this._resolution);
     gl.uniform1f(uniforms.uRandSeed, Math.random());
     gl.uniform1f(uniforms.uBlur, 0);

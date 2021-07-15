@@ -136,7 +136,8 @@ _integrateFrame() {
     gl.uniform1i(uniforms.uOcclusionSamples, 4);
     gl.bindTexture(gl.TEXTURE_2D, this._occlusionSamples);
 
-    gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
+    const mvpit = this.calculateMVPInverseTranspose();
+    gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, mvpit.m);
     // TODO: bias occlusion samples for "directional" light
     gl.uniform1ui(uniforms.uOcclusionSamplesCount, this.samples);
     gl.uniform1f(uniforms.uExtinction, this.extinction);

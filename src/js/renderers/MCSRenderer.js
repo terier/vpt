@@ -54,7 +54,8 @@ _generateFrame() {
     gl.uniform1i(uniforms.uVolume, 0);
     gl.uniform1i(uniforms.uEnvironment, 1);
     gl.uniform1i(uniforms.uTransferFunction, 2);
-    gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
+    const mvpit = this.calculateMVPInverseTranspose();
+    gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, mvpit.m);
     gl.uniform1f(uniforms.uOffset, Math.random());
     gl.uniform1f(uniforms.uSigmaMax, this._sigmaMax);
     gl.uniform1f(uniforms.uAlphaCorrection, this._alphaCorrection);

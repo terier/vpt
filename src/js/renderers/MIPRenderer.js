@@ -45,7 +45,9 @@ _generateFrame() {
     gl.uniform1i(uniforms.uVolume, 0);
     gl.uniform1f(uniforms.uStepSize, 1 / this.steps);
     gl.uniform1f(uniforms.uOffset, Math.random());
-    gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
+
+    const mvpit = this.calculateMVPInverseTranspose();
+    gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, mvpit.m);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 }

@@ -78,6 +78,15 @@ normalize() {
     return this;
 }
 
+homogenize() {
+    this.x /= this.w;
+    this.y /= this.w;
+    this.z /= this.w;
+    this.w /= this.w;
+
+    return this;
+}
+
 setLength(len) {
     this.normalize();
 
