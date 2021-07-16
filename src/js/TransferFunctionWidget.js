@@ -45,7 +45,7 @@ constructor(options) {
     const gl = this._gl;
 
     gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
     this._clipQuad = WebGL.createClipQuad(gl);
     this._program = WebGL.buildPrograms(gl, {
