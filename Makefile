@@ -1,6 +1,6 @@
 .PHONY: all
 all:
-	bin/packer
+	node bin/packer
 
 .PHONY: clean
 clean:
@@ -8,8 +8,8 @@ clean:
 
 .PHONY: serve
 serve:
-	bin/server-node
+	node bin/server-node
 
 .PHONY: watch
 watch:
-	bin/watcher bin/packer src
+	node bin/watcher 'node bin/packer' src

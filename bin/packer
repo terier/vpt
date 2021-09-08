@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const fs = require('fs');
-const path = require('path');
+const path = require('path/posix');
 const { spawnSync } = require('child_process');
 
 // TODO: output resource declarations for ResourceLoader
