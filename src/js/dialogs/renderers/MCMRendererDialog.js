@@ -22,13 +22,18 @@ constructor(renderer, options) {
     this._binds.bounces.addEventListener('input', this._handleChange);
     this._binds.steps.addEventListener('input', this._handleChange);
 
-    this._tfwidget = new TransferFunctionWidget();
-    this._binds.tfcontainer.add(this._tfwidget);
-    this._tfwidget.addEventListener('change', this._handleTFChange);
+    this._atf = new TransferFunctionWidget();
+    this._binds.atfContainer.add(this._atf);
+    this._atf.addEventListener('change', this._handleTFChange);
+
+    this._stf = new TransferFunctionWidget();
+    this._binds.stfContainer.add(this._stf);
+    this._stf.addEventListener('change', this._handleTFChange);
 }
 
 destroy() {
-    this._tfwidget.destroy();
+    this._atf.destroy();
+    this._stf.destroy();
     super.destroy();
 }
 
@@ -40,8 +45,8 @@ _handleChange() {
     const bounces    = this._binds.bounces.getValue();
     const steps      = this._binds.steps.getValue();
 
-    this._renderer.absorptionCoefficient = extinction * (1 - albedo);
-    this._renderer.scatteringCoefficient = extinction * albedo;
+    this._renderer.absorptionScale = extinction * (1 - albedo);
+    this._renderer.scatteringScale = extinction * albedo;
     this._renderer.scatteringBias = bias;
     this._renderer.majorant = extinction * ratio;
     this._renderer.maxBounces = bounces;
@@ -51,7 +56,8 @@ _handleChange() {
 }
 
 _handleTFChange() {
-    this._renderer.setTransferFunction(this._tfwidget.getTransferFunction());
+    this._renderer.setAbsorptionTransferFunction(this._atf.getTransferFunction());
+    this._renderer.setScatteringTransferFunction(this._stf.getTransferFunction());
     this._renderer.reset();
 }
 

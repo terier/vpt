@@ -15,6 +15,8 @@ void main() {
 
 #version 300 es
 precision mediump float;
+precision mediump sampler2D;
+precision mediump sampler3D;
 
 #define M_INVPI 0.31830988618
 #define M_2PI 6.28318530718
@@ -29,22 +31,23 @@ precision mediump float;
 // #link /glsl/mixins/intersectCube
 @intersectCube
 
-uniform mediump sampler2D uPosition;
-uniform mediump sampler2D uDirection;
-uniform mediump sampler2D uTransmittance;
-uniform mediump sampler2D uRadiance;
+uniform sampler2D uPosition;
+uniform sampler2D uDirectionAndBounces;
+uniform sampler2D uWeight;
+uniform sampler2D uRadianceAndSamples;
 
-uniform mediump sampler3D uVolume;
-uniform mediump sampler2D uTransferFunction;
-uniform mediump sampler2D uEnvironment;
+uniform sampler3D uVolume;
+uniform sampler2D uAbsorptionTransferFunction;
+uniform sampler2D uScatteringTransferFunction;
+uniform sampler2D uEnvironment;
 
 uniform mat4 uMvpInverseMatrix;
 uniform vec2 uInverseResolution;
 uniform float uRandSeed;
 uniform float uBlur;
 
-uniform float uAbsorptionCoefficient;
-uniform float uScatteringCoefficient;
+uniform float uAbsorptionScale;
+uniform float uScatteringScale;
 uniform float uScatteringBias;
 uniform float uMajorant;
 uniform uint uMaxBounces;
@@ -53,18 +56,18 @@ uniform uint uSteps;
 in vec2 vPosition;
 
 layout (location = 0) out vec4 oPosition;
-layout (location = 1) out vec4 oDirection;
-layout (location = 2) out vec4 oTransmittance;
-layout (location = 3) out vec4 oRadiance;
+layout (location = 1) out vec4 oDirectionAndBounces;
+layout (location = 2) out vec4 oWeight;
+layout (location = 3) out vec4 oRadianceAndSamples;
 
 void resetPhoton(inout vec2 randState, inout Photon photon) {
     vec3 from, to;
     unprojectRand(randState, vPosition, uMvpInverseMatrix, uInverseResolution, uBlur, from, to);
     photon.direction = normalize(to - from);
-    photon.bounces = 0u;
+    photon.bounces = 0.0;
     vec2 tbounds = max(intersectCube(from, photon.direction), 0.0);
     photon.position = from + tbounds.x * photon.direction;
-    photon.transmittance = vec3(1);
+    photon.weight = vec3(1);
 }
 
 vec4 sampleEnvironmentMap(vec3 d) {
@@ -72,10 +75,12 @@ vec4 sampleEnvironmentMap(vec3 d) {
     return texture(uEnvironment, texCoord);
 }
 
-vec4 sampleVolumeColor(vec3 position) {
+void sampleVolume(vec3 position, out vec3 absorptionCoefficient, out vec3 scatteringCoefficient) {
     vec2 volumeSample = texture(uVolume, position).rg;
-    vec4 transferSample = texture(uTransferFunction, volumeSample);
-    return transferSample;
+    vec4 absorptionSample = texture(uAbsorptionTransferFunction, volumeSample);
+    vec4 scatteringSample = texture(uScatteringTransferFunction, volumeSample);
+    absorptionCoefficient = absorptionSample.rgb * absorptionSample.a * uAbsorptionScale;
+    scatteringCoefficient = scatteringSample.rgb * scatteringSample.a * uScatteringScale;
 }
 
 vec3 randomDirection(vec2 U) {
@@ -102,66 +107,75 @@ vec3 sampleHenyeyGreenstein(float g, vec2 U, vec3 direction) {
     return normalize(u + lambda * direction);
 }
 
+void normalizeProbabilities(inout float PA, inout float PB, inout float PC) {
+    float c = 1.0 / (PA + PB + PC);
+    PA *= c;
+    PB *= c;
+    PC *= c;
+}
+
 void main() {
     Photon photon;
-    vec2 mappedPosition = vPosition * 0.5 + 0.5;
-    photon.position = texture(uPosition, mappedPosition).xyz;
-    vec4 directionAndBounces = texture(uDirection, mappedPosition);
-    photon.direction = directionAndBounces.xyz;
-    photon.bounces = uint(directionAndBounces.w + 0.5);
-    photon.transmittance = texture(uTransmittance, mappedPosition).rgb;
-    vec4 radianceAndSamples = texture(uRadiance, mappedPosition);
-    photon.radiance = radianceAndSamples.rgb;
-    photon.samples = uint(radianceAndSamples.w + 0.5);
+    vec2 texelPosition = vPosition * 0.5 + 0.5;
+    photon.position = texture(uPosition, texelPosition).xyz;
+    vec4 directionAndBounces = texture(uDirectionAndBounces, texelPosition);
+    photon.direction = directionAndBounces.rgb;
+    photon.bounces = directionAndBounces.a;
+    photon.weight = texture(uWeight, texelPosition).rgb;
+    vec4 radianceAndSamples = texture(uRadianceAndSamples, texelPosition);
+    vec3 radiance = radianceAndSamples.rgb;
+    float samples = radianceAndSamples.a;
+    float fMaxBounces = float(uMaxBounces);
 
-    vec2 r = rand(vPosition * uRandSeed);
+    vec2 randState = rand(vPosition * uRandSeed);
     for (uint i = 0u; i < uSteps; i++) {
-        r = rand(r);
-        float t = -log(r.x) / uMajorant;
+        randState = rand(randState);
+        float t = -log(randState.x) / uMajorant;
         photon.position += t * photon.direction;
 
-        vec4 volumeSample = sampleVolumeColor(photon.position);
-        float muAbsorption = volumeSample.a * uAbsorptionCoefficient;
-        float muScattering = volumeSample.a * uScatteringCoefficient;
-        float muNull = uMajorant - muAbsorption - muScattering;
-        float muMajorant = muAbsorption + muScattering + abs(muNull);
-        float PNull = abs(muNull) / muMajorant;
-        float PAbsorption = muAbsorption / muMajorant;
-        float PScattering = muScattering / muMajorant;
+        vec3 absorptionCoefficient, scatteringCoefficient, nullCoefficient;
+        sampleVolume(photon.position, absorptionCoefficient, scatteringCoefficient);
+        nullCoefficient = vec3(uMajorant) - absorptionCoefficient - scatteringCoefficient;
+
+        float absorptionProbability = dot(abs(absorptionCoefficient) * photon.weight, vec3(1));
+        float nullProbability = dot(abs(nullCoefficient) * photon.weight, vec3(1));
+        float scatteringProbability = dot(abs(scatteringCoefficient) * photon.weight, vec3(1));
+        if (photon.bounces >= fMaxBounces) {
+            scatteringProbability = 0.0;
+        }
+
+        normalizeProbabilities(absorptionProbability, scatteringProbability, nullProbability);
 
         if (any(greaterThan(photon.position, vec3(1))) || any(lessThan(photon.position, vec3(0)))) {
-            // out of bounds
-            vec4 envSample = sampleEnvironmentMap(photon.direction);
-            vec3 radiance = photon.transmittance * envSample.rgb;
-            photon.samples++;
-            photon.radiance += (radiance - photon.radiance) / float(photon.samples);
-            resetPhoton(r, photon);
-        } else if (photon.bounces >= uMaxBounces) {
-            // max bounces achieved -> only estimate transmittance
-            float weightAS = (muAbsorption + muScattering) / uMajorant;
-            photon.transmittance *= 1.0 - weightAS;
-        } else if (r.y < PAbsorption) {
+            // out of volume, sample environment radiance
+            vec3 sampleRadiance = sampleEnvironmentMap(photon.direction).rgb;
+            photon.weight *= sampleRadiance * absorptionCoefficient / (uMajorant * absorptionProbability);
+            samples += 1.0;
+            radiance += (sampleRadiance - radiance) / samples;
+            resetPhoton(randState, photon);
+        } else if (randState.y < absorptionProbability) {
             // absorption
-            float weightA = muAbsorption / (uMajorant * PAbsorption);
-            photon.transmittance *= 1.0 - weightA;
-        } else if (r.y < PAbsorption + PScattering) {
+            vec3 sampleRadiance = vec3(0);
+            photon.weight *= sampleRadiance * absorptionCoefficient / (uMajorant * absorptionProbability);
+            samples += 1.0;
+            radiance += (sampleRadiance - radiance) / samples;
+            resetPhoton(randState, photon);
+        } else if (randState.y < absorptionProbability + scatteringProbability) {
             // scattering
-            r = rand(r);
-            float weightS = muScattering / (uMajorant * PScattering);
-            photon.transmittance *= volumeSample.rgb * weightS;
-            photon.direction = sampleHenyeyGreenstein(uScatteringBias, r, photon.direction);
-            photon.bounces++;
+            randState = rand(randState);
+            photon.weight *= scatteringCoefficient / (uMajorant * scatteringProbability);
+            photon.direction = sampleHenyeyGreenstein(uScatteringBias, randState, photon.direction);
+            photon.bounces += 1.0;
         } else {
             // null collision
-            float weightN = muNull / (uMajorant * PNull);
-            photon.transmittance *= weightN;
+            photon.weight *= nullCoefficient / (uMajorant * nullProbability);
         }
     }
 
     oPosition = vec4(photon.position, 0);
-    oDirection = vec4(photon.direction, float(photon.bounces));
-    oTransmittance = vec4(photon.transmittance, 0);
-    oRadiance = vec4(photon.radiance, float(photon.samples));
+    oDirectionAndBounces = vec4(photon.direction, photon.bounces);
+    oWeight = vec4(photon.weight, 0);
+    oRadianceAndSamples = vec4(radiance, samples);
 }
 
 // #part /glsl/shaders/renderers/MCM/render/vertex
@@ -208,8 +222,6 @@ void main() {
 #version 300 es
 precision mediump float;
 
-// #link /glsl/mixins/Photon
-@Photon
 // #link /glsl/mixins/rand
 @rand
 // #link /glsl/mixins/unprojectRand
@@ -225,24 +237,18 @@ uniform float uBlur;
 in vec2 vPosition;
 
 layout (location = 0) out vec4 oPosition;
-layout (location = 1) out vec4 oDirection;
-layout (location = 2) out vec4 oTransmittance;
-layout (location = 3) out vec4 oRadiance;
+layout (location = 1) out vec4 oDirectionAndBounces;
+layout (location = 2) out vec4 oWeight;
+layout (location = 3) out vec4 oRadianceAndSamples;
 
 void main() {
-    Photon photon;
     vec3 from, to;
     vec2 randState = rand(vPosition * uRandSeed);
     unprojectRand(randState, vPosition, uMvpInverseMatrix, uInverseResolution, uBlur, from, to);
-    photon.direction = normalize(to - from);
-    vec2 tbounds = max(intersectCube(from, photon.direction), 0.0);
-    photon.position = from + tbounds.x * photon.direction;
-    photon.transmittance = vec3(1);
-    photon.radiance = vec3(1);
-    photon.bounces = 0u;
-    photon.samples = 0u;
-    oPosition = vec4(photon.position, 0);
-    oDirection = vec4(photon.direction, float(photon.bounces));
-    oTransmittance = vec4(photon.transmittance, 0);
-    oRadiance = vec4(photon.radiance, float(photon.samples));
+    vec3 direction = normalize(to - from);
+    vec2 tbounds = max(intersectCube(from, direction), 0.0);
+    oPosition = vec4(from + tbounds.x * direction, 0);
+    oDirectionAndBounces = vec4(direction, 0);
+    oWeight = vec4(vec3(1), 0);
+    oRadianceAndSamples = vec4(vec3(1), 0);
 }

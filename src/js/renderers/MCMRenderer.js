@@ -9,15 +9,35 @@ constructor(gl, volume, environmentTexture, options) {
     super(gl, volume, environmentTexture, options);
 
     Object.assign(this, {
-        absorptionCoefficient : 1,
-        scatteringCoefficient : 1,
-        scatteringBias        : 0,
-        majorant              : 2,
-        maxBounces            : 8,
-        steps                 : 1
+        absorptionScale : 0,
+        scatteringScale : 100,
+        scatteringBias  : 0,
+        majorant        : 100,
+        maxBounces      : 8,
+        steps           : 8,
     }, options);
 
     this._programs = WebGL.buildPrograms(gl, SHADERS.renderers.MCM, MIXINS);
+
+    this._absorptionTransferFunction = WebGL.createTexture(gl, {
+        width  : 2,
+        height : 1,
+        data   : new Uint8Array([255, 0, 0, 0, 255, 0, 0, 255]),
+        wrapS  : gl.CLAMP_TO_EDGE,
+        wrapT  : gl.CLAMP_TO_EDGE,
+        min    : gl.LINEAR,
+        mag    : gl.LINEAR,
+    });
+
+    this._scatteringTransferFunction = WebGL.createTexture(gl, {
+        width  : 2,
+        height : 1,
+        data   : new Uint8Array([255, 0, 0, 0, 255, 0, 0, 255]),
+        wrapS  : gl.CLAMP_TO_EDGE,
+        wrapT  : gl.CLAMP_TO_EDGE,
+        min    : gl.LINEAR,
+        mag    : gl.LINEAR,
+    });
 }
 
 destroy() {
@@ -45,7 +65,7 @@ _resetFrame() {
         gl.COLOR_ATTACHMENT0,
         gl.COLOR_ATTACHMENT1,
         gl.COLOR_ATTACHMENT2,
-        gl.COLOR_ATTACHMENT3
+        gl.COLOR_ATTACHMENT3,
     ]);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
@@ -62,28 +82,35 @@ _integrateFrame() {
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[0]);
+    gl.uniform1i(uniforms.uPosition, 0);
+
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[1]);
+    gl.uniform1i(uniforms.uDirectionAndBounces, 1);
+
     gl.activeTexture(gl.TEXTURE2);
     gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[2]);
+    gl.uniform1i(uniforms.uWeight, 2);
+
     gl.activeTexture(gl.TEXTURE3);
     gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[3]);
+    gl.uniform1i(uniforms.uRadianceAndSamples, 3);
 
     gl.activeTexture(gl.TEXTURE4);
     gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
+    gl.uniform1i(uniforms.uVolume, 4);
+
     gl.activeTexture(gl.TEXTURE5);
     gl.bindTexture(gl.TEXTURE_2D, this._environmentTexture);
-    gl.activeTexture(gl.TEXTURE6);
-    gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
-
-    gl.uniform1i(uniforms.uPosition, 0);
-    gl.uniform1i(uniforms.uDirection, 1);
-    gl.uniform1i(uniforms.uTransmittance, 2);
-    gl.uniform1i(uniforms.uRadiance, 3);
-
-    gl.uniform1i(uniforms.uVolume, 4);
     gl.uniform1i(uniforms.uEnvironment, 5);
-    gl.uniform1i(uniforms.uTransferFunction, 6);
+
+    gl.activeTexture(gl.TEXTURE6);
+    gl.bindTexture(gl.TEXTURE_2D, this._absorptionTransferFunction);
+    gl.uniform1i(uniforms.uAbsorptionTransferFunction, 6);
+
+    gl.activeTexture(gl.TEXTURE7);
+    gl.bindTexture(gl.TEXTURE_2D, this._scatteringTransferFunction);
+    gl.uniform1i(uniforms.uScatteringTransferFunction, 7);
 
     const mvpit = this.calculateMVPInverseTranspose();
     gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, mvpit.m);
@@ -91,8 +118,8 @@ _integrateFrame() {
     gl.uniform1f(uniforms.uRandSeed, Math.random());
     gl.uniform1f(uniforms.uBlur, 0);
 
-    gl.uniform1f(uniforms.uAbsorptionCoefficient, this.absorptionCoefficient);
-    gl.uniform1f(uniforms.uScatteringCoefficient, this.scatteringCoefficient);
+    gl.uniform1f(uniforms.uAbsorptionScale, this.absorptionScale);
+    gl.uniform1f(uniforms.uScatteringScale, this.scatteringScale);
     gl.uniform1f(uniforms.uScatteringBias, this.scatteringBias);
     gl.uniform1f(uniforms.uMajorant, this.majorant);
     gl.uniform1ui(uniforms.uMaxBounces, this.maxBounces);
@@ -102,7 +129,7 @@ _integrateFrame() {
         gl.COLOR_ATTACHMENT0,
         gl.COLOR_ATTACHMENT1,
         gl.COLOR_ATTACHMENT2,
-        gl.COLOR_ATTACHMENT3
+        gl.COLOR_ATTACHMENT3,
     ]);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
@@ -122,6 +149,26 @@ _renderFrame() {
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 }
 
+setTransferFunction(transferFunction) {
+    // Leave empty! Specify absorption and scattering TFs separately.
+}
+
+setScatteringTransferFunction(scatteringTransferFunction) {
+    const gl = this._gl;
+    gl.bindTexture(gl.TEXTURE_2D, this._scatteringTransferFunction);
+    gl.texImage2D(gl.TEXTURE_2D, 0,
+        gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, scatteringTransferFunction);
+    gl.bindTexture(gl.TEXTURE_2D, null);
+}
+
+setAbsorptionTransferFunction(absorptionTransferFunction) {
+    const gl = this._gl;
+    gl.bindTexture(gl.TEXTURE_2D, this._absorptionTransferFunction);
+    gl.texImage2D(gl.TEXTURE_2D, 0,
+        gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, absorptionTransferFunction);
+    gl.bindTexture(gl.TEXTURE_2D, null);
+}
+
 _getFrameBufferSpec() {
     const gl = this._gl;
     return [{
@@ -131,7 +178,7 @@ _getFrameBufferSpec() {
         mag            : gl.NEAREST,
         format         : gl.RGBA,
         internalFormat : gl.RGBA32F,
-        type           : gl.FLOAT
+        type           : gl.FLOAT,
     }];
 }
 
@@ -145,17 +192,17 @@ _getAccumulationBufferSpec() {
         mag            : gl.NEAREST,
         format         : gl.RGBA,
         internalFormat : gl.RGBA32F,
-        type           : gl.FLOAT
+        type           : gl.FLOAT,
     };
 
-    const directionBufferSpec = {
+    const directionAnsBouncesBufferSpec = {
         width          : this._bufferSize,
         height         : this._bufferSize,
         min            : gl.NEAREST,
         mag            : gl.NEAREST,
         format         : gl.RGBA,
         internalFormat : gl.RGBA32F,
-        type           : gl.FLOAT
+        type           : gl.FLOAT,
     };
 
     const transmittanceBufferSpec = {
@@ -165,24 +212,24 @@ _getAccumulationBufferSpec() {
         mag            : gl.NEAREST,
         format         : gl.RGBA,
         internalFormat : gl.RGBA32F,
-        type           : gl.FLOAT
+        type           : gl.FLOAT,
     };
 
-    const radianceBufferSpec = {
+    const radianceAndSamplesBufferSpec = {
         width          : this._bufferSize,
         height         : this._bufferSize,
         min            : gl.NEAREST,
         mag            : gl.NEAREST,
         format         : gl.RGBA,
         internalFormat : gl.RGBA32F,
-        type           : gl.FLOAT
+        type           : gl.FLOAT,
     };
 
     return [
         positionBufferSpec,
-        directionBufferSpec,
+        directionAnsBouncesBufferSpec,
         transmittanceBufferSpec,
-        radianceBufferSpec
+        radianceAndSamplesBufferSpec,
     ];
 }
 
