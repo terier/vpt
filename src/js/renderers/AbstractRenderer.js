@@ -9,7 +9,7 @@ class AbstractRenderer {
 
 constructor(gl, volume, environmentTexture, options) {
     Object.assign(this, {
-        _bufferSize : 512
+        _bufferSize : 1024
     }, options);
 
     this._gl = gl;

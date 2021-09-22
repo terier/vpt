@@ -99,10 +99,11 @@ class RCNRenderer extends AbstractRenderer {
 
     testingProtocalSave() {
         if (this.testing && this.testingTotalTime <= this.testingTime && this._elapsedTime >= this.testingIntervalTime) {
-            console.log("saving")
+            // console.log("saving")
             let lastTime = this._elapsedTime;
             this.testingTotalTime += lastTime;
-            this._elapsedTime = lastTime - this.testingIntervalTime;
+            // this._elapsedTime = lastTime - this.testingIntervalTime;
+            this._elapsedTime = 0
             let canvas = document.getElementsByClassName("renderer")[0];
             let link = document.createElement('a');
             link.download = this.saveAs + "_" + this.testingTotalTime + ".png";

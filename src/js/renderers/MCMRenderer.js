@@ -42,6 +42,8 @@ startTesting(testingTime= 100, intervals= 100, saveAs = "MCM") {
     this.testingTime = testingTime * 1000;
     this.testingIntervalTime = this.testingTime/intervals;
     this.testingTotalTime = 0;
+    this._previousTime = new Date().getTime();
+    this._elapsedTime = 0
     this.testing = true;
     this.saveAs = saveAs;
     this.reset();
@@ -49,10 +51,10 @@ startTesting(testingTime= 100, intervals= 100, saveAs = "MCM") {
 
 testingProtocalSave() {
     if (this.testing && this.testingTotalTime <= this.testingTime && this._elapsedTime >= this.testingIntervalTime) {
-        console.log("saving")
         let lastTime = this._elapsedTime;
         this.testingTotalTime += lastTime;
-        this._elapsedTime = lastTime - this.testingIntervalTime;
+        // this._elapsedTime = lastTime - this.testingIntervalTime;
+        this._elapsedTime = 0
         let canvas = document.getElementsByClassName("renderer")[0];
         let link = document.createElement('a');
         link.download = this.saveAs + "_" + this.testingTotalTime + ".png";
@@ -81,9 +83,9 @@ _resetFrame() {
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 
-    this._done = false;
-    this._previousTime = new Date().getTime();
-    this._elapsedTime = 0;
+    // this._done = false;
+    // this._previousTime = new Date().getTime();
+    // this._elapsedTime = 0;
 }
 
 _generateFrame() {

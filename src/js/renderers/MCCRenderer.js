@@ -13,7 +13,7 @@ constructor(gl, volume, environmentTexture, options) {
         majorant              : 2,
         maxBounces            : 80,
         steps                 : 20,
-        _resolution           : 512,
+        _resolution           : 1024,
         _workgroup            : 8
     }, options);
 

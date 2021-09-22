@@ -97,6 +97,7 @@
     {
       "type": "accordion",
       "label": "Monte Carlo",
+      "contracted": "true",
       "children": [
         {
           "type": "field",
@@ -105,7 +106,7 @@
             {
               "type": "spinner",
               "bind": "ray_steps",
-              "value": 10,
+              "value": 1,
               "min": 1,
               "step": 1
             }
@@ -216,6 +217,7 @@
     {
       "type": "accordion",
       "label": "Diffusion",
+      "contracted": "true",
       "children": [
         {
           "type": "field",
@@ -246,6 +248,7 @@
     {
       "type": "accordion",
       "label": "Smart De-Noise",
+      "contracted": "true",
       "children": [
         {
           "type": "field",

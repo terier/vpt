@@ -40,6 +40,7 @@ constructor(options) {
     // this._scale = new Vector(1, 1, 0.5); // Hardcoded, couse why not
     this._translation = new Vector(0, 0, 0);
     // this._translation = new Vector(0, 0, 1.3);
+    this._rotation = new Vector(0, 0, 0)
 
     this._isTransformationDirty = true;
     this._updateMvpInverseMatrix();
@@ -202,9 +203,18 @@ _updateMvpInverseMatrix() {
     const volumeTranslation = new Matrix().fromTranslation(
         this._translation.x, this._translation.y, this._translation.z);
     const volumeScale = new Matrix().fromScale(this._scale.x, this._scale.y, this._scale.z);
+    // Lesar bo jezen
+    const volumeRotationX = new Matrix().fromRotationX(this._rotation.x);
+    const volumeRotationY = new Matrix().fromRotationY(this._rotation.y);
+    const volumeRotationZ = new Matrix().fromRotationZ(this._rotation.z);
 
     const tr = new Matrix();
     tr.multiply(volumeScale, centerTranslation);
+
+    tr.multiply(volumeRotationX, tr);
+    tr.multiply(volumeRotationY, tr);
+    tr.multiply(volumeRotationZ, tr);
+
     tr.multiply(volumeTranslation, tr);
     tr.multiply(this._camera.transformationMatrix, tr);
 
@@ -216,12 +226,91 @@ _updateMvpInverseMatrix() {
     }
 }
 
+startSequence(testingTime= 30, intervals= 1000, saveAs) {
+    // VISMAE
+    // this.setScale(1, 0.792, 0.783);
+    // this.setRotation(-87, 177, 0);
+    // this.setTranslation(0, 0, 0.7);
+    // this.sequence = [[0, 60, 0, 2000, 1, 15000], [-80, -55, 0, 2000, 1, 15000]];
+
+    // BABY
+    this.setScale(1, 1, 0.5);
+    this.setRotation(90, 0, 0);
+    // this.setTranslation(0, 0, 0.8);
+    this._camera.zoom(-0.8)
+    this.sequence = [[0, 60, 0, 4000, 1, 30000], [80, -55, 0, 4000, 1, 30000]];
+
+
+    this._camera.isDirty = true;
+    this._isTransformationDirty = true;
+    this._updateMvpInverseMatrix();
+    this.startRotate(...this.sequence[0]);
+    this.sequence.shift();
+    this._renderer.startTesting(testingTime, intervals, saveAs);
+}
+
+startRotate(dx, dy, dz, duration, step, delay= 0) {
+    // const rotationSpeed = 2
+    // const camera = rc._camera
+    // const cameraController = rc._cameraController
+    // const angleX = dx * rotationSpeed * cameraController._focus * camera.zoomFactor;
+    // const angleY = dy * rotationSpeed * cameraController._focus * camera.zoomFactor;
+    //
+    // cameraController._rotateAroundSelf(angleX, angleY)
+    this.targetRotation = new Vector(dx * Math.PI / 180, dy * Math.PI / 180, dz * Math.PI / 180);
+
+    this.rotationTimer = new Date();
+    this.rotationDuration = duration;
+    this.rotationRemaining = duration;
+    this.rotationStep = step;
+    this.delay = delay;
+
+    // this._isTransformationDirty = true;
+    // this._updateMvpInverseMatrix()
+    this.isRotating = true;
+}
+
+setRotation(x, y, z) {
+    this._rotation.set(x * Math.PI / 180, y * Math.PI / 180, z * Math.PI / 180);
+    this._isTransformationDirty = true;
+}
+
+rotate() {
+    if (!this.isRotating)
+        return
+    const currentTime = new Date()
+    const timeDiff = currentTime - this.rotationTimer;
+
+    if (this.delay > 0) {
+        this.delay -= timeDiff
+        this.rotationTimer = currentTime
+        return
+    }
+
+    if (timeDiff > this.rotationStep) {
+        this.rotationRemaining -= timeDiff
+        const completion = timeDiff / this.rotationDuration
+        this._rotation.x += this.targetRotation.x * completion
+        this._rotation.y += this.targetRotation.y * completion
+        this._rotation.z += this.targetRotation.z * completion
+        this.rotationTimer = currentTime
+        this._isTransformationDirty = true;
+        if (this.rotationRemaining <= 0) {
+            this.isRotating = false
+            if (this.sequence.length > 0) {
+                this.startRotate(...this.sequence[0])
+                this.sequence.shift()
+            }
+        }
+    }
+}
+
 _render() {
     const gl = this._gl;
     if (!gl || !this._renderer || !this._toneMapper) {
         return;
     }
-
+    this.rotate()
     this._updateMvpInverseMatrix();
 
     this._renderer.render();
