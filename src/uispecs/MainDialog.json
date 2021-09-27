@@ -62,13 +62,17 @@
                               "label": "Single scattering"
                             },
                             {
-                              "selected": true,
                               "value": "mcm",
                               "label": "Multiple scattering"
                             },
                             {
                               "value": "mcc",
                               "label": "Multiple scattering (compute)"
+                            },
+                            {
+                              "selected": true,
+                              "value": "imc",
+                              "label": "IMC"
                             }
                           ]
                         }

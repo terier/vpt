@@ -173,6 +173,7 @@ _getDialogForRenderer(renderer) {
         case 'mcm' : return MCMRendererDialog;
         case 'mcc' : return MCMRendererDialog; // yes, the same
         case 'dos' : return DOSRendererDialog;
+        case 'imc' : return IMCRendererDialog;
     }
 }
 
