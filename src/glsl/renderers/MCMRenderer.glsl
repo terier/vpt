@@ -14,22 +14,13 @@ void main() {
 // #part /glsl/shaders/renderers/MCM/integrate/fragment
 
 #version 300 es
-precision mediump float;
-precision mediump sampler2D;
-precision mediump sampler3D;
+precision highp float;
+precision highp sampler2D;
+precision highp sampler3D;
 
 #define M_INVPI 0.31830988618
 #define M_2PI 6.28318530718
 #define EPS 1e-5
-
-// #link /glsl/mixins/Photon
-@Photon
-// #link /glsl/mixins/rand
-@rand
-// #link /glsl/mixins/unprojectRand
-@unprojectRand
-// #link /glsl/mixins/intersectCube
-@intersectCube
 
 uniform sampler2D uPosition;
 uniform sampler2D uDirectionAndBounces;
@@ -37,8 +28,7 @@ uniform sampler2D uWeight;
 uniform sampler2D uRadianceAndSamples;
 
 uniform sampler3D uVolume;
-uniform sampler2D uAbsorptionTransferFunction;
-uniform sampler2D uScatteringTransferFunction;
+uniform sampler2D uTransferFunction;
 uniform sampler2D uEnvironment;
 
 uniform mat4 uMvpInverseMatrix;
@@ -46,8 +36,7 @@ uniform vec2 uInverseResolution;
 uniform float uRandSeed;
 uniform float uBlur;
 
-uniform float uAbsorptionScale;
-uniform float uScatteringScale;
+uniform float uExtinctionScale;
 uniform float uScatteringBias;
 uniform float uMajorant;
 uniform uint uMaxBounces;
@@ -60,7 +49,16 @@ layout (location = 1) out vec4 oDirectionAndBounces;
 layout (location = 2) out vec4 oWeight;
 layout (location = 3) out vec4 oRadianceAndSamples;
 
-void resetPhoton(inout vec2 randState, inout Photon photon) {
+// #link /glsl/mixins/Photon
+@Photon
+// #link /glsl/mixins/hashrand
+@hashrand
+// #link /glsl/mixins/unprojectRand
+@unprojectRand
+// #link /glsl/mixins/intersectCube
+@intersectCube
+
+void resetPhoton(inout float randState, inout Photon photon) {
     vec3 from, to;
     unprojectRand(randState, vPosition, uMvpInverseMatrix, uInverseResolution, uBlur, from, to);
     photon.direction = normalize(to - from);
@@ -75,34 +73,32 @@ vec4 sampleEnvironmentMap(vec3 d) {
     return texture(uEnvironment, texCoord);
 }
 
-void sampleVolume(vec3 position, out vec3 absorptionCoefficient, out vec3 scatteringCoefficient) {
+vec4 sampleVolumeColor(vec3 position) {
     vec2 volumeSample = texture(uVolume, position).rg;
-    vec4 absorptionSample = texture(uAbsorptionTransferFunction, volumeSample);
-    vec4 scatteringSample = texture(uScatteringTransferFunction, volumeSample);
-    absorptionCoefficient = absorptionSample.rgb * absorptionSample.a * uAbsorptionScale;
-    scatteringCoefficient = scatteringSample.rgb * scatteringSample.a * uScatteringScale;
+    vec4 transferSample = texture(uTransferFunction, volumeSample);
+    return transferSample;
 }
 
-vec3 randomDirection(vec2 U) {
-    float phi = U.x * M_2PI;
-    float z = U.y * 2.0 - 1.0;
+vec3 randomDirection(inout float randState) {
+    float phi = rand(randState) * M_2PI;
+    float z = rand(randState) * 2.0 - 1.0;
     float k = sqrt(1.0 - z * z);
     return vec3(k * cos(phi), k * sin(phi), z);
 }
 
-float sampleHenyeyGreensteinAngleCosine(float g, float U) {
+float sampleHenyeyGreensteinAngleCosine(inout float randState, float g) {
     float g2 = g * g;
-    float c = (1.0 - g2) / (1.0 - g + 2.0 * g * U);
+    float c = (1.0 - g2) / (1.0 - g + 2.0 * g * rand(randState));
     return (1.0 + g2 - c * c) / (2.0 * g);
 }
 
-vec3 sampleHenyeyGreenstein(float g, vec2 U, vec3 direction) {
+vec3 sampleHenyeyGreenstein(inout float randState, float g, vec3 direction) {
     // generate random direction and adjust it so that the angle is HG-sampled
-    vec3 u = randomDirection(U);
+    vec3 u = randomDirection(randState);
     if (abs(g) < EPS) {
         return u;
     }
-    float hgcos = sampleHenyeyGreensteinAngleCosine(g, fract(sin(U.x * 12345.6789) + 0.816723));
+    float hgcos = sampleHenyeyGreensteinAngleCosine(randState, g);
     float lambda = hgcos - dot(direction, u);
     return normalize(u + lambda * direction);
 }
@@ -127,44 +123,42 @@ void main() {
     float samples = radianceAndSamples.a;
     float fMaxBounces = float(uMaxBounces);
 
-    vec2 randState = rand(vPosition * uRandSeed);
+    float randState = uRandSeed;
     for (uint i = 0u; i < uSteps; i++) {
-        randState = rand(randState);
-        float t = -log(randState.x) / uMajorant;
+        float t = -log(rand(randState)) / uMajorant;
         photon.position += t * photon.direction;
 
-        vec3 absorptionCoefficient, scatteringCoefficient, nullCoefficient;
-        sampleVolume(photon.position, absorptionCoefficient, scatteringCoefficient);
-        nullCoefficient = vec3(uMajorant) - absorptionCoefficient - scatteringCoefficient;
+        vec4 volumeSample = sampleVolumeColor(photon.position);
+        float extinction = volumeSample.a * uExtinctionScale;
+        vec3 scatteringCoefficient = volumeSample.rgb * extinction;
+        vec3 absorptionCoefficient = (vec3(1) - volumeSample.rgb) * extinction;
+        vec3 nullCoefficient = vec3(uMajorant - extinction);
 
-        float absorptionProbability = dot(abs(absorptionCoefficient) * photon.weight, vec3(1));
-        float nullProbability = dot(abs(nullCoefficient) * photon.weight, vec3(1));
-        float scatteringProbability = dot(abs(scatteringCoefficient) * photon.weight, vec3(1));
+        float absorptionProbability = 0.0;
+        float scatteringProbability = dot(abs(scatteringCoefficient * photon.weight), vec3(1));
+        float nullProbability = dot(abs(nullCoefficient * photon.weight), vec3(1));
         if (photon.bounces >= fMaxBounces) {
             scatteringProbability = 0.0;
         }
-
         normalizeProbabilities(absorptionProbability, scatteringProbability, nullProbability);
 
+        float fortuneWheel = rand(randState);
         if (any(greaterThan(photon.position, vec3(1))) || any(lessThan(photon.position, vec3(0)))) {
             // out of volume, sample environment radiance
-            vec3 sampleRadiance = sampleEnvironmentMap(photon.direction).rgb;
-            photon.weight *= sampleRadiance * absorptionCoefficient / (uMajorant * absorptionProbability);
+            vec3 sampleRadiance = photon.weight * sampleEnvironmentMap(photon.direction).rgb;
             samples += 1.0;
             radiance += (sampleRadiance - radiance) / samples;
             resetPhoton(randState, photon);
-        } else if (randState.y < absorptionProbability) {
+        } else if (fortuneWheel < absorptionProbability) {
             // absorption
             vec3 sampleRadiance = vec3(0);
-            photon.weight *= sampleRadiance * absorptionCoefficient / (uMajorant * absorptionProbability);
             samples += 1.0;
             radiance += (sampleRadiance - radiance) / samples;
             resetPhoton(randState, photon);
-        } else if (randState.y < absorptionProbability + scatteringProbability) {
+        } else if (fortuneWheel < absorptionProbability + scatteringProbability) {
             // scattering
-            randState = rand(randState);
             photon.weight *= scatteringCoefficient / (uMajorant * scatteringProbability);
-            photon.direction = sampleHenyeyGreenstein(uScatteringBias, randState, photon.direction);
+            photon.direction = sampleHenyeyGreenstein(randState, uScatteringBias, photon.direction);
             photon.bounces += 1.0;
         } else {
             // null collision
@@ -222,13 +216,6 @@ void main() {
 #version 300 es
 precision mediump float;
 
-// #link /glsl/mixins/rand
-@rand
-// #link /glsl/mixins/unprojectRand
-@unprojectRand
-// #link /glsl/mixins/intersectCube
-@intersectCube
-
 uniform mat4 uMvpInverseMatrix;
 uniform vec2 uInverseResolution;
 uniform float uRandSeed;
@@ -241,9 +228,16 @@ layout (location = 1) out vec4 oDirectionAndBounces;
 layout (location = 2) out vec4 oWeight;
 layout (location = 3) out vec4 oRadianceAndSamples;
 
+// #link /glsl/mixins/hashrand
+@hashrand
+// #link /glsl/mixins/unprojectRand
+@unprojectRand
+// #link /glsl/mixins/intersectCube
+@intersectCube
+
 void main() {
     vec3 from, to;
-    vec2 randState = rand(vPosition * uRandSeed);
+    float randState = uRandSeed;
     unprojectRand(randState, vPosition, uMvpInverseMatrix, uInverseResolution, uBlur, from, to);
     vec3 direction = normalize(to - from);
     vec2 tbounds = max(intersectCube(from, direction), 0.0);

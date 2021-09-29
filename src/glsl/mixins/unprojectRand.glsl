@@ -1,7 +1,9 @@
 // #part /glsl/mixins/unprojectRand
 
+#define M_2PI 6.28318530718
+
 void unprojectRand(
-        inout vec2 randState,
+        inout float randState,
         in vec2 position,
         in mat4 inverseMvp,
         in vec2 inverseResolution,
@@ -9,17 +11,14 @@ void unprojectRand(
         out vec3 from, out vec3 to)
 {
     // sample a disk on the near plane (depth of field)
-    const float TWOPI = 2.0 * 3.14159265358979323;
-    randState = rand(randState);
-    float u1 = TWOPI * randState.x;
-    float u2 = sqrt(randState.y);
-    vec2 offset = vec2(cos(u1), sin(u1)) * u2 * blur;
-    vec4 nearPosition = vec4(position + offset, -1.0, 1.0);
+    float angle = rand(randState) * M_2PI;
+    float radius = sqrt(rand(randState));
+    vec2 diskPosition = vec2(cos(angle), sin(angle)) * radius * blur;
+    vec4 nearPosition = vec4(position + diskPosition, -1, 1);
 
     // sample a square on the far plane (antialiasing)
-    randState = rand(randState);
-    vec2 antialiasing = (randState * 2.0 - 1.0) * inverseResolution;
-    vec4 farPosition = vec4(position + antialiasing, 1.0, 1.0);
+    vec2 squarePosition = (vec2(rand(randState), rand(randState)) * 2.0 - 1.0) * inverseResolution;
+    vec4 farPosition = vec4(position + squarePosition, 1, 1);
 
     // map to world space
     vec4 fromDirty = inverseMvp * nearPosition;

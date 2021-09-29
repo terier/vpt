@@ -19,20 +19,6 @@
     },
     {
       "type": "field",
-      "label": "Scattering albedo:",
-      "children": [
-        {
-          "type": "slider",
-          "bind": "albedo",
-          "value": 1,
-          "min": 0,
-          "max": 1,
-          "step": 0.1
-        }
-      ]
-    },
-    {
-      "type": "field",
       "label": "Scattering bias:",
       "children": [
         {
@@ -85,21 +71,11 @@
     },
     {
       "type": "accordion",
-      "label": "Absorption transfer function",
+      "label": "Transfer function",
       "children": [
         {
           "type": "panel",
-          "bind": "atfContainer"
-        }
-      ]
-    },
-    {
-      "type": "accordion",
-      "label": "Scattering transfer function",
-      "children": [
-        {
-          "type": "panel",
-          "bind": "stfContainer"
+          "bind": "tfcontainer"
         }
       ]
     }

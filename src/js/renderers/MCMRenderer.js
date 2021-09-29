@@ -9,35 +9,14 @@ constructor(gl, volume, environmentTexture, options) {
     super(gl, volume, environmentTexture, options);
 
     Object.assign(this, {
-        absorptionScale : 0,
-        scatteringScale : 100,
+        extinctionScale : 100,
         scatteringBias  : 0,
         majorant        : 100,
         maxBounces      : 8,
-        steps           : 8,
+        steps           : 16,
     }, options);
 
     this._programs = WebGL.buildPrograms(gl, SHADERS.renderers.MCM, MIXINS);
-
-    this._absorptionTransferFunction = WebGL.createTexture(gl, {
-        width  : 2,
-        height : 1,
-        data   : new Uint8Array([255, 0, 0, 0, 255, 0, 0, 255]),
-        wrapS  : gl.CLAMP_TO_EDGE,
-        wrapT  : gl.CLAMP_TO_EDGE,
-        min    : gl.LINEAR,
-        mag    : gl.LINEAR,
-    });
-
-    this._scatteringTransferFunction = WebGL.createTexture(gl, {
-        width  : 2,
-        height : 1,
-        data   : new Uint8Array([255, 0, 0, 0, 255, 0, 0, 255]),
-        wrapS  : gl.CLAMP_TO_EDGE,
-        wrapT  : gl.CLAMP_TO_EDGE,
-        min    : gl.LINEAR,
-        mag    : gl.LINEAR,
-    });
 }
 
 destroy() {
@@ -105,12 +84,8 @@ _integrateFrame() {
     gl.uniform1i(uniforms.uEnvironment, 5);
 
     gl.activeTexture(gl.TEXTURE6);
-    gl.bindTexture(gl.TEXTURE_2D, this._absorptionTransferFunction);
-    gl.uniform1i(uniforms.uAbsorptionTransferFunction, 6);
-
-    gl.activeTexture(gl.TEXTURE7);
-    gl.bindTexture(gl.TEXTURE_2D, this._scatteringTransferFunction);
-    gl.uniform1i(uniforms.uScatteringTransferFunction, 7);
+    gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
+    gl.uniform1i(uniforms.uTransferFunction, 6);
 
     const mvpit = this.calculateMVPInverseTranspose();
     gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, mvpit.m);
@@ -118,8 +93,7 @@ _integrateFrame() {
     gl.uniform1f(uniforms.uRandSeed, Math.random());
     gl.uniform1f(uniforms.uBlur, 0);
 
-    gl.uniform1f(uniforms.uAbsorptionScale, this.absorptionScale);
-    gl.uniform1f(uniforms.uScatteringScale, this.scatteringScale);
+    gl.uniform1f(uniforms.uExtinctionScale, this.extinctionScale);
     gl.uniform1f(uniforms.uScatteringBias, this.scatteringBias);
     gl.uniform1f(uniforms.uMajorant, this.majorant);
     gl.uniform1ui(uniforms.uMaxBounces, this.maxBounces);
@@ -147,26 +121,6 @@ _renderFrame() {
     gl.uniform1i(uniforms.uColor, 0);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-}
-
-setTransferFunction(transferFunction) {
-    // Leave empty! Specify absorption and scattering TFs separately.
-}
-
-setScatteringTransferFunction(scatteringTransferFunction) {
-    const gl = this._gl;
-    gl.bindTexture(gl.TEXTURE_2D, this._scatteringTransferFunction);
-    gl.texImage2D(gl.TEXTURE_2D, 0,
-        gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, scatteringTransferFunction);
-    gl.bindTexture(gl.TEXTURE_2D, null);
-}
-
-setAbsorptionTransferFunction(absorptionTransferFunction) {
-    const gl = this._gl;
-    gl.bindTexture(gl.TEXTURE_2D, this._absorptionTransferFunction);
-    gl.texImage2D(gl.TEXTURE_2D, 0,
-        gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, absorptionTransferFunction);
-    gl.bindTexture(gl.TEXTURE_2D, null);
 }
 
 _getFrameBufferSpec() {
