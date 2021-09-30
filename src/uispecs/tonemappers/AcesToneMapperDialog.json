@@ -1,4 +1,4 @@
-// #part /uispecs/tonemappers/ReinhardToneMapperDialog
+// #part /uispecs/tonemappers/AcesToneMapperDialog
 
 {
   "type": "panel",

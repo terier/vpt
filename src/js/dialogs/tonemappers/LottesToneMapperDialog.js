@@ -1,13 +1,13 @@
-// #part /js/dialogs/tonemappers/ReinhardToneMapperDialog
+// #part /js/dialogs/tonemappers/LottesToneMapperDialog
 
 // #link ../AbstractDialog
 
-// #link /uispecs/tonemappers/ReinhardToneMapperDialog
+// #link /uispecs/tonemappers/LottesToneMapperDialog
 
-class ReinhardToneMapperDialog extends AbstractDialog {
+class LottesToneMapperDialog extends AbstractDialog {
 
 constructor(toneMapper, options) {
-    super(UISPECS.tonemappers.ReinhardToneMapperDialog, options);
+    super(UISPECS.tonemappers.LottesToneMapperDialog, options);
 
     this._toneMapper = toneMapper;
 

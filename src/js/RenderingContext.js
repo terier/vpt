@@ -309,9 +309,16 @@ _getRendererClass(renderer) {
 
 _getToneMapperClass(toneMapper) {
     switch (toneMapper) {
-        case 'range'    : return RangeToneMapper;
-        case 'reinhard' : return ReinhardToneMapper;
-        case 'artistic' : return ArtisticToneMapper;
+        case 'artistic'   : return ArtisticToneMapper;
+        case 'range'      : return RangeToneMapper;
+        case 'reinhard'   : return ReinhardToneMapper;
+        case 'reinhard2'  : return Reinhard2ToneMapper;
+        case 'uncharted2' : return Uncharted2ToneMapper;
+        case 'filmic'     : return FilmicToneMapper;
+        case 'unreal'     : return UnrealToneMapper;
+        case 'aces'       : return AcesToneMapper;
+        case 'lottes'     : return LottesToneMapper;
+        case 'uchimura'   : return UchimuraToneMapper;
     }
 }
 

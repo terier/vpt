@@ -1,9 +1,9 @@
-// #part /js/tonemappers/ReinhardToneMapper
+// #part /js/tonemappers/Reinhard2ToneMapper
 
 // #link ../WebGL
 // #link AbstractToneMapper
 
-class ReinhardToneMapper extends AbstractToneMapper {
+class Reinhard2ToneMapper extends AbstractToneMapper {
 
 constructor(gl, texture, options) {
     super(gl, texture, options);
@@ -11,8 +11,8 @@ constructor(gl, texture, options) {
     this.exposure = 1;
 
     this._program = WebGL.buildPrograms(this._gl, {
-        ReinhardToneMapper : SHADERS.ReinhardToneMapper
-    }, MIXINS).ReinhardToneMapper;
+        Reinhard2ToneMapper : SHADERS.Reinhard2ToneMapper
+    }, MIXINS).Reinhard2ToneMapper;
 }
 
 destroy() {

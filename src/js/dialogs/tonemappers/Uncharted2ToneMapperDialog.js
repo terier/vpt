@@ -1,13 +1,13 @@
-// #part /js/dialogs/tonemappers/ReinhardToneMapperDialog
+// #part /js/dialogs/tonemappers/Uncharted2ToneMapperDialog
 
 // #link ../AbstractDialog
 
-// #link /uispecs/tonemappers/ReinhardToneMapperDialog
+// #link /uispecs/tonemappers/Uncharted2ToneMapperDialog
 
-class ReinhardToneMapperDialog extends AbstractDialog {
+class Uncharted2ToneMapperDialog extends AbstractDialog {
 
 constructor(toneMapper, options) {
-    super(UISPECS.tonemappers.ReinhardToneMapperDialog, options);
+    super(UISPECS.tonemappers.Uncharted2ToneMapperDialog, options);
 
     this._toneMapper = toneMapper;
 

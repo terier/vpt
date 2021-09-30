@@ -93,6 +93,11 @@
                           "bind": "toneMapperSelect",
                           "options": [
                             {
+                              "value": "artistic",
+                              "label": "Artistic",
+                              "selected": true
+                            },
+                            {
                               "value": "range",
                               "label": "Range"
                             },
@@ -101,9 +106,32 @@
                               "label": "Reinhard"
                             },
                             {
-                              "value": "artistic",
-                              "label": "Artistic",
-                              "selected": true
+                              "value": "reinhard2",
+                              "label": "Reinhard 2"
+                            },
+                            {
+                              "value": "uncharted2",
+                              "label": "Uncharted 2"
+                            },
+                            {
+                              "value": "filmic",
+                              "label": "Filmic"
+                            },
+                            {
+                              "value": "unreal",
+                              "label": "Unreal"
+                            },
+                            {
+                              "value": "aces",
+                              "label": "Aces"
+                            },
+                            {
+                              "value": "lottes",
+                              "label": "Lottes"
+                            },
+                            {
+                              "value": "uchimura",
+                              "label": "Uchimura"
                             }
                           ]
                         }

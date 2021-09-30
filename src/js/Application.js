@@ -178,9 +178,16 @@ _getDialogForRenderer(renderer) {
 
 _getDialogForToneMapper(toneMapper) {
     switch (toneMapper) {
-        case 'range'    : return RangeToneMapperDialog;
-        case 'reinhard' : return ReinhardToneMapperDialog;
-        case 'artistic' : return ArtisticToneMapperDialog;
+        case 'artistic'   : return ArtisticToneMapperDialog;
+        case 'range'      : return RangeToneMapperDialog;
+        case 'reinhard'   : return ReinhardToneMapperDialog;
+        case 'reinhard2'  : return Reinhard2ToneMapperDialog;
+        case 'uncharted2' : return Uncharted2ToneMapperDialog;
+        case 'filmic'     : return FilmicToneMapperDialog;
+        case 'unreal'     : return UnrealToneMapperDialog;
+        case 'aces'       : return AcesToneMapperDialog;
+        case 'lottes'     : return LottesToneMapperDialog;
+        case 'uchimura'   : return UchimuraToneMapperDialog;
     }
 }
 
