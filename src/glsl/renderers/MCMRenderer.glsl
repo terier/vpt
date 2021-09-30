@@ -134,9 +134,9 @@ void main() {
         vec3 absorptionCoefficient = (vec3(1) - volumeSample.rgb) * extinction;
         vec3 nullCoefficient = vec3(uMajorant - extinction);
 
-        float absorptionProbability = 0.0;
-        float scatteringProbability = dot(abs(scatteringCoefficient * photon.weight), vec3(1));
-        float nullProbability = dot(abs(nullCoefficient * photon.weight), vec3(1));
+        float absorptionProbability = dot(abs(absorptionCoefficient /* * photon.weight */), vec3(1));
+        float scatteringProbability = dot(abs(scatteringCoefficient /* * photon.weight */), vec3(1));
+        float nullProbability = dot(abs(nullCoefficient /* * photon.weight */), vec3(1));
         if (photon.bounces >= fMaxBounces) {
             scatteringProbability = 0.0;
         }
