@@ -193,6 +193,9 @@ uniform float uMajorant;
 uniform uint uMaxBounces;
 uniform uint uSteps;
 
+uniform vec3 uLight;
+uniform vec3 uDiffuse;
+
 in vec2 vPosition;
 
 layout (location = 0) out vec4 oPosition;
@@ -245,6 +248,20 @@ vec3 sampleHenyeyGreenstein(float g, vec2 U, vec3 direction) {
     return normalize(u + lambda * direction);
 }
 
+vec3 gradient(vec3 pos, float h) {
+    vec3 positive = vec3(
+    texture(uVolume, pos + vec3( h, 0.0, 0.0)).r,
+    texture(uVolume, pos + vec3(0.0,  h, 0.0)).r,
+    texture(uVolume, pos + vec3(0.0, 0.0,  h)).r
+    );
+    vec3 negative = vec3(
+    texture(uVolume, pos + vec3(-h, 0.0, 0.0)).r,
+    texture(uVolume, pos + vec3(0.0, -h, 0.0)).r,
+    texture(uVolume, pos + vec3(0.0, 0.0, -h)).r
+    );
+    return normalize(positive - negative);
+}
+
 void main() {
     Photon photon;
     vec2 mappedPosition = vPosition * 0.5 + 0.5;
@@ -256,9 +273,8 @@ void main() {
     vec4 radianceAndSamples = texture(uRadiance, mappedPosition);
     photon.radiance = radianceAndSamples.rgb;
     photon.samples = uint(radianceAndSamples.w + 0.5);
-
-    vec3 closest = texture(uClosest, mappedPosition).rgb;
-    float maxLength = length(closest);
+    vec4 closest = texture(uClosest, mappedPosition);
+//    float maxTraveled = length(closest);
 
     vec2 r = rand(vPosition * uRandSeed);
     for (uint i = 0u; i < uSteps; i++) {
@@ -275,7 +291,18 @@ void main() {
         float PAbsorption = muAbsorption / muMajorant;
         float PScattering = muScattering / muMajorant;
 
-        if (any(greaterThan(photon.position, vec3(1))) || any(lessThan(photon.position, vec3(0)))) {
+        vec3 positionToClosest = closest.rgb - photon.position;
+        float dotPTC = dot(positionToClosest, photon.direction);
+
+        if (closest.w > 0.0 && dotPTC <= 0.0 && photon.bounces == 0u) {
+            vec3 normal = normalize(gradient(closest.xyz, 0.005));
+            vec3 light = normalize(uLight);
+            float lambert = max(dot(normal, light), 0.0);
+            vec3 radiance = uDiffuse * lambert;
+            photon.samples++;
+            photon.radiance += (radiance - photon.radiance) / float(photon.samples);
+            resetPhoton(r, photon);
+        } else if (any(greaterThan(photon.position, vec3(1))) || any(lessThan(photon.position, vec3(0)))) {
             // out of bounds
             vec4 envSample = sampleEnvironmentMap(photon.direction);
             vec3 radiance = photon.transmittance * envSample.rgb;

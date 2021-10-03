@@ -11,7 +11,9 @@ constructor(gl, volume, environmentTexture, options) {
     Object.assign(this, {
         // ISO
         _stepSize : 0.05,
-        _isovalue : 0.4,
+        _isovalue : 0.5,
+        _light    : [1, 1, 1],
+        _diffuse  : [0.86, 0.93, 1],
 
         // MCM
         absorptionCoefficient : 1,
@@ -170,6 +172,8 @@ _integrateFrame() {
     gl.uniform1f(uniforms.uMajorant, this.majorant);
     gl.uniform1ui(uniforms.uMaxBounces, this.maxBounces);
     gl.uniform1ui(uniforms.uSteps, this.steps);
+    gl.uniform3fv(uniforms.uLight, this._light);
+    gl.uniform3fv(uniforms.uDiffuse, this._diffuse);
 
     gl.drawBuffers([
         gl.COLOR_ATTACHMENT0,
