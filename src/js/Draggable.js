@@ -51,8 +51,12 @@ _handleMouseMove(e) {
     const dy = e.pageY - this._startY;
     const x = this._element.offsetLeft;
     const y = this._element.offsetTop;
-    this._element.style.left = (x + dx) + 'px';
-    this._element.style.top = (y + dy) + 'px';
+    const pw = this._element.parentNode.offsetWidth;
+    const ph = this._element.parentNode.offsetHeight;
+    const newx = Math.min(Math.max(x + dx, 0), pw);
+    const newy = Math.min(Math.max(y + dy, 0), ph);
+    this._element.style.left = newx + 'px';
+    this._element.style.top = newy + 'px';
     this._startX = e.pageX;
     this._startY = e.pageY;
 
