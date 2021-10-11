@@ -305,6 +305,7 @@ _getRendererClass(renderer) {
         case 'mcc' : return MCCRenderer;
         case 'dos' : return DOSRenderer;
         case 'imc' : return IMCRenderer;
+        case 'cim' : return CIMRenderer;
     }
 }
 

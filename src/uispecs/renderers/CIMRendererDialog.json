@@ -1,0 +1,152 @@
+// #part /uispecs/renderers/CIMRendererDialog
+
+{
+  "type": "panel",
+  "children": [
+    {
+      "type": "field",
+      "label": "Steps:",
+      "children": [
+        {
+          "type": "spinner",
+          "bind": "steps",
+          "value": 10,
+          "min": 1
+        }
+      ]
+    },
+    {
+      "type": "field",
+      "label": "Isovalue:",
+      "children": [
+        {
+          "type": "slider",
+          "bind": "isovalue",
+          "value": 0.5,
+          "min": 0,
+          "max": 1,
+          "step": 0.1
+        }
+      ]
+    },
+    {
+      "type": "field",
+      "label": "Color:",
+      "children": [
+        {
+          "type": "color-chooser",
+          "bind": "color",
+          "value": "#ddeeff"
+        }
+      ]
+    },
+    {
+      "type": "field",
+      "label": "Light direction:",
+      "children": [
+        {
+          "type": "vector",
+          "bind": "direction",
+          "value": 1
+        }
+      ]
+    },
+
+    {
+      "type": "accordion",
+      "label": "Multiple Scattering:",
+      "children": [
+        {
+          "type": "field",
+          "label": "Extinction:",
+          "children": [
+            {
+              "type": "spinner",
+              "bind": "extinction",
+              "logarithmic": true,
+              "value": 1,
+              "min": 0,
+              "step": 0.1
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Scattering albedo:",
+          "children": [
+            {
+              "type": "slider",
+              "bind": "albedo",
+              "value": 0.5,
+              "min": 0,
+              "max": 1,
+              "step": 0.1
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Scattering bias:",
+          "children": [
+            {
+              "type": "slider",
+              "bind": "bias",
+              "value": 0,
+              "min": -1,
+              "max": 1,
+              "step": 0.2
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Majorant ratio:",
+          "children": [
+            {
+              "type": "slider",
+              "bind": "ratio",
+              "value": 1,
+              "min": 0,
+              "max": 1,
+              "step": 0.1
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Max bounces:",
+          "children": [
+            {
+              "type": "spinner",
+              "bind": "bounces",
+              "value": 8,
+              "min": 0
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Steps:",
+          "children": [
+            {
+              "type": "spinner",
+              "bind": "mcm_steps",
+              "value": 8,
+              "min": 1
+            }
+          ]
+        },
+        {
+          "type": "accordion",
+          "label": "Transfer function",
+          "children": [
+            {
+              "type": "panel",
+              "bind": "tfcontainer"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

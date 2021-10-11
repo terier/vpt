@@ -70,9 +70,13 @@
                               "label": "Multiple scattering (compute)"
                             },
                             {
-                              "selected": true,
                               "value": "imc",
                               "label": "IMC"
+                            },
+                            {
+                              "selected": true,
+                              "value": "imc",
+                              "label": "IMC Cached"
                             }
                           ]
                         }
