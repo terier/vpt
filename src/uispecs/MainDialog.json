@@ -73,8 +73,7 @@
                         },
                         {
                           "value": "fcn",
-                          "label": "Convection-Diffusion",
-                          "selected": true
+                          "label": "Convection-Diffusion"
                         },
                         {
                           "value": "rcd",
@@ -82,7 +81,12 @@
                         },
                         {
                           "value": "rcn",
-                          "label": "Experiment"
+                          "label": "RT + Diffusion"
+                        },
+                        {
+                          "value": "imc",
+                          "label": "ISO + RT",
+                          "selected": true
                         }
                       ]
                     }

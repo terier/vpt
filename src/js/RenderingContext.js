@@ -393,6 +393,7 @@ _getRendererClass(renderer) {
         case 'rcd' : return RCDRenderer;
         case 'rcn' : return RCNRenderer;
         case 'mcd' : return MCDRenderer;
+        case 'imc' : return IMCRenderer;
         default    : return MIPRenderer;
     }
 }
