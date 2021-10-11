@@ -170,21 +170,17 @@ precision mediump float;
 // #link /glsl/mixins/intersectCube
 @intersectCube
 
-uniform mediump sampler2D uPosition;
-uniform mediump sampler2D uDirection;
-uniform mediump sampler2D uTransmittance;
-uniform mediump sampler2D uRadiance;
-
 uniform mediump sampler3D uVolume;
 uniform mediump sampler2D uTransferFunction;
+uniform mediump sampler3D uPosition;
+uniform mediump sampler3D uDirection;
+uniform mediump sampler3D uTransmittance;
+uniform mediump sampler3D uRadiance;
 uniform mediump sampler2D uEnvironment;
 
 uniform mediump sampler2D uClosest;
 
-uniform mat4 uMvpInverseMatrix;
-uniform vec2 uInverseResolution;
 uniform float uRandSeed;
-uniform float uBlur;
 
 uniform float uAbsorptionCoefficient;
 uniform float uScatteringCoefficient;
@@ -203,13 +199,11 @@ layout (location = 1) out vec4 oDirection;
 layout (location = 2) out vec4 oTransmittance;
 layout (location = 3) out vec4 oRadiance;
 
-void resetPhoton(inout vec2 randState, inout Photon photon) {
-    vec3 from, to;
-    unprojectRand(randState, vPosition, uMvpInverseMatrix, uInverseResolution, uBlur, from, to);
-    photon.direction = normalize(to - from);
+void resetPhoton(inout vec2 randState, inout Photon photon, vec3 mappedPosition) {
+    randState = rand(randState);
+    photon.direction = normalize(randomDirection(randState));
     photon.bounces = 0u;
-    vec2 tbounds = max(intersectCube(from, photon.direction), 0.0);
-    photon.position = from + tbounds.x * photon.direction;
+    photon.position = mappedPosition;
     photon.transmittance = vec3(1);
 }
 
@@ -264,19 +258,17 @@ vec3 gradient(vec3 pos, float h) {
 
 void main() {
     Photon photon;
-    vec2 mappedPosition = vPosition * 0.5 + 0.5;
-    photon.position = texture(uPosition, mappedPosition).xyz;
+    vec3 mappedPosition = vec3(vPosition,  uLayer);
+    vec4 positionAndSamples = texture(uPosition, mappedPosition);
+    photon.position = positionAndSamples.xyz;
+    photon.samples = uint(positionAndSamples.w + 0.5);
     vec4 directionAndBounces = texture(uDirection, mappedPosition);
     photon.direction = directionAndBounces.xyz;
     photon.bounces = uint(directionAndBounces.w + 0.5);
     photon.transmittance = texture(uTransmittance, mappedPosition).rgb;
-    vec4 radianceAndSamples = texture(uRadiance, mappedPosition);
-    photon.radiance = radianceAndSamples.rgb;
-    photon.samples = uint(radianceAndSamples.w + 0.5);
-    vec4 closest = texture(uClosest, mappedPosition);
-//    float maxTraveled = length(closest);
+    photon.radiance = texture(uRadiance, mappedPosition).rgb;
 
-    vec2 r = rand(vPosition * uRandSeed);
+    vec2 r = rand((mappedPosition.xy + mappedPosition.yz) * uRandSeed);
     for (uint i = 0u; i < uSteps; i++) {
         r = rand(r);
         float t = -log(r.x) / uMajorant;
@@ -294,58 +286,78 @@ void main() {
         vec3 positionToClosest = closest.rgb - photon.position;
         float dotPTC = dot(positionToClosest, photon.direction);
 
-        if (closest.w > 0.0 && dotPTC <= 0.0 && photon.bounces == 0u) {
-            vec3 normal = normalize(gradient(closest.xyz, 0.005));
-            vec3 light = normalize(uLight);
-            float lambert = max(dot(normal, light), 0.0);
-            vec3 radiance = uDiffuse * lambert;
-            photon.samples++;
-            photon.radiance += (radiance - photon.radiance) / float(photon.samples);
-            resetPhoton(r, photon);
-        } else if (any(greaterThan(photon.position, vec3(1))) || any(lessThan(photon.position, vec3(0)))) {
+        if (any(greaterThan(photon.position, vec3(1))) || any(lessThan(photon.position, vec3(0)))) {
             // out of bounds
             vec4 envSample = sampleEnvironmentMap(photon.direction);
             vec3 radiance = photon.transmittance * envSample.rgb;
             photon.samples++;
             photon.radiance += (radiance - photon.radiance) / float(photon.samples);
-            resetPhoton(r, photon);
-        } else if (photon.bounces >= uMaxBounces) {
+            resetPhoton(r, photon, mappedPosition);
+        } else {
             // max bounces achieved -> only estimate transmittance
             float weightAS = (muAbsorption + muScattering) / uMajorant;
             photon.transmittance *= 1.0 - weightAS;
-        } else if (r.y < PAbsorption) {
-            // absorption
-            float weightA = muAbsorption / (uMajorant * PAbsorption);
-            photon.transmittance *= 1.0 - weightA;
-        } else if (r.y < PAbsorption + PScattering) {
-            // scattering
-            r = rand(r);
-            float weightS = muScattering / (uMajorant * PScattering);
-            photon.transmittance *= volumeSample.rgb * weightS;
-            photon.direction = sampleHenyeyGreenstein(uScatteringBias, r, photon.direction);
-            photon.bounces++;
-        } else {
-            // null collision
-            float weightN = muNull / (uMajorant * PNull);
-            photon.transmittance *= weightN;
         }
+
+//        if (closest.w > 0.0 && dotPTC <= 0.0 && photon.bounces == 0u) {
+//            vec3 normal = normalize(gradient(closest.xyz, 0.005));
+//            vec3 light = normalize(uLight);
+//            float lambert = max(dot(normal, light), 0.0);
+//            vec3 radiance = uDiffuse * lambert;
+//            photon.samples++;
+//            photon.radiance += (radiance - photon.radiance) / float(photon.samples);
+//            resetPhoton(r, photon);
+//        } else if (any(greaterThan(photon.position, vec3(1))) || any(lessThan(photon.position, vec3(0)))) {
+//            // out of bounds
+//            vec4 envSample = sampleEnvironmentMap(photon.direction);
+//            vec3 radiance = photon.transmittance * envSample.rgb;
+//            photon.samples++;
+//            photon.radiance += (radiance - photon.radiance) / float(photon.samples);
+//            resetPhoton(r, photon);
+//        } else if (photon.bounces >= uMaxBounces) {
+//            // max bounces achieved -> only estimate transmittance
+//            float weightAS = (muAbsorption + muScattering) / uMajorant;
+//            photon.transmittance *= 1.0 - weightAS;
+//        } else if (r.y < PAbsorption) {
+//            // absorption
+//            float weightA = muAbsorption / (uMajorant * PAbsorption);
+//            photon.transmittance *= 1.0 - weightA;
+//        } else if (r.y < PAbsorption + PScattering) {
+//            // scattering
+//            r = rand(r);
+//            float weightS = muScattering / (uMajorant * PScattering);
+//            photon.transmittance *= volumeSample.rgb * weightS;
+//            photon.direction = sampleHenyeyGreenstein(uScatteringBias, r, photon.direction);
+//            photon.bounces++;
+//        } else {
+//            // null collision
+//            float weightN = muNull / (uMajorant * PNull);
+//            photon.transmittance *= weightN;
+//        }
     }
 
-    oPosition = vec4(photon.position, 0);
+    oPosition = vec4(photon.position, float(photon.samples));
     oDirection = vec4(photon.direction, float(photon.bounces));
     oTransmittance = vec4(photon.transmittance, 0);
-    oRadiance = vec4(photon.radiance, float(photon.samples));
+    oRadiance = vec4(photon.radiance, 0);
 }
 
 // #part /glsl/shaders/renderers/CIM/render/vertex
 
 #version 300 es
+precision mediump float;
+uniform mat4 uMvpInverseMatrix;
 
-layout (location = 0) in vec2 aPosition;
-out vec2 vPosition;
+
+layout(location = 0) in vec2 aPosition;
+out vec3 vRayFrom;
+out vec3 vRayTo;
+
+// #link /glsl/mixins/unproject
+@unproject
 
 void main() {
-    vPosition = (aPosition + 1.0) * 0.5;
+    unproject(aPosition, uMvpInverseMatrix, vRayFrom, vRayTo);
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
@@ -354,13 +366,56 @@ void main() {
 #version 300 es
 precision mediump float;
 
-uniform mediump sampler2D uColor;
+uniform mediump sampler3D uVolume;
+uniform mediump sampler2D uTransferFunction;
+uniform mediump sampler3D uRadianceAndDiffusion;
+uniform float uStepSize;
+uniform float uOffset;
+uniform float uAlphaCorrection;
 
-in vec2 vPosition;
+in vec3 vRayFrom;
+in vec3 vRayTo;
 out vec4 oColor;
+// #link /glsl/mixins/intersectCube
+@intersectCube
 
 void main() {
-    oColor = vec4(texture(uColor, vPosition).rgb, 1);
+    vec3 rayDirection = vRayTo - vRayFrom;
+    vec2 tbounds = max(intersectCube(vRayFrom, rayDirection), 0.0);
+    if (tbounds.x >= tbounds.y) {
+        oColor = vec4(1.0, 1.0, 1.0, 1.0);
+    } else {
+        vec3 from = mix(vRayFrom, vRayTo, tbounds.x);
+        vec3 to = mix(vRayFrom, vRayTo, tbounds.y);
+        float rayStepLength = distance(from, to) * uStepSize;
+
+        float t = 0.0;
+        vec3 pos;
+        vec2 val;
+        vec4 colorSample;
+        vec4 accumulator = vec4(0.0);
+        vec4 radianceAndDiffusion;
+
+        float energyDensity;
+
+        while (t < 1.0 && accumulator.a < 0.99) {
+            pos = mix(from, to, t);
+            val = texture(uVolume, pos).rg;
+
+            radianceAndDiffusion = texture(uRadianceAndDiffusion, pos);
+            colorSample = texture(uTransferFunction, val);
+            colorSample.a *= rayStepLength * uAlphaCorrection;
+            colorSample.rgb *= radianceAndDiffusion.rbg;
+            colorSample.rgb *= colorSample.a;
+            accumulator += (1.0 - accumulator.a) * colorSample;
+            t += uStepSize;
+        }
+
+        if (accumulator.a > 1.0) {
+            accumulator.rgb /= accumulator.a;
+        }
+        oColor = mix(vec4(1), vec4(accumulator.rgb, 1), accumulator.a);
+    }
 }
 
 // #part /glsl/shaders/renderers/CIM/resetMCM/vertex
