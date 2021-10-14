@@ -1,0 +1,302 @@
+// #package uispecs
+
+// #section CIMRendererDialog
+
+{
+  "type": "panel",
+  "children": [
+    {
+      "type": "field",
+      "label": "Steps:",
+      "children": [
+        {
+          "type": "spinner",
+          "bind": "steps",
+          "value": 800,
+          "min": 1
+        }
+      ]
+    },
+    {
+      "type": "field",
+      "label": "Opacity:",
+      "children": [
+        {
+          "type": "spinner",
+          "bind": "opacity",
+          "logarithmic": true,
+          "value": 100,
+          "min": 0,
+          "step": 0.1
+        }
+      ]
+    },
+    {
+      "type": "field",
+      "label": "Volume to Light Volume ratio:",
+      "children": [
+        {
+          "type": "spinner",
+          "bind": "ratio",
+          "value": 1,
+          "min": 1,
+          "step": 1
+        }
+      ]
+    },
+    {
+      "type": "field",
+      "label": "Maximum Slowdown:",
+      "children": [
+        {
+          "type": "spinner",
+          "bind": "max_slowdown",
+          "value": 1.5,
+          "min": 1,
+          "step": 0.1
+        }
+      ]
+    },
+    {
+      "type": "field",
+      "label": "Deferred Rendering:",
+      "children": [
+        {
+          "type": "checkbox",
+          "bind": "deferred_enabled",
+          "checked": false
+        }
+      ]
+    },
+    {
+      "type": "accordion",
+      "label": "Monte Carlo",
+      "contracted": "true",
+      "children": [
+        {
+          "type": "field",
+          "label": "Ray steps:",
+          "children": [
+            {
+              "type": "spinner",
+              "bind": "ray_steps",
+              "value": 1,
+              "min": 1,
+              "step": 1
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Extinction:",
+          "children": [
+            {
+              "type": "spinner",
+              "bind": "extinction_MS",
+              "value": 100,
+              "min": 0,
+              "step": 1
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Scattering albedo:",
+          "children": [
+            {
+              "type": "slider",
+              "bind": "albedo_MS",
+              "value": 0.8,
+              "min": 0,
+              "max": 1,
+              "step": 0.1
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Scattering bias:",
+          "children": [
+            {
+              "type": "slider",
+              "bind": "bias_MS",
+              "value": 0,
+              "min": -1,
+              "max": 1,
+              "step": 0.2
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Majorant ratio:",
+          "children": [
+            {
+              "type": "slider",
+              "bind": "majorant_ratio",
+              "value": 1,
+              "min": 0,
+              "max": 1,
+              "step": 0.1
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Max bounces:",
+          "children": [
+            {
+              "type": "spinner",
+              "bind": "bounces_MS",
+              "value": 1,
+              "min": 0
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Renderer Subtype:",
+          "children": [
+            {
+              "type": "dropdown",
+              "bind": "renderer_type",
+              "options": [
+                {
+                  "value": 0,
+                  "label": "Monte Carlo hybrid (lights)",
+                  "selected": false
+                },
+                {
+                  "value": 1,
+                  "label": "Monte Carlo (env)",
+                  "selected": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Enable MC",
+          "children": [
+            {
+              "type": "checkbox",
+              "bind": "mc_enabled",
+              "checked": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "accordion",
+      "label": "ISO",
+      "contracted": "true",
+      "children": [
+        {
+          "type": "field",
+          "label": "Isovalue:",
+          "children": [
+            {
+              "type": "slider",
+              "bind": "isovalue",
+              "value": 0.5,
+              "min": 0,
+              "max": 1,
+              "step": 0.1
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Color:",
+          "children": [
+            {
+              "type": "color-chooser",
+              "bind": "color",
+              "value": "#ddeeff"
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Light direction:",
+          "children": [
+            {
+              "type": "vector",
+              "bind": "direction",
+              "value": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "accordion",
+      "label": "Smart De-Noise",
+      "contracted": "true",
+      "children": [
+        {
+          "type": "field",
+          "label": "Enabled:",
+          "children": [
+            {
+              "type": "checkbox",
+              "bind": "sd_enabled",
+              "checked": true
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Sigma:",
+          "children": [
+            {
+              "type": "spinner",
+              "bind": "sd_sigma",
+              "value": 5,
+              "min": 0,
+              "step": 0.1
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "K Sigma:",
+          "children": [
+            {
+              "type": "spinner",
+              "bind": "sd_ksigma",
+              "value": 2,
+              "min": 0,
+              "step": 0.1
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "threshold:",
+          "children": [
+            {
+              "type": "spinner",
+              "bind": "sd_threshold",
+              "value": 0.1,
+              "min": 0,
+              "step": 0.001
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "accordion",
+      "label": "Transfer function",
+      "children": [
+        {
+          "type": "panel",
+          "bind": "tfcontainer"
+        }
+      ]
+    }
+  ]
+}

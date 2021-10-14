@@ -214,6 +214,7 @@ _getDialogForRenderer(renderer) {
         case 'rcn' : return RCNRendererDialog;
         case 'mcd' : return MCDRendererDialog;
         case 'imc' : return IMCRendererDialog;
+        case 'cim' : return CIMRendererDialog;
         default    : return MIPRendererDialog;
     }
 }

@@ -85,7 +85,11 @@
                         },
                         {
                           "value": "imc",
-                          "label": "ISO + RT",
+                          "label": "ISO + RT"
+                        },
+                        {
+                          "value": "cim",
+                          "label": "ISO + RT (cached)",
                           "selected": true
                         }
                       ]

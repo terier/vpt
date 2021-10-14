@@ -161,6 +161,7 @@ void main() {
 precision mediump float;
 
 #define M_INVPI 0.31830988618
+#define PI 3.141592653589f
 #define M_2PI 6.28318530718
 #define EPS 1e-5
 
@@ -261,6 +262,25 @@ vec3 gradient(vec3 pos, float h) {
     return normalize(positive - negative);
 }
 
+vec3 lambertShading(vec4 closest) {
+    vec3 normal = normalize(gradient(closest.xyz, 0.005));
+    vec3 light = normalize(uLight);
+    float lambert = max(dot(normal, light), 0.0);
+
+    return uDiffuse * lambert;
+}
+
+vec3 BasicDiffuseBRDF(inout vec2 randState) {
+    randState = rand(randState);
+    float r1 = 2.0f * PI * randState.x;// pick random number on unit circle (radius = 1, circumference = 2*Pi) for azimuth
+    float r2 = randState.y;// pick random number for elevation
+    float r2s = sqrt(r2);
+
+    vec3 lightDir = vec3(cos(r1) * r2s, sin(r1) * r2s, sqrt(1.0f - r2));
+
+    return uDiffuse * dot(lightDir, vec3(0.0, 0.0, 1.0));
+}
+
 void main() {
     Photon photon;
     vec2 mappedPosition = vPosition * 0.5 + 0.5;
@@ -294,10 +314,8 @@ void main() {
         float dotPTC = dot(positionToClosest, photon.direction);
 
         if (closest.w > 0.0 && dotPTC <= 0.0 && photon.bounces == 0u) {
-            vec3 normal = normalize(gradient(closest.xyz, 0.005));
-            vec3 light = normalize(uLight);
-            float lambert = max(dot(normal, light), 0.0);
-            vec3 radiance = uDiffuse * lambert;
+            vec3 radiance = lambertShading(closest);
+//            vec3 radiance = BasicDiffuseBRDF(r);
             photon.samples++;
             photon.radiance += (radiance - photon.radiance) / float(photon.samples);
             resetPhoton(r, photon);
