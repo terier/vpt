@@ -49,6 +49,11 @@ class CIMRenderer extends AbstractRenderer {
             _isovalue                   : 0.5,
             _light                      : [1, 1, 1],
             _diffuse                    : [0.86, 0.93, 1],
+            // BRDF
+            f0       : 0.5,
+            f90      : 1,
+            specularWeight : 1,
+            alphaRoughness : 1,
         }, options);
 
         this._programs = WebGL.buildPrograms(this._gl, {
@@ -467,6 +472,11 @@ class CIMRenderer extends AbstractRenderer {
         gl.uniform3fv(program.uniforms.uDiffuse, this._diffuse);
 
         gl.uniformMatrix4fv(program.uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
+
+        gl.uniform1f(program.uniforms.uSpecularWeight, this.specularWeight);
+        gl.uniform1f(program.uniforms.uAlphaRoughness, this.alphaRoughness);
+        gl.uniform1f(program.uniforms.uF0, this.f0);
+        gl.uniform1f(program.uniforms.uF90, this.f90);
 
         gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
     }

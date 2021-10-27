@@ -12,7 +12,7 @@
         {
           "type": "spinner",
           "bind": "steps",
-          "value": 800,
+          "value": 300,
           "min": 1
         }
       ]
@@ -65,6 +65,68 @@
           "type": "checkbox",
           "bind": "deferred_enabled",
           "checked": false
+        }
+      ]
+    },
+    {
+      "type": "accordion",
+      "label": "BRDF:",
+      "children": [
+        {
+          "type": "field",
+          "label": "f0:",
+          "children": [
+            {
+              "type": "slider",
+              "bind": "f0",
+              "value": 0.04,
+              "min": 0,
+              "max": 1,
+              "step": 0.05
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "f90:",
+          "children": [
+            {
+              "type": "slider",
+              "bind": "f90",
+              "value": 1.0,
+              "min": 0,
+              "max": 1,
+              "step": 0.05
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Specular Weight:",
+          "children": [
+            {
+              "type": "slider",
+              "bind": "specularWeight",
+              "value": 1.0,
+              "min": 0,
+              "max": 1,
+              "step": 0.05
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Alpha Roughness:",
+          "children": [
+            {
+              "type": "slider",
+              "bind": "alphaRoughness",
+              "value": 0.08,
+              "min": 0,
+              "max": 1,
+              "step": 0.05
+            }
+          ]
         }
       ]
     },

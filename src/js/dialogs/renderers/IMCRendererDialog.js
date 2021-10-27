@@ -12,6 +12,8 @@ constructor(renderer, options) {
 
     this._renderer = renderer;
 
+    this._setInitialValues();
+
     this._handleChange = this._handleChange.bind(this);
     this._handleTFChange = this._handleTFChange.bind(this);
 
@@ -40,6 +42,39 @@ constructor(renderer, options) {
 destroy() {
     this._tfwidget.destroy();
     super.destroy();
+}
+
+_setInitialValues() {
+    this._renderer._stepSize = 1 / this._binds.steps.getValue();
+    this._renderer._isovalue = this._binds.isovalue.getValue();
+    const color = CommonUtils.hex2rgb(this._binds.color.getValue());
+    this._renderer._diffuse[0] = color.r;
+    this._renderer._diffuse[1] = color.g;
+    this._renderer._diffuse[2] = color.b;
+
+    const direction = this._binds.direction.getValue();
+    this._renderer._light[0] = direction.x;
+    this._renderer._light[1] = direction.y;
+    this._renderer._light[2] = direction.z;
+
+    this._renderer.f0 = this._binds.f0.getValue();
+    this._renderer.f90 = this._binds.f90.getValue();
+    this._renderer.specularWeight = this._binds.specularWeight.getValue();
+    this._renderer.alphaRoughness = this._binds.alphaRoughness.getValue();
+
+    const extinction = this._binds.extinction.getValue();
+    const albedo     = this._binds.albedo.getValue();
+    const bias       = this._binds.bias.getValue();
+    const ratio      = this._binds.ratio.getValue();
+    const bounces    = this._binds.bounces.getValue();
+    const steps      = this._binds.steps.getValue();
+
+    this._renderer.absorptionCoefficient = extinction * (1 - albedo);
+    this._renderer.scatteringCoefficient = extinction * albedo;
+    this._renderer.scatteringBias = bias;
+    this._renderer.majorant = extinction * ratio;
+    this._renderer.maxBounces = bounces;
+    this._renderer.steps = steps;
 }
 
 _handleChange() {

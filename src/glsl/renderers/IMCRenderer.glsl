@@ -315,8 +315,8 @@ vec3 BRDF_specularGGX(vec3 f0, vec3 f90, float alphaRoughness, float specularWei
     float Vis = V_GGX(NdotL, NdotV, alphaRoughness);
     float D = D_GGX(NdotH, alphaRoughness);
 
-//    return specularWeight * F * Vis * D;
-    return F;
+    return specularWeight * F * Vis * D;
+//    return F;
 }
 
 vec3 BRDF(vec3 pos, vec3 diffuseColor) {
@@ -347,7 +347,7 @@ vec3 BRDF(vec3 pos, vec3 diffuseColor) {
     vec3 diffuse = intensity * NdotL *  BRDF_lambertian(f0, f90, diffuseColor, specularWeight, VdotH);
     vec3 specular = intensity * NdotL *
     BRDF_specularGGX(f0, f90, alphaRoughness, specularWeight, VdotH, NdotL, NdotV, NdotH);
-//    return vec3(VdotH);
+//    return vec3(pow(VdotH, 10.0));
     return diffuse + specular;
 }
 

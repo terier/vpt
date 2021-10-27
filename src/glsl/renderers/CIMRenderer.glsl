@@ -279,6 +279,11 @@ uniform float uIsovalue;
 uniform vec3 uLight;
 uniform vec3 uDiffuse;
 
+uniform float uSpecularWeight;
+uniform float uAlphaRoughness;
+uniform float uF0;
+uniform float uF90;
+
 in vec3 vRayFrom;
 in vec3 vRayTo;
 in vec3 cameraPosition;
@@ -351,10 +356,10 @@ vec3 BRDF_specularGGX(vec3 f0, vec3 f90, float alphaRoughness, float specularWei
 }
 
 vec3 BRDF(vec3 pos, vec3 diffuseColor) {
-    vec3 f0 = vec3(0.5);
-    vec3 f90 = vec3(1.0);
-    float specularWeight = 1.0;
-    float alphaRoughness = 0.0;
+    vec3 f0 = vec3(uF0);
+    vec3 f90 = vec3(uF90);
+    float specularWeight = uSpecularWeight;
+    float alphaRoughness = uAlphaRoughness;
     vec3 intensity = vec3(1.0, 1.0, 1.0);
 
     vec4 cameraLoc = vec4(0, 0, -1.0, 1.0);
@@ -362,7 +367,7 @@ vec3 BRDF(vec3 pos, vec3 diffuseColor) {
     vec3 cameraPosition = cameraDirty.xyz / cameraDirty.w;
 
     vec3 n = -normalize(gradient(pos, 0.005));
-    vec3 l = normalize(uLight);   // Direction from surface point to light
+    vec3 l = normalize(-uLight);   // Direction from surface point to light
     vec3 v = normalize(cameraPosition - pos);
     vec3 h = normalize(l + v);          // Direction of the vector between l and v, called halfway vector
     float VdotH = clampedDot(v, h);
@@ -374,6 +379,7 @@ vec3 BRDF(vec3 pos, vec3 diffuseColor) {
     vec3 specular = intensity * NdotL *
         BRDF_specularGGX(f0, f90, alphaRoughness, specularWeight, VdotH, NdotL, NdotV, NdotH);
     return diffuse + specular;
+//    return v;
 }
 
 @intersectCube
@@ -397,13 +403,19 @@ void main() {
         vec4 radianceAndDiffusion;
 
         float energyDensity;
+        bool found = false;
+        vec3 closest;
 
         while (t < 1.0 && accumulator.a < 0.99) {
             pos = mix(from, to, t);
             val = texture(uVolume, pos).rg;
             if (val.r >= uIsovalue) {
-                vec3 res = lambertShading(pos);
-//                vec3 res = BRDF(pos, uDiffuse);
+                if (!found) {
+                    found = true;
+                    closest = pos;
+                }
+//                vec3 res = lambertShading(pos);
+                vec3 res = BRDF(closest, uDiffuse);
                 colorSample = vec4(res, 1);
                 colorSample.a *= rayStepLength * uAlphaCorrection;
                 accumulator += (1.0 - accumulator.a) * colorSample;
@@ -419,7 +431,6 @@ void main() {
             // utezi z energy density
             colorSample.rgb *= radianceAndDiffusion.rbg;
             colorSample.rgb *= colorSample.a;
-//            colorSample.rgb *= colorSample.a;
 //            colorSample.rgb = vec3(energyDensity);
             accumulator += (1.0 - accumulator.a) * colorSample;
             t += uStepSize;
