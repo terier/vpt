@@ -135,6 +135,14 @@ vec3 gradient(vec3 pos, float h) {
     return normalize(positive - negative);
 }
 
+vec3 lambertShading(vec3 closest) {
+    vec3 normal = normalize(gradient(closest, 0.005));
+    vec3 light = normalize(uLight);
+    float lambert = max(dot(normal, light), 0.0);
+
+    return uDiffuse * lambert;
+}
+
 void main() {
     Photon photon;
     vec3 mappedPosition = vec3(vPosition,  uLayer);
@@ -172,12 +180,9 @@ void main() {
         float PScattering = muScattering / muMajorant;
 
         if (volumeSample.r >= uIsovalue && photon.bounces == 0u) {
-            vec3 normal = normalize(gradient(photon.position, 0.005));
-            vec3 light = normalize(uLight);
-            float lambert = max(dot(normal, light), 0.0);
-            vec3 radiance = uDiffuse * lambert;
-            photon.samples++;
-            photon.radiance += (radiance - photon.radiance) / float(photon.samples);
+//            vec3 radiance = lambertShading(photon.position);
+//            photon.samples++;
+//            photon.radiance += (radiance - photon.radiance) / float(photon.samples);
             resetPhoton(r, photon, mappedPosition);
         } else
         if (any(greaterThan(photon.position, vec3(1))) || any(lessThan(photon.position, vec3(0)))) {
@@ -244,6 +249,7 @@ out vec3 vRayFrom;
 out vec3 vRayTo;
 
 out vec2 vPosition;
+out vec3 cameraPosition;
 
 @unproject
 
@@ -257,11 +263,14 @@ void main() {
 // #section CIMRender/fragment
 
 #version 300 es
+#define M_PI 3.141592653589793
+
 precision mediump float;
 
 uniform mediump sampler3D uVolume;
 uniform mediump sampler2D uTransferFunction;
 uniform mediump sampler3D uRadianceAndDiffusion;
+uniform mat4 uMvpInverseMatrix;
 uniform float uStepSize;
 uniform float uOffset;
 uniform float uAlphaCorrection;
@@ -272,6 +281,7 @@ uniform vec3 uDiffuse;
 
 in vec3 vRayFrom;
 in vec3 vRayTo;
+in vec3 cameraPosition;
 out vec4 oColor;
 
 //debug
@@ -289,6 +299,81 @@ vec3 gradient(vec3 pos, float h) {
     texture(uVolume, pos + vec3(0.0, 0.0, -h)).r
     );
     return normalize(positive - negative);
+}
+
+vec3 lambertShading(vec3 closest) {
+    vec3 normal = -normalize(gradient(closest, 0.005));
+    vec3 light = normalize(-uLight);
+    float lambert = max(dot(normal, light), 0.0);
+
+    return uDiffuse * lambert;
+}
+
+vec3 F_Schlick(vec3 f0, vec3 f90, float VdotH) {
+    return f0 + (f90 - f0) * pow(clamp(1.0 - VdotH, 0.0, 1.0), 5.0);
+}
+
+vec3 BRDF_lambertian(vec3 f0, vec3 f90, vec3 diffuseColor, float specularWeight, float VdotH) {
+    return (1.0 - specularWeight * F_Schlick(f0, f90, VdotH)) * (diffuseColor / M_PI);
+}
+
+float clampedDot(vec3 x, vec3 y) {
+    return clamp(dot(x, y), 0.0, 1.0);
+}
+
+float V_GGX(float NdotL, float NdotV, float alphaRoughness) {
+    float alphaRoughnessSq = alphaRoughness * alphaRoughness;
+
+    float GGXV = NdotL * sqrt(NdotV * NdotV * (1.0 - alphaRoughnessSq) + alphaRoughnessSq);
+    float GGXL = NdotV * sqrt(NdotL * NdotL * (1.0 - alphaRoughnessSq) + alphaRoughnessSq);
+
+    float GGX = GGXV + GGXL;
+    if (GGX > 0.0)
+    {
+        return 0.5 / GGX;
+    }
+    return 0.0;
+}
+
+float D_GGX(float NdotH, float alphaRoughness) {
+    float alphaRoughnessSq = alphaRoughness * alphaRoughness;
+    float f = (NdotH * NdotH) * (alphaRoughnessSq - 1.0) + 1.0;
+    return alphaRoughnessSq / (M_PI * f * f);
+}
+
+
+vec3 BRDF_specularGGX(vec3 f0, vec3 f90, float alphaRoughness, float specularWeight, float VdotH, float NdotL, float NdotV, float NdotH) {
+    vec3 F = F_Schlick(f0, f90, VdotH);
+    float Vis = V_GGX(NdotL, NdotV, alphaRoughness);
+    float D = D_GGX(NdotH, alphaRoughness);
+
+    return specularWeight * F * Vis * D;
+}
+
+vec3 BRDF(vec3 pos, vec3 diffuseColor) {
+    vec3 f0 = vec3(0.5);
+    vec3 f90 = vec3(1.0);
+    float specularWeight = 1.0;
+    float alphaRoughness = 0.0;
+    vec3 intensity = vec3(1.0, 1.0, 1.0);
+
+    vec4 cameraLoc = vec4(0, 0, -1.0, 1.0);
+    vec4 cameraDirty = uMvpInverseMatrix * cameraLoc;
+    vec3 cameraPosition = cameraDirty.xyz / cameraDirty.w;
+
+    vec3 n = -normalize(gradient(pos, 0.005));
+    vec3 l = normalize(uLight);   // Direction from surface point to light
+    vec3 v = normalize(cameraPosition - pos);
+    vec3 h = normalize(l + v);          // Direction of the vector between l and v, called halfway vector
+    float VdotH = clampedDot(v, h);
+    float NdotL = clampedDot(n, l);
+    float NdotV = clampedDot(n, v);
+    float NdotH = clampedDot(n, h);
+
+    vec3 diffuse = intensity * NdotL *  BRDF_lambertian(f0, f90, diffuseColor, specularWeight, VdotH);
+    vec3 specular = intensity * NdotL *
+        BRDF_specularGGX(f0, f90, alphaRoughness, specularWeight, VdotH, NdotL, NdotV, NdotH);
+    return diffuse + specular;
 }
 
 @intersectCube
@@ -317,13 +402,14 @@ void main() {
             pos = mix(from, to, t);
             val = texture(uVolume, pos).rg;
             if (val.r >= uIsovalue) {
-                vec3 normal = normalize(gradient(pos, 0.005));
-                vec3 light = normalize(uLight);
-                float lambert = max(dot(normal, light), 0.0);
-                colorSample = vec4(uDiffuse * lambert, 1);
+                vec3 res = lambertShading(pos);
+//                vec3 res = BRDF(pos, uDiffuse);
+                colorSample = vec4(res, 1);
                 colorSample.a *= rayStepLength * uAlphaCorrection;
                 accumulator += (1.0 - accumulator.a) * colorSample;
-                break;
+                t += uStepSize;
+                continue;
+//                break;
             }
             radianceAndDiffusion = texture(uRadianceAndDiffusion, pos);
 //            energyDensity = radianceAndDiffusion.r + radianceAndDiffusion.g;

@@ -20,6 +20,11 @@ constructor(renderer, options) {
     this._binds.color.addEventListener('change', this._handleChange);
     this._binds.direction.addEventListener('input', this._handleChange);
 
+    this._binds.f0.addEventListener('change', this._handleChange);
+    this._binds.f90.addEventListener('change', this._handleChange);
+    this._binds.specularWeight.addEventListener('change', this._handleChange);
+    this._binds.alphaRoughness.addEventListener('change', this._handleChange);
+
     this._binds.extinction.addEventListener('input', this._handleChange);
     this._binds.albedo.addEventListener('change', this._handleChange);
     this._binds.bias.addEventListener('change', this._handleChange);
@@ -49,6 +54,21 @@ _handleChange() {
     this._renderer._light[0] = direction.x;
     this._renderer._light[1] = direction.y;
     this._renderer._light[2] = direction.z;
+
+    this._renderer.f0 = this._binds.f0.getValue();
+    this._renderer.f90 = this._binds.f90.getValue();
+    // const f0 = this._binds.f0.getValue();
+    // this._renderer.f0[0] = f0.x;
+    // this._renderer.f0[1] = f0.y;
+    // this._renderer.f0[2] = f0.z;
+
+    // const f90 = this._binds.f90.getValue();
+    // this._renderer.f90[0] = f90.x;
+    // this._renderer.f90[1] = f90.y;
+    // this._renderer.f90[2] = f90.z;
+
+    this._renderer.specularWeight = this._binds.specularWeight.getValue();
+    this._renderer.alphaRoughness = this._binds.alphaRoughness.getValue();
 
     const extinction = this._binds.extinction.getValue();
     const albedo     = this._binds.albedo.getValue();

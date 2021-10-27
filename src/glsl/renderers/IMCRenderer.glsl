@@ -145,8 +145,10 @@ void main() {
 // #section IMCIntegrateMCM/vertex
 
 #version 300 es
-
+precision mediump float;
 layout (location = 0) in vec2 aPosition;
+
+//uniform mat4 uMvpInverseMatrix;
 
 out vec2 vPosition;
 
@@ -192,6 +194,11 @@ uniform float uScatteringBias;
 uniform float uMajorant;
 uniform uint uMaxBounces;
 uniform uint uSteps;
+
+uniform float uSpecularWeight;
+uniform float uAlphaRoughness;
+uniform float uF0;
+uniform float uF90;
 
 uniform vec3 uLight;
 uniform vec3 uDiffuse;
@@ -270,15 +277,78 @@ vec3 lambertShading(vec4 closest) {
     return uDiffuse * lambert;
 }
 
-vec3 BasicDiffuseBRDF(inout vec2 randState) {
-    randState = rand(randState);
-    float r1 = 2.0f * PI * randState.x;// pick random number on unit circle (radius = 1, circumference = 2*Pi) for azimuth
-    float r2 = randState.y;// pick random number for elevation
-    float r2s = sqrt(r2);
+vec3 F_Schlick(vec3 f0, vec3 f90, float VdotH) {
+    return f0 + (f90 - f0) * pow(clamp(1.0 - VdotH, 0.0, 1.0), 5.0);
+}
 
-    vec3 lightDir = vec3(cos(r1) * r2s, sin(r1) * r2s, sqrt(1.0f - r2));
+vec3 BRDF_lambertian(vec3 f0, vec3 f90, vec3 diffuseColor, float specularWeight, float VdotH) {
+    return (1.0 - specularWeight * F_Schlick(f0, f90, VdotH)) * (diffuseColor / PI);
+}
 
-    return uDiffuse * dot(lightDir, vec3(0.0, 0.0, 1.0));
+float clampedDot(vec3 x, vec3 y) {
+    return clamp(dot(x, y), 0.0, 1.0);
+}
+
+float V_GGX(float NdotL, float NdotV, float alphaRoughness) {
+    float alphaRoughnessSq = alphaRoughness * alphaRoughness;
+
+    float GGXV = NdotL * sqrt(NdotV * NdotV * (1.0 - alphaRoughnessSq) + alphaRoughnessSq);
+    float GGXL = NdotV * sqrt(NdotL * NdotL * (1.0 - alphaRoughnessSq) + alphaRoughnessSq);
+
+    float GGX = GGXV + GGXL;
+    if (GGX > 0.0)
+    {
+        return 0.5 / GGX;
+    }
+    return 0.0;
+}
+
+float D_GGX(float NdotH, float alphaRoughness) {
+    float alphaRoughnessSq = alphaRoughness * alphaRoughness;
+    float f = (NdotH * NdotH) * (alphaRoughnessSq - 1.0) + 1.0;
+    return alphaRoughnessSq / (PI * f * f);
+}
+
+
+vec3 BRDF_specularGGX(vec3 f0, vec3 f90, float alphaRoughness, float specularWeight, float VdotH, float NdotL, float NdotV, float NdotH) {
+    vec3 F = F_Schlick(f0, f90, VdotH);
+    float Vis = V_GGX(NdotL, NdotV, alphaRoughness);
+    float D = D_GGX(NdotH, alphaRoughness);
+
+//    return specularWeight * F * Vis * D;
+    return F;
+}
+
+vec3 BRDF(vec3 pos, vec3 diffuseColor) {
+    vec3 f0 = vec3(uF0);
+    vec3 f90 = vec3(uF90);
+    float specularWeight = uSpecularWeight;
+    float alphaRoughness = uAlphaRoughness;
+    vec3 intensity = vec3(1.0, 1.0, 1.0);
+
+//    vec4 vVertexPositionDirty = uMvpInverseMatrix * vec4(pos, 1);
+//    vec3 vVertexPosition = vVertexPositionDirty.xyz / vVertexPositionDirty.w;
+//
+//    vec3 v = normalize(-vVertexPosition);
+
+    vec4 cameraLoc = vec4(0, 0, -1.0, 1.0);
+    vec4 cameraDirty = uMvpInverseMatrix * cameraLoc;
+    vec3 cameraPosition = cameraDirty.xyz / cameraDirty.w;
+
+    vec3 n = -normalize(gradient(pos, 0.005));
+    vec3 l = normalize(-uLight);   // Direction from surface point to light
+    vec3 v = normalize(cameraPosition - pos);
+    vec3 h = normalize(l + v);          // Direction of the vector between l and v, called halfway vector
+    float VdotH = clampedDot(v, h);
+    float NdotL = clampedDot(n, l);
+    float NdotV = clampedDot(n, v);
+    float NdotH = clampedDot(n, h);
+
+    vec3 diffuse = intensity * NdotL *  BRDF_lambertian(f0, f90, diffuseColor, specularWeight, VdotH);
+    vec3 specular = intensity * NdotL *
+    BRDF_specularGGX(f0, f90, alphaRoughness, specularWeight, VdotH, NdotL, NdotV, NdotH);
+//    return vec3(VdotH);
+    return diffuse + specular;
 }
 
 void main() {
@@ -314,8 +384,8 @@ void main() {
         float dotPTC = dot(positionToClosest, photon.direction);
 
         if (closest.w > 0.0 && dotPTC <= 0.0 && photon.bounces == 0u) {
-            vec3 radiance = lambertShading(closest);
-//            vec3 radiance = BasicDiffuseBRDF(r);
+//            vec3 radiance = lambertShading(closest);
+            vec3 radiance = BRDF(closest.rgb, uDiffuse);
             photon.samples++;
             photon.radiance += (radiance - photon.radiance) / float(photon.samples);
             resetPhoton(r, photon);

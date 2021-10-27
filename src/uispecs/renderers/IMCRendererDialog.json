@@ -33,6 +33,17 @@
     },
     {
       "type": "field",
+      "label": "Light direction:",
+      "children": [
+        {
+          "type": "vector",
+          "bind": "direction",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "type": "field",
       "label": "Color:",
       "children": [
         {
@@ -44,16 +55,88 @@
     },
     {
       "type": "field",
-      "label": "Light direction:",
+      "label": "Shader Type:",
       "children": [
         {
-          "type": "vector",
-          "bind": "direction",
-          "value": 1
+          "type": "dropdown",
+          "bind": "shader_type",
+          "options": [
+            {
+              "value": 0,
+              "label": "Lambert",
+              "selected": true
+            },
+            {
+              "value": 1,
+              "label": "BRDF",
+              "selected": false
+            }
+          ]
         }
       ]
     },
-
+    {
+      "type": "accordion",
+      "label": "BRDF:",
+      "children": [
+        {
+          "type": "field",
+          "label": "f0:",
+          "children": [
+            {
+              "type": "slider",
+              "bind": "f0",
+              "value": 0.5,
+              "min": 0,
+              "max": 1,
+              "step": 0.05
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "f90:",
+          "children": [
+            {
+              "type": "slider",
+              "bind": "f90",
+              "value": 1.0,
+              "min": 0,
+              "max": 1,
+              "step": 0.05
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Specular Weight:",
+          "children": [
+            {
+              "type": "slider",
+              "bind": "specularWeight",
+              "value": 1.0,
+              "min": 0,
+              "max": 1,
+              "step": 0.05
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Alpha Roughness:",
+          "children": [
+            {
+              "type": "slider",
+              "bind": "alphaRoughness",
+              "value": 1.0,
+              "min": 0,
+              "max": 1,
+              "step": 0.05
+            }
+          ]
+        }
+      ]
+    },
     {
       "type": "accordion",
       "label": "Multiple Scattering:",
