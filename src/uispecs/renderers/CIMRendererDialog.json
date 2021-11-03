@@ -77,12 +77,9 @@
           "label": "f0:",
           "children": [
             {
-              "type": "slider",
+              "type": "color-chooser",
               "bind": "f0",
-              "value": 0.04,
-              "min": 0,
-              "max": 1,
-              "step": 0.05
+              "value": "#0a0a0a"
             }
           ]
         },
@@ -91,12 +88,9 @@
           "label": "f90:",
           "children": [
             {
-              "type": "slider",
+              "type": "color-chooser",
               "bind": "f90",
-              "value": 1.0,
-              "min": 0,
-              "max": 1,
-              "step": 0.05
+              "value": "#ffffff"
             }
           ]
         },

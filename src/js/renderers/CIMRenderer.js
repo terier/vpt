@@ -50,8 +50,8 @@ class CIMRenderer extends AbstractRenderer {
             _light                      : [1, 1, 1],
             _diffuse                    : [0.86, 0.93, 1],
             // BRDF
-            f0       : 0.5,
-            f90      : 1,
+            f0       : [0.04, 0.04, 0.04],
+            f90      : [1, 1, 1],
             specularWeight : 1,
             alphaRoughness : 1,
         }, options);
@@ -475,8 +475,8 @@ class CIMRenderer extends AbstractRenderer {
 
         gl.uniform1f(program.uniforms.uSpecularWeight, this.specularWeight);
         gl.uniform1f(program.uniforms.uAlphaRoughness, this.alphaRoughness);
-        gl.uniform1f(program.uniforms.uF0, this.f0);
-        gl.uniform1f(program.uniforms.uF90, this.f90);
+        gl.uniform3fv(program.uniforms.uF0, this.f0);
+        gl.uniform3fv(program.uniforms.uF90, this.f90);
 
         gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
     }

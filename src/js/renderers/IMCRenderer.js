@@ -16,10 +16,8 @@ constructor(gl, volume, environmentTexture, options) {
         _diffuse  : [0.86, 0.93, 1],
 
         // BRDF
-        // f0    : [0.04, 0.04, 0.04],
-        // f90   : [1.00, 1.00, 1.00],
-        f0       : 0.5,
-        f90      : 1,
+        f0       : [0.04, 0.04, 0.04],
+        f90      : [1, 1, 1],
         specularWeight : 1,
         alphaRoughness : 1,
 
@@ -189,8 +187,8 @@ _integrateFrame() {
 
     gl.uniform1f(uniforms.uSpecularWeight, this.specularWeight);
     gl.uniform1f(uniforms.uAlphaRoughness, this.alphaRoughness);
-    gl.uniform1f(uniforms.uF0, this.f0);
-    gl.uniform1f(uniforms.uF90, this.f90);
+    gl.uniform3fv(uniforms.uF0, this.f0);
+    gl.uniform3fv(uniforms.uF90, this.f90);
 
     gl.drawBuffers([
         gl.COLOR_ATTACHMENT0,

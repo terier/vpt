@@ -57,8 +57,16 @@ _setInitialValues() {
     this._renderer._light[1] = direction.y;
     this._renderer._light[2] = direction.z;
 
-    this._renderer.f0 = this._binds.f0.getValue();
-    this._renderer.f90 = this._binds.f90.getValue();
+    const f0 = CommonUtils.hex2rgb(this._binds.f0.getValue());
+    this._renderer.f0[0] = f0.r;
+    this._renderer.f0[1] = f0.g;
+    this._renderer.f0[2] = f0.b;
+
+    const f90 = CommonUtils.hex2rgb(this._binds.f90.getValue());
+    this._renderer.f90[0] = f90.r;
+    this._renderer.f90[1] = f90.g;
+    this._renderer.f90[2] = f90.b;
+
     this._renderer.specularWeight = this._binds.specularWeight.getValue();
     this._renderer.alphaRoughness = this._binds.alphaRoughness.getValue();
 
@@ -90,17 +98,15 @@ _handleChange() {
     this._renderer._light[1] = direction.y;
     this._renderer._light[2] = direction.z;
 
-    this._renderer.f0 = this._binds.f0.getValue();
-    this._renderer.f90 = this._binds.f90.getValue();
-    // const f0 = this._binds.f0.getValue();
-    // this._renderer.f0[0] = f0.x;
-    // this._renderer.f0[1] = f0.y;
-    // this._renderer.f0[2] = f0.z;
+    const f0 = CommonUtils.hex2rgb(this._binds.f0.getValue());
+    this._renderer.f0[0] = f0.r;
+    this._renderer.f0[1] = f0.g;
+    this._renderer.f0[2] = f0.b;
 
-    // const f90 = this._binds.f90.getValue();
-    // this._renderer.f90[0] = f90.x;
-    // this._renderer.f90[1] = f90.y;
-    // this._renderer.f90[2] = f90.z;
+    const f90 = CommonUtils.hex2rgb(this._binds.f90.getValue());
+    this._renderer.f90[0] = f90.r;
+    this._renderer.f90[1] = f90.g;
+    this._renderer.f90[2] = f90.b;
 
     this._renderer.specularWeight = this._binds.specularWeight.getValue();
     this._renderer.alphaRoughness = this._binds.alphaRoughness.getValue();

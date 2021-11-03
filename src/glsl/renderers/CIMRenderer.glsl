@@ -281,8 +281,8 @@ uniform vec3 uDiffuse;
 
 uniform float uSpecularWeight;
 uniform float uAlphaRoughness;
-uniform float uF0;
-uniform float uF90;
+uniform vec3 uF0;
+uniform vec3 uF90;
 
 in vec3 vRayFrom;
 in vec3 vRayTo;
@@ -319,7 +319,8 @@ vec3 F_Schlick(vec3 f0, vec3 f90, float VdotH) {
 }
 
 vec3 BRDF_lambertian(vec3 f0, vec3 f90, vec3 diffuseColor, float specularWeight, float VdotH) {
-    return (1.0 - specularWeight * F_Schlick(f0, f90, VdotH)) * (diffuseColor / M_PI);
+    return (1.0 - specularWeight * F_Schlick(f0, f90, VdotH)) * diffuseColor;
+    //    return (1.0 - specularWeight * F_Schlick(f0, f90, VdotH)) * (diffuseColor / PI);
 }
 
 float clampedDot(vec3 x, vec3 y) {
@@ -356,8 +357,8 @@ vec3 BRDF_specularGGX(vec3 f0, vec3 f90, float alphaRoughness, float specularWei
 }
 
 vec3 BRDF(vec3 pos, vec3 diffuseColor) {
-    vec3 f0 = vec3(uF0);
-    vec3 f90 = vec3(uF90);
+    vec3 f0 = uF0;
+    vec3 f90 = uF90;
     float specularWeight = uSpecularWeight;
     float alphaRoughness = uAlphaRoughness;
     vec3 intensity = vec3(1.0, 1.0, 1.0);
@@ -417,11 +418,11 @@ void main() {
 //                vec3 res = lambertShading(pos);
                 vec3 res = BRDF(closest, uDiffuse);
                 colorSample = vec4(res, 1);
-                colorSample.a *= rayStepLength * uAlphaCorrection;
+//                colorSample.a *= rayStepLength * uAlphaCorrection;
                 accumulator += (1.0 - accumulator.a) * colorSample;
                 t += uStepSize;
-                continue;
-//                break;
+//                continue;
+                break;
             }
             radianceAndDiffusion = texture(uRadianceAndDiffusion, pos);
 //            energyDensity = radianceAndDiffusion.r + radianceAndDiffusion.g;

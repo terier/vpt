@@ -197,8 +197,8 @@ uniform uint uSteps;
 
 uniform float uSpecularWeight;
 uniform float uAlphaRoughness;
-uniform float uF0;
-uniform float uF90;
+uniform vec3 uF0;
+uniform vec3 uF90;
 
 uniform vec3 uLight;
 uniform vec3 uDiffuse;
@@ -282,7 +282,8 @@ vec3 F_Schlick(vec3 f0, vec3 f90, float VdotH) {
 }
 
 vec3 BRDF_lambertian(vec3 f0, vec3 f90, vec3 diffuseColor, float specularWeight, float VdotH) {
-    return (1.0 - specularWeight * F_Schlick(f0, f90, VdotH)) * (diffuseColor / PI);
+    return (1.0 - specularWeight * F_Schlick(f0, f90, VdotH)) * diffuseColor;
+//    return (1.0 - specularWeight * F_Schlick(f0, f90, VdotH)) * (diffuseColor / PI);
 }
 
 float clampedDot(vec3 x, vec3 y) {
@@ -320,8 +321,8 @@ vec3 BRDF_specularGGX(vec3 f0, vec3 f90, float alphaRoughness, float specularWei
 }
 
 vec3 BRDF(vec3 pos, vec3 diffuseColor) {
-    vec3 f0 = vec3(uF0);
-    vec3 f90 = vec3(uF90);
+    vec3 f0 = uF0;
+    vec3 f90 = uF90;
     float specularWeight = uSpecularWeight;
     float alphaRoughness = uAlphaRoughness;
     vec3 intensity = vec3(1.0, 1.0, 1.0);
