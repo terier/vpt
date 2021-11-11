@@ -22,6 +22,7 @@ constructor(renderer, options) {
     this._binds.color.addEventListener('change', this._handleChange);
     this._binds.direction.addEventListener('input', this._handleChange);
 
+    this._binds.metalic.addEventListener('change', this._handleChange);
     this._binds.f0.addEventListener('change', this._handleChange);
     this._binds.f90.addEventListener('change', this._handleChange);
     this._binds.specularWeight.addEventListener('change', this._handleChange);
@@ -88,10 +89,13 @@ _setInitialValues() {
 _handleChange() {
     this._renderer._stepSize = 1 / this._binds.steps.getValue();
     this._renderer._isovalue = this._binds.isovalue.getValue();
+
+    const metalic = this._binds.metalic.getValue();
+
     const color = CommonUtils.hex2rgb(this._binds.color.getValue());
-    this._renderer._diffuse[0] = color.r;
-    this._renderer._diffuse[1] = color.g;
-    this._renderer._diffuse[2] = color.b;
+    this._renderer._diffuse[0] = color.r * (1 - metalic);
+    this._renderer._diffuse[1] = color.g * (1 - metalic);
+    this._renderer._diffuse[2] = color.b * (1 - metalic);
 
     const direction = this._binds.direction.getValue();
     this._renderer._light[0] = direction.x;
@@ -99,9 +103,12 @@ _handleChange() {
     this._renderer._light[2] = direction.z;
 
     const f0 = CommonUtils.hex2rgb(this._binds.f0.getValue());
-    this._renderer.f0[0] = f0.r;
-    this._renderer.f0[1] = f0.g;
-    this._renderer.f0[2] = f0.b;
+    // this._renderer.f0[0] = f0.r;
+    // this._renderer.f0[1] = f0.g;
+    // this._renderer.f0[2] = f0.b;
+    this._renderer.f0[0] = 0.04 * (1 - metalic) + color.r * metalic;
+    this._renderer.f0[1] = 0.04 * (1 - metalic) + color.g * metalic;
+    this._renderer.f0[2] = 0.04 * (1 - metalic) + color.b * metalic;
 
     const f90 = CommonUtils.hex2rgb(this._binds.f90.getValue());
     this._renderer.f90[0] = f90.r;

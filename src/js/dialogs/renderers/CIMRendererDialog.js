@@ -49,9 +49,10 @@ class CIMRendererDialog extends AbstractDialog {
 
         // ISO
         this._binds.isovalue.addEventListener('change', this._handleChangeMCParameters);
-        this._binds.color.addEventListener('change', this._handleChangeMCParameters);
+        this._binds.color.addEventListener('change', this._handleChange);
         this._binds.direction.addEventListener('input', this._handleChangeMCParameters);
         // BRDF
+        this._binds.metalic.addEventListener('change', this._handleChange);
         const f0 = CommonUtils.hex2rgb(this._binds.f0.getValue());
         this._renderer.f0[0] = f0.r;
         this._renderer.f0[1] = f0.g;
@@ -94,6 +95,8 @@ class CIMRendererDialog extends AbstractDialog {
         this._renderer._smartDeNoiseKSigma = this._binds.sd_ksigma.getValue();
         this._renderer._smartDeNoiseThreshold = this._binds.sd_threshold.getValue();
 
+        const metalic = this._binds.metalic.getValue();
+
         // ISO
         this._renderer._isovalue = this._binds.isovalue.getValue();
         const color = CommonUtils.hex2rgb(this._binds.color.getValue());
@@ -108,9 +111,12 @@ class CIMRendererDialog extends AbstractDialog {
 
         //BRDF
         const f0 = CommonUtils.hex2rgb(this._binds.f0.getValue());
-        this._renderer.f0[0] = f0.r;
-        this._renderer.f0[1] = f0.g;
-        this._renderer.f0[2] = f0.b;
+        // this._renderer.f0[0] = f0.r;
+        // this._renderer.f0[1] = f0.g;
+        // this._renderer.f0[2] = f0.b;
+        this._renderer.f0[0] = 0.04 * (1 - metalic) + color.r * metalic;
+        this._renderer.f0[1] = 0.04 * (1 - metalic) + color.g * metalic;
+        this._renderer.f0[2] = 0.04 * (1 - metalic) + color.b * metalic;
 
         const f90 = CommonUtils.hex2rgb(this._binds.f90.getValue());
         this._renderer.f90[0] = f90.r;
@@ -131,8 +137,25 @@ class CIMRendererDialog extends AbstractDialog {
         this._renderer._steps = this._binds.ray_steps.getValue();
         this._renderer._mcEnabled = this._binds.mc_enabled.isChecked();
 
-        this._renderer.f0 = this._binds.f0.getValue();
-        this._renderer.f90 = this._binds.f90.getValue();
+        this._renderer._isovalue = this._binds.isovalue.getValue();
+
+        const metalic = this._binds.metalic.getValue();
+        const color = CommonUtils.hex2rgb(this._binds.color.getValue());
+        this._renderer._diffuse[0] = color.r;
+        this._renderer._diffuse[1] = color.g;
+        this._renderer._diffuse[2] = color.b;
+
+        const f0 = CommonUtils.hex2rgb(this._binds.f0.getValue());
+        // this._renderer.f0[0] = f0.r;
+        // this._renderer.f0[1] = f0.g;
+        // this._renderer.f0[2] = f0.b;
+        this._renderer.f0[0] = 0.04 * (1 - metalic) + color.r * metalic;
+        this._renderer.f0[1] = 0.04 * (1 - metalic) + color.g * metalic;
+        this._renderer.f0[2] = 0.04 * (1 - metalic) + color.b * metalic;
+        const f90 = CommonUtils.hex2rgb(this._binds.f90.getValue());
+        this._renderer.f90[0] = f90.r;
+        this._renderer.f90[1] = f90.g;
+        this._renderer.f90[2] = f90.b;
         this._renderer.specularWeight = this._binds.specularWeight.getValue();
         this._renderer.alphaRoughness = this._binds.alphaRoughness.getValue();
     }

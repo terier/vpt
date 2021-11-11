@@ -256,6 +256,12 @@ vec3 sampleHenyeyGreenstein(float g, vec2 U, vec3 direction) {
     return normalize(u + lambda * direction);
 }
 
+float HenyeyGreensteinPhaseFunction(float g, vec3 inDirection, vec3 outDirection) {
+    float g2 = g * g;
+    float cosTheta = max(dot(inDirection, outDirection), 0.0);
+    return (1.0 - g2) / pow(1.0 + g2 - 2.0 * g * cosTheta, 1.5);
+}
+
 vec3 gradient(vec3 pos, float h) {
     vec3 positive = vec3(
     texture(uVolume, pos + vec3( h, 0.0, 0.0)).r,
@@ -336,8 +342,10 @@ void main() {
             // scattering
             r = rand(r);
             float weightS = muScattering / (uMajorant * PScattering);
-            photon.transmittance *= volumeSample.rgb * weightS;
-            photon.direction = sampleHenyeyGreenstein(uScatteringBias, r, photon.direction);
+            vec3 outDirection = -normalize(uLight);
+            photon.transmittance *= volumeSample.rgb * weightS * HenyeyGreensteinPhaseFunction(uScatteringBias, photon.direction, outDirection);
+//            photon.direction = sampleHenyeyGreenstein(uScatteringBias, r, photon.direction);
+            photon.direction = outDirection;
             photon.bounces++;
         } else {
             // null collision
