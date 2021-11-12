@@ -52,7 +52,7 @@ void main() {
         vec4 from = vec4(mix(vRayFrom, vRayTo, tbounds.x), tbounds.x);
         vec4 to = vec4(mix(vRayFrom, vRayTo, tbounds.y), tbounds.y);
 
-        float closest = texture(uClosest, vPosition).w;
+        float closest = texture(uClosest, vPosition).a;
         if (closest > 0.0) {
             tbounds.y = closest;
         }
@@ -75,7 +75,7 @@ void main() {
         } while (t < 1.0);
 
         if (found) {
-            oClosest = to;
+            oClosest = vec4(to.w);
         } else {
             oClosest = vec4(-1);
         }
@@ -148,13 +148,18 @@ void main() {
 precision mediump float;
 layout (location = 0) in vec2 aPosition;
 
-//uniform mat4 uMvpInverseMatrix;
+uniform mat4 uMvpInverseMatrix;
 
 out vec2 vPosition;
+out vec3 vRayFrom;
+out vec3 vRayTo;
+
+@unproject
 
 void main() {
     vPosition = aPosition;
     gl_Position = vec4(aPosition, 0.0, 1.0);
+    unproject(aPosition, uMvpInverseMatrix, vRayFrom, vRayTo);
 }
 
 // #section IMCIntegrateMCM/fragment
@@ -205,6 +210,8 @@ uniform vec3 uLight;
 uniform vec3 uDiffuse;
 
 in vec2 vPosition;
+in vec3 vRayFrom;
+in vec3 vRayTo;
 
 layout (location = 0) out vec4 oPosition;
 layout (location = 1) out vec4 oDirection;
@@ -295,8 +302,10 @@ void main() {
     vec4 radianceAndSamples = texture(uRadiance, mappedPosition);
     photon.radiance = radianceAndSamples.rgb;
     photon.samples = uint(radianceAndSamples.w + 0.5);
-    vec4 closest = texture(uClosest, mappedPosition);
+//    vec4 closest = texture(uClosest, mappedPosition);
 //    float maxTraveled = length(closest);
+    float closestF = texture(uClosest, mappedPosition).w;
+    vec4 closest = vec4(mix(vRayFrom, vRayTo, closestF), closestF);
 
     vec2 r = rand(vPosition * uRandSeed);
     for (uint i = 0u; i < uSteps; i++) {
