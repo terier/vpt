@@ -10,7 +10,7 @@ constructor(gl, volume, environmentTexture, options) {
 
     Object.assign(this, {
         // ISO
-        _stepSize : 0.05,
+        _stepsIso : 100,
         _isovalue : 0.5,
         // _isovalues : [[0.5, 0.8], [0.5, 0.8], [0.8, 0.8], [0.9, 0.8]],
         // _nISOLayers: 1,
@@ -70,6 +70,11 @@ _resetFrame() {
     let { program, uniforms } = this._programs.resetISO;
     gl.useProgram(program);
 
+    gl.drawBuffers([
+        gl.COLOR_ATTACHMENT0,
+        gl.COLOR_ATTACHMENT1
+    ]);
+
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
     this._accumulationBufferISO.swap();
 
@@ -97,30 +102,6 @@ _resetFrame() {
 }
 
 _generateFrame() {
-    const gl = this._gl;
-
-    const { program, uniforms } = this._programs.generate;
-    gl.useProgram(program);
-
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this._accumulationBufferISO.getAttachments().color[0]);
-    gl.activeTexture(gl.TEXTURE1);
-    gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
-
-
-    gl.uniform1i(uniforms.uClosest, 0);
-    gl.uniform1i(uniforms.uVolume, 1);
-    gl.uniform1f(uniforms.uStepSize, this._stepSize);
-    gl.uniform1f(uniforms.uOffset, Math.random());
-
-    gl.uniform1ui(uniforms.uNLayers, this._isoLayers.length);
-    gl.uniform1f(uniforms.uIsovalue, this._isovalue);
-    for (let i = 0; i < this._isoLayers.length; i++) {
-        gl.uniform1f(uniforms["uIsovalues["+ i +"]"], this._isoLayers[i].isovalue);
-    }
-    gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
-
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 }
 
 _integrateFrame() {
@@ -134,10 +115,27 @@ _integrateFrame() {
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this._accumulationBufferISO.getAttachments().color[0]);
     gl.activeTexture(gl.TEXTURE1);
-    gl.bindTexture(gl.TEXTURE_2D, this._frameBuffer.getAttachments().color[0]);
+    gl.bindTexture(gl.TEXTURE_2D, this._accumulationBufferISO.getAttachments().color[1]);
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
 
     gl.uniform1i(uniforms.uAccumulator, 0);
-    gl.uniform1i(uniforms.uFrame, 1);
+    gl.uniform1i(uniforms.uDepth, 1);
+    gl.uniform1i(uniforms.uVolume, 2);
+
+    gl.uniform1i(uniforms.uSteps, this._stepsIso);
+    gl.uniform1f(uniforms.uRandSeed, Math.random());
+
+    gl.uniform1i(uniforms.uNLayers, this._isoLayers.length);
+    for (let i = 0; i < this._isoLayers.length; i++) {
+        gl.uniform1f(uniforms["uIsovalues["+ i +"]"], this._isoLayers[i].isovalue);
+    }
+    gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
+
+    gl.drawBuffers([
+        gl.COLOR_ATTACHMENT0,
+        gl.COLOR_ATTACHMENT1
+    ]);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 
@@ -292,7 +290,8 @@ _getFrameBufferSpec() {
 
 _getAccumulationBufferSpec() {
     const gl = this._gl;
-    return [{
+
+    const isoBufferSpec = {
         width          : this._bufferSize,
         height         : this._bufferSize,
         min            : gl.NEAREST,
@@ -300,7 +299,22 @@ _getAccumulationBufferSpec() {
         format         : gl.RGBA,
         internalFormat : gl.RGBA16F,
         type           : gl.FLOAT
-    }];
+    };
+
+    const depthBufferSpec = {
+        width          : this._bufferSize,
+        height         : this._bufferSize,
+        min            : gl.NEAREST,
+        mag            : gl.NEAREST,
+        format         : gl.RED_INTEGER,
+        internalFormat : gl.R8I,
+        type           : gl.BYTE
+    };
+
+    return [
+        isoBufferSpec,
+        depthBufferSpec
+    ];
 }
 
 _getAccumulationBufferSpec_MCM() {

@@ -46,7 +46,7 @@ destroy() {
 }
 
 _setInitialValues() {
-    this._renderer._stepSize = 1 / this._binds.steps.getValue();
+    this._renderer._stepsIso = this._binds.steps.getValue();
 
     const direction = this._binds.direction.getValue();
     this._renderer._light[0] = direction.x;
@@ -58,7 +58,7 @@ _setInitialValues() {
     const bias       = this._binds.bias.getValue();
     const ratio      = this._binds.ratio.getValue();
     const bounces    = this._binds.bounces.getValue();
-    const steps      = this._binds.steps.getValue();
+    const steps      = this._binds.mcm_steps.getValue();
 
     this._renderer.absorptionCoefficient = extinction * (1 - albedo);
     this._renderer.scatteringCoefficient = extinction * albedo;
@@ -81,7 +81,7 @@ _handleChange() {
     const bias       = this._binds.bias.getValue();
     const ratio      = this._binds.ratio.getValue();
     const bounces    = this._binds.bounces.getValue();
-    const steps      = this._binds.steps.getValue();
+    const steps      = this._binds.mcm_steps.getValue();
 
     this._renderer.absorptionCoefficient = extinction * (1 - albedo);
     this._renderer.scatteringCoefficient = extinction * albedo;

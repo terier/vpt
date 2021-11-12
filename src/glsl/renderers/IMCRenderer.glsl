@@ -31,10 +31,11 @@ precision mediump float;
 
 uniform mediump sampler2D uClosest;
 uniform mediump sampler3D uVolume;
-uniform float uStepSize;
+uniform int uSteps;
 uniform float uOffset;
+uniform float uRandSeed;
 uniform float uIsovalue;
-uniform uint uNLayers;
+uniform int uNLayers;
 uniform float uIsovalues[4];
 
 in vec2 vPosition;
@@ -44,51 +45,10 @@ in vec3 vRayTo;
 out vec4 oClosest;
 
 @intersectCube
-
-float getClosest(float closest, float isoValue, float tboundsY, vec4 from) {
-    vec4 to = vec4(mix(vRayFrom, vRayTo, tboundsY), tboundsY);
-
-    if (closest > 0.0) {
-        tboundsY = closest;
-    }
-
-    float t = 0.0;
-    float offset = uOffset;
-    vec3 pos;
-    float value;
-    bool found = false;
-    do {
-        pos = mix(from.xyz, to.xyz, offset);
-        value = texture(uVolume, pos).r;
-        if (value >= isoValue) {
-            tboundsY = mix(from.w, to.w, offset);
-            to = vec4(mix(vRayFrom, vRayTo, tboundsY), tboundsY);
-            found = true;
-        }
-        t += uStepSize;
-        offset = mod(offset + uStepSize + uOffset, 1.0);
-    } while (t < 1.0);
-
-    if (found) {
-        return to.w;
-    } else {
-        return -1.0;
-    }
-}
+@rand
 
 void main() {
-    vec3 rayDirection = vRayTo - vRayFrom;
-    vec2 tbounds = max(intersectCube(vRayFrom, rayDirection), 0.0);
-    if (tbounds.x >= tbounds.y) {
-        oClosest = vec4(-1);
-        return;
-    }
-    vec4 closest = texture(uClosest, vPosition);
-    vec4 from = vec4(mix(vRayFrom, vRayTo, tbounds.x), tbounds.x);
-    oClosest.r = getClosest(closest.r, uIsovalues[0], tbounds.y, from);
-//    oClosest.g = getClosest(closest.g, uIsovalues[1], tbounds.y, from);
-//    oClosest.b = getClosest(closest.b, uIsovalues[2], tbounds.y, from);
-//    oClosest.w = getClosest(closest.w, uIsovalues[3], tbounds.y, from);
+
 }
 
 // #section IMCIntegrateISO/vertex
@@ -96,12 +56,19 @@ void main() {
 #version 300 es
 precision mediump float;
 
+uniform mat4 uMvpInverseMatrix;
+
 layout (location = 0) in vec2 aPosition;
 
 out vec2 vPosition;
+out vec3 vRayFrom;
+out vec3 vRayTo;
+
+@unproject
 
 void main() {
-    vPosition = (aPosition + 1.0) * 0.5;
+    vPosition = aPosition * 0.5 + 0.5;
+    unproject(aPosition, uMvpInverseMatrix, vRayFrom, vRayTo);
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
@@ -111,11 +78,19 @@ void main() {
 precision mediump float;
 
 uniform mediump sampler2D uAccumulator;
-uniform mediump sampler2D uFrame;
+uniform mediump isampler2D uDepth;
+uniform mediump sampler3D uVolume;
+uniform int uSteps;
+uniform float uRandSeed;
+uniform int uNLayers;
+uniform float uIsovalues[4];
 
 in vec2 vPosition;
+in vec3 vRayFrom;
+in vec3 vRayTo;
 
-out vec4 oClosest;
+layout (location = 0) out vec4 oClosest;
+layout (location = 1) out int oDepth;
 
 float checkLayer(float frame, float acc) {
     if (frame > 0.0 && acc > 0.0) {
@@ -127,20 +102,56 @@ float checkLayer(float frame, float acc) {
     }
 }
 
+@intersectCube
+@rand
+
 void main() {
-    vec4 frame = texture(uFrame, vPosition);
-    vec4 acc = texture(uAccumulator, vPosition);
-    oClosest.r = checkLayer(frame.r, acc.r);
-    oClosest.g = checkLayer(frame.g, acc.g);
-    oClosest.b = checkLayer(frame.b, acc.b);
-    oClosest.a = checkLayer(frame.a, acc.a);
-//    if (frame.r > 0.0 && acc.r > 0.0) {
-//        oClosest.r = frame.r < acc.r ? frame.r : acc.r;
-//    } else if (frame.r > 0.0) {
-//        oClosest.r = frame.r;
-//    } else {
-//        oClosest.r = acc.r;
-//    }
+    if (uNLayers == 0) {
+        oClosest = vec4(-1);
+        return;
+    }
+    vec3 rayDirection = vRayTo - vRayFrom;
+    vec2 tbounds = max(intersectCube(vRayFrom, rayDirection), 0.0);
+    if (tbounds.x >= tbounds.y) {
+        oClosest = vec4(-1);
+        return;
+    }
+    vec4 currentClosest = texture(uAccumulator, vPosition);
+    ivec4 currentFarthest = texture(uDepth, vPosition);
+
+    vec4 from = vec4(mix(vRayFrom, vRayTo, tbounds.x), tbounds.x);
+    vec4 to = vec4(mix(vRayFrom, vRayTo, tbounds.y), tbounds.y);
+
+    float closest = 2.0;
+    if (currentClosest.w > 0.0)
+        closest = currentClosest.w;
+
+    int farthest = currentFarthest.r;
+
+    vec2 r = rand(vPosition * uRandSeed);
+    for (int i = 0; i < uSteps; i++) {
+        r = rand(r);
+        vec3 pos = mix(from.xyz, to.xyz, r.x);
+        float value = texture(uVolume, pos).r;
+        if (value >= uIsovalues[0]) {
+            float tboundsY = mix(from.w, to.w, r.x);
+            if (tboundsY < closest) {
+                closest = tboundsY;
+            }
+            for (int j = uNLayers - 1; j >= 0; j--) {
+                if (j <= farthest) {
+                    break;
+                } else
+                if (value >= uIsovalues[j]) {
+                    farthest = j;
+                    break;
+                }
+            }
+        }
+    }
+
+    oClosest = vec4(closest, 0.0, 0.0, 0.0);
+    oDepth = -1;
 }
 
 // #section IMCResetISO/vertex
@@ -159,10 +170,12 @@ void main() {
 #version 300 es
 precision mediump float;
 
-out vec4 oClosest;
+layout (location = 0) out vec4 oClosest;
+layout (location = 1) out int oDepth;
 
 void main() {
     oClosest = vec4(-1);
+    oDepth = -1;
 }
 
 // #section IMCIntegrateMCM/vertex
@@ -332,7 +345,6 @@ void main() {
 //    float maxTraveled = length(closest);
     vec4 closest = texture(uClosest, mappedPosition);
     vec3 closestVR = mix(vRayFrom, vRayTo, closest.r);
-    vec3 closestVG = mix(vRayFrom, vRayTo, closest.g);
 
     vec2 r = rand(vPosition * uRandSeed);
     for (uint i = 0u; i < uSteps; i++) {
@@ -351,9 +363,6 @@ void main() {
 
         vec3 positionToClosest = closestVR - photon.position;
         float dotPTC = dot(positionToClosest, photon.direction);
-
-        vec3 positionToClosestG = closestVG - photon.position;
-        float dotPTCG = dot(positionToClosestG, photon.direction);
 
 //        if (closest.r > 0.0 && dotPTC <= 0.0 && photon.bounces == 0u) {
 //            vec3 N = -normalize(gradient(closestVR, 0.005));
