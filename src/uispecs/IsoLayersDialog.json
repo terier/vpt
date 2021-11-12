@@ -1,0 +1,18 @@
+// #package uispecs
+
+// #section IsoLayersDialog
+
+{
+  "type": "panel",
+  "children": [
+    {
+      "type": "panel",
+      "bind": "group_container"
+    },
+    {
+      "type": "button",
+      "bind": "addGroupButton",
+      "label": "Add ISO layer"
+    }
+  ]
+}

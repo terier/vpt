@@ -12,9 +12,12 @@ constructor(gl, volume, environmentTexture, options) {
         // ISO
         _stepSize : 0.05,
         _isovalue : 0.5,
+        // _isovalues : [[0.5, 0.8], [0.5, 0.8], [0.8, 0.8], [0.9, 0.8]],
+        // _nISOLayers: 1,
         _light    : [1, 1, 1],
         _diffuse  : [0.86, 0.93, 1],
-
+        // _diffuseColors  : [[0.86, 0.93, 1], [0, 0.9, 0]],
+        _isoLayers: [],
         // BRDF
         f0       : [0.04, 0.04, 0.04],
         f90      : [1, 1, 1],
@@ -104,11 +107,17 @@ _generateFrame() {
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
 
+
     gl.uniform1i(uniforms.uClosest, 0);
     gl.uniform1i(uniforms.uVolume, 1);
     gl.uniform1f(uniforms.uStepSize, this._stepSize);
     gl.uniform1f(uniforms.uOffset, Math.random());
+
+    gl.uniform1ui(uniforms.uNLayers, this._isoLayers.length);
     gl.uniform1f(uniforms.uIsovalue, this._isovalue);
+    for (let i = 0; i < this._isoLayers.length; i++) {
+        gl.uniform1f(uniforms["uIsovalues["+ i +"]"], this._isoLayers[i].isovalue);
+    }
     gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
@@ -185,10 +194,15 @@ _integrateFrame() {
     gl.uniform3fv(uniforms.uLight, this._light);
     gl.uniform3fv(uniforms.uDiffuse, this._diffuse);
 
-    gl.uniform1f(uniforms.uSpecularWeight, this.specularWeight);
-    gl.uniform1f(uniforms.uAlphaRoughness, this.alphaRoughness);
-    gl.uniform3fv(uniforms.uF0, this.f0);
-    gl.uniform3fv(uniforms.uF90, this.f90);
+    gl.uniform1ui(uniforms.uNLayers, this._isoLayers.length);
+    for (let i = 0; i < this._isoLayers.length; i++) {
+        gl.uniform3fv(uniforms["uDiffuseColors["+ i +"]"], this._isoLayers[i].color);
+    }
+
+    gl.uniform1f(uniforms.uSpecularWeight, this._isoLayers[0].specularWeight);
+    gl.uniform1f(uniforms.uAlphaRoughness, this._isoLayers[0].alphaRoughness);
+    gl.uniform3fv(uniforms.uF0, this._isoLayers[0].f0);
+    gl.uniform3fv(uniforms.uF90, this._isoLayers[0].f90);
 
     gl.drawBuffers([
         gl.COLOR_ATTACHMENT0,

@@ -11,6 +11,7 @@ constructor(renderer, options) {
     super(UISPECS.IMCRendererDialog, options);
 
     this._renderer = renderer;
+    this._hasIsoLayers = true;
 
     this._setInitialValues();
 
@@ -18,15 +19,14 @@ constructor(renderer, options) {
     this._handleTFChange = this._handleTFChange.bind(this);
 
     this._binds.steps.addEventListener('input', this._handleChange);
-    this._binds.isovalue.addEventListener('change', this._handleChange);
-    this._binds.color.addEventListener('change', this._handleChange);
+    // this._binds.isovalue.addEventListener('change', this._handleChange);
+    // this._binds.color.addEventListener('change', this._handleChange);
     this._binds.direction.addEventListener('input', this._handleChange);
 
-    this._binds.metalic.addEventListener('change', this._handleChange);
-    this._binds.f0.addEventListener('change', this._handleChange);
-    this._binds.f90.addEventListener('change', this._handleChange);
-    this._binds.specularWeight.addEventListener('change', this._handleChange);
-    this._binds.alphaRoughness.addEventListener('change', this._handleChange);
+    // this._binds.metalic.addEventListener('change', this._handleChange);
+    // this._binds.f90.addEventListener('change', this._handleChange);
+    // this._binds.specularWeight.addEventListener('change', this._handleChange);
+    // this._binds.alphaRoughness.addEventListener('change', this._handleChange);
 
     this._binds.extinction.addEventListener('input', this._handleChange);
     this._binds.albedo.addEventListener('change', this._handleChange);
@@ -47,29 +47,11 @@ destroy() {
 
 _setInitialValues() {
     this._renderer._stepSize = 1 / this._binds.steps.getValue();
-    this._renderer._isovalue = this._binds.isovalue.getValue();
-    const color = CommonUtils.hex2rgb(this._binds.color.getValue());
-    this._renderer._diffuse[0] = color.r;
-    this._renderer._diffuse[1] = color.g;
-    this._renderer._diffuse[2] = color.b;
 
     const direction = this._binds.direction.getValue();
     this._renderer._light[0] = direction.x;
     this._renderer._light[1] = direction.y;
     this._renderer._light[2] = direction.z;
-
-    const f0 = CommonUtils.hex2rgb(this._binds.f0.getValue());
-    this._renderer.f0[0] = f0.r;
-    this._renderer.f0[1] = f0.g;
-    this._renderer.f0[2] = f0.b;
-
-    const f90 = CommonUtils.hex2rgb(this._binds.f90.getValue());
-    this._renderer.f90[0] = f90.r;
-    this._renderer.f90[1] = f90.g;
-    this._renderer.f90[2] = f90.b;
-
-    this._renderer.specularWeight = this._binds.specularWeight.getValue();
-    this._renderer.alphaRoughness = this._binds.alphaRoughness.getValue();
 
     const extinction = this._binds.extinction.getValue();
     const albedo     = this._binds.albedo.getValue();
@@ -88,35 +70,11 @@ _setInitialValues() {
 
 _handleChange() {
     this._renderer._stepSize = 1 / this._binds.steps.getValue();
-    this._renderer._isovalue = this._binds.isovalue.getValue();
-
-    const metalic = this._binds.metalic.getValue();
-
-    const color = CommonUtils.hex2rgb(this._binds.color.getValue());
-    this._renderer._diffuse[0] = color.r * (1 - metalic);
-    this._renderer._diffuse[1] = color.g * (1 - metalic);
-    this._renderer._diffuse[2] = color.b * (1 - metalic);
 
     const direction = this._binds.direction.getValue();
     this._renderer._light[0] = direction.x;
     this._renderer._light[1] = direction.y;
     this._renderer._light[2] = direction.z;
-
-    const f0 = CommonUtils.hex2rgb(this._binds.f0.getValue());
-    // this._renderer.f0[0] = f0.r;
-    // this._renderer.f0[1] = f0.g;
-    // this._renderer.f0[2] = f0.b;
-    this._renderer.f0[0] = 0.04 * (1 - metalic) + color.r * metalic;
-    this._renderer.f0[1] = 0.04 * (1 - metalic) + color.g * metalic;
-    this._renderer.f0[2] = 0.04 * (1 - metalic) + color.b * metalic;
-
-    const f90 = CommonUtils.hex2rgb(this._binds.f90.getValue());
-    this._renderer.f90[0] = f90.r;
-    this._renderer.f90[1] = f90.g;
-    this._renderer.f90[2] = f90.b;
-
-    this._renderer.specularWeight = this._binds.specularWeight.getValue();
-    this._renderer.alphaRoughness = this._binds.alphaRoughness.getValue();
 
     const extinction = this._binds.extinction.getValue();
     const albedo     = this._binds.albedo.getValue();
@@ -132,6 +90,46 @@ _handleChange() {
     this._renderer.maxBounces = bounces;
     this._renderer.steps = steps;
 
+    this._renderer.reset();
+}
+
+_handleChangeIsoLayers(isoLayersGroups) {
+    let isoLayers = [];
+    for (let i = 0; i < isoLayersGroups.length; i++) {
+        let isoLayerGroup = isoLayersGroups[i];
+
+        if (!isoLayerGroup.enabled)
+            continue
+        let isoLayer = {};
+        isoLayer.isovalue = isoLayerGroup.isovalue;
+
+        const metalic = isoLayerGroup.metalic;
+
+        const color = CommonUtils.hex2rgb(isoLayerGroup.color);
+        isoLayer.color = [
+            color.r * (1 - metalic),
+            color.g * (1 - metalic),
+            color.b * (1 - metalic)
+        ];
+
+        isoLayer.f0 = [
+            0.04 * (1 - metalic) + color.r * metalic,
+            0.04 * (1 - metalic) + color.g * metalic,
+            0.04 * (1 - metalic) + color.b * metalic,
+        ];
+
+        const f90 = CommonUtils.hex2rgb(isoLayerGroup.f90);
+        isoLayer.f90 = [
+            f90.r,
+            f90.g,
+            f90.b
+        ];
+
+        isoLayer.specularWeight = isoLayerGroup.specularWeight;
+        isoLayer.alphaRoughness = isoLayerGroup.alphaRoughness;
+        isoLayers.push(isoLayer)
+    }
+    this._renderer._isoLayers = isoLayers;
     this._renderer.reset();
 }
 

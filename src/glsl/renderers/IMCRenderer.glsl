@@ -34,6 +34,8 @@ uniform mediump sampler3D uVolume;
 uniform float uStepSize;
 uniform float uOffset;
 uniform float uIsovalue;
+uniform uint uNLayers;
+uniform float uIsovalues[4];
 
 in vec2 vPosition;
 in vec3 vRayFrom;
@@ -43,43 +45,50 @@ out vec4 oClosest;
 
 @intersectCube
 
+float getClosest(float closest, float isoValue, float tboundsY, vec4 from) {
+    vec4 to = vec4(mix(vRayFrom, vRayTo, tboundsY), tboundsY);
+
+    if (closest > 0.0) {
+        tboundsY = closest;
+    }
+
+    float t = 0.0;
+    float offset = uOffset;
+    vec3 pos;
+    float value;
+    bool found = false;
+    do {
+        pos = mix(from.xyz, to.xyz, offset);
+        value = texture(uVolume, pos).r;
+        if (value >= isoValue) {
+            tboundsY = mix(from.w, to.w, offset);
+            to = vec4(mix(vRayFrom, vRayTo, tboundsY), tboundsY);
+            found = true;
+        }
+        t += uStepSize;
+        offset = mod(offset + uStepSize + uOffset, 1.0);
+    } while (t < 1.0);
+
+    if (found) {
+        return to.w;
+    } else {
+        return -1.0;
+    }
+}
+
 void main() {
     vec3 rayDirection = vRayTo - vRayFrom;
     vec2 tbounds = max(intersectCube(vRayFrom, rayDirection), 0.0);
     if (tbounds.x >= tbounds.y) {
         oClosest = vec4(-1);
-    } else {
-        vec4 from = vec4(mix(vRayFrom, vRayTo, tbounds.x), tbounds.x);
-        vec4 to = vec4(mix(vRayFrom, vRayTo, tbounds.y), tbounds.y);
-
-        float closest = texture(uClosest, vPosition).a;
-        if (closest > 0.0) {
-            tbounds.y = closest;
-        }
-
-        float t = 0.0;
-        float offset = uOffset;
-        vec3 pos;
-        float value;
-        bool found = false;
-        do {
-            pos = mix(from.xyz, to.xyz, offset);
-            value = texture(uVolume, pos).r;
-            if (value >= uIsovalue) {
-                tbounds.y = mix(from.w, to.w, offset);
-                to = vec4(mix(vRayFrom, vRayTo, tbounds.y), tbounds.y);
-                found = true;
-            }
-            t += uStepSize;
-            offset = mod(offset + uStepSize + uOffset, 1.0);
-        } while (t < 1.0);
-
-        if (found) {
-            oClosest = vec4(to.w);
-        } else {
-            oClosest = vec4(-1);
-        }
+        return;
     }
+    vec4 closest = texture(uClosest, vPosition);
+    vec4 from = vec4(mix(vRayFrom, vRayTo, tbounds.x), tbounds.x);
+    oClosest.r = getClosest(closest.r, uIsovalues[0], tbounds.y, from);
+//    oClosest.g = getClosest(closest.g, uIsovalues[1], tbounds.y, from);
+//    oClosest.b = getClosest(closest.b, uIsovalues[2], tbounds.y, from);
+//    oClosest.w = getClosest(closest.w, uIsovalues[3], tbounds.y, from);
 }
 
 // #section IMCIntegrateISO/vertex
@@ -108,16 +117,30 @@ in vec2 vPosition;
 
 out vec4 oClosest;
 
+float checkLayer(float frame, float acc) {
+    if (frame > 0.0 && acc > 0.0) {
+        return frame < acc ? frame : acc;
+    } else if (frame > 0.0) {
+        return frame;
+    } else {
+        return acc;
+    }
+}
+
 void main() {
     vec4 frame = texture(uFrame, vPosition);
     vec4 acc = texture(uAccumulator, vPosition);
-    if (frame.w > 0.0 && acc.w > 0.0) {
-        oClosest = frame.w < acc.w ? frame : acc;
-    } else if (frame.w > 0.0) {
-        oClosest = frame;
-    } else {
-        oClosest = acc;
-    }
+    oClosest.r = checkLayer(frame.r, acc.r);
+    oClosest.g = checkLayer(frame.g, acc.g);
+    oClosest.b = checkLayer(frame.b, acc.b);
+    oClosest.a = checkLayer(frame.a, acc.a);
+//    if (frame.r > 0.0 && acc.r > 0.0) {
+//        oClosest.r = frame.r < acc.r ? frame.r : acc.r;
+//    } else if (frame.r > 0.0) {
+//        oClosest.r = frame.r;
+//    } else {
+//        oClosest.r = acc.r;
+//    }
 }
 
 // #section IMCResetISO/vertex
@@ -208,6 +231,9 @@ uniform vec3 uF90;
 
 uniform vec3 uLight;
 uniform vec3 uDiffuse;
+
+uniform uint uNLayers;
+uniform vec3 uDiffuseColors[4];
 
 in vec2 vPosition;
 in vec3 vRayFrom;
@@ -304,8 +330,9 @@ void main() {
     photon.samples = uint(radianceAndSamples.w + 0.5);
 //    vec4 closest = texture(uClosest, mappedPosition);
 //    float maxTraveled = length(closest);
-    float closestF = texture(uClosest, mappedPosition).w;
-    vec4 closest = vec4(mix(vRayFrom, vRayTo, closestF), closestF);
+    vec4 closest = texture(uClosest, mappedPosition);
+    vec3 closestVR = mix(vRayFrom, vRayTo, closest.r);
+    vec3 closestVG = mix(vRayFrom, vRayTo, closest.g);
 
     vec2 r = rand(vPosition * uRandSeed);
     for (uint i = 0u; i < uSteps; i++) {
@@ -322,24 +349,52 @@ void main() {
         float PAbsorption = muAbsorption / muMajorant;
         float PScattering = muScattering / muMajorant;
 
-        vec3 positionToClosest = closest.rgb - photon.position;
+        vec3 positionToClosest = closestVR - photon.position;
         float dotPTC = dot(positionToClosest, photon.direction);
 
-        if (closest.w > 0.0 && dotPTC <= 0.0 && photon.bounces == 0u) {
-            vec3 N = -normalize(gradient(closest.rgb, 0.005));
-//            vec3 radiance = lambertShading(closest);
-            vec3 radiance = BRDF(closest.rgb, uDiffuse, uF0, uF90, uSpecularWeight, uAlphaRoughness, uMvpInverseMatrix, N, uLight);
-            photon.samples++;
-            photon.radiance += (radiance - photon.radiance) / float(photon.samples);
-            resetPhoton(r, photon);
-        } else if (any(greaterThan(photon.position, vec3(1))) || any(lessThan(photon.position, vec3(0)))) {
+        vec3 positionToClosestG = closestVG - photon.position;
+        float dotPTCG = dot(positionToClosestG, photon.direction);
+
+//        if (closest.r > 0.0 && dotPTC <= 0.0 && photon.bounces == 0u) {
+//            vec3 N = -normalize(gradient(closestVR, 0.005));
+//            //            vec3 radiance = lambertShading(closest);
+//            photon.transmittance = BRDF(closestVR, uDiffuse, uF0, uF90, uSpecularWeight, uAlphaRoughness, uMvpInverseMatrix, N, uLight);
+//            vec3 radiance = photon.transmittance;
+//            photon.samples++;
+//            photon.radiance += (radiance - photon.radiance) / float(photon.samples);
+//            resetPhoton(r, photon);
+//        } else
+        if (uNLayers > 0u && closest.r > 0.0 && dotPTC <= 0.0 && photon.bounces == 0u) {
+            vec3 N = -normalize(gradient(closestVR, 0.005));
+            //            vec3 radiance = lambertShading(closest);
+            vec3 outDirection = -normalize(uLight);
+            photon.transmittance *=
+            BRDF(closestVR, uDiffuseColors[0], uF0, uF90, uSpecularWeight, uAlphaRoughness, uMvpInverseMatrix, N, uLight);
+            photon.direction = outDirection;
+            photon.bounces++;
+//            vec3 radiance = photon.transmittance;
+//            photon.samples++;
+//            photon.radiance += (radiance - photon.radiance) / float(photon.samples);
+//            resetPhoton(r, photon);
+        } else
+        if (any(greaterThan(photon.position, vec3(1))) || any(lessThan(photon.position, vec3(0)))) {
             // out of bounds
             vec4 envSample = sampleEnvironmentMap(photon.direction);
             vec3 radiance = photon.transmittance * envSample.rgb;
             photon.samples++;
             photon.radiance += (radiance - photon.radiance) / float(photon.samples);
             resetPhoton(r, photon);
-        } else if (photon.bounces >= uMaxBounces) {
+        } else
+
+//        if (any(greaterThan(photon.position, vec3(1))) || any(lessThan(photon.position, vec3(0)))) {
+//            // out of bounds
+//            vec4 envSample = sampleEnvironmentMap(photon.direction);
+//            vec3 radiance = photon.transmittance * envSample.rgb;
+//            photon.samples++;
+//            photon.radiance += (radiance - photon.radiance) / float(photon.samples);
+//            resetPhoton(r, photon);
+//        } else
+        if (photon.bounces >= uMaxBounces) {
             // max bounces achieved -> only estimate transmittance
             float weightAS = (muAbsorption + muScattering) / uMajorant;
             photon.transmittance *= 1.0 - weightAS;

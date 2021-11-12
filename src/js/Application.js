@@ -18,6 +18,7 @@ constructor() {
     this._handleVolumeLoad = this._handleVolumeLoad.bind(this);
     this._handleEnvmapLoad = this._handleEnvmapLoad.bind(this);
     this._handleLightsChange = this._handleLightsChange.bind(this);
+    this._handleIsoLayersChange = this._handleIsoLayersChange.bind(this);
 
     this._renderingContext = new RenderingContext();
     this._canvas = this._renderingContext.getCanvas();
@@ -71,6 +72,11 @@ constructor() {
     this._lightsDialog.addEventListener('change', this._handleLightsChange);
     this._lightsDialog._setInitialLights();
 
+    this._isoLayersDialog = new IsoLayersDialog();
+    this._isoLayersDialog.appendTo(this._mainDialog.getLightsContainer());
+    this._isoLayersDialog.addEventListener('change', this._handleIsoLayersChange);
+    this._isoLayersDialog._setInitialData();
+
     this._mainDialog.addEventListener('rendererchange', this._handleRendererChange);
     this._mainDialog.addEventListener('tonemapperchange', this._handleToneMapperChange);
 
@@ -117,6 +123,7 @@ _handleRendererChange(which) {
     localStorage.setItem("vpt_renderer", which);
 
     this._handleLightsDialog();
+    this._handleIsoLayersDialog();
 }
 
 _handleLightsDialog() {
@@ -128,12 +135,28 @@ _handleLightsDialog() {
     this._handleLightsChange();
 }
 
+_handleIsoLayersDialog() {
+    if (this._rendererDialog && !this._rendererDialog._hasIsoLayers) {
+        this._isoLayersDialog.hide();
+        return;
+    }
+    this._isoLayersDialog.show();
+    this._handleIsoLayersChange();
+}
+
 _handleLightsChange() {
     if (!this._rendererDialog || !this._rendererDialog._hasLights)
         return;
 
     const lights = this._lightsDialog.getGroups();
     this._rendererDialog._handleChangeLights(lights);
+}
+
+_handleIsoLayersChange() {
+    if (!this._rendererDialog || !this._rendererDialog._hasIsoLayers)
+        return;
+    const isoLayers = this._isoLayersDialog.getGroups();
+    this._rendererDialog._handleChangeIsoLayers(isoLayers);
 }
 
 _handleToneMapperChange(which) {
