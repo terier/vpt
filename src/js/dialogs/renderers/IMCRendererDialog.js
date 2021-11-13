@@ -103,6 +103,8 @@ _handleChangeIsoLayers(isoLayersGroups) {
         let isoLayer = {};
         isoLayer.isovalue = isoLayerGroup.isovalue;
 
+        isoLayer.alpha = isoLayerGroup.alpha;
+
         const metalic = isoLayerGroup.metalic;
 
         const color = CommonUtils.hex2rgb(isoLayerGroup.color);
@@ -129,7 +131,18 @@ _handleChangeIsoLayers(isoLayersGroups) {
         isoLayer.alphaRoughness = isoLayerGroup.alphaRoughness;
         isoLayers.push(isoLayer)
     }
+    isoLayers.sort((a, b) => {
+        return a.isovalue - b.isovalue;
+    });
+    // let accumulator = 0;
+    // isoLayers.forEach((e) => {
+    //     let trueAlpha = e.alpha *  (1 - accumulator);
+    //     accumulator += (1.0 - accumulator) * e.alpha;
+    //     console.log(`${e.isovalue} ${e.alpha} ${e.age}`);
+    //     isoLayers.alpha = trueAlpha;
+    // });
     this._renderer._isoLayers = isoLayers;
+    console.log(isoLayers)
     this._renderer.reset();
 }
 

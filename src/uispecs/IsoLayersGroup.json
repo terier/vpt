@@ -25,6 +25,19 @@
         },
         {
           "type": "field",
+          "label": "Alpha:",
+          "children": [
+            {
+              "type": "spinner",
+              "bind": "alpha",
+              "value": 1,
+              "min": 0,
+              "max": 1
+            }
+          ]
+        },
+        {
+          "type": "field",
           "label": "Isovalue:",
           "children": [
             {

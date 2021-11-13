@@ -119,17 +119,26 @@ _integrateFrame() {
     gl.activeTexture(gl.TEXTURE2);
     gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
 
-    gl.uniform1i(uniforms.uAccumulator, 0);
-    gl.uniform1i(uniforms.uDepth, 1);
+    gl.uniform1i(uniforms.uRender, 0);
+    gl.uniform1i(uniforms.uClosest, 1);
     gl.uniform1i(uniforms.uVolume, 2);
 
     gl.uniform1i(uniforms.uSteps, this._stepsIso);
-    gl.uniform1f(uniforms.uRandSeed, Math.random());
-
     gl.uniform1i(uniforms.uNLayers, this._isoLayers.length);
+    gl.uniform1f(uniforms.uRandSeed, Math.random());
+    gl.uniform3fv(uniforms.uLight, this._light);
+
     for (let i = 0; i < this._isoLayers.length; i++) {
         gl.uniform1f(uniforms["uIsovalues["+ i +"]"], this._isoLayers[i].isovalue);
+        gl.uniform1f(uniforms["uAlphas["+ i +"]"], this._isoLayers[i].alpha);
+        gl.uniform1f(uniforms["uSpecularWeights["+ i +"]"], this._isoLayers[i].specularWeight);
+        gl.uniform1f(uniforms["uAlphaRoughness["+ i +"]"], this._isoLayers[i].alphaRoughness);
+
+        gl.uniform3fv(uniforms["uColors["+ i +"]"], this._isoLayers[i].color);
+        gl.uniform3fv(uniforms["uF0["+ i +"]"], this._isoLayers[i].f0);
+        gl.uniform3fv(uniforms["uF90["+ i +"]"], this._isoLayers[i].f90);
     }
+
     gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
 
     gl.drawBuffers([
@@ -189,18 +198,18 @@ _integrateFrame() {
     gl.uniform1f(uniforms.uMajorant, this.majorant);
     gl.uniform1ui(uniforms.uMaxBounces, this.maxBounces);
     gl.uniform1ui(uniforms.uSteps, this.steps);
-    gl.uniform3fv(uniforms.uLight, this._light);
-    gl.uniform3fv(uniforms.uDiffuse, this._diffuse);
 
     gl.uniform1ui(uniforms.uNLayers, this._isoLayers.length);
-    for (let i = 0; i < this._isoLayers.length; i++) {
-        gl.uniform3fv(uniforms["uDiffuseColors["+ i +"]"], this._isoLayers[i].color);
-    }
+    gl.uniform3fv(uniforms.uLight, this._light);
 
-    gl.uniform1f(uniforms.uSpecularWeight, this._isoLayers[0].specularWeight);
-    gl.uniform1f(uniforms.uAlphaRoughness, this._isoLayers[0].alphaRoughness);
-    gl.uniform3fv(uniforms.uF0, this._isoLayers[0].f0);
-    gl.uniform3fv(uniforms.uF90, this._isoLayers[0].f90);
+    // for (let i = 0; i < this._isoLayers.length; i++) {
+    //     gl.uniform3fv(uniforms["uDiffuseColors["+ i +"]"], this._isoLayers[i].color);
+    // }
+    // gl.uniform1f(uniforms.uSpecularWeight, this._isoLayers[0].specularWeight);
+    // gl.uniform1f(uniforms.uAlphaRoughness, this._isoLayers[0].alphaRoughness);
+    // gl.uniform3fv(uniforms.uF0, this._isoLayers[0].f0);
+    // gl.uniform3fv(uniforms.uF90, this._isoLayers[0].f90);
+
 
     gl.drawBuffers([
         gl.COLOR_ATTACHMENT0,
@@ -291,7 +300,17 @@ _getFrameBufferSpec() {
 _getAccumulationBufferSpec() {
     const gl = this._gl;
 
-    const isoBufferSpec = {
+    const renderBufferSpec = {
+        width          : this._bufferSize,
+        height         : this._bufferSize,
+        min            : gl.NEAREST,
+        mag            : gl.NEAREST,
+        format         : gl.RGBA,
+        internalFormat : gl.RGBA32F,
+        type           : gl.FLOAT
+    };
+
+    const closestBufferSpec = {
         width          : this._bufferSize,
         height         : this._bufferSize,
         min            : gl.NEAREST,
@@ -301,19 +320,9 @@ _getAccumulationBufferSpec() {
         type           : gl.FLOAT
     };
 
-    const depthBufferSpec = {
-        width          : this._bufferSize,
-        height         : this._bufferSize,
-        min            : gl.NEAREST,
-        mag            : gl.NEAREST,
-        format         : gl.RED_INTEGER,
-        internalFormat : gl.R8I,
-        type           : gl.BYTE
-    };
-
     return [
-        isoBufferSpec,
-        depthBufferSpec
+        renderBufferSpec,
+        closestBufferSpec
     ];
 }
 

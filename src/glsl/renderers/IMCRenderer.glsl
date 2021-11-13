@@ -75,35 +75,75 @@ void main() {
 // #section IMCIntegrateISO/fragment
 
 #version 300 es
+#define M_PI 3.141592653589f
 precision mediump float;
 
-uniform mediump sampler2D uAccumulator;
-uniform mediump isampler2D uDepth;
+uniform mediump sampler2D uRender;
+uniform mediump sampler2D uClosest;
 uniform mediump sampler3D uVolume;
 uniform int uSteps;
-uniform float uRandSeed;
 uniform int uNLayers;
+uniform float uRandSeed;
+uniform vec3 uLight;
+
 uniform float uIsovalues[4];
+uniform float uAlphas[4];
+uniform float uSpecularWeights[4];
+uniform float uAlphaRoughness[4];
+uniform vec3 uColors[4];
+uniform vec3 uF0[4];
+uniform vec3 uF90[4];
+
+uniform mat4 uMvpInverseMatrix;
 
 in vec2 vPosition;
 in vec3 vRayFrom;
 in vec3 vRayTo;
 
-layout (location = 0) out vec4 oClosest;
-layout (location = 1) out int oDepth;
+layout (location = 0) out vec4 oRender;
+layout (location = 1) out vec4 oClosest;
 
-float checkLayer(float frame, float acc) {
-    if (frame > 0.0 && acc > 0.0) {
-        return frame < acc ? frame : acc;
-    } else if (frame > 0.0) {
-        return frame;
-    } else {
-        return acc;
-    }
-}
 
 @intersectCube
 @rand
+@BRDF
+
+float calcLayer(float closest, float isoValue, inout vec4 from, vec4 to, vec2 r) {
+    if (closest > 0.0) {
+        to = vec4(mix(vRayFrom, vRayTo, closest), closest);
+    }
+    for (int i = 0; i < uSteps; i++) {
+        r = rand(r);
+        float tboundsY = mix(from.w, to.w, r.x);
+        vec3 pos = mix(vRayFrom, vRayTo, tboundsY);
+        float value = texture(uVolume, pos).r;
+        if (value >= isoValue) {
+            if (closest < 0.0 || tboundsY < closest) {
+                closest = tboundsY;
+                to = vec4(mix(vRayFrom, vRayTo, tboundsY), tboundsY);
+            }
+        }
+    }
+    if (closest > 0.0) {
+        from = to;
+    }
+    return closest;
+}
+
+vec3 gradient(vec3 pos, float h) {
+    vec3 positive = vec3(
+    texture(uVolume, pos + vec3( h, 0.0, 0.0)).r,
+    texture(uVolume, pos + vec3(0.0,  h, 0.0)).r,
+    texture(uVolume, pos + vec3(0.0, 0.0,  h)).r
+    );
+    vec3 negative = vec3(
+    texture(uVolume, pos + vec3(-h, 0.0, 0.0)).r,
+    texture(uVolume, pos + vec3(0.0, -h, 0.0)).r,
+    texture(uVolume, pos + vec3(0.0, 0.0, -h)).r
+    );
+    return normalize(positive - negative);
+}
+
 
 void main() {
     if (uNLayers == 0) {
@@ -116,42 +156,32 @@ void main() {
         oClosest = vec4(-1);
         return;
     }
-    vec4 currentClosest = texture(uAccumulator, vPosition);
-    ivec4 currentFarthest = texture(uDepth, vPosition);
 
+    vec4 currentClosest = texture(uClosest, vPosition);
+    float newClosest[4] = float[4](currentClosest.r, currentClosest.g, currentClosest.b, currentClosest.a);
+//    float newClosest[4];
     vec4 from = vec4(mix(vRayFrom, vRayTo, tbounds.x), tbounds.x);
     vec4 to = vec4(mix(vRayFrom, vRayTo, tbounds.y), tbounds.y);
 
-    float closest = 2.0;
-    if (currentClosest.w > 0.0)
-        closest = currentClosest.w;
-
-    int farthest = currentFarthest.r;
-
+    vec4 fromPrevious = from;
     vec2 r = rand(vPosition * uRandSeed);
-    for (int i = 0; i < uSteps; i++) {
-        r = rand(r);
-        vec3 pos = mix(from.xyz, to.xyz, r.x);
-        float value = texture(uVolume, pos).r;
-        if (value >= uIsovalues[0]) {
-            float tboundsY = mix(from.w, to.w, r.x);
-            if (tboundsY < closest) {
-                closest = tboundsY;
-            }
-            for (int j = uNLayers - 1; j >= 0; j--) {
-                if (j <= farthest) {
-                    break;
-                } else
-                if (value >= uIsovalues[j]) {
-                    farthest = j;
-                    break;
-                }
-            }
+
+    vec4 accumulator = vec4(0.0);
+
+    for (int i = 0; i < uNLayers; i++) {
+        newClosest[i] = calcLayer(newClosest[i], uIsovalues[i], fromPrevious, to, r);
+        if (newClosest[i] < 0.0) {
+            break;
         }
+        vec3 pos = mix(vRayFrom, vRayTo, newClosest[i]);
+        vec3 N = -normalize(gradient(pos, 0.005));
+        vec4 colorSample = vec4(BRDF(pos, uColors[i], uF0[i], uF90[i], uSpecularWeights[i], uAlphaRoughness[i], uMvpInverseMatrix, N, uLight), uAlphas[i]);
+        colorSample.rgb *= colorSample.a;
+        accumulator += (1.0 - accumulator.a) * colorSample;
     }
 
-    oClosest = vec4(closest, 0.0, 0.0, 0.0);
-    oDepth = -1;
+    oRender = vec4(accumulator.rgb, newClosest[0]);
+    oClosest = vec4(newClosest[0], newClosest[1], newClosest[2], newClosest[3]);
 }
 
 // #section IMCResetISO/vertex
@@ -171,11 +201,11 @@ void main() {
 precision mediump float;
 
 layout (location = 0) out vec4 oClosest;
-layout (location = 1) out int oDepth;
+layout (location = 1) out vec4 oDepth;
 
 void main() {
     oClosest = vec4(-1);
-    oDepth = -1;
+    oDepth = vec4(-1);
 }
 
 // #section IMCIntegrateMCM/vertex
@@ -237,16 +267,16 @@ uniform float uMajorant;
 uniform uint uMaxBounces;
 uniform uint uSteps;
 
-uniform float uSpecularWeight;
-uniform float uAlphaRoughness;
-uniform vec3 uF0;
-uniform vec3 uF90;
+//uniform float uSpecularWeight;
+//uniform float uAlphaRoughness;
+//uniform vec3 uF0;
+//uniform vec3 uF90;
 
 uniform vec3 uLight;
-uniform vec3 uDiffuse;
+//uniform vec3 uDiffuse;
 
 uniform uint uNLayers;
-uniform vec3 uDiffuseColors[4];
+//uniform vec3 uDiffuseColors[4];
 
 in vec2 vPosition;
 in vec3 vRayFrom;
@@ -322,13 +352,13 @@ vec3 gradient(vec3 pos, float h) {
     return normalize(positive - negative);
 }
 
-vec3 lambertShading(vec4 closest) {
-    vec3 normal = normalize(gradient(closest.xyz, 0.005));
-    vec3 light = normalize(uLight);
-    float lambert = max(dot(normal, light), 0.0);
-
-    return uDiffuse * lambert;
-}
+//vec3 lambertShading(vec4 closest) {
+//    vec3 normal = normalize(gradient(closest.xyz, 0.005));
+//    vec3 light = normalize(uLight);
+//    float lambert = max(dot(normal, light), 0.0);
+//
+//    return uDiffuse * lambert;
+//}
 
 void main() {
     Photon photon;
@@ -344,7 +374,7 @@ void main() {
 //    vec4 closest = texture(uClosest, mappedPosition);
 //    float maxTraveled = length(closest);
     vec4 closest = texture(uClosest, mappedPosition);
-    vec3 closestVR = mix(vRayFrom, vRayTo, closest.r);
+    vec3 closestVR = mix(vRayFrom, vRayTo, closest.a);
 
     vec2 r = rand(vPosition * uRandSeed);
     for (uint i = 0u; i < uSteps; i++) {
@@ -364,27 +394,28 @@ void main() {
         vec3 positionToClosest = closestVR - photon.position;
         float dotPTC = dot(positionToClosest, photon.direction);
 
-//        if (closest.r > 0.0 && dotPTC <= 0.0 && photon.bounces == 0u) {
+//        if (uNLayers > 0u && closest.r > 0.0 && dotPTC <= 0.0 && photon.bounces == 0u) {
 //            vec3 N = -normalize(gradient(closestVR, 0.005));
 //            //            vec3 radiance = lambertShading(closest);
-//            photon.transmittance = BRDF(closestVR, uDiffuse, uF0, uF90, uSpecularWeight, uAlphaRoughness, uMvpInverseMatrix, N, uLight);
+//            photon.transmittance = BRDF(closestVR, uDiffuseColors[0], uF0, uF90, uSpecularWeight, uAlphaRoughness, uMvpInverseMatrix, N, uLight);
 //            vec3 radiance = photon.transmittance;
 //            photon.samples++;
 //            photon.radiance += (radiance - photon.radiance) / float(photon.samples);
 //            resetPhoton(r, photon);
 //        } else
-        if (uNLayers > 0u && closest.r > 0.0 && dotPTC <= 0.0 && photon.bounces == 0u) {
+        if (uNLayers > 0u && closest.a > 0.0 && dotPTC <= 0.0 && photon.bounces == 0u) {
             vec3 N = -normalize(gradient(closestVR, 0.005));
             //            vec3 radiance = lambertShading(closest);
-            vec3 outDirection = -normalize(uLight);
-            photon.transmittance *=
-            BRDF(closestVR, uDiffuseColors[0], uF0, uF90, uSpecularWeight, uAlphaRoughness, uMvpInverseMatrix, N, uLight);
-            photon.direction = outDirection;
-            photon.bounces++;
-//            vec3 radiance = photon.transmittance;
-//            photon.samples++;
-//            photon.radiance += (radiance - photon.radiance) / float(photon.samples);
-//            resetPhoton(r, photon);
+//            vec3 outDirection = -normalize(uLight);
+//            photon.transmittance =
+//            BRDF(closestVR, uDiffuseColors[0], uF0, uF90, uSpecularWeight, uAlphaRoughness, uMvpInverseMatrix, N, uLight);
+            photon.transmittance = closest.rgb;
+//            photon.direction = outDirection;
+//            photon.bounces++;
+            vec3 radiance = photon.transmittance;
+            photon.samples++;
+            photon.radiance += (radiance - photon.radiance) / float(photon.samples);
+            resetPhoton(r, photon);
         } else
         if (any(greaterThan(photon.position, vec3(1))) || any(lessThan(photon.position, vec3(0)))) {
             // out of bounds

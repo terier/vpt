@@ -30,6 +30,7 @@ class IsoLayersDialog extends AbstractDialog {
     _setInitialData() {
         const group = this._addGroup();
         group.binds.enabled.setChecked(true);
+        group.binds.alpha.setValue(1);
         group.binds.isovalue.setValue(0.5);
         group.binds.color.setValue('#ddeeff');
         group.binds.metalic.setValue(0);
@@ -53,6 +54,7 @@ class IsoLayersDialog extends AbstractDialog {
     getGroups() {
         return this.groups.map(group => ({
             enabled: group.binds.enabled.isChecked(),
+            alpha: group.binds.alpha.getValue(),
             isovalue: group.binds.isovalue.getValue(),
             color: group.binds.color.getValue(),
             metalic: group.binds.metalic.getValue(),
@@ -89,6 +91,7 @@ class IsoLayersDialog extends AbstractDialog {
         // binds.attribute.setValue(this.attributes[0]);
 
         binds.enabled.setChecked(true);
+        binds.alpha.setValue(1);
         binds.isovalue.setValue(0.5);
         binds.color.setValue('#000000');
         binds.metalic.setValue(0);
@@ -100,6 +103,7 @@ class IsoLayersDialog extends AbstractDialog {
         controlPanelButtons.delete.addEventListener('click', e => this._delete(group));
 
         binds.enabled.addEventListener('change', this._handleGroupChange);
+        binds.alpha.addEventListener('input', this._handleGroupChange);
         binds.isovalue.addEventListener('change', this._handleGroupChange);
         binds.color.addEventListener('change', this._handleGroupChange);
         binds.metalic.addEventListener('change', this._handleGroupChange);
