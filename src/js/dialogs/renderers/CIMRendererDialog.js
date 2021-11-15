@@ -53,15 +53,16 @@ class CIMRendererDialog extends AbstractDialog {
         this._binds.direction.addEventListener('input', this._handleChangeMCParameters);
         // BRDF
         this._binds.metalic.addEventListener('change', this._handleChange);
-        const f0 = CommonUtils.hex2rgb(this._binds.f0.getValue());
-        this._renderer.f0[0] = f0.r;
-        this._renderer.f0[1] = f0.g;
-        this._renderer.f0[2] = f0.b;
 
-        const f90 = CommonUtils.hex2rgb(this._binds.f90.getValue());
-        this._renderer.f90[0] = f90.r;
-        this._renderer.f90[1] = f90.g;
-        this._renderer.f90[2] = f90.b;
+        // const f0 = CommonUtils.hex2rgb(this._binds.f0.getValue());
+        // this._renderer.f0[0] = f0.r;
+        // this._renderer.f0[1] = f0.g;
+        // this._renderer.f0[2] = f0.b;
+        //
+        // const f90 = CommonUtils.hex2rgb(this._binds.f90.getValue());
+        // this._renderer.f90[0] = f90.r;
+        // this._renderer.f90[1] = f90.g;
+        // this._renderer.f90[2] = f90.b;
         this._binds.specularWeight.addEventListener('change', this._handleChange);
         this._binds.alphaRoughness.addEventListener('change', this._handleChange);
 
@@ -95,14 +96,13 @@ class CIMRendererDialog extends AbstractDialog {
         this._renderer._smartDeNoiseKSigma = this._binds.sd_ksigma.getValue();
         this._renderer._smartDeNoiseThreshold = this._binds.sd_threshold.getValue();
 
-        const metalic = this._binds.metalic.getValue();
-
         // ISO
+        const metalic = this._binds.metalic.getValue();
         this._renderer._isovalue = this._binds.isovalue.getValue();
         const color = CommonUtils.hex2rgb(this._binds.color.getValue());
-        this._renderer._diffuse[0] = color.r;
-        this._renderer._diffuse[1] = color.g;
-        this._renderer._diffuse[2] = color.b;
+        this._renderer._diffuse[0] = color.r * (1 - metalic);
+        this._renderer._diffuse[1] = color.g * (1 - metalic);
+        this._renderer._diffuse[2] = color.b * (1 - metalic);
 
         const direction = this._binds.direction.getValue();
         this._renderer._light[0] = direction.x;
@@ -110,7 +110,7 @@ class CIMRendererDialog extends AbstractDialog {
         this._renderer._light[2] = direction.z;
 
         //BRDF
-        const f0 = CommonUtils.hex2rgb(this._binds.f0.getValue());
+        // const f0 = CommonUtils.hex2rgb(this._binds.f0.getValue());
         // this._renderer.f0[0] = f0.r;
         // this._renderer.f0[1] = f0.g;
         // this._renderer.f0[2] = f0.b;
@@ -141,11 +141,11 @@ class CIMRendererDialog extends AbstractDialog {
 
         const metalic = this._binds.metalic.getValue();
         const color = CommonUtils.hex2rgb(this._binds.color.getValue());
-        this._renderer._diffuse[0] = color.r;
-        this._renderer._diffuse[1] = color.g;
-        this._renderer._diffuse[2] = color.b;
+        this._renderer._diffuse[0] = color.r * (1 - metalic);
+        this._renderer._diffuse[1] = color.g * (1 - metalic);
+        this._renderer._diffuse[2] = color.b * (1 - metalic);
 
-        const f0 = CommonUtils.hex2rgb(this._binds.f0.getValue());
+        // const f0 = CommonUtils.hex2rgb(this._binds.f0.getValue());
         // this._renderer.f0[0] = f0.r;
         // this._renderer.f0[1] = f0.g;
         // this._renderer.f0[2] = f0.b;

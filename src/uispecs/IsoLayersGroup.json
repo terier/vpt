@@ -63,7 +63,7 @@
         },
         {
           "type": "field",
-          "label": "Matalic:",
+          "label": "Metallic:",
           "children": [
             {
               "type": "slider",

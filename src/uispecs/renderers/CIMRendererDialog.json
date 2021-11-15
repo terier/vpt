@@ -74,12 +74,15 @@
       "children": [
         {
           "type": "field",
-          "label": "f0:",
+          "label": "Metallic:",
           "children": [
             {
-              "type": "color-chooser",
-              "bind": "f0",
-              "value": "#0a0a0a"
+              "type": "slider",
+              "bind": "metalic",
+              "value": 0,
+              "min": 0,
+              "max": 1,
+              "step": 0.05
             }
           ]
         },
