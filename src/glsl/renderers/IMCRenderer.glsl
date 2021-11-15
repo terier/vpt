@@ -180,6 +180,12 @@ void main() {
         accumulator += (1.0 - accumulator.a) * colorSample;
     }
 
+    if (accumulator.a > 1.0) {
+        accumulator.rgb /= accumulator.a;
+    }
+
+//    accumulator.rgb = mix(vec3(1), accumulator.rgb, accumulator.a);
+
     oRender = vec4(accumulator.rgb, newClosest[0]);
     oClosest = vec4(newClosest[0], newClosest[1], newClosest[2], newClosest[3]);
 }
