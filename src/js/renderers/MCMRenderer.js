@@ -9,12 +9,11 @@ constructor(gl, volume, environmentTexture, options) {
     super(gl, volume, environmentTexture, options);
 
     Object.assign(this, {
-        absorptionCoefficient : 1,
-        scatteringCoefficient : 1,
+        extinctionScale       : 100,
         scatteringBias        : 0,
-        majorant              : 2,
+        majorant              : 100,
         maxBounces            : 8,
-        steps                 : 1,
+        steps                 : 16,
         _elapsedTime          : 0,
         _previousTime         : new Date().getTime(),
         _done                 : false
@@ -68,6 +67,7 @@ _resetFrame() {
 
     const program = this._programs.reset;
     gl.useProgram(program.program);
+
 
     gl.uniformMatrix4fv(program.uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
     gl.uniform2f(program.uniforms.uInverseResolution, 1 / this._bufferSize, 1 / this._bufferSize);
@@ -123,9 +123,9 @@ _integrateFrame() {
     gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
 
     gl.uniform1i(program.uniforms.uPosition, 0);
-    gl.uniform1i(program.uniforms.uDirection, 1);
-    gl.uniform1i(program.uniforms.uTransmittance, 2);
-    gl.uniform1i(program.uniforms.uRadiance, 3);
+    gl.uniform1i(program.uniforms.uDirectionAndBounces, 1);
+    gl.uniform1i(program.uniforms.uWeight, 2);
+    gl.uniform1i(program.uniforms.uRadianceAndSamples, 3);
 
     gl.uniform1i(program.uniforms.uVolume, 4);
     gl.uniform1i(program.uniforms.uEnvironment, 5);
@@ -136,8 +136,7 @@ _integrateFrame() {
     gl.uniform1f(program.uniforms.uRandSeed, Math.random());
     gl.uniform1f(program.uniforms.uBlur, 0);
 
-    gl.uniform1f(program.uniforms.uAbsorptionCoefficient, this.absorptionCoefficient);
-    gl.uniform1f(program.uniforms.uScatteringCoefficient, this.scatteringCoefficient);
+    gl.uniform1f(program.uniforms.uExtinctionScale, this.extinctionScale);
     gl.uniform1f(program.uniforms.uScatteringBias, this.scatteringBias);
     gl.uniform1f(program.uniforms.uMajorant, this.majorant);
     gl.uniform1ui(program.uniforms.uMaxBounces, this.maxBounces);
@@ -199,7 +198,7 @@ _getAccumulationBufferSpec() {
         type           : gl.FLOAT
     };
 
-    const directionBufferSpec = {
+    const directionAnsBouncesBufferSpec = {
         width          : this._bufferSize,
         height         : this._bufferSize,
         min            : gl.NEAREST,
@@ -219,7 +218,7 @@ _getAccumulationBufferSpec() {
         type           : gl.FLOAT
     };
 
-    const radianceBufferSpec = {
+    const radianceAndSamplesBufferSpec = {
         width          : this._bufferSize,
         height         : this._bufferSize,
         min            : gl.NEAREST,
@@ -231,9 +230,9 @@ _getAccumulationBufferSpec() {
 
     return [
         positionBufferSpec,
-        directionBufferSpec,
+        directionAnsBouncesBufferSpec,
         transmittanceBufferSpec,
-        radianceBufferSpec
+        radianceAndSamplesBufferSpec,
     ];
 }
 
