@@ -24,6 +24,10 @@ constructor(renderer, options) {
     this._binds.steps.addEventListener('change', this._handleChangeWithoutReset);
     this._binds.timer.addEventListener('input', this._handleChangeLimit);
 
+    this._binds.isovalue.addEventListener('change', this._handleChange);
+    this._binds.color.addEventListener('change', this._handleChange);
+
+    this._handleChangeWithoutReset();
     this._handleChange();
 
     this._tfwidget = new TransferFunctionWidget();
@@ -46,6 +50,12 @@ _handleChange() {
     this._renderer.scatteringBias = bias;
     this._renderer.majorant = extinction * ratio;
     this._renderer.maxBounces = bounces;
+
+    this._renderer._isovalue = this._binds.isovalue.getValue();
+    const color = CommonUtils.hex2rgb(this._binds.color.getValue());
+    this._renderer._color[0] = color.r;
+    this._renderer._color[1] = color.g;
+    this._renderer._color[2] = color.b;
 
     this._renderer.reset();
 }

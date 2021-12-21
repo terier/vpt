@@ -57,6 +57,9 @@ uniform float uMajorant;
 uniform uint uMaxBounces;
 uniform uint uSteps;
 
+uniform float uIsovalue;
+uniform vec3 uColor;
+
 in vec2 vPosition;
 
 layout (location = 0) out vec4 oPosition;
@@ -139,10 +142,20 @@ void main() {
         float t = -log(rand(randState)) / uMajorant;
         photon.position += t * photon.direction;
 
-        vec4 volumeSample = sampleVolumeColor(photon.position);
-        float extinction = volumeSample.a * uExtinctionScale;
-        vec3 scatteringCoefficient = volumeSample.rgb * extinction;
-        vec3 absorptionCoefficient = (vec3(1) - volumeSample.rgb) * extinction;
+//        vec4 volumeSample = sampleVolumeColor(photon.position);
+
+        vec2 volumeSample = texture(uVolume, photon.position).rg;
+        vec4 transferSample;
+        if (uIsovalue >= 0.0 && volumeSample.r >= uIsovalue) {
+            transferSample = vec4(uColor, 1);
+        }
+        else {
+            transferSample = texture(uTransferFunction, volumeSample);
+        }
+
+        float extinction = transferSample.a * uExtinctionScale;
+        vec3 scatteringCoefficient = transferSample.rgb * extinction;
+        vec3 absorptionCoefficient = (vec3(1) - transferSample.rgb) * extinction;
         vec3 nullCoefficient = vec3(uMajorant - extinction);
 
         float absorptionProbability = dot(abs(absorptionCoefficient /* * photon.weight */), vec3(1));

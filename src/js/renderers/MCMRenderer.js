@@ -14,6 +14,8 @@ constructor(gl, volume, environmentTexture, options) {
         majorant              : 100,
         maxBounces            : 8,
         steps                 : 16,
+        _isovalue             : -1,
+        _color                : [0.5, 0.5, 0.5],
         _elapsedTime          : 0,
         _previousTime         : new Date().getTime(),
         _done                 : false
@@ -141,6 +143,9 @@ _integrateFrame() {
     gl.uniform1f(program.uniforms.uMajorant, this.majorant);
     gl.uniform1ui(program.uniforms.uMaxBounces, this.maxBounces);
     gl.uniform1ui(program.uniforms.uSteps, this.steps);
+
+    gl.uniform1f(program.uniforms.uIsovalue, this._isovalue);
+    gl.uniform3fv(program.uniforms.uColor, this._color);
 
     gl.drawBuffers([
         gl.COLOR_ATTACHMENT0,
