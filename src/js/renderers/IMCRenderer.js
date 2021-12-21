@@ -25,10 +25,9 @@ constructor(gl, volume, environmentTexture, options) {
         alphaRoughness : 1,
 
         // MCM
-        absorptionCoefficient : 1,
-        scatteringCoefficient : 1,
+        extinctionScale       : 100,
         scatteringBias        : 0,
-        majorant              : 2,
+        majorant              : 100,
         maxBounces            : 8,
         steps                 : 1
     }, options);
@@ -177,9 +176,9 @@ _integrateFrame() {
     gl.bindTexture(gl.TEXTURE_2D, this._accumulationBufferISO.getAttachments().color[0]);
 
     gl.uniform1i(uniforms.uPosition, 0);
-    gl.uniform1i(uniforms.uDirection, 1);
-    gl.uniform1i(uniforms.uTransmittance, 2);
-    gl.uniform1i(uniforms.uRadiance, 3);
+    gl.uniform1i(uniforms.uDirectionAndBounces, 1);
+    gl.uniform1i(uniforms.uWeight, 2);
+    gl.uniform1i(uniforms.uRadianceAndSamples, 3);
 
     gl.uniform1i(uniforms.uVolume, 4);
     gl.uniform1i(uniforms.uEnvironment, 5);
@@ -192,8 +191,7 @@ _integrateFrame() {
     gl.uniform1f(uniforms.uRandSeed, Math.random());
     gl.uniform1f(uniforms.uBlur, 0);
 
-    gl.uniform1f(uniforms.uAbsorptionCoefficient, this.absorptionCoefficient);
-    gl.uniform1f(uniforms.uScatteringCoefficient, this.scatteringCoefficient);
+    gl.uniform1f(uniforms.uExtinctionScale, this.extinctionScale);
     gl.uniform1f(uniforms.uScatteringBias, this.scatteringBias);
     gl.uniform1f(uniforms.uMajorant, this.majorant);
     gl.uniform1ui(uniforms.uMaxBounces, this.maxBounces);
