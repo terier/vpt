@@ -16,6 +16,7 @@ constructor(gl, volume, environmentTexture, options) {
         steps                 : 16,
         _isovalue             : -1,
         _color                : [0.5, 0.5, 0.5],
+        _light                : [1, 1, 1, 0],
         _elapsedTime          : 0,
         _previousTime         : new Date().getTime(),
         _done                 : false
@@ -146,6 +147,7 @@ _integrateFrame() {
 
     gl.uniform1f(program.uniforms.uIsovalue, this._isovalue);
     gl.uniform3fv(program.uniforms.uColor, this._color);
+    gl.uniform4fv(program.uniforms.uLight, this._light);
 
     gl.drawBuffers([
         gl.COLOR_ATTACHMENT0,

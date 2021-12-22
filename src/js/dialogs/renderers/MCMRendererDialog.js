@@ -26,6 +26,9 @@ constructor(renderer, options) {
 
     this._binds.isovalue.addEventListener('change', this._handleChange);
     this._binds.color.addEventListener('change', this._handleChange);
+    this._binds.light.addEventListener('change', this._handleChange);
+    this._binds.direction.addEventListener('change', this._handleChange);
+
 
     this._handleChangeWithoutReset();
     this._handleChange();
@@ -45,6 +48,8 @@ _handleChange() {
     const bias       = this._binds.bias.getValue();
     const ratio      = this._binds.ratio.getValue();
     const bounces    = this._binds.bounces.getValue();
+    const light      = this._binds.light.isChecked();
+    const direction  = this._binds.direction.getValue();
 
     this._renderer.extinctionScale = extinction;
     this._renderer.scatteringBias = bias;
@@ -56,6 +61,8 @@ _handleChange() {
     this._renderer._color[0] = color.r;
     this._renderer._color[1] = color.g;
     this._renderer._color[2] = color.b;
+    (light) ? direction.w = 1 : direction.w = 0;
+    this._renderer._light = [direction.x, direction.y, direction.z, direction.w];
 
     this._renderer.reset();
 }

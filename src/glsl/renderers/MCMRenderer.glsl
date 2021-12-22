@@ -59,6 +59,7 @@ uniform uint uSteps;
 
 uniform float uIsovalue;
 uniform vec3 uColor;
+uniform vec4 uLight;
 
 in vec2 vPosition;
 
@@ -124,6 +125,12 @@ void normalizeProbabilities(inout float PA, inout float PB, inout float PC) {
     PC *= c;
 }
 
+float HenyeyGreensteinPhaseFunction(float g, vec3 inDirection, vec3 outDirection) {
+    float g2 = g * g;
+    float cosTheta = max(dot(inDirection, outDirection), 0.0);
+    return (1.0 - g2) / pow(1.0 + g2 - 2.0 * g * cosTheta, 1.5);
+}
+
 void main() {
     Photon photon;
     vec2 texelPosition = vPosition * 0.5 + 0.5;
@@ -181,8 +188,16 @@ void main() {
             resetPhoton(randState, photon);
         } else if (fortuneWheel < absorptionProbability + scatteringProbability) {
             // scattering
-            photon.weight *= scatteringCoefficient / (uMajorant * scatteringProbability);
-            photon.direction = sampleHenyeyGreenstein(randState, uScatteringBias, photon.direction);
+            if (uLight.w < 0.5) {
+                photon.weight *= scatteringCoefficient / (uMajorant * scatteringProbability);
+                photon.direction = sampleHenyeyGreenstein(randState, uScatteringBias, photon.direction);
+            }
+            else {
+                vec3 weightS = scatteringCoefficient / (uMajorant * scatteringProbability);
+                vec3 outDirection = -normalize(uLight.xyz);
+                photon.weight *= weightS * HenyeyGreensteinPhaseFunction(uScatteringBias, photon.direction, outDirection);
+                photon.direction = outDirection;
+            }
             photon.bounces += 1.0;
         } else {
             // null collision
