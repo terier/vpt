@@ -12,12 +12,11 @@ constructor(gl, volume, environmentTexture, options) {
         // ISO
         _stepsIso : 100,
         _isovalue : 0.5,
-        // _isovalues : [[0.5, 0.8], [0.5, 0.8], [0.8, 0.8], [0.9, 0.8]],
-        // _nISOLayers: 1,
         _light    : [1, 1, 1],
+        _shaderType : 3,
         _diffuse  : [0.86, 0.93, 1],
-        // _diffuseColors  : [[0.86, 0.93, 1], [0, 0.9, 0]],
         _isoLayers: [],
+        _compType : 1,
         // BRDF
         f0       : [0.04, 0.04, 0.04],
         f90      : [1, 1, 1],
@@ -122,18 +121,22 @@ _integrateFrame() {
     gl.uniform1i(uniforms.uClosest, 1);
     gl.uniform1i(uniforms.uVolume, 2);
 
+    gl.uniform1i(uniforms.uShaderType, this._shaderType);
+    gl.uniform1i(uniforms.uCompType, this._compType);
     gl.uniform1i(uniforms.uSteps, this._stepsIso);
     gl.uniform1i(uniforms.uNLayers, this._isoLayers.length);
     gl.uniform1f(uniforms.uRandSeed, Math.random());
     gl.uniform3fv(uniforms.uLight, this._light);
-
     for (let i = 0; i < this._isoLayers.length; i++) {
         gl.uniform1f(uniforms["uIsovalues["+ i +"]"], this._isoLayers[i].isovalue);
+        gl.uniform1f(uniforms["uP["+ i +"]"], this._isoLayers[i].p);
         gl.uniform1f(uniforms["uAlphas["+ i +"]"], this._isoLayers[i].alpha);
         gl.uniform1f(uniforms["uSpecularWeights["+ i +"]"], this._isoLayers[i].specularWeight);
         gl.uniform1f(uniforms["uAlphaRoughness["+ i +"]"], this._isoLayers[i].alphaRoughness);
-
-        gl.uniform3fv(uniforms["uColors["+ i +"]"], this._isoLayers[i].color);
+        if (this._shaderType === 3)
+            gl.uniform3fv(uniforms["uColors["+ i +"]"], this._isoLayers[i].color);
+        else
+            gl.uniform3fv(uniforms["uColors["+ i +"]"], this._isoLayers[i].trueColor);
         gl.uniform3fv(uniforms["uF0["+ i +"]"], this._isoLayers[i].f0);
         gl.uniform3fv(uniforms["uF90["+ i +"]"], this._isoLayers[i].f90);
     }

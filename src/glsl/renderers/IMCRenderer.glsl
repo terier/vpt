@@ -81,12 +81,15 @@ precision mediump float;
 uniform mediump sampler2D uRender;
 uniform mediump sampler2D uClosest;
 uniform mediump sampler3D uVolume;
+uniform int uShaderType;
 uniform int uSteps;
 uniform int uNLayers;
+uniform int uCompType;
 uniform float uRandSeed;
 uniform vec3 uLight;
 
 uniform float uIsovalues[4];
+uniform float uP[4];
 uniform float uAlphas[4];
 uniform float uSpecularWeights[4];
 uniform float uAlphaRoughness[4];
@@ -144,6 +147,27 @@ vec3 gradient(vec3 pos, float h) {
     return normalize(positive - negative);
 }
 
+vec3 lambertShading(vec3 color, vec3 n, vec3 l) {
+    l = normalize(-l);
+    float lambert = max(dot(n, l), 0.0);
+
+    return color * lambert;
+}
+
+vec3 phongShading(vec3 pos, vec3 color, vec3 n, vec3 l, float p) {
+    l = normalize(-l);
+    float lambert = max(dot(n, l), 0.0);
+
+    vec4 cameraLoc = vec4(0, 0, -1.0, 1.0);
+    vec4 cameraDirty = uMvpInverseMatrix * cameraLoc;
+    vec3 cameraPosition = cameraDirty.xyz / cameraDirty.w;
+    vec3 v = normalize(cameraPosition - pos);
+    vec3 h = normalize(l + v);
+    float NdotH = clampedDot(n, h);
+    float spec = pow(NdotH, p);
+
+    return color * (lambert + spec);
+}
 
 void main() {
     if (uNLayers == 0) {
@@ -175,9 +199,28 @@ void main() {
         }
         vec3 pos = mix(vRayFrom, vRayTo, newClosest[i]);
         vec3 N = -normalize(gradient(pos, 0.005));
-        vec4 colorSample = vec4(BRDF(pos, uColors[i], uF0[i], uF90[i], uSpecularWeights[i], uAlphaRoughness[i], uMvpInverseMatrix, N, uLight), uAlphas[i]);
-        colorSample.rgb *= colorSample.a;
-        accumulator += (1.0 - accumulator.a) * colorSample;
+
+        vec4 colorSample;
+        if (uShaderType == 0) {
+            colorSample = vec4(uColors[i], uAlphas[i]);
+        }
+        else if (uShaderType == 1) {
+            colorSample = vec4(lambertShading(uColors[i], N, uLight), uAlphas[i]);
+        }
+        else if (uShaderType == 2) {
+            colorSample = vec4(phongShading(pos, uColors[i], N, uLight, uP[i]), uAlphas[i]);
+        }
+        else if (uShaderType == 3) {
+            colorSample = vec4(BRDF(pos, uColors[i], uF0[i], uF90[i], uSpecularWeights[i], uAlphaRoughness[i], uMvpInverseMatrix, N, uLight), uAlphas[i]);
+        }
+
+        if (uCompType == 0) {
+            accumulator = colorSample;
+        }
+        else {
+            colorSample.rgb *= colorSample.a;
+            accumulator += (1.0 - accumulator.a) * colorSample;
+        }
     }
 
     if (accumulator.a > 1.0) {

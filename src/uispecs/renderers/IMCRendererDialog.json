@@ -38,13 +38,45 @@
           "options": [
             {
               "value": 0,
-              "label": "Lambert",
-              "selected": true
+              "label": "None",
+              "selected": false
             },
             {
               "value": 1,
-              "label": "BRDF",
+              "label": "Lambert",
               "selected": false
+            },
+            {
+              "value": 2,
+              "label": "Phong",
+              "selected": false
+            },
+            {
+              "value": 3,
+              "label": "BRDF",
+              "selected": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "field",
+      "label": "Composition Type:",
+      "children": [
+        {
+          "type": "dropdown",
+          "bind": "comp_type",
+          "options": [
+            {
+              "value": 0,
+              "label": "Last",
+              "selected": false
+            },
+            {
+              "value": 1,
+              "label": "Mix",
+              "selected": true
             }
           ]
         }

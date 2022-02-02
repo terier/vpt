@@ -24,7 +24,7 @@ constructor(renderer, options) {
     this._binds.steps.addEventListener('change', this._handleChangeWithoutReset);
     this._binds.timer.addEventListener('input', this._handleChangeLimit);
 
-    this._binds.isovalue.addEventListener('change', this._handleChange);
+    this._binds.isovalue.addEventListener('input', this._handleChange);
     this._binds.color.addEventListener('change', this._handleChange);
     this._binds.light.addEventListener('change', this._handleChange);
     this._binds.direction.addEventListener('change', this._handleChange);

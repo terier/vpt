@@ -33,6 +33,7 @@ class IsoLayersDialog extends AbstractDialog {
         group.binds.alpha.setValue(1);
         group.binds.isovalue.setValue(0.5);
         group.binds.color.setValue('#ddeeff');
+        group.binds.p.setValue(10);
         group.binds.metalic.setValue(0);
         group.binds.f90.setValue('#ffffff');
         group.binds.specularWeight.setValue(1.0);
@@ -57,6 +58,7 @@ class IsoLayersDialog extends AbstractDialog {
             alpha: group.binds.alpha.getValue(),
             isovalue: group.binds.isovalue.getValue(),
             color: group.binds.color.getValue(),
+            p: group.binds.p.getValue(),
             metalic: group.binds.metalic.getValue(),
             f90: group.binds.f90.getValue(),
             specularWeight: group.binds.specularWeight.getValue(),
@@ -94,6 +96,7 @@ class IsoLayersDialog extends AbstractDialog {
         binds.alpha.setValue(1);
         binds.isovalue.setValue(0.5);
         binds.color.setValue('#000000');
+        binds.p.setValue(10);
         binds.metalic.setValue(0);
         binds.f90.setValue('#ffffff');
         binds.specularWeight.setValue(1.0);
@@ -104,8 +107,9 @@ class IsoLayersDialog extends AbstractDialog {
 
         binds.enabled.addEventListener('change', this._handleGroupChange);
         binds.alpha.addEventListener('input', this._handleGroupChange);
-        binds.isovalue.addEventListener('change', this._handleGroupChange);
+        binds.isovalue.addEventListener('input', this._handleGroupChange);
         binds.color.addEventListener('change', this._handleGroupChange);
+        binds.p.addEventListener('input', this._handleGroupChange);
         binds.metalic.addEventListener('change', this._handleGroupChange);
         binds.f90.addEventListener('change', this._handleGroupChange);
         binds.specularWeight.addEventListener('change', this._handleGroupChange);
