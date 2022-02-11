@@ -26,7 +26,7 @@ constructor() {
         const height = window.innerHeight;
         this._renderingContext.resize(width, height);
     });
-    CommonUtils.trigger('resize', window);
+    window.dispatchEvent(new Event('resize'));
 
     document.body.addEventListener('dragover', e => e.preventDefault());
     document.body.addEventListener('drop', this._handleFileDrop);
@@ -50,23 +50,25 @@ constructor() {
     this._renderingContextDialog = new RenderingContextDialog();
     this._renderingContextDialog.appendTo(
         this._mainDialog.getRenderingContextSettingsContainer());
-    this._renderingContextDialog.addEventListener('resolution', options => {
-        this._renderingContext.setResolution(options.resolution);
+    this._renderingContextDialog.addEventListener('resolution', e => {
+        const resolution = this._renderingContextDialog.resolution;
+        this._renderingContext.setResolution(resolution);
     });
-    this._renderingContextDialog.addEventListener('transformation', options => {
-        const s = options.scale;
-        const t = options.translation;
+    this._renderingContextDialog.addEventListener('transformation', e => {
+        const s = this._renderingContextDialog.scale;
+        const t = this._renderingContextDialog.translation;
         this._renderingContext.setScale(s.x, s.y, s.z);
         this._renderingContext.setTranslation(t.x, t.y, t.z);
     });
-    this._renderingContextDialog.addEventListener('filter', options => {
-        this._renderingContext.setFilter(options.filter);
+    this._renderingContextDialog.addEventListener('filter', e => {
+        const filter = this._renderingContextDialog.filter;
+        this._renderingContext.setFilter(filter);
     });
 
     this._mainDialog.addEventListener('rendererchange', this._handleRendererChange);
     this._mainDialog.addEventListener('tonemapperchange', this._handleToneMapperChange);
-    this._mainDialog.trigger('rendererchange', this._mainDialog.getSelectedRenderer());
-    this._mainDialog.trigger('tonemapperchange', this._mainDialog.getSelectedToneMapper());
+    this._handleRendererChange();
+    this._handleToneMapperChange();
 }
 
 _handleFileDrop(e) {
@@ -79,19 +81,22 @@ _handleFileDrop(e) {
     if (!file.name.toLowerCase().endsWith('.bvp')) {
         throw new Error('Filename extension must be .bvp');
     }
-    this._handleVolumeLoad({
-        type       : 'file',
-        file       : file,
-        filetype   : 'bvp',
-        dimensions : { x: 0, y: 0, z: 0 }, // doesn't matter
-        precision  : 8 // doesn't matter
-    });
+    this._handleVolumeLoad(new CustomEvent('load', {
+        detail: {
+            type       : 'file',
+            file       : file,
+            filetype   : 'bvp',
+            dimensions : { x: 0, y: 0, z: 0 }, // doesn't matter
+            precision  : 8, // doesn't matter
+        }
+    }));
 }
 
-_handleRendererChange(which) {
+_handleRendererChange() {
     if (this._rendererDialog) {
         this._rendererDialog.destroy();
     }
+    const which = this._mainDialog.getSelectedRenderer();
     this._renderingContext.chooseRenderer(which);
     const renderer = this._renderingContext.getRenderer();
     const container = this._mainDialog.getRendererSettingsContainer();
@@ -100,10 +105,11 @@ _handleRendererChange(which) {
     this._rendererDialog.appendTo(container);
 }
 
-_handleToneMapperChange(which) {
+_handleToneMapperChange() {
     if (this._toneMapperDialog) {
         this._toneMapperDialog.destroy();
     }
+    const which = this._mainDialog.getSelectedToneMapper();
     this._renderingContext.chooseToneMapper(which);
     const toneMapper = this._renderingContext.getToneMapper();
     const container = this._mainDialog.getToneMapperSettingsContainer();
@@ -112,7 +118,8 @@ _handleToneMapperChange(which) {
     this._toneMapperDialog.appendTo(container);
 }
 
-_handleVolumeLoad(options) {
+_handleVolumeLoad(e) {
+    const options = e.detail;
     if (options.type === 'file') {
         const readerClass = this._getReaderForFileType(options.filetype);
         if (readerClass) {
@@ -137,7 +144,8 @@ _handleVolumeLoad(options) {
     }
 }
 
-_handleEnvmapLoad(options) {
+_handleEnvmapLoad(e) {
+    const options = e.detail;
     let image = new Image();
     image.crossOrigin = 'anonymous';
     image.addEventListener('load', () => {

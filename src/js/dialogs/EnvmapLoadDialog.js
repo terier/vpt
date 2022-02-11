@@ -57,27 +57,33 @@ _handleLoadFile() {
     }
     const file = files[0];
 
-    this.trigger('load', {
-        type : 'file',
-        file : file
-    });
+    this.dispatchEvent(new CustomEvent('load', {
+        detail: {
+            type : 'file',
+            file : file,
+        }
+    }));
 }
 
 _handleLoadURL() {
     const url = this._binds.url.getValue();
-    this.trigger('load', {
-        type : 'url',
-        url  : url
-    });
+    this.dispatchEvent(new CustomEvent('load', {
+        detail: {
+            type : 'url',
+            url  : url,
+        }
+    }));
 }
 
 _handleLoadDemo() {
     const demo = this._binds.demo.getValue();
     const found = this._demos.find(d => d.value === demo);
-    this.trigger('load', {
-        type : 'url',
-        url  : found.url
-    });
+    this.dispatchEvent(new CustomEvent('load', {
+        detail: {
+            type : 'url',
+            url  : found.url,
+        }
+    }));
 }
 
 _handleTypeChange() {

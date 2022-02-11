@@ -1,6 +1,5 @@
 // #part /js/ui/Slider
 
-// #link ../utils
 // #link UIObject
 
 class Slider extends UIObject {
@@ -35,7 +34,7 @@ destroy() {
 }
 
 setValue(value) {
-    this.value = CommonUtils.clamp(value, this.min, this.max);
+    this.value = Math.min(Math.max(value, this.min), this.max);
     this._updateUI();
     this.trigger('change');
 }

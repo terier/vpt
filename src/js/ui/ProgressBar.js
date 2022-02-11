@@ -1,6 +1,5 @@
 // #part /js/ui/ProgressBar
 
-// #link ../utils
 // #link UIObject
 
 class ProgressBar extends UIObject {
@@ -16,7 +15,8 @@ constructor(options) {
 }
 
 setProgress(progress) {
-    this.progress = Math.round(CommonUtils.clamp(progress, 0, 100));
+    const clamped = Math.min(Math.max(progress, 0), 100);
+    this.progress = Math.round(clamped);
     this._binds.progress.style.width = this.progress + '%';
     this._binds.label.textContent = this.progress + '%';
 }

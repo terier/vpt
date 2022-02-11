@@ -1,7 +1,6 @@
 // #part /js/TransferFunctionWidget
 
 // #link utils
-// #link EventEmitter
 // #link WebGL
 // #link Draggable
 
@@ -9,7 +8,7 @@
 // #link /html/TransferFunctionWidgetBumpHandle
 // #link /css/TransferFunctionWidget
 
-class TransferFunctionWidget extends EventEmitter {
+class TransferFunctionWidget extends EventTarget {
 
 constructor(options) {
     super();
@@ -78,7 +77,7 @@ constructor(options) {
             this._bumps = JSON.parse(data);
             this.render();
             this._rebuildHandles();
-            this.trigger('change');
+            this.dispatchEvent(new Event('change'));
         });
     });
 
@@ -145,7 +144,7 @@ addBump(options) {
     this._addHandle(bumpIndex);
     this.selectBump(bumpIndex);
     this.render();
-    this.trigger('change');
+    this.dispatchEvent(new Event('change'));
 }
 
 removeSelectedBump() {
@@ -156,7 +155,7 @@ removeAllBumps() {
     this._bumps = [];
     this._rebuildHandles();
     this.render();
-    this.trigger('change');
+    this.dispatchEvent(new Event('change'));
 }
 
 _removeHandle(index) {
@@ -169,7 +168,7 @@ _removeHandle(index) {
     });
     this._rebuildHandles();
     this.render();
-    this.trigger('change');
+    this.dispatchEvent(new Event('change'));
 }
 
 _addHandle(index) {
@@ -190,7 +189,7 @@ _addHandle(index) {
         this._bumps[i].position.x = x;
         this._bumps[i].position.y = y;
         this.render();
-        this.trigger('change');
+        this.dispatchEvent(new Event('change'));
     });
     $handle.addEventListener('mousedown', e => {
         const i = parseInt(DOMUtils.data(e.currentTarget, 'index'));
@@ -207,7 +206,7 @@ _addHandle(index) {
             this._bumps[i].size.x *= scale;
         }
         this.render();
-        this.trigger('change');
+        this.dispatchEvent(new Event('change'));
     });
 }
 
@@ -263,7 +262,7 @@ _onColorChange() {
     this._bumps[i].color.b = color.b;
     this._bumps[i].color.a = alpha;
     this.render();
-    this.trigger('change');
+    this.dispatchEvent(new Event('change'));
 }
 
 appendTo(object) {

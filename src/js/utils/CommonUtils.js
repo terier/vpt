@@ -2,17 +2,6 @@
 
 class CommonUtils {
 
-static noop() {
-}
-
-static clamp(x, a, b) {
-    return Math.min(Math.max(x, a), b);
-}
-
-static lerp(a, b, x) {
-    return a + x * (b - a);
-}
-
 static downloadJSON(json, filename) {
     const str = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(json));
     let a = document.createElement('a');
@@ -40,10 +29,6 @@ static readTextFile(onLoad, onError) {
     input.click();
 }
 
-static trigger(event, element) {
-    element.dispatchEvent(new Event(event));
-}
-
 static bind(object, { prefix = '', suffix = 'Listener'} = {}) {
     const methods = Object.getOwnPropertyNames(object.constructor.prototype);
     for (const method of methods) {
@@ -69,10 +54,6 @@ static rgb2hex(r, g, b) {
     g = g.length < 2 ? "0" + g : g;
     b = b.length < 2 ? "0" + b : b;
     return "#" + r + g + b;
-}
-
-static get noimpl() {
-    return new Error('Not implemented!');
 }
 
 }

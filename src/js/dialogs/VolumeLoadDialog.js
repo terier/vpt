@@ -71,34 +71,40 @@ _handleLoadFile() {
     const dimensions = this._binds.dimensions.getValue();
     const precision = parseInt(this._binds.precision.getValue(), 10);
 
-    this.trigger('load', {
-        type       : 'file',
-        file       : file,
-        filetype   : filetype,
-        dimensions : dimensions,
-        precision  : precision,
-    });
+    this.dispatchEvent(new CustomEvent('load', {
+        detail: {
+            type       : 'file',
+            file       : file,
+            filetype   : filetype,
+            dimensions : dimensions,
+            precision  : precision,
+        }
+    }));
 }
 
 _handleLoadURL() {
     const url = this._binds.url.getValue();
     const filetype = this._getVolumeTypeFromURL(url);
-    this.trigger('load', {
-        type     : 'url',
-        url      : url,
-        filetype : filetype
-    });
+    this.dispatchEvent(new CustomEvent('load', {
+        detail: {
+            type     : 'url',
+            url      : url,
+            filetype : filetype,
+        }
+    }));
 }
 
 _handleLoadDemo() {
     const demo = this._binds.demo.getValue();
     const found = this._demos.find(d => d.value === demo);
     const filetype = this._getVolumeTypeFromURL(found.url);
-    this.trigger('load', {
-        type     : 'url',
-        url      : found.url,
-        filetype : filetype
-    });
+    this.dispatchEvent(new CustomEvent('load', {
+        detail: {
+            type     : 'url',
+            url      : found.url,
+            filetype : filetype,
+        }
+    }));
 }
 
 _handleTypeChange() {

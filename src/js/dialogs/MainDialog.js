@@ -51,13 +51,11 @@ getSelectedToneMapper() {
 }
 
 _handleRendererChange() {
-    const renderer = this._binds.rendererSelect.getValue();
-    this.trigger('rendererchange', renderer);
+    this.dispatchEvent(new Event('rendererchange'));
 }
 
 _handleToneMapperChange() {
-    const toneMapper = this._binds.toneMapperSelect.getValue();
-    this.trigger('tonemapperchange', toneMapper);
+    this.dispatchEvent(new Event('tonemapperchange'));
 }
 
 disableMCC() {

@@ -19,23 +19,32 @@ constructor(options) {
     this._binds.filter.addEventListener('change', this._handleFilterChange);
 }
 
+get resolution() {
+    return this._binds.resolution.getValue();
+}
+
+get scale() {
+    return this._binds.scale.getValue();
+}
+
+get translation() {
+    return this._binds.translation.getValue();
+}
+
+get filter() {
+    return this._binds.filter.isChecked() ? 'linear' : 'nearest';
+}
+
 _handleResolutionChange() {
-    this.trigger('resolution', {
-        resolution: this._binds.resolution.getValue()
-    });
+    this.dispatchEvent(new Event('resolution'));
 }
 
 _handleTransformationChange() {
-    this.trigger('transformation', {
-        scale       : this._binds.scale.getValue(),
-        translation : this._binds.translation.getValue()
-    });
+    this.dispatchEvent(new Event('transformation'));
 }
 
 _handleFilterChange() {
-    this.trigger('filter', {
-        filter: this._binds.filter.isChecked() ? 'linear' : 'nearest'
-    });
+    this.dispatchEvent(new Event('filter'));
 }
 
 }
