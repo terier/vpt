@@ -10,26 +10,21 @@ constructor(url) {
     this.url = url;
 }
 
-readLength(handlers) {
-    let xhr = new XMLHttpRequest();
-    xhr.addEventListener('load', e => {
-        const contentLength = e.target.getResponseHeader('Content-Length');
-        handlers.onData && handlers.onData(parseInt(contentLength, 10));
+async readLength() {
+    const response = await fetch(this.url, {
+        method: 'HEAD'
     });
-    xhr.open('HEAD', this.url);
-    xhr.responseType = 'arraybuffer';
-    xhr.send();
+    const length = response.headers.get('Content-Length');
+    return Number(length);
 }
 
-readData(start, end, handlers) {
-    let xhr = new XMLHttpRequest();
-    xhr.addEventListener('load', e => {
-        handlers.onData && handlers.onData(e.target.response);
+async readData(start, end) {
+    const response = await fetch(this.url, {
+        headers: {
+            'Range': `bytes=${start}-${end - 1}`,
+        }
     });
-    xhr.open('GET', this.url);
-    xhr.setRequestHeader('Range', 'bytes=' + start + '-' + (end - 1));
-    xhr.responseType = 'arraybuffer';
-    xhr.send();
+    return await response.arrayBuffer();
 }
 
 }

@@ -25,30 +25,33 @@ destroy() {
     }
 }
 
-readMetadata(handlers) {
+async readMetadata() {
     if (!this._reader) {
         return;
     }
+
     this.ready = false;
-    this._reader.readMetadata({
-        onData: data => {
-            this.meta = data.meta;
-            this.modalities = data.modalities;
-            this.blocks = data.blocks;
-            handlers.onData && handlers.onData();
-        }
-    });
+    const data = await this._reader.readMetadata();
+    this.meta = data.meta;
+    this.modalities = data.modalities;
+    this.blocks = data.blocks;
 }
 
-readModality(modalityName, handlers) {
-    if (!this._reader || !this.modalities) {
-        return;
+async readModality(modalityName) {
+    if (!this._reader) {
+        throw new Error('No reader');
     }
+
+    if (!this.modalities) {
+        throw new Error('No modalities');
+    }
+
     this.ready = false;
     const modality = this.modalities.find(modality => modality.name === modalityName);
     if (!modality) {
-        return;
+        throw new Error('Modality does not exist');
     }
+
     const dimensions = modality.dimensions;
     const components = modality.components;
     const blocks = this.blocks;
@@ -68,26 +71,20 @@ readModality(modalityName, handlers) {
 
     gl.texStorage3D(gl.TEXTURE_3D, 1, modality.internalFormat,
         dimensions.width, dimensions.height, dimensions.depth);
-    let remainingBlocks = modality.placements.length;
-    modality.placements.forEach(placement => {
-        this._reader.readBlock(placement.index, {
-            onData: data => {
-                const position = placement.position;
-                const block = blocks[placement.index];
-                const blockdim = block.dimensions;
-                gl.bindTexture(gl.TEXTURE_3D, this._texture);
-                gl.texSubImage3D(gl.TEXTURE_3D, 0,
-                    position.x, position.y, position.z,
-                    blockdim.width, blockdim.height, blockdim.depth,
-                    modality.format, modality.type, this._typize(data, modality.type));
-                remainingBlocks--;
-                if (remainingBlocks === 0) {
-                    this.ready = true;
-                    handlers.onLoad && handlers.onLoad();
-                }
-            }
-        });
-    });
+
+    for (const placement of modality.placements) {
+        const data = await this._reader.readBlock(placement.index);
+        const position = placement.position;
+        const block = blocks[placement.index];
+        const blockdim = block.dimensions;
+        gl.bindTexture(gl.TEXTURE_3D, this._texture);
+        gl.texSubImage3D(gl.TEXTURE_3D, 0,
+            position.x, position.y, position.z,
+            blockdim.width, blockdim.height, blockdim.depth,
+            modality.format, modality.type, this._typize(data, modality.type));
+    }
+
+    this.ready = true;
 }
 
 _typize(data, type) {

@@ -2,11 +2,11 @@
 
 class AbstractLoader {
 
-readLength(handlers) {
+async readLength() {
     // IMPLEMENT
 }
 
-readData(start, end, handlers) {
+async readData(start, end) {
     // IMPLEMENT
 }
 

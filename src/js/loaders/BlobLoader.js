@@ -10,16 +10,12 @@ constructor(blob) {
     this.blob = blob;
 }
 
-readLength(handlers) {
-    handlers.onData && handlers.onData(this.blob.size);
+async readLength() {
+    return this.blob.size;
 }
 
-readData(start, end, handlers) {
-    const fileReader = new FileReader();
-    fileReader.addEventListener('load', e => {
-        handlers.onData && handlers.onData(e.target.result);
-    });
-    fileReader.readAsArrayBuffer(this.blob.slice(start, end));
+async readData(start, end) {
+    return await this.blob.slice(start, end).arrayBuffer();
 }
 
 }

@@ -29,18 +29,16 @@ _addEventListeners() {
     this._binds.demo.addEventListener('change', this._handleDemoChange);
 }
 
-_loadDemoJson() {
-    const xhr = new XMLHttpRequest();
-    xhr.addEventListener('load', () => {
-        if (xhr.status === 200) {
-            this._demos = JSON.parse(xhr.responseText);
-            this._demos.forEach(demo => {
-                this._binds.demo.addOption(demo.value, demo.label);
-            });
-        }
-    });
-    xhr.open('GET', 'demo-volumes.json');
-    xhr.send();
+async _loadDemoJson() {
+    try {
+        const response = await fetch('demo-volumes.json');
+        this._demos = await response.json();
+        this._demos.forEach(demo => {
+            this._binds.demo.addOption(demo.value, demo.label);
+        });
+    } catch (e) {
+        console.warn('demo-volumes.json not available');
+    }
 }
 
 _getVolumeTypeFromURL(filename) {

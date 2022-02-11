@@ -6,11 +6,11 @@ constructor(loader) {
     this._loader = loader;
 }
 
-readMetadata(handlers) {
+async readMetadata() {
     // IMPLEMENT
 }
 
-readBlock(block, handlers) {
+async readBlock(block) {
     // IMPLEMENT
 }
 

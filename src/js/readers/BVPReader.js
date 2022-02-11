@@ -12,29 +12,22 @@ constructor(loader) {
     this._zipReader = new ZIPReader(this._loader);
 }
 
-readMetadata(handlers) {
-    this._zipReader.readFile('manifest.json', {
-        onData: data => {
-            const decoder = new TextDecoder('utf-8');
-            const jsonString = decoder.decode(data);
-            const json = JSON.parse(jsonString);
-            this._metadata = json;
-            handlers.onData && handlers.onData(json);
-        }
-    });
+async readMetadata() {
+    const data = await this._zipReader.readFile('manifest.json');
+    const decoder = new TextDecoder('utf-8');
+    const jsonString = decoder.decode(data);
+    const json = JSON.parse(jsonString);
+    this._metadata = json;
+    return this._metadata;
 }
 
-readBlock(block, handlers) {
+async readBlock(block) {
     if (!this._metadata) {
-        return;
+        await this.readMetadata();
     }
 
     const blockMeta = this._metadata.blocks[block];
-    this._zipReader.readFile(blockMeta.url, {
-        onData: data => {
-            handlers.onData && handlers.onData(data);
-        }
-    });
+    return await this._zipReader.readFile(blockMeta.url);
 }
 
 }

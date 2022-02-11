@@ -77,7 +77,7 @@ _handleFileDrop(e) {
     }
     const file = files[0];
     if (!file.name.toLowerCase().endsWith('.bvp')) {
-        return;
+        throw new Error('Filename extension must be .bvp');
     }
     this._handleVolumeLoad({
         type       : 'file',

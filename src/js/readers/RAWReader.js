@@ -14,7 +14,7 @@ constructor(loader, options) {
     }, options);
 }
 
-readMetadata(handlers) {
+async readMetadata() {
     let metadata = {
         meta: {
             version: 1
@@ -61,18 +61,14 @@ readMetadata(handlers) {
         });
     }
 
-    handlers.onData && handlers.onData(metadata);
+    return metadata;
 }
 
-readBlock(block, handlers) {
+async readBlock(block) {
     const sliceBytes = this.width * this.height;
     const start = block * sliceBytes;
     const end = (block + 1) * sliceBytes;
-    this._loader.readData(start, end, {
-        onData: data => {
-            handlers.onData && handlers.onData(data);
-        }
-    });
+    return await this._loader.readData(start, end);
 }
 
 }
