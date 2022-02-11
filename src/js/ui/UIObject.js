@@ -20,7 +20,7 @@ constructor(template, options) {
 }
 
 destroy() {
-    DOMUtils.remove(this._element);
+    this._element.remove();
 }
 
 isEnabled() {
@@ -67,10 +67,6 @@ hide() {
 
 appendTo(container) {
     container.appendChild(this._element);
-}
-
-detach() {
-    DOMUtils.remove(this._element);
 }
 
 addEventListener(event, listener, options) {

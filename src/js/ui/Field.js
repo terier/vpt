@@ -17,7 +17,7 @@ constructor(options) {
 
 destroy() {
     if (this._content) {
-        this._content.detach();
+        this._content.destroy();
     }
 
     super.destroy();

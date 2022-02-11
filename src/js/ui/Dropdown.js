@@ -1,6 +1,5 @@
 // #part /js/ui/Dropdown
 
-// #link ../utils
 // #link UIObject
 
 class Dropdown extends UIObject {
@@ -31,7 +30,7 @@ removeOption(value) {
     const selector = 'option[value="' + value + '"]';
     const option = this._binds.input.querySelector(selector);
     if (option) {
-        DOMUtils.remove(option);
+        option.remove();
     }
 }
 

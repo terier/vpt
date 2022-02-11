@@ -42,8 +42,4 @@ appendTo(object) {
     object.add(this._object);
 }
 
-detach() {
-    this._object.detach();
-}
-
 }

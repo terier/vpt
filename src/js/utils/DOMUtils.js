@@ -27,20 +27,6 @@ static bind(element) {
     return binds;
 }
 
-static remove(element) {
-    if (element.parentNode) {
-        element.parentNode.removeChild(element);
-    }
-}
-
-static data(element, key, value) {
-    if (typeof value !== 'undefined') {
-        element.setAttribute('data-' + key, value);
-    } else {
-        return element.getAttribute('data-' + key);
-    }
-}
-
 static show(element) {
     element.classList.remove('invisible');
 }
