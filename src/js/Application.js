@@ -65,6 +65,10 @@ constructor() {
         this._renderingContext.setFilter(filter);
     });
 
+    this._renderingContext.addEventListener('progress', e => {
+        this._volumeLoadDialog._binds.loadProgress.setProgress(e.detail * 100);
+    });
+
     this._mainDialog.addEventListener('rendererchange', this._handleRendererChange);
     this._mainDialog.addEventListener('tonemapperchange', this._handleToneMapperChange);
     this._handleRendererChange();

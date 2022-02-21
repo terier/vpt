@@ -9,9 +9,11 @@
 // #link renderers
 // #link tonemappers
 
-class RenderingContext {
+class RenderingContext extends EventTarget {
 
 constructor(options) {
+    super();
+
     this._render = this._render.bind(this);
     this._webglcontextlostHandler = this._webglcontextlostHandler.bind(this);
     this._webglcontextrestoredHandler = this._webglcontextrestoredHandler.bind(this);
@@ -115,6 +117,9 @@ resize(width, height) {
 
 async setVolume(reader) {
     this._volume = new Volume(this._gl, reader);
+    this._volume.addEventListener('progress', e => {
+        this.dispatchEvent(new CustomEvent('progress', { detail: e.detail }));
+    });
     await this._volume.readMetadata();
     await this._volume.readModality('default');
     this._volume.setFilter(this._filter);

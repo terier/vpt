@@ -2,9 +2,11 @@
 
 // #link WebGL
 
-class Volume {
+class Volume extends EventTarget {
 
 constructor(gl, reader, options) {
+    super();
+
     Object.assign(this, {
         ready: false
     }, options);
@@ -74,6 +76,8 @@ async readModality(modalityName) {
 
     for (const placement of modality.placements) {
         const data = await this._reader.readBlock(placement.index);
+        const progress = (placement.index + 1) / modality.placements.length;
+        this.dispatchEvent(new CustomEvent('progress', { detail: progress }));
         const position = placement.position;
         const block = blocks[placement.index];
         const blockdim = block.dimensions;
