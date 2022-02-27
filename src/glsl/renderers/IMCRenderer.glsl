@@ -460,13 +460,13 @@ void main() {
             vec3 sampleRadiance = photon.weight * closest.rgb;
             samples += 1.0;
             radiance += (sampleRadiance - radiance) / samples;
-//            resetPhoton(randState, photon);
+            resetPhoton(randState, photon);
 
 //            photon.weight *= closest.rgb;
-            photon.direction = randomDirection(randState);
-            vec2 tbounds = max(intersectCube(closestVR, photon.direction), 0.0);
-            photon.position = closestVR + tbounds.x * photon.direction;
-            photon.weight = vec3(1);
+//            photon.direction = randomDirection(randState);
+//            vec2 tbounds = max(intersectCube(closestVR, photon.direction), 0.0);
+//            photon.position = closestVR + tbounds.x * photon.direction;
+//            photon.weight = vec3(1);
         } else
         if (any(greaterThan(photon.position, vec3(1))) || any(lessThan(photon.position, vec3(0)))) {
             // out of bounds

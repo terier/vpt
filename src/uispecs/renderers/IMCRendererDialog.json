@@ -147,7 +147,7 @@
             {
               "type": "spinner",
               "bind": "mcm_steps",
-              "value": 8,
+              "value": 1,
               "min": 1
             }
           ]

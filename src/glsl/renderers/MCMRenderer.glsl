@@ -174,13 +174,22 @@ void main() {
         normalizeProbabilities(absorptionProbability, scatteringProbability, nullProbability);
 
         float fortuneWheel = rand(randState);
+//        if (volumeSample.r >= uIsovalue) {
+//            // out of volume, sample environment radiance
+//            vec3 sampleRadiance = photon.weight * sampleEnvironmentMap(photon.direction).rgb;
+//            samples += 1.0;
+//            radiance += (sampleRadiance - radiance) / samples;
+//            resetPhoton(randState, photon);
+//        }
+//        else
         if (any(greaterThan(photon.position, vec3(1))) || any(lessThan(photon.position, vec3(0)))) {
             // out of volume, sample environment radiance
             vec3 sampleRadiance = photon.weight * sampleEnvironmentMap(photon.direction).rgb;
             samples += 1.0;
             radiance += (sampleRadiance - radiance) / samples;
             resetPhoton(randState, photon);
-        } else if (fortuneWheel < absorptionProbability) {
+        }
+        else if (fortuneWheel < absorptionProbability) {
             // absorption
             vec3 sampleRadiance = vec3(0);
             samples += 1.0;

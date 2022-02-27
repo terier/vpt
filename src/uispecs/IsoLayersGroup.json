@@ -69,7 +69,7 @@
             {
               "type": "spinner",
               "bind": "p",
-              "value": 10,
+              "value": 50,
               "min": 0,
               "step": 1
             }
