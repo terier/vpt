@@ -7,6 +7,12 @@
 
   <title>Volumetric Path Tracing</title>
 
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js');
+    }
+  </script>
+
   <script type="text/javascript" src="js/main.js"></script>
 
   <link rel="stylesheet" type="text/css" href="css/main.css">

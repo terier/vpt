@@ -15,6 +15,10 @@
         {
             "input": "src/index.html",
             "output": "/index.html"
+        },
+        {
+            "input": "src/sw.js",
+            "output": "/sw.js"
         }
     ],
     "transform": [],
@@ -27,6 +31,11 @@
         {
             "input": "/index.html",
             "output": "build/index.html",
+            "mode": "each"
+        },
+        {
+            "input": "/sw.js",
+            "output": "build/sw.js",
             "mode": "each"
         },
         {
