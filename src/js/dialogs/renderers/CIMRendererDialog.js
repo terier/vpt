@@ -155,6 +155,8 @@ class CIMRendererDialog extends AbstractDialog {
         this._renderer.f90[2] = f90.b;
         this._renderer.specularWeight = this._binds.specularWeight.getValue();
         this._renderer.alphaRoughness = this._binds.alphaRoughness.getValue();
+
+        this._renderer.resetLightVolume();
     }
 
     _handleChangeType() {

@@ -243,7 +243,7 @@
           "label": "Isovalue:",
           "children": [
             {
-              "type": "slider",
+              "type": "spinner",
               "bind": "isovalue",
               "value": 0.5,
               "min": 0,
