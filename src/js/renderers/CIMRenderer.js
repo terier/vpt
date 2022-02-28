@@ -22,12 +22,10 @@ class CIMRenderer extends AbstractRenderer {
             _lightVolumeRatio           : 1,
             _steps                      : 1,
             _majorant                   : 100,
-            _absorptionCoefficientMC    : 1,
-            _scatteringCoefficientMC    : 1,
+            _extinctionScale            : 100,
             _scatteringBias             : 0,
-            _maxBounces                 : 20,
+            _maxBounces                 : 0,
             _mcEnabled                  : true,
-            _type                       : 1,
             // Dynamic Iterations length
             _layersPerFrame             : 1,
             _fastStart                  : true,
@@ -402,19 +400,20 @@ class CIMRenderer extends AbstractRenderer {
             gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
 
             gl.uniform1i(program.uniforms.uPosition, 0);
-            gl.uniform1i(program.uniforms.uDirection, 1);
-            gl.uniform1i(program.uniforms.uTransmittance, 2);
-            gl.uniform1i(program.uniforms.uRadiance, 3);
+            gl.uniform1i(program.uniforms.uDirectionAndBounces, 1);
+            gl.uniform1i(program.uniforms.uWeight, 2);
+            gl.uniform1i(program.uniforms.uRadianceAndSamples, 3);
             gl.uniform1i(program.uniforms.uVolume, 4);
             gl.uniform1i(program.uniforms.uEnvironment, 5);
             gl.uniform1i(program.uniforms.uTransferFunction, 6);
 
+
+
             gl.uniform1ui(program.uniforms.uSteps, this._steps);
             gl.uniform1f(program.uniforms.uLayer, (currentDepth + 0.5) / dimensions.depth);
 
-            gl.uniform1f(program.uniforms.uAbsorptionCoefficient, this._absorptionCoefficientMC)
 
-            gl.uniform1f(program.uniforms.uScatteringCoefficient, this._scatteringCoefficientMC);
+            gl.uniform1f(program.uniforms.uExtinctionScale, this._extinctionScale);
             gl.uniform1f(program.uniforms.uScatteringBias, this._scatteringBias);
             gl.uniform1ui(program.uniforms.uMaxBounces, this._maxBounces);
 
@@ -575,7 +574,7 @@ class CIMRenderer extends AbstractRenderer {
             storage        : true
         };
 
-        const directionAndTransmittanceBufferSpec = {
+        const directionAndBouncesBufferSpec = {
             target         : gl.TEXTURE_3D,
             width          : width,
             height         : height,
@@ -593,7 +592,7 @@ class CIMRenderer extends AbstractRenderer {
             storage        : true
         };
 
-        const distanceTravelledAndSample = {
+        const transmittanceBufferSpec = {
             target         : gl.TEXTURE_3D,
             width          : width,
             height         : height,
@@ -611,7 +610,7 @@ class CIMRenderer extends AbstractRenderer {
             storage        : true
         };
 
-        const radianceAndDiffusion = {
+        const radianceAndSamplesBufferSpec = {
             target         : gl.TEXTURE_3D,
             width          : width,
             height         : height,
@@ -633,9 +632,9 @@ class CIMRenderer extends AbstractRenderer {
 
         return [
             positionBufferSpec,
-            directionAndTransmittanceBufferSpec,
-            distanceTravelledAndSample,
-            radianceAndDiffusion
+            directionAndBouncesBufferSpec,
+            transmittanceBufferSpec,
+            radianceAndSamplesBufferSpec
         ];
     }
 

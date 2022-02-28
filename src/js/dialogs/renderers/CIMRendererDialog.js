@@ -34,7 +34,6 @@ class CIMRendererDialog extends AbstractDialog {
         // MC
         this._binds.majorant_ratio.addEventListener('change', this._handleChangeMCParameters);
         this._binds.extinction_MS.addEventListener('input', this._handleChangeMCParameters);
-        this._binds.albedo_MS.addEventListener('change', this._handleChangeMCParameters);
         this._binds.bias_MS.addEventListener('change', this._handleChangeMCParameters);
         this._binds.bounces_MS.addEventListener('input', this._handleChangeMCParameters);
         this._binds.ray_steps.addEventListener('input', this._handleChange);
@@ -77,11 +76,9 @@ class CIMRendererDialog extends AbstractDialog {
         this._renderer._steps = this._binds.ray_steps.getValue();
 
         const extinction = this._binds.extinction_MS.getValue();
-        const albedo     = this._binds.albedo_MS.getValue();
         const ratio      = this._binds.majorant_ratio.getValue();
 
-        this._renderer._absorptionCoefficientMC = extinction * (1 - albedo);
-        this._renderer._scatteringCoefficientMC = extinction * albedo;
+        this._renderer._extinctionScale = extinction;
         this._renderer._scatteringBias = this._binds.bias_MS.getValue();
         this._renderer._majorant = extinction * ratio;
         this._renderer._maxBounces = this._binds.bounces_MS.getValue();
@@ -167,13 +164,11 @@ class CIMRendererDialog extends AbstractDialog {
 
     _handleChangeMCParameters() {
         const extinction = this._binds.extinction_MS.getValue();
-        const albedo     = this._binds.albedo_MS.getValue();
         const bias       = this._binds.bias_MS.getValue();
         const ratio      = this._binds.majorant_ratio.getValue();
         const bounces    = this._binds.bounces_MS.getValue();
 
-        this._renderer._absorptionCoefficientMC = extinction * (1 - albedo);
-        this._renderer._scatteringCoefficientMC = extinction * albedo;
+        this._renderer._extinctionScale = extinction;
         this._renderer._scatteringBias = bias;
         this._renderer._majorant = extinction * ratio;
         this._renderer._maxBounces = bounces;
