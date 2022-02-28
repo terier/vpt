@@ -185,6 +185,11 @@ void main() {
 //            vec3 radiance = lambertShading(photon.position);
 //            photon.samples++;
 //            photon.radiance += (radiance - photon.radiance) / float(photon.samples);
+
+//            vec3 sampleRadiance = vec3(0.0);
+//            samples += 1.0;
+//            radiance += (sampleRadiance - radiance) / samples;
+
             resetPhoton(randState, photon, texelPosition);
         } else
         if (any(greaterThan(photon.position, vec3(1))) || any(lessThan(photon.position, vec3(0)))) {
@@ -194,22 +199,29 @@ void main() {
             radiance += (sampleRadiance - radiance) / samples;
             resetPhoton(randState, photon, texelPosition);
         }
-        else {
-            vec3 weightAS = (absorptionCoefficient + scatteringCoefficient) / uMajorant;
-            photon.weight *= vec3(1.0) - weightAS;
-        }
-
-//        else if (fortuneWheel < absorptionProbability + scatteringProbability) {
-//            // scattering
-//            vec3 weightS = scatteringCoefficient / (uMajorant * scatteringProbability);
-//            vec3 outDirection = -normalize(uLight);
-//            photon.weight *= weightS * HenyeyGreensteinPhaseFunction(uScatteringBias, photon.direction, outDirection);
-//            photon.direction = outDirection;
-//            photon.bounces += 1.0;
-//        } else {
-//            // null collision
-//            photon.weight *= nullCoefficient / (uMajorant * nullProbability);
+//        else {
+//            vec3 weightAS = (absorptionCoefficient + scatteringCoefficient) / uMajorant;
+//            photon.weight *= vec3(1.0) - weightAS;
 //        }
+
+        else if (fortuneWheel < absorptionProbability) {
+            // absorption
+            vec3 sampleRadiance = vec3(0);
+            samples += 1.0;
+            radiance += (sampleRadiance - radiance) / samples;
+            resetPhoton(randState, photon, texelPosition);
+        }
+        else if (fortuneWheel < absorptionProbability + scatteringProbability) {
+            // scattering
+            vec3 weightS = scatteringCoefficient / (uMajorant * scatteringProbability);
+            vec3 outDirection = -normalize(uLight);
+            photon.weight *= weightS * HenyeyGreensteinPhaseFunction(uScatteringBias, photon.direction, outDirection);
+            photon.direction = outDirection;
+            photon.bounces += 1.0;
+        } else {
+            // null collision
+            photon.weight *= nullCoefficient / (uMajorant * nullProbability);
+        }
 
 //        else if (photon.bounces >= uMaxBounces) {
 //            // max bounces achieved -> only estimate transmittance
