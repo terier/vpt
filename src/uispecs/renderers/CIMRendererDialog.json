@@ -70,65 +70,6 @@
     },
     {
       "type": "accordion",
-      "label": "BRDF:",
-      "children": [
-        {
-          "type": "field",
-          "label": "Metallic:",
-          "children": [
-            {
-              "type": "slider",
-              "bind": "metalic",
-              "value": 0,
-              "min": 0,
-              "max": 1,
-              "step": 0.05
-            }
-          ]
-        },
-        {
-          "type": "field",
-          "label": "f90:",
-          "children": [
-            {
-              "type": "color-chooser",
-              "bind": "f90",
-              "value": "#ffffff"
-            }
-          ]
-        },
-        {
-          "type": "field",
-          "label": "Specular Weight:",
-          "children": [
-            {
-              "type": "slider",
-              "bind": "specularWeight",
-              "value": 1.0,
-              "min": 0,
-              "max": 1,
-              "step": 0.05
-            }
-          ]
-        },
-        {
-          "type": "field",
-          "label": "Alpha Roughness:",
-          "children": [
-            {
-              "type": "slider",
-              "bind": "alphaRoughness",
-              "value": 0.08,
-              "min": 0,
-              "max": 1,
-              "step": 0.05
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "type": "accordion",
       "label": "Monte Carlo",
       "contracted": "true",
       "children": [
@@ -271,6 +212,111 @@
               "type": "vector",
               "bind": "direction",
               "value": 1
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "P:",
+          "children": [
+            {
+              "type": "spinner",
+              "bind": "p",
+              "value": 100,
+              "min": 0,
+              "step": 1
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Shader Type:",
+          "children": [
+            {
+              "type": "dropdown",
+              "bind": "shader_type",
+              "options": [
+                {
+                  "value": 0,
+                  "label": "None",
+                  "selected": false
+                },
+                {
+                  "value": 1,
+                  "label": "Lambert",
+                  "selected": false
+                },
+                {
+                  "value": 2,
+                  "label": "Phong",
+                  "selected": false
+                },
+                {
+                  "value": 3,
+                  "label": "BRDF",
+                  "selected": true
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "accordion",
+      "label": "BRDF:",
+      "contracted": "true",
+      "children": [
+        {
+          "type": "field",
+          "label": "Metallic:",
+          "children": [
+            {
+              "type": "slider",
+              "bind": "metalic",
+              "value": 0,
+              "min": 0,
+              "max": 1,
+              "step": 0.05
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "f90:",
+          "children": [
+            {
+              "type": "color-chooser",
+              "bind": "f90",
+              "value": "#ffffff"
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Specular Weight:",
+          "children": [
+            {
+              "type": "slider",
+              "bind": "specularWeight",
+              "value": 1.0,
+              "min": 0,
+              "max": 1,
+              "step": 0.05
+            }
+          ]
+        },
+        {
+          "type": "field",
+          "label": "Alpha Roughness:",
+          "children": [
+            {
+              "type": "slider",
+              "bind": "alphaRoughness",
+              "value": 0.08,
+              "min": 0,
+              "max": 1,
+              "step": 0.05
             }
           ]
         }

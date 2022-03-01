@@ -295,11 +295,13 @@ uniform mediump sampler3D uVolume;
 uniform mediump sampler2D uTransferFunction;
 uniform mediump sampler3D uRadianceAndDiffusion;
 uniform mat4 uMvpInverseMatrix;
+uniform int uShaderType;
 uniform float uStepSize;
 uniform float uOffset;
 uniform float uAlphaCorrection;
 
 uniform float uIsovalue;
+uniform float uP;
 uniform vec3 uLight;
 uniform vec3 uDiffuse;
 
@@ -316,6 +318,9 @@ out vec4 oColor;
 //debug
 in vec2 vPosition;
 
+@intersectCube
+@BRDF
+
 vec3 gradient(vec3 pos, float h) {
     vec3 positive = vec3(
     texture(uVolume, pos + vec3( h, 0.0, 0.0)).r,
@@ -330,16 +335,27 @@ vec3 gradient(vec3 pos, float h) {
     return normalize(positive - negative);
 }
 
-vec3 lambertShading(vec3 closest) {
-    vec3 normal = -normalize(gradient(closest, 0.005));
-    vec3 light = normalize(-uLight);
-    float lambert = max(dot(normal, light), 0.0);
+vec3 lambertShading(vec3 color, vec3 n, vec3 l) {
+    l = normalize(-l);
+    float lambert = max(dot(n, l), 0.0);
 
-    return uDiffuse * lambert;
+    return color * lambert;
 }
 
-@intersectCube
-@BRDF
+vec3 phongShading(vec3 pos, vec3 color, vec3 n, vec3 l, float p) {
+    l = normalize(-l);
+    float lambert = max(dot(n, l), 0.0);
+
+    vec4 cameraLoc = vec4(0, 0, -1.0, 1.0);
+    vec4 cameraDirty = uMvpInverseMatrix * cameraLoc;
+    vec3 cameraPosition = cameraDirty.xyz / cameraDirty.w;
+    vec3 v = normalize(cameraPosition - pos);
+    vec3 h = normalize(l + v);
+    float NdotH = clampedDot(n, h);
+    float spec = pow(NdotH, p);
+
+    return color * (lambert + spec);
+}
 
 void main() {
 
@@ -374,7 +390,20 @@ void main() {
 //                vec3 res = lambertShading(pos);
 //                vec3 res = BRDF(closest, uDiffuse);
                 vec3 N = -normalize(gradient(closest.rgb, 0.005));
-                vec3 res = BRDF(closest.rgb, uDiffuse, uF0, uF90, uSpecularWeight, uAlphaRoughness, uMvpInverseMatrix, N, uLight);
+                vec3 res;
+                if (uShaderType == 0) {
+                    res = uDiffuse;
+                }
+                else if (uShaderType == 1) {
+                    res = lambertShading(uDiffuse, N, uLight);
+                }
+                else if (uShaderType == 2) {
+                    res = phongShading(closest.rgb, uDiffuse, N, uLight, uP);
+                }
+                else if (uShaderType == 3) {
+                    res = BRDF(closest.rgb, uDiffuse, uF0, uF90, uSpecularWeight, uAlphaRoughness, uMvpInverseMatrix, N, uLight);
+                }
+
                 colorSample = vec4(res, 1);
 //                colorSample.a *= rayStepLength * uAlphaCorrection;
                 accumulator += (1.0 - accumulator.a) * colorSample;

@@ -47,6 +47,8 @@ class CIMRenderer extends AbstractRenderer {
             _isovalue                   : 0.5,
             _light                      : [1, 1, 1],
             _diffuse                    : [0.86, 0.93, 1],
+            p                           : 100,
+            _shaderType                 : 3,
             // BRDF
             f0       : [0.04, 0.04, 0.04],
             f90      : [1, 1, 1],
@@ -476,6 +478,8 @@ class CIMRenderer extends AbstractRenderer {
         gl.uniform1f(program.uniforms.uAlphaRoughness, this.alphaRoughness);
         gl.uniform3fv(program.uniforms.uF0, this.f0);
         gl.uniform3fv(program.uniforms.uF90, this.f90);
+        gl.uniform1f(program.uniforms.uP, this.p);
+        gl.uniform1i(program.uniforms.uShaderType, this._shaderType);
 
         gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
     }

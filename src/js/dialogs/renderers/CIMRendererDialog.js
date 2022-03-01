@@ -50,6 +50,8 @@ class CIMRendererDialog extends AbstractDialog {
         this._binds.isovalue.addEventListener('change', this._handleChangeMCParameters);
         this._binds.color.addEventListener('change', this._handleChange);
         this._binds.direction.addEventListener('input', this._handleChangeMCParameters);
+        this._binds.p.addEventListener('input', this._handleChange);
+        this._binds.shader_type.addEventListener('input', this._handleChange);
         // BRDF
         this._binds.metalic.addEventListener('change', this._handleChange);
 
@@ -100,6 +102,8 @@ class CIMRendererDialog extends AbstractDialog {
         this._renderer._diffuse[0] = color.r * (1 - metalic);
         this._renderer._diffuse[1] = color.g * (1 - metalic);
         this._renderer._diffuse[2] = color.b * (1 - metalic);
+        this._renderer.p = this._binds.p.getValue();
+        this._renderer._shaderType = parseInt(this._binds.shader_type.getValue());
 
         const direction = this._binds.direction.getValue();
         this._renderer._light[0] = direction.x;
@@ -155,8 +159,8 @@ class CIMRendererDialog extends AbstractDialog {
         this._renderer.f90[2] = f90.b;
         this._renderer.specularWeight = this._binds.specularWeight.getValue();
         this._renderer.alphaRoughness = this._binds.alphaRoughness.getValue();
-
-        this._renderer.resetLightVolume();
+        this._renderer.p = this._binds.p.getValue();
+        this._renderer._shaderType = parseInt(this._binds.shader_type.getValue());
     }
 
     _handleChangeType() {
