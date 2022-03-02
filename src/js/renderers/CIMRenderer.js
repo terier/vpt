@@ -70,16 +70,16 @@ class CIMRenderer extends AbstractRenderer {
     }
 
     testingProtocalSave() {
+        const gl = this._gl;
         if (this.testing && this.testingTotalTime <= this.testingTime && this._elapsedTime >= this.testingIntervalTime) {
             // console.log("saving")
             let lastTime = this._elapsedTime;
             this.testingTotalTime += lastTime;
             // this._elapsedTime = lastTime - this.testingIntervalTime;
             this._elapsedTime = 0
-            let canvas = document.getElementsByClassName("renderer")[0];
             let link = document.createElement('a');
             link.download = this.saveAs + "_" + this.testingTotalTime + ".png";
-            link.href = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+            link.href = gl.canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
             link.click();
         }
     }
