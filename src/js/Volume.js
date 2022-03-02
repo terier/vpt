@@ -59,16 +59,8 @@ readModality(modalityName, handlers) {
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
-    // TODO: here read modality format & number of components, ...
-    let format, internalFormat;
-    if (components === 2) {
-        internalFormat = gl.RG8;
-        format = gl.RG;
-    } else {
-        internalFormat = gl.R8;
-        format = gl.RED;
-    }
-    gl.texStorage3D(gl.TEXTURE_3D, 1, internalFormat, dimensions.width, dimensions.height, dimensions.depth);
+    gl.texStorage3D(gl.TEXTURE_3D, 1, modality.internalFormat,
+        dimensions.width, dimensions.height, dimensions.depth);
     let remainingBlocks = modality.placements.length;
     modality.placements.forEach(placement => {
         this._reader.readBlock(placement.index, {
@@ -80,7 +72,7 @@ readModality(modalityName, handlers) {
                 gl.texSubImage3D(gl.TEXTURE_3D, 0,
                     position.x, position.y, position.z,
                     blockdim.width, blockdim.height, blockdim.depth,
-                    format, gl.UNSIGNED_BYTE, new Uint8Array(data));
+                    modality.format, modality.type, new Uint8Array(data));
                 remainingBlocks--;
                 if (remainingBlocks === 0) {
                     this.ready = true;
