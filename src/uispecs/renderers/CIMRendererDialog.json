@@ -58,17 +58,6 @@
       ]
     },
     {
-      "type": "field",
-      "label": "Deferred Rendering:",
-      "children": [
-        {
-          "type": "checkbox",
-          "bind": "deferred_enabled",
-          "checked": false
-        }
-      ]
-    },
-    {
       "type": "accordion",
       "label": "Monte Carlo",
       "contracted": "true",
@@ -136,28 +125,6 @@
               "bind": "bounces_MS",
               "value": 1,
               "min": 0
-            }
-          ]
-        },
-        {
-          "type": "field",
-          "label": "Renderer Subtype:",
-          "children": [
-            {
-              "type": "dropdown",
-              "bind": "renderer_type",
-              "options": [
-                {
-                  "value": 0,
-                  "label": "Monte Carlo hybrid (lights)",
-                  "selected": false
-                },
-                {
-                  "value": 1,
-                  "label": "Monte Carlo (env)",
-                  "selected": true
-                }
-              ]
             }
           ]
         },
@@ -317,63 +284,6 @@
               "min": 0,
               "max": 1,
               "step": 0.05
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "type": "accordion",
-      "label": "Smart De-Noise",
-      "contracted": "true",
-      "children": [
-        {
-          "type": "field",
-          "label": "Enabled:",
-          "children": [
-            {
-              "type": "checkbox",
-              "bind": "sd_enabled",
-              "checked": true
-            }
-          ]
-        },
-        {
-          "type": "field",
-          "label": "Sigma:",
-          "children": [
-            {
-              "type": "spinner",
-              "bind": "sd_sigma",
-              "value": 5,
-              "min": 0,
-              "step": 0.1
-            }
-          ]
-        },
-        {
-          "type": "field",
-          "label": "K Sigma:",
-          "children": [
-            {
-              "type": "spinner",
-              "bind": "sd_ksigma",
-              "value": 2,
-              "min": 0,
-              "step": 0.1
-            }
-          ]
-        },
-        {
-          "type": "field",
-          "label": "threshold:",
-          "children": [
-            {
-              "type": "spinner",
-              "bind": "sd_threshold",
-              "value": 0.1,
-              "min": 0,
-              "step": 0.001
             }
           ]
         }

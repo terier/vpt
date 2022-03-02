@@ -9,8 +9,6 @@ class CIMRenderer extends AbstractRenderer {
     constructor(gl, volume, environmentTexture, options) {
         super(gl, volume, environmentTexture, options);
         Object.assign(this, {
-            _lightDefinitions           : [],
-            _nActiveLights              : 0,
             _elapsedTime                : 0,
             _timer                      : 0,
             _done                       : false,
@@ -26,23 +24,6 @@ class CIMRenderer extends AbstractRenderer {
             _scatteringBias             : 0,
             _maxBounces                 : 0,
             _mcEnabled                  : true,
-            // Dynamic Iterations length
-            _layersPerFrame             : 1,
-            _fastStart                  : true,
-            _allowedSlowdown            : 1.5,
-            _currentDepth               : 0,
-            _preIterations              : 30,
-            _preIterationsDone          : false,
-            _prevTime                   : new Date(),
-            _averageTime                : 0,
-            _movingBoxLength            : 10,
-            _baseTimePerFrame           : 0,
-            // Deferred Rendering
-            _deferredRendering          : true,
-            _smartDeNoise               : true,
-            _smartDeNoiseSigma          : 5,
-            _smartDeNoiseKSigma         : 2,
-            _smartDeNoiseThreshold      : 0.1,
             // ISO
             _isovalue                   : 0.5,
             _light                      : [1, 1, 1],
@@ -61,9 +42,6 @@ class CIMRenderer extends AbstractRenderer {
             integrateMCM    : SHADERS.CIMIntegrateMCM,
             render          : SHADERS.CIMRender,
             resetPhotonsMCM : SHADERS.CIMResetPhotonsMCM,
-            // Deferred Rendering
-            deferredRender  : SHADERS.CIMDeferredRender,
-            combineRender  : SHADERS.CIMCombineRender
         }, MIXINS);
 
         this._transferFunction = WebGL.createTexture(gl, {
@@ -75,11 +53,6 @@ class CIMRenderer extends AbstractRenderer {
             min    : gl.LINEAR,
             mag    : gl.LINEAR
         });
-
-        this._lightDefinitions = [
-            new LightDefinition('distant', [0.8, 0.01, 0.01], true),
-            new LightDefinition('point', [0, -0.1, 0.5], true)
-        ]
 
         if (this._volume.ready) {
             this._initVolume();
@@ -111,16 +84,6 @@ class CIMRenderer extends AbstractRenderer {
         }
     }
 
-
-    _initDynamicIterationValues() {
-        this._layersPerFrame = 1;
-        this._fastStart = true;
-        this._currentPreIterations = this._preIterations;
-        this._preIterationsDone  = false;
-        this._prevTime = new Date();
-        this._averageTime = 0;
-    }
-
     setVolume(volume) {
         this._volume = volume;
         this._initVolume();
@@ -139,66 +102,14 @@ class CIMRenderer extends AbstractRenderer {
         this._integrateFrameENV();
         this._accumulationBuffer.swap();
 
-        if (this._deferredRendering) {
-            // this._defferedRenderBuffer.use();
-            this._deferredRenderFrame();
-
-            // this._renderBuffer.use();
-            this._combineRenderFrame();
-        } else {
-            this._renderBuffer.use();
-            this._renderFrame();
-        }
+        this._renderBuffer.use();
+        this._renderFrame();
         // console.log(this._elapsedTime)
         if (!this._done) {
             const currentTime = new Date().getTime();
             this._elapsedTime += currentTime - this._previousTime;
             this._previousTime = currentTime;
             this.testingProtocalSave()
-        }
-
-        // this._calculateAverageTime()
-    }
-
-    _calculateAverageTime() {
-        if (!this._mcEnabled)
-            return
-        const currentTime = new Date();
-        const timeDiff = currentTime - this._prevTime;
-        this._averageTime += (1 / this._movingBoxLength)  * (timeDiff - this._averageTime);
-        // console.log(this._averageTime)
-        this._prevTime = currentTime;
-        if (!this._preIterationsDone) {
-            // console.log("LALA")
-            this._currentPreIterations -= 1;
-            if (this._currentPreIterations <= 0) {
-                this._preIterationsDone = true
-                this._baseTimePerFrame = this._averageTime
-                console.log("Average Base Time: ", this._averageTime)
-            }
-        } else {
-            this._determineLayersPerFrame();
-            // console.log(this._layersPerFrame)
-        }
-    }
-
-    _determineLayersPerFrame() {
-        if (this._averageTime <= this._allowedSlowdown * this._baseTimePerFrame) {
-            if (this._fastStart)
-                this._layersPerFrame *= 2;
-            else
-                this._layersPerFrame += 1;
-        } else {
-            if (this._fastStart) {
-                this._layersPerFrame /= 2;
-                this._fastStart = false;
-            }
-            else if (this._layersPerFrame > 1)
-                this._layersPerFrame -= 1;
-        }
-        if (this._layersPerFrame >= this._lightVolumeDimensions.depth) {
-            this._fastStart = false;
-            this._layersPerFrame = this._lightVolumeDimensions.depth;
         }
     }
 
@@ -207,20 +118,12 @@ class CIMRenderer extends AbstractRenderer {
         Object.keys(this._programs).forEach(programName => {
             gl.deleteProgram(this._programs[programName].program);
         });
-        if (this._defferedRenderBuffer)
-            this._defferedRenderBuffer.destroy();
-        if (this._lightsTexture && gl.isTexture(this._lightsTexture)) {
-            gl.deleteTexture(this._lightsTexture);
-        }
         super.destroy();
     }
 
     resetLightVolume() {
         if (this._volumeDimensions) {
             this._resetPhotons();
-            // this._layersPerFrame = 1
-            // this._fastStart = true
-            // this._initDynamicIterationValues()
         }
     }
 
@@ -231,7 +134,6 @@ class CIMRenderer extends AbstractRenderer {
         console.log("Volume Dimensions: " + volumeDimensions.width + " " + volumeDimensions.height + " " + volumeDimensions.depth);
         // this._mcEnabled = false
         this._setLightVolumeDimensions();
-        this._setLightTexture();
         this._setAccumulationBuffer();
         this._resetPhotons();
         // this._initDynamicIterationValues();
@@ -259,42 +161,6 @@ class CIMRenderer extends AbstractRenderer {
             this._accumulationBuffer.destroy();
         }
         this._accumulationBuffer = new DoubleBuffer3D(this._gl, this._getAccumulationBufferSpec());
-    }
-
-    _setLightTexture() {
-        const gl = this._gl;
-        if (this._lightsTexture && gl.isTexture(this._lightsTexture)) {
-            gl.deleteTexture(this._lightsTexture);
-        }
-
-        const lightDefinitionArray = this._getLightDefinitionArray();
-
-        this._lightsTexture = WebGL.createTexture(gl, {
-            width          : this._nActiveLights,
-            height         : 1,
-            data           : new Float32Array(lightDefinitionArray),
-            format         : gl.RGBA,
-            internalFormat : gl.RGBA32F,
-            type           : gl.FLOAT,
-            wrapS          : gl.CLAMP_TO_EDGE,
-            wrapT          : gl.CLAMP_TO_EDGE,
-            min            : gl.NEAREST,
-            mag            : gl.NEAREST
-        });
-    }
-
-    _getLightDefinitionArray() {
-        let lightsArray = [];
-        let nLights = 0
-        for (let i = 0; i < this._lightDefinitions.length; i++) {
-            if (!this._lightDefinitions[i].isEnabled())
-                continue;
-            let lightArray = this._lightDefinitions[i].getLightArr();
-            lightsArray.push(lightArray[0], lightArray[1], lightArray[2], this._lightDefinitions[i].typeToInt());
-            nLights++;
-        }
-        this._nActiveLights = nLights;
-        return lightsArray;
     }
 
     _resetPhotons() {
@@ -339,25 +205,10 @@ class CIMRenderer extends AbstractRenderer {
         if (this._renderBuffer) {
             this._renderBuffer.destroy();
         }
-        if (this._deferredRendering) {
-            this._destroyDeferredRenderBuffer();
-        }
         const gl = this._gl;
         this._frameBuffer = new SingleBuffer(gl, this._getFrameBufferSpec());
         // this._accumulationBuffer = new DoubleBuffer(gl, this._getAccumulationBufferSpec());
         this._renderBuffer = new SingleBuffer(gl, this._getRenderBufferSpec());
-        if (this._deferredRendering)
-            this._buildDeferredRenderBuffer();
-    }
-
-    _buildDeferredRenderBuffer() {
-        const gl = this._gl;
-        this._defferedRenderBuffer = new SingleBuffer(gl, this._getDeferredRenderBufferSpec());
-    }
-
-    _destroyDeferredRenderBuffer() {
-        this._defferedRenderBuffer.destroy();
-        this._defferedRenderBuffer = null;
     }
 
     reset() {}
@@ -368,15 +219,12 @@ class CIMRenderer extends AbstractRenderer {
 
     _integrateFrameENV() {
         const gl = this._gl;
-        // if (!this._mcEnabled || !this._preIterationsDone)
-        //     return;
         if (!this._mcEnabled || this._done)
             return
         let program = this._programs.integrateMCM;
         gl.useProgram(program.program);
 
         const dimensions = this._lightVolumeDimensions;
-        // const iterations = Math.min(this._layersPerFrame, this._lightVolumeDimensions.depth);
         const iterations = this._lightVolumeDimensions.depth
         // let currentDepth = this._currentDepth
         let currentDepth = 0
@@ -436,12 +284,6 @@ class CIMRenderer extends AbstractRenderer {
             gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 
             currentDepth++;
-            // console.log(currentDepth, this._lightVolumeDimensions.depth)
-            // if (currentDepth >= this._lightVolumeDimensions.depth) {
-            //     // console.log("LALA")
-            //     currentDepth = 0
-            //     this._accumulationBuffer.swap();
-            // }
         }
 
         this._currentDepth = currentDepth
@@ -480,62 +322,6 @@ class CIMRenderer extends AbstractRenderer {
         gl.uniform3fv(program.uniforms.uF90, this.f90);
         gl.uniform1f(program.uniforms.uP, this.p);
         gl.uniform1i(program.uniforms.uShaderType, this._shaderType);
-
-        gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-    }
-
-    _deferredRenderFrame() {
-        const gl = this._gl;
-
-        this._defferedRenderBuffer.use()
-
-        let program = this._programs.deferredRender;
-        gl.useProgram(program.program);
-
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
-        gl.activeTexture(gl.TEXTURE1);
-        gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
-        gl.activeTexture(gl.TEXTURE2);
-        gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[3]);
-
-        gl.uniform1i(program.uniforms.uVolume, 0);
-        gl.uniform1i(program.uniforms.uTransferFunction, 1);
-        gl.uniform1i(program.uniforms.uRadianceAndDiffusion, 2);
-
-        gl.uniform1f(program.uniforms.uStepSize, this._stepSize);
-        gl.uniform1f(program.uniforms.uOffset, Math.random());
-        gl.uniform1f(program.uniforms.uAlphaCorrection, this._alphaCorrection);
-
-        gl.uniformMatrix4fv(program.uniforms.uMvpInverseMatrix, false, this._mvpInverseMatrix.m);
-
-        gl.drawBuffers([
-            gl.COLOR_ATTACHMENT0,
-            gl.COLOR_ATTACHMENT1
-        ]);
-
-        gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-    }
-
-    _combineRenderFrame() {
-        const gl = this._gl;
-        const program = this._programs.combineRender;
-        gl.useProgram(program.program);
-
-        this._renderBuffer.use()
-
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this._defferedRenderBuffer.getAttachments().color[1]);
-        gl.activeTexture(gl.TEXTURE1);
-        gl.bindTexture(gl.TEXTURE_2D, this._defferedRenderBuffer.getAttachments().color[0]);
-
-        gl.uniform1i(program.uniforms.uColor, 0);
-        gl.uniform1i(program.uniforms.uLighting, 1);
-
-        gl.uniform1i(program.uniforms.uSmartDeNoise, this._smartDeNoise ? 1 : 0);
-        gl.uniform1f(program.uniforms.uSigma, this._smartDeNoiseSigma);
-        gl.uniform1f(program.uniforms.uKSigma, this._smartDeNoiseKSigma);
-        gl.uniform1f(program.uniforms.uTreshold, this._smartDeNoiseThreshold);
 
         gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
     }

@@ -7,7 +7,7 @@
   "children": [
     {
       "type": "field",
-      "label": "Steps:",
+      "label": "ISO Steps:",
       "children": [
         {
           "type": "spinner",

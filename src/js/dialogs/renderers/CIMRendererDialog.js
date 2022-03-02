@@ -14,13 +14,9 @@ class CIMRendererDialog extends AbstractDialog {
         this._setInitialValues();
 
         this._handleChange = this._handleChange.bind(this);
-        this._handleChangeType = this._handleChangeType.bind(this);
         this._handleChangeRatio = this._handleChangeRatio.bind(this);
         this._handleTFChange = this._handleTFChange.bind(this);
         this._handleChangeMCParameters = this._handleChangeMCParameters.bind(this);
-        this._handleChangeSlowdown = this._handleChangeSlowdown.bind(this);
-        this._handleChangeDeferredRendering = this._handleChangeDeferredRendering.bind(this);
-        this._handleChangeDeNoise = this._handleChangeDeNoise.bind(this);
 
         // Renderer
         this._binds.steps.addEventListener('input', this._handleChange);
@@ -28,7 +24,6 @@ class CIMRendererDialog extends AbstractDialog {
         this._binds.mc_enabled.addEventListener('change', this._handleChange);
 
         this._binds.ratio.addEventListener('input', this._handleChangeRatio);
-        this._binds.max_slowdown.addEventListener('input', this._handleChangeSlowdown);
         this._binds.ratio.addEventListener('input', this._handleChangeRatio);
 
         // MC
@@ -37,14 +32,6 @@ class CIMRendererDialog extends AbstractDialog {
         this._binds.bias_MS.addEventListener('change', this._handleChangeMCParameters);
         this._binds.bounces_MS.addEventListener('input', this._handleChangeMCParameters);
         this._binds.ray_steps.addEventListener('input', this._handleChange);
-        this._binds.renderer_type.addEventListener('input', this._handleChangeType);
-
-        // Deferred Rendering and De-Noise
-        this._binds.deferred_enabled.addEventListener('change', this._handleChangeDeferredRendering);
-        this._binds.sd_enabled.addEventListener('change', this._handleChangeDeNoise);
-        this._binds.sd_sigma.addEventListener('input', this._handleChangeDeNoise);
-        this._binds.sd_ksigma.addEventListener('input', this._handleChangeDeNoise);
-        this._binds.sd_threshold.addEventListener('input', this._handleChangeDeNoise);
 
         // ISO
         this._binds.isovalue.addEventListener('change', this._handleChangeMCParameters);
@@ -87,13 +74,6 @@ class CIMRendererDialog extends AbstractDialog {
 
         this._renderer._lightVolumeRatio = this._binds.ratio.getValue();
         this._renderer._mcEnabled = this._binds.mc_enabled.isChecked();
-        this._renderer._type = parseInt(this._binds.renderer_type.getValue());
-
-        this._renderer._deferredRendering = this._binds.deferred_enabled.isChecked();
-        this._renderer._smartDeNoise = this._binds.sd_enabled.isChecked();
-        this._renderer._smartDeNoiseSigma = this._binds.sd_sigma.getValue();
-        this._renderer._smartDeNoiseKSigma = this._binds.sd_ksigma.getValue();
-        this._renderer._smartDeNoiseThreshold = this._binds.sd_threshold.getValue();
 
         // ISO
         const metalic = this._binds.metalic.getValue();
@@ -163,11 +143,6 @@ class CIMRendererDialog extends AbstractDialog {
         this._renderer._shaderType = parseInt(this._binds.shader_type.getValue());
     }
 
-    _handleChangeType() {
-        this._renderer._type = parseInt(this._binds.renderer_type.getValue());
-        this._resetPhotons();
-    }
-
     _handleChangeMCParameters() {
         const extinction = this._binds.extinction_MS.getValue();
         const bias       = this._binds.bias_MS.getValue();
@@ -200,28 +175,6 @@ class CIMRendererDialog extends AbstractDialog {
             this._renderer._setAccumulationBuffer();
             this._renderer.resetLightVolume();
         }
-    }
-
-    _handleChangeSlowdown() {
-        this._renderer._allowedSlowdown = this._binds.max_slowdown.getValue();
-        this._renderer._layersPerFrame = 1
-        this._renderer._fastStart = true
-    }
-
-    _handleChangeDeferredRendering() {
-        const deferredRendering = this._binds.deferred_enabled.isChecked();
-        if (deferredRendering && !this._renderer._defferedRenderBuffer)
-            this._renderer._buildDeferredRenderBuffer();
-        else if (!deferredRendering && this._renderer._deferredRendering)
-            this._renderer._destroyDeferredRenderBuffer();
-        this._renderer._deferredRendering = deferredRendering;
-    }
-
-    _handleChangeDeNoise() {
-        this._renderer._smartDeNoise = this._binds.sd_enabled.isChecked();
-        this._renderer._smartDeNoiseSigma = this._binds.sd_sigma.getValue();
-        this._renderer._smartDeNoiseKSigma = this._binds.sd_ksigma.getValue();
-        this._renderer._smartDeNoiseThreshold = this._binds.sd_threshold.getValue();
     }
 
     _handleTFChange() {
