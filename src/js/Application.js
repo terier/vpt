@@ -16,17 +16,10 @@ constructor() {
     this._handleVolumeLoad = this._handleVolumeLoad.bind(this);
     this._handleEnvmapLoad = this._handleEnvmapLoad.bind(this);
 
-    this._renderingContext = new RenderingContext();
-    this._canvas = this._renderingContext.getCanvas();
-    this._canvas.className += 'renderer';
-    document.body.appendChild(this._canvas);
+    this._binds = DOMUtils.bind(document.body);
 
-    window.addEventListener('resize', () => {
-        const width = window.innerWidth;
-        const height = window.innerHeight;
-        this._renderingContext.resize(width, height);
-    });
-    window.dispatchEvent(new Event('resize'));
+    this._renderingContext = new RenderingContext();
+    this._binds.container.appendChild(this._renderingContext.getCanvas());
 
     document.body.addEventListener('dragover', e => e.preventDefault());
     document.body.addEventListener('drop', this._handleFileDrop);
