@@ -22,6 +22,8 @@ constructor(options) {
     }, options);
 
     this._canvas = document.createElement('canvas');
+    this._canvas.width = this._resolution;
+    this._canvas.height = this._resolution;
     this._canvas.addEventListener('webglcontextlost', this._webglcontextlostHandler);
     this._canvas.addEventListener('webglcontextrestored', this._webglcontextrestoredHandler);
 
@@ -153,7 +155,9 @@ chooseRenderer(renderer) {
         this._renderer.destroy();
     }
     const rendererClass = this._getRendererClass(renderer);
-    this._renderer = new rendererClass(this._gl, this._volume, this._environmentTexture);
+    this._renderer = new rendererClass(this._gl, this._volume, this._environmentTexture, {
+        _bufferSize: this._resolution,
+    });
     if (this._toneMapper) {
         this._toneMapper.setTexture(this._renderer.getTexture());
     }
@@ -176,7 +180,9 @@ chooseToneMapper(toneMapper) {
         });
     }
     const toneMapperClass = this._getToneMapperClass(toneMapper);
-    this._toneMapper = new toneMapperClass(gl, texture);
+    this._toneMapper = new toneMapperClass(gl, texture, {
+        _bufferSize: this._resolution,
+    });
 }
 
 getCanvas() {
@@ -357,6 +363,9 @@ getResolution() {
 }
 
 setResolution(resolution) {
+    this._resolution = resolution;
+    this._canvas.width = resolution;
+    this._canvas.height = resolution;
     if (this._renderer) {
         this._renderer.setResolution(resolution);
     }
