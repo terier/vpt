@@ -45,22 +45,8 @@
       ]
     },
     {
-      "type": "field",
-      "label": "Maximum Slowdown:",
-      "children": [
-        {
-          "type": "spinner",
-          "bind": "max_slowdown",
-          "value": 1.5,
-          "min": 1,
-          "step": 0.1
-        }
-      ]
-    },
-    {
       "type": "accordion",
       "label": "Monte Carlo",
-      "contracted": "true",
       "children": [
         {
           "type": "field",
@@ -144,7 +130,6 @@
     {
       "type": "accordion",
       "label": "ISO",
-      "contracted": "true",
       "children": [
         {
           "type": "field",

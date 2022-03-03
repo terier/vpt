@@ -232,6 +232,73 @@ _updateMvpInverseMatrix() {
     }
 }
 
+testingProtocalSave(saveAs, saveTime) {
+    const gl = this._gl;
+    let link = document.createElement('a');
+    link.download = saveAs + "_" + saveTime + ".png";
+    link.href = gl.canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+    link.click();
+}
+
+startTimeTesting(testingTime= 100, intervals= 100, saveAs = "MCC") {
+    // [0.4595949351787567, 0.017016194760799408, -0.002319802064448595, 1.8643269150686592e-9, 0.0008531888015568256, 0.009490122087299824, 0.37735629081726074, 2.2245090214312313e-9, -1.7914464473724365, 23.797161102294922, -2.561542272567749, -4.89999532699585, 1.85416579246521, -21.197429656982422, 2.650918960571289, 5.0999956130981445]
+    this._elapsedTime = 0
+    this.testingTime = testingTime * 1000;
+    this.testingIntervalTime = this.testingTime/intervals;
+    this.testingTotalTime = 0;
+    this.testing = true;
+    this._previousTime = new Date().getTime();
+    this.saveAs = saveAs;
+    this._renderer.reset();
+    if (typeof this._renderer._resetPhotons === "function") {
+        this._renderer._resetPhotons();
+    }
+}
+
+testingTimeSave() {
+    if (this.testing && this.testingTotalTime <= this.testingTime && this._elapsedTime >= this.testingIntervalTime) {
+        // console.log("saving")
+        let lastTime = this._elapsedTime;
+        this.testingTotalTime += lastTime;
+        // this._elapsedTime = lastTime - this.testingIntervalTime;
+        this._elapsedTime = 0
+        this.testingProtocalSave(this.saveAs, this.testingTotalTime)
+    }
+    else if (this.testingTotalTime > this.testingTime) {
+        this.testing = false;
+        console.log("Testing finished!")
+    }
+}
+
+startIterationTesting(totalIterations= 100, intervals = 100,  saveAs = "MCC") {
+    // [0.4595949351787567, 0.017016194760799408, -0.002319802064448595, 1.8643269150686592e-9, 0.0008531888015568256, 0.009490122087299824, 0.37735629081726074, 2.2245090214312313e-9, -1.7914464473724365, 23.797161102294922, -2.561542272567749, -4.89999532699585, 1.85416579246521, -21.197429656982422, 2.650918960571289, 5.0999956130981445]
+    this.elapsedIterations = 0
+    this.testingTotalIterations = totalIterations
+    this.testingIterationInterval = totalIterations/intervals;
+    this.testingTotalElapsedIterations = 0;
+    this.testingIterations = true;
+    this.saveAsIterations = saveAs;
+    this._renderer.reset();
+    if (typeof this._renderer._resetPhotons === "function") {
+        this._renderer._resetPhotons();
+    }
+}
+
+testingIterationsSave() {
+    if (this.testingIterations &&
+        this.testingTotalElapsedIterations < this.testingTotalIterations &&
+        this.elapsedIterations >= this.testingIterationInterval) {
+
+        this.testingTotalElapsedIterations += this.elapsedIterations;
+        this.elapsedIterations = 0
+        this.testingProtocalSave(this.saveAsIterations, this.testingTotalElapsedIterations)
+    }
+    else if (this.testingTotalElapsedIterations >= this.testingTotalIterations) {
+        this.testingIterations = false;
+        console.log("Testing finished!")
+    }
+}
+
 startSequence(testingTime= 30, intervals= 1000, saveAs) {
     // VISMAE
     // this.setScale(1, 0.792, 0.783);
@@ -320,6 +387,7 @@ _render() {
     this._updateMvpInverseMatrix();
 
     this._renderer.render();
+
     this._toneMapper.render();
 
     gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
@@ -338,6 +406,22 @@ _render() {
     gl.disableVertexAttribArray(aPosition);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.bindTexture(gl.TEXTURE_2D, null);
+
+    if (this.testing) {
+        const currentTime = new Date().getTime();
+        this._elapsedTime += currentTime - this._previousTime;
+        this._previousTime = currentTime;
+        this.testingTimeSave()
+    }
+    if (this.testingIterations) {
+        this.elapsedIterations += 1;
+        console.log(this.testingTotalIterations)
+        console.log(this.testingIterationInterval);
+        console.log(this.testingTotalElapsedIterations)
+        console.log(this.testingIterations = true)
+        console.log("\n\n")
+        this.testingIterationsSave()
+    }
 }
 
 getScale() {

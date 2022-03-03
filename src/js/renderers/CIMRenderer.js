@@ -9,9 +9,6 @@ class CIMRenderer extends AbstractRenderer {
     constructor(gl, volume, environmentTexture, options) {
         super(gl, volume, environmentTexture, options);
         Object.assign(this, {
-            _elapsedTime                : 0,
-            _timer                      : 0,
-            _done                       : false,
             // Ray Marching
             _stepSize                   : 0.00333,
             _alphaCorrection            : 100,
@@ -59,31 +56,6 @@ class CIMRenderer extends AbstractRenderer {
         }
     }
 
-    startTesting(testingTime= 100, intervals= 100, saveAs = "MCC") {
-        // [0.4595949351787567, 0.017016194760799408, -0.002319802064448595, 1.8643269150686592e-9, 0.0008531888015568256, 0.009490122087299824, 0.37735629081726074, 2.2245090214312313e-9, -1.7914464473724365, 23.797161102294922, -2.561542272567749, -4.89999532699585, 1.85416579246521, -21.197429656982422, 2.650918960571289, 5.0999956130981445]
-        this.testingTime = testingTime * 1000;
-        this.testingIntervalTime = this.testingTime/intervals;
-        this.testingTotalTime = 0;
-        this.testing = true;
-        this.saveAs = saveAs;
-        this._resetPhotons();
-    }
-
-    testingProtocalSave() {
-        const gl = this._gl;
-        if (this.testing && this.testingTotalTime <= this.testingTime && this._elapsedTime >= this.testingIntervalTime) {
-            // console.log("saving")
-            let lastTime = this._elapsedTime;
-            this.testingTotalTime += lastTime;
-            // this._elapsedTime = lastTime - this.testingIntervalTime;
-            this._elapsedTime = 0
-            let link = document.createElement('a');
-            link.download = this.saveAs + "_" + this.testingTotalTime + ".png";
-            link.href = gl.canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
-            link.click();
-        }
-    }
-
     setVolume(volume) {
         this._volume = volume;
         this._initVolume();
@@ -104,13 +76,6 @@ class CIMRenderer extends AbstractRenderer {
 
         this._renderBuffer.use();
         this._renderFrame();
-        // console.log(this._elapsedTime)
-        if (!this._done) {
-            const currentTime = new Date().getTime();
-            this._elapsedTime += currentTime - this._previousTime;
-            this._previousTime = currentTime;
-            this.testingProtocalSave()
-        }
     }
 
     destroy() {
@@ -191,8 +156,6 @@ class CIMRenderer extends AbstractRenderer {
         }
         this._currentDepth = 0;
         this._accumulationBuffer.swap();
-        this._elapsedTime = 0;
-        this._done = false;
     }
 
     _rebuildBuffers() {
@@ -219,7 +182,7 @@ class CIMRenderer extends AbstractRenderer {
 
     _integrateFrameENV() {
         const gl = this._gl;
-        if (!this._mcEnabled || this._done)
+        if (!this._mcEnabled)
             return
         let program = this._programs.integrateMCM;
         gl.useProgram(program.program);
