@@ -233,6 +233,8 @@ _updateMvpInverseMatrix() {
 }
 
 testingProtocalSave(saveAs, saveTime) {
+    if (saveAs.length < 1)
+        return
     const gl = this._gl;
     let link = document.createElement('a');
     link.download = saveAs + "_" + saveTime + ".png";
@@ -299,7 +301,9 @@ testingIterationsSave() {
     }
 }
 
-startSequence(testingTime= 30, intervals= 1000, saveAs) {
+startSequence(testingTime= 30, intervals= 1000, saveAs,
+              startingScale=[1, 1, 1], startingRotation=[0, 0, 0],
+              startingTranslation=[0, 0, 0], startCameraZoom=0, sequence) {
     // VISMAE
     // this.setScale(1, 0.792, 0.783);
     // this.setRotation(-87, 177, 0);
@@ -307,19 +311,22 @@ startSequence(testingTime= 30, intervals= 1000, saveAs) {
     // this.sequence = [[0, 60, 0, 2000, 1, 15000], [-80, -55, 0, 2000, 1, 15000]];
 
     // BABY
-    this.setScale(1, 1, 0.5);
-    this.setRotation(90, 0, 0);
-    // this.setTranslation(0, 0, 0.8);
-    this._camera.zoom(-0.8)
-    this.sequence = [[0, 60, 0, 4000, 1, 30000], [80, -55, 0, 4000, 1, 30000]];
-
+    this.setScale(...startingScale);
+    this.setRotation(...startingRotation);
+    this.setTranslation(...startingTranslation);
+    this._camera.zoom(startCameraZoom)
+    // this.sequence = [[0, 60, 0, 4000, 1, 30000], [80, -55, 0, 4000, 1, 30000]];
+    this.sequence = sequence;
 
     this._camera.isDirty = true;
     this._isTransformationDirty = true;
     this._updateMvpInverseMatrix();
-    this.startRotate(...this.sequence[0]);
-    this.sequence.shift();
-    this._renderer.startTesting(testingTime, intervals, saveAs);
+    if (this.sequence.length > 0) {
+        this.startRotate(...this.sequence[0]);
+        this.sequence.shift();
+    }
+    if (testingTime > 0)
+        this.startTimeTesting(testingTime, intervals, saveAs);
 }
 
 startRotate(dx, dy, dz, duration, step, delay= 0) {
