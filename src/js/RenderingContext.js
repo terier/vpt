@@ -314,7 +314,10 @@ startSequence(testingTime= 30, intervals= 1000, saveAs,
     this.setScale(...startingScale);
     this.setRotation(...startingRotation);
     this.setTranslation(...startingTranslation);
-    this._camera.zoom(startCameraZoom)
+    this._camera.zoomFactor = startCameraZoom;
+    this._camera.resize(this._canvas.width, this._canvas.height);
+    this._camera.position = new Vector(0, 0, 1.5);
+    this._camera.rotation = new Quaternion();
     // this.sequence = [[0, 60, 0, 4000, 1, 30000], [80, -55, 0, 4000, 1, 30000]];
     this.sequence = sequence;
 
