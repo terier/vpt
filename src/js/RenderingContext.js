@@ -32,12 +32,15 @@ constructor(options) {
     this._initGL();
 
     this._camera = new Camera();
-    this._camera.position.z = 1.5;
     this._camera.fovX = 0.3;
     this._camera.fovY = 0.3;
-    this._camera.updateMatrices();
 
-    this._cameraController = new OrbitCameraController(this._camera, this._canvas);
+    this._cameraAnimator = new CircleAnimator(this._camera, {
+        center: new Vector(0, 0, 2),
+        direction: new Vector(0, 0, 1),
+        radius: 0.01,
+        frequency: 5,
+    });
 
     this._volume = new Volume(this._gl);
     this._scale = new Vector(1, 1, 1);
@@ -196,13 +199,12 @@ getToneMapper() {
 }
 
 _updateMvpInverseMatrix() {
-    if (!this._camera.isDirty && !this._isTransformationDirty) {
-        return;
-    }
-
     this._camera.isDirty = false;
     this._isTransformationDirty = false;
     this._camera.updateMatrices();
+
+    const t = performance.now() / 1000;
+    this._cameraAnimator.update(t);
 
     const centerTranslation = new Matrix().fromTranslation(-0.5, -0.5, -0.5);
     const volumeTranslation = new Matrix().fromTranslation(
