@@ -1,13 +1,16 @@
 // #part /js/renderers/AbstractRenderer
 
+// #link ../PropertyBag
 // #link ../math
 // #link ../WebGL
 // #link ../SingleBuffer
 // #link ../DoubleBuffer
 
-class AbstractRenderer {
+class AbstractRenderer extends PropertyBag {
 
 constructor(gl, volume, environmentTexture, options) {
+    super();
+
     Object.assign(this, {
         _bufferSize : 512
     }, options);
@@ -25,7 +28,7 @@ constructor(gl, volume, environmentTexture, options) {
         wrapS  : gl.CLAMP_TO_EDGE,
         wrapT  : gl.CLAMP_TO_EDGE,
         min    : gl.LINEAR,
-        mag    : gl.LINEAR
+        mag    : gl.LINEAR,
     });
 
     this.modelMatrix = new Matrix();
@@ -104,7 +107,6 @@ setTransferFunction(transferFunction) {
     gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
     gl.texImage2D(gl.TEXTURE_2D, 0,
         gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, transferFunction);
-    gl.bindTexture(gl.TEXTURE_2D, null);
 }
 
 setResolution(resolution) {
@@ -161,7 +163,7 @@ _getRenderBufferSpec() {
         wrapT          : gl.CLAMP_TO_EDGE,
         format         : gl.RGBA,
         internalFormat : gl.RGBA16F,
-        type           : gl.FLOAT
+        type           : gl.FLOAT,
     }];
 }
 

@@ -8,9 +8,15 @@ class MIPRenderer extends AbstractRenderer {
 constructor(gl, volume, environmentTexture, options) {
     super(gl, volume, environmentTexture, options);
 
-    Object.assign(this, {
-        steps : 64
-    }, options);
+    this.registerProperties([
+        {
+            name: 'steps',
+            label: 'Steps',
+            type: 'spinner',
+            value: 64,
+            min: 1,
+        },
+    ]);
 
     this._programs = WebGL.buildPrograms(this._gl, SHADERS.renderers.MIP, MIXINS);
 }
@@ -92,7 +98,7 @@ _getFrameBufferSpec() {
         mag            : gl.NEAREST,
         format         : gl.RED,
         internalFormat : gl.R8,
-        type           : gl.UNSIGNED_BYTE
+        type           : gl.UNSIGNED_BYTE,
     }];
 }
 
@@ -105,7 +111,7 @@ _getAccumulationBufferSpec() {
         mag            : gl.NEAREST,
         format         : gl.RED,
         internalFormat : gl.R8,
-        type           : gl.UNSIGNED_BYTE
+        type           : gl.UNSIGNED_BYTE,
     }];
 }
 

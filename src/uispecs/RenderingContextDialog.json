@@ -5,7 +5,7 @@
   "children": [
     {
       "type": "field",
-      "label": "Linear filter:",
+      "label": "Linear filter",
       "children": [
         {
           "type": "checkbox",
@@ -16,7 +16,7 @@
     },
     {
       "type": "field",
-      "label": "Resolution:",
+      "label": "Resolution",
       "children": [
         {
           "type": "spinner",
@@ -29,24 +29,24 @@
     },
     {
       "type": "field",
-      "label": "Scale:",
+      "label": "Scale",
       "children": [
         {
           "type": "vector",
           "bind": "scale",
-          "value": 1,
+          "value": { "x": 1, "y": 1, "z": 1 },
           "step": 0.02
         }
       ]
     },
     {
       "type": "field",
-      "label": "Translation:",
+      "label": "Translation",
       "children": [
         {
           "type": "vector",
           "bind": "translation",
-          "value": 0,
+          "value": { "x": 0, "y": 0, "z": 0 },
           "step": 0.1
         }
       ]

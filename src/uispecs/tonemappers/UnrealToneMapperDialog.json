@@ -5,7 +5,7 @@
   "children": [
     {
       "type": "field",
-      "label": "Exposure:",
+      "label": "Exposure",
       "children": [
         {
           "type": "spinner",

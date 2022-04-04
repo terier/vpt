@@ -5,7 +5,7 @@
   "children": [
     {
       "type": "field",
-      "label": "Low:",
+      "label": "Low",
       "children": [
         {
           "type": "spinner",
@@ -19,7 +19,7 @@
     },
     {
       "type": "field",
-      "label": "High:",
+      "label": "High",
       "children": [
         {
           "type": "spinner",

@@ -5,7 +5,7 @@
   "children": [
     {
       "type": "field",
-      "label": "Extinction:",
+      "label": "Extinction",
       "children": [
         {
           "type": "spinner",
@@ -19,7 +19,7 @@
     },
     {
       "type": "field",
-      "label": "Scattering albedo:",
+      "label": "Scattering albedo",
       "children": [
         {
           "type": "slider",
@@ -33,7 +33,7 @@
     },
     {
       "type": "field",
-      "label": "Scattering bias:",
+      "label": "Scattering bias",
       "children": [
         {
           "type": "slider",
@@ -47,7 +47,7 @@
     },
     {
       "type": "field",
-      "label": "Majorant ratio:",
+      "label": "Majorant ratio",
       "children": [
         {
           "type": "slider",
@@ -61,7 +61,7 @@
     },
     {
       "type": "field",
-      "label": "Max bounces:",
+      "label": "Max bounces",
       "children": [
         {
           "type": "spinner",
@@ -73,7 +73,7 @@
     },
     {
       "type": "field",
-      "label": "Steps:",
+      "label": "Steps",
       "children": [
         {
           "type": "spinner",

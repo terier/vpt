@@ -8,11 +8,43 @@ class EAMRenderer extends AbstractRenderer {
 constructor(gl, volume, environmentTexture, options) {
     super(gl, volume, environmentTexture, options);
 
-    Object.assign(this, {
-        extinction : 100,
-        slices     : 64,
-        steps      : 64,
-    }, options);
+    this.registerProperties([
+        {
+            name: 'extinction',
+            label: 'Extinction',
+            type: 'spinner',
+            value: 100,
+            min: 0,
+        },
+        {
+            name: 'slices',
+            label: 'Slices',
+            type: 'spinner',
+            value: 64,
+            min: 1,
+        },
+        {
+            name: 'transferFunction',
+            label: 'Transfer function',
+            type: 'transfer-function',
+            value: new Uint8Array(256),
+        },
+    ]);
+
+    this.addEventListener('change', e => {
+        const { name, value } = e.detail;
+
+        if (name === 'transferFunction') {
+            this.setTransferFunction(this.transferFunction);
+        }
+
+        if ([
+            'extinction',
+            'slices',
+        ].includes(name)) {
+            this.reset();
+        }
+    });
 
     this._programs = WebGL.buildPrograms(this._gl, SHADERS.renderers.EAM, MIXINS);
 }
@@ -97,7 +129,7 @@ _getFrameBufferSpec() {
         mag            : gl.NEAREST,
         format         : gl.RGBA,
         internalFormat : gl.RGBA,
-        type           : gl.UNSIGNED_BYTE
+        type           : gl.UNSIGNED_BYTE,
     }];
 }
 
@@ -110,7 +142,7 @@ _getAccumulationBufferSpec() {
         mag            : gl.NEAREST,
         format         : gl.RGBA,
         internalFormat : gl.RGBA,
-        type           : gl.UNSIGNED_BYTE
+        type           : gl.UNSIGNED_BYTE,
     }];
 }
 

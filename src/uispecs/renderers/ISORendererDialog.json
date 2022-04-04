@@ -5,7 +5,7 @@
   "children": [
     {
       "type": "field",
-      "label": "Steps:",
+      "label": "Steps",
       "children": [
         {
           "type": "spinner",
@@ -17,7 +17,7 @@
     },
     {
       "type": "field",
-      "label": "Isovalue:",
+      "label": "Isovalue",
       "children": [
         {
           "type": "slider",
@@ -31,7 +31,7 @@
     },
     {
       "type": "field",
-      "label": "Color:",
+      "label": "Color",
       "children": [
         {
           "type": "color-chooser",
@@ -42,7 +42,7 @@
     },
     {
       "type": "field",
-      "label": "Light direction:",
+      "label": "Light direction",
       "children": [
         {
           "type": "vector",

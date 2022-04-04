@@ -5,7 +5,7 @@
   "children": [
     {
       "type": "field",
-      "label": "Extinction:",
+      "label": "Extinction",
       "children": [
         {
           "type": "spinner",

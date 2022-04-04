@@ -5,7 +5,7 @@
   "children": [
     {
       "type": "field",
-      "label": "Steps:",
+      "label": "Steps",
       "children": [
         {
           "type": "spinner",
@@ -17,7 +17,7 @@
     },
     {
       "type": "field",
-      "label": "Slices:",
+      "label": "Slices",
       "children": [
         {
           "type": "spinner",
@@ -29,7 +29,7 @@
     },
     {
       "type": "field",
-      "label": "Extinction:",
+      "label": "Extinction",
       "children": [
         {
           "type": "spinner",
@@ -43,7 +43,7 @@
     },
     {
       "type": "field",
-      "label": "Aperture (°):",
+      "label": "Aperture (°)",
       "children": [
         {
           "type": "spinner",
@@ -57,7 +57,7 @@
     },
     {
       "type": "field",
-      "label": "Occlusion samples:",
+      "label": "Occlusion samples",
       "children": [
         {
           "type": "spinner",

@@ -25,9 +25,9 @@ constructor(options) {
         step  : this.step
     };
 
-    this._spinnerX = new Spinner(opts);
-    this._spinnerY = new Spinner(opts);
-    this._spinnerZ = new Spinner(opts);
+    this._spinnerX = new Spinner({ ...opts, value: this.value.x });
+    this._spinnerY = new Spinner({ ...opts, value: this.value.y });
+    this._spinnerZ = new Spinner({ ...opts, value: this.value.z });
 
     this._spinnerX.appendTo(this._binds.vectorX);
     this._spinnerY.appendTo(this._binds.vectorY);

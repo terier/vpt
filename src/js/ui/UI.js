@@ -17,6 +17,7 @@
 // #link StatusBar
 // #link Tabs
 // #link Textbox
+// #link TransferFunction
 // #link VectorSpinner
 
 class UI {
@@ -40,6 +41,7 @@ static get CLASS_FROM_TYPE() {
         'status-bar'    : StatusBar,
         'tabs'          : Tabs,
         'textbox'       : Textbox,
+        'transfer-function' : TransferFunction,
         'vector'        : VectorSpinner,
     };
 }

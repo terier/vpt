@@ -5,7 +5,7 @@
   "children": [
     {
       "type": "field",
-      "label": "Slices:",
+      "label": "Slices",
       "children": [
         {
           "type": "spinner",
@@ -17,7 +17,7 @@
     },
     {
       "type": "field",
-      "label": "Extinction:",
+      "label": "Extinction",
       "children": [
         {
           "type": "spinner",

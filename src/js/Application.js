@@ -25,9 +25,6 @@ constructor() {
     document.body.addEventListener('drop', this._handleFileDrop);
 
     this._mainDialog = new MainDialog();
-    if (!this._renderingContext.hasComputeCapabilities()) {
-        this._mainDialog.disableMCC();
-    }
 
     this._statusBar = new StatusBar();
     this._statusBar.appendTo(document.body);
@@ -89,6 +86,29 @@ _handleFileDrop(e) {
     }));
 }
 
+_constructDialogFromProperties(object) {
+    const panel = {
+        type: 'panel',
+        children: [],
+    };
+    for (const property of object.properties) {
+        if (property.type === 'transfer-function') {
+            panel.children.push({
+                type: 'accordion',
+                label: property.label,
+                children: [{ ...property, bind: property.name }]
+            });
+        } else {
+            panel.children.push({
+                type: 'field',
+                label: property.label,
+                children: [{ ...property, bind: property.name }]
+            });
+        }
+    }
+    return UI.create(panel);
+}
+
 _handleRendererChange() {
     if (this._rendererDialog) {
         this._rendererDialog.destroy();
@@ -96,9 +116,15 @@ _handleRendererChange() {
     const which = this._mainDialog.getSelectedRenderer();
     this._renderingContext.chooseRenderer(which);
     const renderer = this._renderingContext.getRenderer();
-    const container = this._mainDialog.getRendererSettingsContainer();
-    const dialogClass = this._getDialogForRenderer(which);
-    this._rendererDialog = new dialogClass(renderer);
+    const { object, binds } = this._constructDialogFromProperties(renderer);
+    this._rendererDialog = object;
+    for (const name in binds) {
+        binds[name].addEventListener('change', e => {
+            renderer[name] = binds[name].getValue();
+            renderer.dispatchEvent(new CustomEvent('change', { detail: e.detail }));
+        });
+    }
+    const container = this._mainDialog.getRendererSettingsContainer()._element;
     this._rendererDialog.appendTo(container);
 }
 
@@ -109,9 +135,15 @@ _handleToneMapperChange() {
     const which = this._mainDialog.getSelectedToneMapper();
     this._renderingContext.chooseToneMapper(which);
     const toneMapper = this._renderingContext.getToneMapper();
-    const container = this._mainDialog.getToneMapperSettingsContainer();
-    const dialogClass = this._getDialogForToneMapper(which);
-    this._toneMapperDialog = new dialogClass(toneMapper);
+    const { object, binds } = this._constructDialogFromProperties(toneMapper);
+    this._toneMapperDialog = object;
+    for (const name in binds) {
+        binds[name].addEventListener('change', e => {
+            toneMapper[name] = binds[name].getValue();
+            toneMapper.dispatchEvent(new CustomEvent('change', { detail: e.detail }));
+        });
+    }
+    const container = this._mainDialog.getToneMapperSettingsContainer()._element;
     this._toneMapperDialog.appendTo(container);
 }
 
@@ -125,7 +157,7 @@ _handleVolumeLoad(e) {
                 width  : options.dimensions.x,
                 height : options.dimensions.y,
                 depth  : options.dimensions.z,
-                bits   : options.precision
+                bits   : options.precision,
             });
             this._renderingContext.stopRendering();
             this._renderingContext.setVolume(reader);
@@ -166,33 +198,6 @@ _getReaderForFileType(type) {
         case 'bvp'  : return BVPReader;
         case 'raw'  : return RAWReader;
         case 'zip'  : return ZIPReader;
-    }
-}
-
-_getDialogForRenderer(renderer) {
-    switch (renderer) {
-        case 'mip' : return MIPRendererDialog;
-        case 'iso' : return ISORendererDialog;
-        case 'eam' : return EAMRendererDialog;
-        case 'mcs' : return MCSRendererDialog;
-        case 'mcm' : return MCMRendererDialog;
-        case 'mcc' : return MCMRendererDialog; // yes, the same
-        case 'dos' : return DOSRendererDialog;
-    }
-}
-
-_getDialogForToneMapper(toneMapper) {
-    switch (toneMapper) {
-        case 'artistic'   : return ArtisticToneMapperDialog;
-        case 'range'      : return RangeToneMapperDialog;
-        case 'reinhard'   : return ReinhardToneMapperDialog;
-        case 'reinhard2'  : return Reinhard2ToneMapperDialog;
-        case 'uncharted2' : return Uncharted2ToneMapperDialog;
-        case 'filmic'     : return FilmicToneMapperDialog;
-        case 'unreal'     : return UnrealToneMapperDialog;
-        case 'aces'       : return AcesToneMapperDialog;
-        case 'lottes'     : return LottesToneMapperDialog;
-        case 'uchimura'   : return UchimuraToneMapperDialog;
     }
 }
 

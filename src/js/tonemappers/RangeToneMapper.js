@@ -8,10 +8,20 @@ class RangeToneMapper extends AbstractToneMapper {
 constructor(gl, texture, options) {
     super(gl, texture, options);
 
-    Object.assign(this, {
-        _min : 0,
-        _max : 1
-    }, options);
+    this.registerProperties([
+        {
+            name: 'min',
+            label: 'Min',
+            type: 'spinner',
+            value: 0,
+        },
+        {
+            name: 'max',
+            label: 'Max',
+            type: 'spinner',
+            value: 1,
+        },
+    ]);
 
     this._program = WebGL.buildPrograms(this._gl, {
         RangeToneMapper : SHADERS.RangeToneMapper
@@ -35,8 +45,8 @@ _renderFrame() {
     gl.bindTexture(gl.TEXTURE_2D, this._texture);
 
     gl.uniform1i(uniforms.uTexture, 0);
-    gl.uniform1f(uniforms.uMin, this._min);
-    gl.uniform1f(uniforms.uMax, this._max);
+    gl.uniform1f(uniforms.uMin, this.min);
+    gl.uniform1f(uniforms.uMax, this.max);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 }

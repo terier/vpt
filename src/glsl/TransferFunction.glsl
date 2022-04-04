@@ -1,4 +1,4 @@
-// #part /glsl/shaders/drawTransferFunction/vertex
+// #part /glsl/shaders/TransferFunction/vertex
 
 #version 300 es
 precision mediump float;
@@ -8,10 +8,10 @@ out vec2 vPosition;
 
 void main() {
     vPosition = aPosition * 0.5 + 0.5;
-    gl_Position = vec4(aPosition, 0.0, 1.0);
+    gl_Position = vec4(aPosition, 0, 1);
 }
 
-// #part /glsl/shaders/drawTransferFunction/fragment
+// #part /glsl/shaders/TransferFunction/fragment
 
 #version 300 es
 precision mediump float;
