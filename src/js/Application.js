@@ -120,8 +120,11 @@ _handleRendererChange() {
     this._rendererDialog = object;
     for (const name in binds) {
         binds[name].addEventListener('change', e => {
-            renderer[name] = binds[name].getValue();
-            renderer.dispatchEvent(new CustomEvent('change', { detail: e.detail }));
+            const value = binds[name].getValue();
+            renderer[name] = value;
+            renderer.dispatchEvent(new CustomEvent('change', {
+                detail: { name, value }
+            }));
         });
     }
     const container = this._mainDialog.getRendererSettingsContainer()._element;
@@ -139,8 +142,11 @@ _handleToneMapperChange() {
     this._toneMapperDialog = object;
     for (const name in binds) {
         binds[name].addEventListener('change', e => {
-            toneMapper[name] = binds[name].getValue();
-            toneMapper.dispatchEvent(new CustomEvent('change', { detail: e.detail }));
+            const value = binds[name].getValue();
+            toneMapper[name] = value;
+            toneMapper.dispatchEvent(new CustomEvent('change', {
+                detail: { name, value }
+            }));
         });
     }
     const container = this._mainDialog.getToneMapperSettingsContainer()._element;
