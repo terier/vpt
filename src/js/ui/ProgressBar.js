@@ -1,11 +1,12 @@
-// #part /js/ui/ProgressBar
+import { UIObject } from './UIObject.js';
 
-// #link UIObject
+const response = await fetch('./html/ui/ProgressBar.html');
+const template = await response.text();
 
-class ProgressBar extends UIObject {
+export class ProgressBar extends UIObject {
 
 constructor(options) {
-    super(TEMPLATES.ui.ProgressBar, options);
+    super(template, options);
 
     Object.assign(this, {
         progress: 0

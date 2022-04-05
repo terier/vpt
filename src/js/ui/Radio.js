@@ -1,12 +1,15 @@
-// #part /js/ui/Radio
+import { UIObject } from './UIObject.js';
+import { DOMUtils } from '../utils/DOMUtils.js';
 
-// #link ../utils
-// #link UIObject
+const [template, templateOption] = await Promise.all([
+    fetch('./html/ui/Radio.html'),
+    fetch('./html/ui/RadioOption.html'),
+].map(promise => promise.then(response => response.text())));
 
-class Radio extends UIObject {
+export class Radio extends UIObject {
 
 constructor(options) {
-    super(TEMPLATES.ui.Radio, options);
+    super(template, options);
 
     Object.assign(this, {
         options  : [],
@@ -23,7 +26,7 @@ constructor(options) {
 }
 
 addOption(value, label, selected) {
-    const option = DOMUtils.instantiate(TEMPLATES.ui.RadioOption);
+    const option = DOMUtils.instantiate(templateOption);
     let binds = DOMUtils.bind(option);
     binds.input.name = this._radioName;
     binds.input.value = value;

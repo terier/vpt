@@ -1,11 +1,12 @@
-// #part /js/ui/Slider
+import { UIObject } from './UIObject.js';
 
-// #link UIObject
+const response = await fetch('./html/ui/Slider.html');
+const template = await response.text();
 
-class Slider extends UIObject {
+export class Slider extends UIObject {
 
 constructor(options) {
-    super(TEMPLATES.ui.Slider, options);
+    super(template, options);
 
     Object.assign(this, {
         value       : 0,

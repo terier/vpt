@@ -1,6 +1,4 @@
-//#part /js/ResourceLoader
-
-class ResourceLoader {
+export class ResourceLoader {
 
 constructor(resources) {
     this.resources = resources;

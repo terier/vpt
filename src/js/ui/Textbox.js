@@ -1,11 +1,12 @@
-// #part /js/ui/Textbox
+import { UIObject } from './UIObject.js';
 
-// #link UIObject
+const response = await fetch('./html/ui/Textbox.html');
+const template = await response.text();
 
-class Textbox extends UIObject {
+export class Textbox extends UIObject {
 
 constructor(options) {
-    super(TEMPLATES.ui.Textbox, options);
+    super(template, options);
 
     Object.assign(this, {
         value       : null,

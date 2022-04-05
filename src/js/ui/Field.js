@@ -1,11 +1,12 @@
-// #part /js/ui/Field
+import { UIObject } from './UIObject.js';
 
-// #link UIObject
+const response = await fetch('./html/ui/Field.html');
+const template = await response.text();
 
-class Field extends UIObject {
+export class Field extends UIObject {
 
 constructor(options) {
-    super(TEMPLATES.ui.Field, options);
+    super(template, options);
 
     Object.assign(this, {
         label: ''

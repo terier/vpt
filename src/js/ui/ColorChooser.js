@@ -1,11 +1,12 @@
-// #part /js/ui/ColorChooser
+import { UIObject } from './UIObject.js';
 
-// #link UIObject
+const response = await fetch('./html/ui/ColorChooser.html');
+const template = await response.text();
 
-class ColorChooser extends UIObject {
+export class ColorChooser extends UIObject {
 
 constructor(options) {
-    super(TEMPLATES.ui.ColorChooser, options);
+    super(template, options);
 
     Object.assign(this, {
         value: null

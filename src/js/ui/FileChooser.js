@@ -1,11 +1,12 @@
-// #part /js/ui/FileChooser
+import { UIObject } from './UIObject.js';
 
-// #link UIObject
+const response = await fetch('./html/ui/FileChooser.html');
+const template = await response.text();
 
-class FileChooser extends UIObject {
+export class FileChooser extends UIObject {
 
 constructor(options) {
-    super(TEMPLATES.ui.FileChooser, options);
+    super(template, options);
 
     this._handleChange = this._handleChange.bind(this);
     this._handleClick = this._handleClick.bind(this);

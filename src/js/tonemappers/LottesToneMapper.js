@@ -1,9 +1,16 @@
-// #part /js/tonemappers/LottesToneMapper
+import { WebGL } from '../WebGL.js';
+import { AbstractToneMapper } from './AbstractToneMapper.js';
 
-// #link ../WebGL
-// #link AbstractToneMapper
+const [
+    vertex,
+    fragment,
+] = await Promise.all([
+    './glsl/shaders/tonemappers/LottesToneMapper/vertex',
+    './glsl/shaders/tonemappers/LottesToneMapper/fragment',
+]
+.map(url => fetch(url).then(response => response.text())));
 
-class LottesToneMapper extends AbstractToneMapper {
+export class LottesToneMapper extends AbstractToneMapper {
 
 constructor(gl, texture, options) {
     super(gl, texture, options);
@@ -19,8 +26,8 @@ constructor(gl, texture, options) {
     ]);
 
     this._program = WebGL.buildPrograms(this._gl, {
-        LottesToneMapper : SHADERS.LottesToneMapper
-    }, MIXINS).LottesToneMapper;
+        LottesToneMapper: { vertex, fragment }
+    }).LottesToneMapper;
 }
 
 destroy() {

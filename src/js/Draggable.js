@@ -1,6 +1,4 @@
-// #part /js/Draggable
-
-class Draggable {
+export class Draggable {
 
 constructor(element, handle) {
     this._handlePointerDown = this._handlePointerDown.bind(this);

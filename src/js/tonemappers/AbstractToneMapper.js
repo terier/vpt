@@ -1,9 +1,12 @@
-// #part /js/tonemappers/AbstractToneMapper
+import { PropertyBag } from '../PropertyBag.js';
+import { WebGL } from '../WebGL.js';
 
-// #link ../PropertyBag
-// #link ../WebGL
+const [vertex, fragment] = await Promise.all([
+    fetch('./glsl/shaders/quad/vertex').then(response => response.text()),
+    fetch('./glsl/shaders/quad/fragment').then(response => response.text()),
+]);
 
-class AbstractToneMapper extends PropertyBag {
+export class AbstractToneMapper extends PropertyBag {
 
 constructor(gl, texture, options) {
     super();
@@ -19,7 +22,7 @@ constructor(gl, texture, options) {
 
     this._clipQuad = WebGL.createClipQuad(gl);
     this._clipQuadProgram = WebGL.buildPrograms(gl, {
-        quad: SHADERS.quad
+        quad: { vertex, fragment }
     }).quad;
 }
 

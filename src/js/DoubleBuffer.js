@@ -1,8 +1,6 @@
-// #part /js/DoubleBuffer
+import { WebGL } from './WebGL.js';
 
-// #link WebGL
-
-class DoubleBuffer {
+export class DoubleBuffer {
 
 constructor(gl, spec) {
     this._gl = gl;

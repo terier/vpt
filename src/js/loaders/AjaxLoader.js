@@ -1,8 +1,6 @@
-// #part /js/loaders/AjaxLoader
+import { AbstractLoader } from './AbstractLoader.js';
 
-// #link AbstractLoader
-
-class AjaxLoader extends AbstractLoader {
+export class AjaxLoader extends AbstractLoader {
 
 constructor(url) {
     super();

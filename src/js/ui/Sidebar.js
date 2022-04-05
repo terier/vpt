@@ -1,11 +1,12 @@
-// #part /js/ui/Sidebar
+import { UIObject } from './UIObject.js';
 
-// #link UIObject
+const response = await fetch('./html/ui/Sidebar.html');
+const template = await response.text();
 
-class Sidebar extends UIObject {
+export class Sidebar extends UIObject {
 
 constructor(options) {
-    super(TEMPLATES.ui.Sidebar, options);
+    super(template, options);
 
     Object.assign(this, {
         contracted: false

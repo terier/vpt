@@ -1,6 +1,4 @@
-// #part /js/PropertyBag
-
-class PropertyBag extends EventTarget {
+export class PropertyBag extends EventTarget {
 
 constructor() {
     super();

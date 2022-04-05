@@ -1,11 +1,12 @@
-// #part /js/ui/Panel
+import { UIObject } from './UIObject.js';
 
-// #link UIObject
+const response = await fetch('./html/ui/Panel.html');
+const template = await response.text();
 
-class Panel extends UIObject {
+export class Panel extends UIObject {
 
 constructor(options) {
-    super(TEMPLATES.ui.Panel, options);
+    super(template, options);
 
     Object.assign(this, {
         scrollable: false

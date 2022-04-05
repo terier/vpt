@@ -1,9 +1,7 @@
-// #part /js/readers/BVPReader
+import { AbstractReader } from './AbstractReader.js';
+import { ZIPReader } from './ZIPReader.js';
 
-// #link AbstractReader
-// #link ZIPReader
-
-class BVPReader extends AbstractReader {
+export class BVPReader extends AbstractReader {
 
 constructor(loader) {
     super(loader);

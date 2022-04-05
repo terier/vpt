@@ -1,12 +1,16 @@
-// #part /js/renderers/AbstractRenderer
+import { PropertyBag } from '../PropertyBag.js';
+import { Matrix } from '../math/Matrix.js';
+import { WebGL } from '../WebGL.js';
+import { SingleBuffer } from '../SingleBuffer.js';
+import { DoubleBuffer } from '../DoubleBuffer.js';
 
-// #link ../PropertyBag
-// #link ../math
-// #link ../WebGL
-// #link ../SingleBuffer
-// #link ../DoubleBuffer
+const [vertex, fragment] = await Promise.all([
+    './glsl/shaders/quad/vertex',
+    './glsl/shaders/quad/fragment',
+]
+.map(url => fetch(url).then(response => response.text())));
 
-class AbstractRenderer extends PropertyBag {
+export class AbstractRenderer extends PropertyBag {
 
 constructor(gl, volume, environmentTexture, options) {
     super();
@@ -37,7 +41,7 @@ constructor(gl, volume, environmentTexture, options) {
 
     this._clipQuad = WebGL.createClipQuad(gl);
     this._clipQuadProgram = WebGL.buildPrograms(gl, {
-        quad: SHADERS.quad
+        quad: { vertex, fragment }
     }).quad;
 }
 

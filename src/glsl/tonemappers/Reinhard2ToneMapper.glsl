@@ -1,4 +1,4 @@
-// #part /glsl/shaders/Reinhard2ToneMapper/vertex
+// #part /glsl/shaders/tonemappers/Reinhard2ToneMapper/vertex
 
 #version 300 es
 
@@ -10,7 +10,7 @@ void main() {
     vPosition = aPosition * 0.5 + 0.5;
 }
 
-// #part /glsl/shaders/Reinhard2ToneMapper/fragment
+// #part /glsl/shaders/tonemappers/Reinhard2ToneMapper/fragment
 
 #version 300 es
 precision mediump float;

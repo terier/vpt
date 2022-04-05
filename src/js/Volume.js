@@ -1,8 +1,6 @@
-// #part /js/Volume
+import { WebGL } from './WebGL.js';
 
-// #link WebGL
-
-class Volume extends EventTarget {
+export class Volume extends EventTarget {
 
 constructor(gl, reader, options) {
     super();

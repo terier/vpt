@@ -1,15 +1,15 @@
-// #part /js/dialogs/MainDialog
+import { AbstractDialog } from './AbstractDialog.js';
+import { DOMUtils } from '../utils/DOMUtils.js';
 
-// #link ../utils
-// #link AbstractDialog
+const [aboutTemplate, spec] = await Promise.all([
+    fetch('./html/AboutText.html').then(response => response.text()),
+    fetch('./uispecs/MainDialog.json').then(response => response.json()),
+]);
 
-// #link /uispecs/MainDialog
-// #link /html/AboutText
-
-class MainDialog extends AbstractDialog {
+export class MainDialog extends AbstractDialog {
 
 constructor(options) {
-    super(UISPECS.MainDialog, options);
+    super(spec, options);
 
     this._handleRendererChange = this._handleRendererChange.bind(this);
     this._handleToneMapperChange = this._handleToneMapperChange.bind(this);
@@ -18,7 +18,7 @@ constructor(options) {
     this._binds.rendererSelect.addEventListener('change', this._handleRendererChange);
     this._binds.toneMapperSelect.addEventListener('change', this._handleToneMapperChange);
 
-    const about = DOMUtils.instantiate(TEMPLATES.AboutText);
+    const about = DOMUtils.instantiate(aboutTemplate);
     this._binds.about._element.appendChild(about);
 }
 

@@ -1,11 +1,12 @@
-// #part /js/ui/Spinner
+import { UIObject } from './UIObject.js';
 
-// #link UIObject
+const response = await fetch('./html/ui/Spinner.html');
+const template = await response.text();
 
-class Spinner extends UIObject {
+export class Spinner extends UIObject {
 
 constructor(options) {
-    super(TEMPLATES.ui.Spinner, options);
+    super(template, options);
 
     Object.assign(this, {
         value : 0,

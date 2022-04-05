@@ -1,6 +1,4 @@
-// #part /js/utils/CommonUtils
-
-class CommonUtils {
+export class CommonUtils {
 
 static downloadJSON(json, filename) {
     const str = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(json));

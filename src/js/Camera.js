@@ -1,8 +1,8 @@
-// #part /js/Camera
+import { Vector } from './math/Vector.js';
+import { Matrix } from './math/Matrix.js';
+import { Quaternion } from './math/Quaternion.js';
 
-// #link math
-
-class Camera {
+export class Camera {
 
 constructor(options) {
     Object.assign(this, {

@@ -1,9 +1,8 @@
-// #part /js/OrbitCameraController
+import { Vector } from './math/Vector.js';
+import { Quaternion } from './math/Quaternion.js';
+import { Ticker } from './Ticker.js';
 
-// #link math
-// #link Ticker
-
-class OrbitCameraController {
+export class OrbitCameraController {
 
 constructor(camera, domElement, options) {
     this._update = this._update.bind(this);

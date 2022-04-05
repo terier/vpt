@@ -1,13 +1,11 @@
-// #part /js/dialogs/RenderingContextDialog
+import { AbstractDialog } from './AbstractDialog.js';
 
-// #link AbstractDialog
+const spec = await fetch('./uispecs/RenderingContextDialog.json').then(response => response.json());
 
-// #link /uispecs/RenderingContextDialog
-
-class RenderingContextDialog extends AbstractDialog {
+export class RenderingContextDialog extends AbstractDialog {
 
 constructor(options) {
-    super(UISPECS.RenderingContextDialog, options);
+    super(spec, options);
 
     this._handleResolutionChange = this._handleResolutionChange.bind(this);
     this._handleTransformationChange = this._handleTransformationChange.bind(this);

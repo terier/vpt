@@ -1,9 +1,16 @@
-// #part /js/tonemappers/UnrealToneMapper
+import { WebGL } from '../WebGL.js';
+import { AbstractToneMapper } from './AbstractToneMapper.js';
 
-// #link ../WebGL
-// #link AbstractToneMapper
+const [
+    vertex,
+    fragment,
+] = await Promise.all([
+    './glsl/shaders/tonemappers/UnrealToneMapper/vertex',
+    './glsl/shaders/tonemappers/UnrealToneMapper/fragment',
+]
+.map(url => fetch(url).then(response => response.text())));
 
-class UnrealToneMapper extends AbstractToneMapper {
+export class UnrealToneMapper extends AbstractToneMapper {
 
 constructor(gl, texture, options) {
     super(gl, texture, options);
@@ -19,8 +26,8 @@ constructor(gl, texture, options) {
     ]);
 
     this._program = WebGL.buildPrograms(this._gl, {
-        UnrealToneMapper : SHADERS.UnrealToneMapper
-    }, MIXINS).UnrealToneMapper;
+        UnrealToneMapper: { vertex, fragment }
+    }).UnrealToneMapper;
 }
 
 destroy() {

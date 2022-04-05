@@ -1,11 +1,12 @@
-// #part /js/ui/Checkbox
+import { UIObject } from './UIObject.js';
 
-// #link UIObject
+const response = await fetch('./html/ui/Checkbox.html');
+const template = await response.text();
 
-class Checkbox extends UIObject {
+export class Checkbox extends UIObject {
 
 constructor(options) {
-    super(TEMPLATES.ui.Checkbox, options);
+    super(template, options);
 
     Object.assign(this, {
         checked : true

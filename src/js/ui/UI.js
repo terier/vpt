@@ -1,26 +1,24 @@
-// #part /js/ui/UI
+import { Accordion } from './Accordion.js';
+import { Button } from './Button.js';
+import { Checkbox } from './Checkbox.js';
+import { ColorChooser } from './ColorChooser.js';
+import { Dropdown } from './Dropdown.js';
+import { Field } from './Field.js';
+import { FileChooser } from './FileChooser.js';
+import { Panel } from './Panel.js';
+import { ProgressBar } from './ProgressBar.js';
+import { Radio } from './Radio.js';
+import { Sidebar } from './Sidebar.js';
+import { Slider } from './Slider.js';
+import { Spacer } from './Spacer.js';
+import { Spinner } from './Spinner.js';
+import { StatusBar } from './StatusBar.js';
+import { Tabs } from './Tabs.js';
+import { Textbox } from './Textbox.js';
+import { TransferFunction } from './TransferFunction.js';
+import { VectorSpinner } from './VectorSpinner.js';
 
-// #link Accordion
-// #link Button
-// #link Checkbox
-// #link ColorChooser
-// #link Dropdown
-// #link Field
-// #link FileChooser
-// #link Panel
-// #link ProgressBar
-// #link Radio
-// #link Sidebar
-// #link Slider
-// #link Spacer
-// #link Spinner
-// #link StatusBar
-// #link Tabs
-// #link Textbox
-// #link TransferFunction
-// #link VectorSpinner
-
-class UI {
+export class UI {
 
 static get CLASS_FROM_TYPE() {
     return {

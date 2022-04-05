@@ -1,18 +1,10 @@
-const VERSION = '1'; // Override with commit hash in production.
+const VERSION = '1'; // TODO: Override with commit hash in production.
 const PRECACHE = `precache-${VERSION}`;
 const RUNTIME = `runtime-${VERSION}`;
 
 const PRECACHE_URLS = [
   '/',
-  'index.html',
-  'js/main.js',
-  'css/main.css',
-  'glsl/shaders.json',
-  'glsl/mixins.json',
-  'images/favicon-16x16.png',
-  'images/favicon-32x32.png',
-  'images/favicon-64x64.png',
-  'images/favicon-96x96.png',
+  // TODO: generate list of static resources
 ];
 
 self.addEventListener('install', event => {

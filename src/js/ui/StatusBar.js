@@ -1,16 +1,19 @@
-// #part /js/ui/StatusBar
+import { UIObject } from './UIObject.js';
+import { DOMUtils } from '../utils/DOMUtils.js';
 
-// #link ../utils
-// #link UIObject
+const [template, templateLog] = await Promise.all([
+    fetch('./html/ui/StatusBar.html'),
+    fetch('./html/ui/StatusBarLog.html'),
+].map(promise => promise.then(response => response.text())));
 
-class StatusBar extends UIObject {
+export class StatusBar extends UIObject {
 
 constructor(options) {
-    super(TEMPLATES.ui.StatusBar, options);
+    super(template, options);
 }
 
 _log(text, level) {
-    const newLog = DOMUtils.instantiate(TEMPLATES.StatusBarLog);
+    const newLog = DOMUtils.instantiate(templateLog);
     const binds = DOMUtils.bind(newLog);
     binds.timestamp.textContent = new Date().toISOString();
     binds.content.textContent = text;

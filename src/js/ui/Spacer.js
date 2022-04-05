@@ -1,11 +1,12 @@
-// #part /js/ui/Spacer
+import { UIObject } from './UIObject.js';
 
-// #link UIObject
+const response = await fetch('./html/ui/Spacer.html');
+const template = await response.text();
 
-class Spacer extends UIObject {
+export class Spacer extends UIObject {
 
 constructor(options) {
-    super(TEMPLATES.ui.Spacer, options);
+    super(template, options);
 
     Object.assign(this, {
         width  : null,

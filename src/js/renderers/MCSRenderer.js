@@ -1,9 +1,28 @@
-// #part /js/renderers/MCSRenderer
+import { WebGL } from '../WebGL.js';
+import { AbstractRenderer } from './AbstractRenderer.js';
 
-// #link ../WebGL
-// #link AbstractRenderer
+const [
+    generateVertex,
+    generateFragment,
+    integrateVertex,
+    integrateFragment,
+    renderVertex,
+    renderFragment,
+    resetVertex,
+    resetFragment,
+] = await Promise.all([
+    './glsl/shaders/renderers/MCS/generate/vertex',
+    './glsl/shaders/renderers/MCS/generate/fragment',
+    './glsl/shaders/renderers/MCS/integrate/vertex',
+    './glsl/shaders/renderers/MCS/integrate/fragment',
+    './glsl/shaders/renderers/MCS/render/vertex',
+    './glsl/shaders/renderers/MCS/render/fragment',
+    './glsl/shaders/renderers/MCS/reset/vertex',
+    './glsl/shaders/renderers/MCS/reset/fragment',
+]
+.map(url => fetch(url).then(response => response.text())));
 
-class MCSRenderer extends AbstractRenderer {
+export class MCSRenderer extends AbstractRenderer {
 
 constructor(gl, volume, environmentTexture, options) {
     super(gl, volume, environmentTexture, options);
@@ -38,7 +57,12 @@ constructor(gl, volume, environmentTexture, options) {
         }
     });
 
-    this._programs = WebGL.buildPrograms(gl, SHADERS.renderers.MCS, MIXINS);
+    this._programs = WebGL.buildPrograms(gl, {
+        generate: { vertex: generateVertex, fragment: generateFragment },
+        integrate: { vertex: integrateVertex, fragment: integrateFragment },
+        render: { vertex: renderVertex, fragment: renderFragment },
+        reset: { vertex: resetVertex, fragment: resetFragment },
+    });
 
     this._frameNumber = 1;
 }

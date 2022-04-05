@@ -1,8 +1,6 @@
-// #part /js/ui/UIObject
+import { DOMUtils } from '../utils/DOMUtils.js';
 
-// #link ../utils
-
-class UIObject {
+export class UIObject {
 
 constructor(template, options) {
     Object.assign(this, {

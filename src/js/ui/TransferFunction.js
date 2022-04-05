@@ -1,19 +1,27 @@
-// #part /js/ui/TransferFunction
+import { UIObject } from './UIObject.js';
 
-// #link UIObject
+import { DOMUtils } from '../utils/DOMUtils.js';
+import { CommonUtils } from '../utils/CommonUtils.js';
+import { WebGL } from '../WebGL.js';
+import { Draggable } from '../Draggable.js';
 
-// #link ../utils
-// #link ../WebGL
-// #link ../Draggable
+const [
+    template,
+    templateBump,
+    vertex,
+    fragment,
+] = await Promise.all([
+    './html/ui/TransferFunction.html',
+    './html/ui/TransferFunctionBump.html',
+    './glsl/shaders/TransferFunction/vertex',
+    './glsl/shaders/TransferFunction/fragment',
+]
+.map(url => fetch(url).then(response => response.text())));
 
-// #link /html/ui/TransferFunction
-// #link /html/ui/TransferFunctionBump
-// #link /css/ui/TransferFunction
-
-class TransferFunction extends UIObject {
+export class TransferFunction extends UIObject {
 
 constructor(options) {
-    super(TEMPLATES.ui.TransferFunction, options);
+    super(template, options);
 
     this._onColorChange = this._onColorChange.bind(this);
 
@@ -43,8 +51,8 @@ constructor(options) {
 
     this._clipQuad = WebGL.createClipQuad(gl);
     this._program = WebGL.buildPrograms(gl, {
-        TransferFunction: SHADERS.TransferFunction
-    }, MIXINS).TransferFunction;
+        drawTransferFunction: shader,
+    }).drawTransferFunction;
     const program = this._program;
     gl.useProgram(program.program);
     gl.bindBuffer(gl.ARRAY_BUFFER, this._clipQuad);
@@ -169,7 +177,7 @@ _removeHandle(index) {
 }
 
 _addHandle(index) {
-    const handle = DOMUtils.instantiate(TEMPLATES.ui.TransferFunctionBump);
+    const handle = DOMUtils.instantiate(templateBump);
     this._element.querySelector('.widget').appendChild(handle);
     handle.dataset.index = index;
 

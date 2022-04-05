@@ -1,6 +1,4 @@
-// #part /js/utils/DOMUtils
-
-class DOMUtils {
+export class DOMUtils {
 
 static template(tmpl) {
     let div = document.createElement('div');

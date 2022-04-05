@@ -1,13 +1,11 @@
-// #part /js/dialogs/EnvmapLoadDialog
+import { AbstractDialog } from './AbstractDialog.js';
 
-// #link AbstractDialog
+const spec = await fetch('./uispecs/EnvmapLoadDialog.json').then(response => response.json());
 
-// #link /uispecs/EnvmapLoadDialog
-
-class EnvmapLoadDialog extends AbstractDialog {
+export class EnvmapLoadDialog extends AbstractDialog {
 
 constructor(options) {
-    super(UISPECS.EnvmapLoadDialog, options);
+    super(spec, options);
 
     this._handleTypeChange = this._handleTypeChange.bind(this);
     this._handleLoadClick = this._handleLoadClick.bind(this);

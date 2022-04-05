@@ -1,11 +1,12 @@
-// #part /js/ui/Tabs
+import { UIObject } from './UIObject.js';
 
-// #link UIObject
+const response = await fetch('./html/ui/Tabs.html');
+const template = await response.text();
 
-class Tabs extends UIObject {
+export class Tabs extends UIObject {
 
 constructor(options) {
-    super(TEMPLATES.ui.Tabs, options);
+    super(template, options);
 
     this._handleClick = this._handleClick.bind(this);
 

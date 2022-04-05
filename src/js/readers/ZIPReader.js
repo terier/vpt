@@ -1,8 +1,6 @@
-// #part /js/readers/ZIPReader
+import { AbstractReader } from './AbstractReader.js';
 
-// #link AbstractReader
-
-class ZIPReader extends AbstractReader {
+export class ZIPReader extends AbstractReader {
 
 constructor(loader) {
     super(loader);

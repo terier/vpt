@@ -1,13 +1,18 @@
-// #part /js/Application
+import { DOMUtils } from './utils/DOMUtils.js';
 
-// #link utils
-// #link readers
-// #link loaders
-// #link dialogs
-// #link ui
-// #link RenderingContext
+import { StatusBar } from './ui/StatusBar.js';
 
-class Application {
+import { LoaderFactory } from './loaders/LoaderFactory.js';
+import { ReaderFactory } from './readers/ReaderFactory.js';
+
+import { MainDialog } from './dialogs/MainDialog.js';
+import { VolumeLoadDialog } from './dialogs/VolumeLoadDialog.js';
+import { EnvmapLoadDialog } from './dialogs/EnvmapLoadDialog.js';
+
+import { RenderingContext } from './RenderingContext.js';
+import { RenderingContextDialog } from './dialogs/RenderingContextDialog.js';
+
+export class Application {
 
 constructor() {
     this._handleFileDrop = this._handleFileDrop.bind(this);
@@ -156,9 +161,10 @@ _handleToneMapperChange() {
 _handleVolumeLoad(e) {
     const options = e.detail;
     if (options.type === 'file') {
-        const readerClass = this._getReaderForFileType(options.filetype);
+        const readerClass = ReaderFactory(options.filetype);
         if (readerClass) {
-            const loader = new BlobLoader(options.file);
+            const loaderClass = LoaderFactory('blob');
+            const loader = new loaderClass(options.file);
             const reader = new readerClass(loader, {
                 width  : options.dimensions.x,
                 height : options.dimensions.y,
@@ -171,7 +177,8 @@ _handleVolumeLoad(e) {
     } else if (options.type === 'url') {
         const readerClass = this._getReaderForFileType(options.filetype);
         if (readerClass) {
-            const loader = new AjaxLoader(options.url);
+            const loaderClass = LoaderFactory('ajax');
+            const loader = new loaderClass(options.url);
             const reader = new readerClass(loader);
             this._renderingContext.stopRendering();
             this._renderingContext.setVolume(reader);
@@ -196,14 +203,6 @@ _handleEnvmapLoad(e) {
         reader.readAsDataURL(options.file);
     } else if (options.type === 'url') {
         image.src = options.url;
-    }
-}
-
-_getReaderForFileType(type) {
-    switch (type) {
-        case 'bvp'  : return BVPReader;
-        case 'raw'  : return RAWReader;
-        case 'zip'  : return ZIPReader;
     }
 }
 

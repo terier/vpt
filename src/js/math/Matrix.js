@@ -1,8 +1,6 @@
-// #part /js/math/Matrix
+import { Quaternion } from './Quaternion.js';
 
-// #link Quaternion
-
-class Matrix {
+export class Matrix {
 
 constructor(data) {
     this.m = new Float32Array(16);

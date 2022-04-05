@@ -1,8 +1,6 @@
-// #part /js/dialogs/AbstractDialog
+import { UI } from '../ui/UI.js';
 
-// #link ../ui
-
-class AbstractDialog extends EventTarget {
+export class AbstractDialog extends EventTarget {
 
 constructor(spec, options) {
     super();
@@ -13,7 +11,7 @@ constructor(spec, options) {
 
     this._spec = spec;
 
-    const creation = UI.create(JSON.parse(this._spec));
+    const creation = UI.create(this._spec);
     this._object = creation.object;
     this._binds = creation.binds;
 }

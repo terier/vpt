@@ -1,13 +1,12 @@
-// #part /js/ui/Accordion
+import { UIObject } from './UIObject.js';
 
-// #link UIObject
+const response = await fetch('./html/ui/Accordion.html');
+const template = await response.text();
 
-// #link /html/ui/Accordion
-
-class Accordion extends UIObject {
+export class Accordion extends UIObject {
 
 constructor(options) {
-    super(TEMPLATES.ui.Accordion, options);
+    super(template, options);
 
     Object.assign(this, {
         label      : '',

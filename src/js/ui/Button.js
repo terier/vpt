@@ -1,11 +1,12 @@
-// #part /js/ui/Button
+import { UIObject } from './UIObject.js';
 
-// #link UIObject
+const response = await fetch('./html/ui/Button.html');
+const template = await response.text();
 
-class Button extends UIObject {
+export class Button extends UIObject {
 
 constructor(options) {
-    super(TEMPLATES.ui.Button, options);
+    super(template, options);
 
     Object.assign(this, {
         label: ''

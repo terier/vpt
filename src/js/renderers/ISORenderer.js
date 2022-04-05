@@ -1,10 +1,28 @@
-// #part /js/renderers/ISORenderer
+import { WebGL } from '../WebGL.js';
+import { AbstractRenderer } from './AbstractRenderer.js';
 
-// #link ../WebGL
-// #link AbstractRenderer
-// #link ../utils
+const [
+    generateVertex,
+    generateFragment,
+    integrateVertex,
+    integrateFragment,
+    renderVertex,
+    renderFragment,
+    resetVertex,
+    resetFragment,
+] = await Promise.all([
+    './glsl/shaders/renderers/ISO/generate/vertex',
+    './glsl/shaders/renderers/ISO/generate/fragment',
+    './glsl/shaders/renderers/ISO/integrate/vertex',
+    './glsl/shaders/renderers/ISO/integrate/fragment',
+    './glsl/shaders/renderers/ISO/render/vertex',
+    './glsl/shaders/renderers/ISO/render/fragment',
+    './glsl/shaders/renderers/ISO/reset/vertex',
+    './glsl/shaders/renderers/ISO/reset/fragment',
+]
+.map(url => fetch(url).then(response => response.text())));
 
-class ISORenderer extends AbstractRenderer {
+export class ISORenderer extends AbstractRenderer {
 
 constructor(gl, volume, environmentTexture, options) {
     super(gl, volume, environmentTexture, options);
@@ -49,7 +67,12 @@ constructor(gl, volume, environmentTexture, options) {
         }
     });
 
-    this._programs = WebGL.buildPrograms(this._gl, SHADERS.renderers.ISO, MIXINS);
+    this._programs = WebGL.buildPrograms(this._gl, {
+        generate: { vertex: generateVertex, fragment: generateFragment },
+        integrate: { vertex: integrateVertex, fragment: integrateFragment },
+        render: { vertex: renderVertex, fragment: renderFragment },
+        reset: { vertex: resetVertex, fragment: resetFragment },
+    });
 }
 
 destroy() {

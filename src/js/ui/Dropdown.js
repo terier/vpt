@@ -1,11 +1,12 @@
-// #part /js/ui/Dropdown
+import { UIObject } from './UIObject.js';
 
-// #link UIObject
+const response = await fetch('./html/ui/Dropdown.html');
+const template = await response.text();
 
-class Dropdown extends UIObject {
+export class Dropdown extends UIObject {
 
 constructor(options) {
-    super(TEMPLATES.ui.Dropdown, options);
+    super(template, options);
 
     Object.assign(this, {
         options: []

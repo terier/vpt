@@ -1,8 +1,6 @@
-// #part /js/loaders/BlobLoader
+import { AbstractLoader } from './AbstractLoader.js';
 
-// #link AbstractLoader
-
-class BlobLoader extends AbstractLoader {
+export class BlobLoader extends AbstractLoader {
 
 constructor(blob) {
     super();

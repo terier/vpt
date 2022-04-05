@@ -1,9 +1,16 @@
-// #part /js/tonemappers/Reinhard2ToneMapper
+import { WebGL } from '../WebGL.js';
+import { AbstractToneMapper } from './AbstractToneMapper.js';
 
-// #link ../WebGL
-// #link AbstractToneMapper
+const [
+    vertex,
+    fragment,
+] = await Promise.all([
+    './glsl/shaders/tonemappers/Reinhard2ToneMapper/vertex',
+    './glsl/shaders/tonemappers/Reinhard2ToneMapper/fragment',
+]
+.map(url => fetch(url).then(response => response.text())));
 
-class Reinhard2ToneMapper extends AbstractToneMapper {
+export class Reinhard2ToneMapper extends AbstractToneMapper {
 
 constructor(gl, texture, options) {
     super(gl, texture, options);
@@ -19,8 +26,8 @@ constructor(gl, texture, options) {
     ]);
 
     this._program = WebGL.buildPrograms(this._gl, {
-        Reinhard2ToneMapper : SHADERS.Reinhard2ToneMapper
-    }, MIXINS).Reinhard2ToneMapper;
+        Reinhard2ToneMapper: { vertex, fragment }
+    }).Reinhard2ToneMapper;
 }
 
 destroy() {

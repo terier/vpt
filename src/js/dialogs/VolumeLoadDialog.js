@@ -1,13 +1,11 @@
-// #part /js/dialogs/VolumeLoadDialog
+import { AbstractDialog } from './AbstractDialog.js';
 
-// #link AbstractDialog
+const spec = await fetch('./uispecs/VolumeLoadDialog.json').then(response => response.json());
 
-// #link /uispecs/VolumeLoadDialog
-
-class VolumeLoadDialog extends AbstractDialog {
+export class VolumeLoadDialog extends AbstractDialog {
 
 constructor(options) {
-    super(UISPECS.VolumeLoadDialog, options);
+    super(spec, options);
 
     this._handleTypeChange = this._handleTypeChange.bind(this);
     this._handleLoadClick = this._handleLoadClick.bind(this);
