@@ -39,21 +39,18 @@ static bind(object, { prefix = '', suffix = 'Listener'} = {}) {
 }
 
 static hex2rgb(str) {
-    return {
-        r: parseInt(str.substring(1, 3), 16) / 255,
-        g: parseInt(str.substring(3, 5), 16) / 255,
-        b: parseInt(str.substring(5, 7), 16) / 255
-    };
+    return [
+        parseInt(str.substring(1, 3), 16) / 255,
+        parseInt(str.substring(3, 5), 16) / 255,
+        parseInt(str.substring(5, 7), 16) / 255,
+    ];
 }
 
-static rgb2hex(r, g, b) {
-    r = Number(Math.floor(r * 255)).toString(16);
-    g = Number(Math.floor(g * 255)).toString(16);
-    b = Number(Math.floor(b * 255)).toString(16);
-    r = r.length < 2 ? "0" + r : r;
-    g = g.length < 2 ? "0" + g : g;
-    b = b.length < 2 ? "0" + b : b;
-    return "#" + r + g + b;
+static rgb2hex(rgb) {
+    const strings = rgb
+        .map(x => Math.floor(x * 255).toString(16))
+        .map(x => x.length < 2 ? `0${x}` : x);
+    return `#${strings.join('')}`;
 }
 
 }

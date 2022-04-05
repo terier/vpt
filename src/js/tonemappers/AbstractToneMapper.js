@@ -1,10 +1,13 @@
 // #part /js/tonemappers/AbstractToneMapper
 
+// #link ../PropertyBag
 // #link ../WebGL
 
-class AbstractToneMapper {
+class AbstractToneMapper extends PropertyBag {
 
 constructor(gl, texture, options) {
+    super();
+
     Object.assign(this, {
         _bufferSize : 512
     }, options);
@@ -77,7 +80,7 @@ _getRenderBufferSpec() {
         wrapT          : gl.CLAMP_TO_EDGE,
         format         : gl.RGBA,
         internalFormat : gl.RGBA,
-        type           : gl.UNSIGNED_BYTE
+        type           : gl.UNSIGNED_BYTE,
     }];
 }
 

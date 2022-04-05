@@ -42,4 +42,8 @@ appendTo(object) {
     object.add(this._object);
 }
 
+trigger(event, detail) {
+    this.dispatchEvent(new CustomEvent(event, { detail }));
+}
+
 }

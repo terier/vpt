@@ -8,10 +8,35 @@ class MCSRenderer extends AbstractRenderer {
 constructor(gl, volume, environmentTexture, options) {
     super(gl, volume, environmentTexture, options);
 
-    Object.assign(this, {
-        _sigmaMax        : 1,
-        _alphaCorrection : 1,
-    }, options);
+    this.registerProperties([
+        {
+            name: 'extinction',
+            label: 'Extinction',
+            type: 'spinner',
+            value: 1,
+            min: 0,
+        },
+        {
+            name: 'transferFunction',
+            label: 'Transfer function',
+            type: 'transfer-function',
+            value: new Uint8Array(256),
+        },
+    ]);
+
+    this.addEventListener('change', e => {
+        const { name, value } = e.detail;
+
+        if (name === 'transferFunction') {
+            this.setTransferFunction(this.transferFunction);
+        }
+
+        if ([
+            'extinction',
+        ].includes(name)) {
+            this.reset();
+        }
+    });
 
     this._programs = WebGL.buildPrograms(gl, SHADERS.renderers.MCS, MIXINS);
 
@@ -57,8 +82,8 @@ _generateFrame() {
     const mvpit = this.calculateMVPInverseTranspose();
     gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, mvpit.m);
     gl.uniform1f(uniforms.uOffset, Math.random());
-    gl.uniform1f(uniforms.uSigmaMax, this._sigmaMax);
-    gl.uniform1f(uniforms.uAlphaCorrection, this._alphaCorrection);
+    gl.uniform1f(uniforms.uSigmaMax, this.extinction);
+    gl.uniform1f(uniforms.uAlphaCorrection, this.extinction);
 
     // scattering direction
     let x, y, z, length;
@@ -119,7 +144,7 @@ _getFrameBufferSpec() {
         mag            : gl.NEAREST,
         format         : gl.RGBA,
         internalFormat : gl.RGBA32F,
-        type           : gl.FLOAT
+        type           : gl.FLOAT,
     }];
 }
 
@@ -132,7 +157,7 @@ _getAccumulationBufferSpec() {
         mag            : gl.NEAREST,
         format         : gl.RGBA,
         internalFormat : gl.RGBA32F,
-        type           : gl.FLOAT
+        type           : gl.FLOAT,
     }];
 }
 

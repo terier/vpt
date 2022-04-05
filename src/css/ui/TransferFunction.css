@@ -1,23 +1,23 @@
-/* #part /css/TransferFunctionWidget */
+/* #part /css/ui/TransferFunction */
 
-.transfer-function-widget .widget {
+.transfer-function .widget {
     overflow: hidden;
     line-height: 0;
     display: inline-block;
     position: relative;
 }
 
-.transfer-function-widget canvas {
+.transfer-function canvas {
     background: url('../images/alpha-checkerboard.png') repeat;
 }
 
-.transfer-function-widget .bump {
+.transfer-function .bump {
     width: 0;
     height: 0;
     position: absolute;
 }
 
-.transfer-function-widget .bump .bump-handle {
+.transfer-function .bump .bump-handle {
     box-sizing: border-box;
     border: 2px solid black;
     border-radius: 5px;
@@ -28,7 +28,7 @@
     left: -5px;
 }
 
-.transfer-function-widget .bump.selected .bump-handle {
+.transfer-function .bump.selected .bump-handle {
     border: 4px solid orange;
     border-radius: 7px;
     width: 14px;

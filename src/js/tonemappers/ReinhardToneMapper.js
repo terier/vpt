@@ -8,7 +8,15 @@ class ReinhardToneMapper extends AbstractToneMapper {
 constructor(gl, texture, options) {
     super(gl, texture, options);
 
-    this.exposure = 1;
+    this.registerProperties([
+        {
+            name: 'exposure',
+            label: 'Exposure',
+            type: 'spinner',
+            value: 1,
+            min: 0,
+        }
+    ]);
 
     this._program = WebGL.buildPrograms(this._gl, {
         ReinhardToneMapper : SHADERS.ReinhardToneMapper

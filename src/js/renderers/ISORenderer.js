@@ -2,18 +2,52 @@
 
 // #link ../WebGL
 // #link AbstractRenderer
+// #link ../utils
 
 class ISORenderer extends AbstractRenderer {
 
 constructor(gl, volume, environmentTexture, options) {
     super(gl, volume, environmentTexture, options);
 
-    Object.assign(this, {
-        _stepSize : 0.05,
-        _isovalue : 0.4,
-        _light    : [0.5, 0.5, 0.5],
-        _diffuse  : [0.7, 0.8, 0.9]
-    }, options);
+    this.registerProperties([
+        {
+            name: 'steps',
+            label: 'Steps',
+            type: 'spinner',
+            value: 50,
+            min: 1,
+        },
+        {
+            name: 'isovalue',
+            label: 'Isovalue',
+            type: 'slider',
+            value: 0.5,
+            min: 0,
+            max: 1,
+        },
+        {
+            name: 'light',
+            label: 'Light direction',
+            type: 'vector',
+            value: { x: 0, y: 0, z: -1 },
+        },
+        {
+            name: 'color',
+            label: 'Diffuse color',
+            type: 'color-chooser',
+            value: '#ffffff',
+        },
+    ]);
+
+    this.addEventListener('change', e => {
+        const { name, value } = e.detail;
+
+        if ([
+            'isovalue',
+        ].includes(name)) {
+            this.reset();
+        }
+    });
 
     this._programs = WebGL.buildPrograms(this._gl, SHADERS.renderers.ISO, MIXINS);
 }
@@ -49,9 +83,9 @@ _generateFrame() {
 
     gl.uniform1i(uniforms.uClosest, 0);
     gl.uniform1i(uniforms.uVolume, 1);
-    gl.uniform1f(uniforms.uStepSize, this._stepSize);
+    gl.uniform1f(uniforms.uStepSize, 1 / this.steps);
     gl.uniform1f(uniforms.uOffset, Math.random());
-    gl.uniform1f(uniforms.uIsovalue, this._isovalue);
+    gl.uniform1f(uniforms.uIsovalue, this.isovalue);
     const mvpit = this.calculateMVPInverseTranspose();
     gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, mvpit.m);
 
@@ -88,8 +122,8 @@ _renderFrame() {
 
     gl.uniform1i(uniforms.uClosest, 0);
     gl.uniform1i(uniforms.uVolume, 1);
-    gl.uniform3fv(uniforms.uLight, this._light);
-    gl.uniform3fv(uniforms.uDiffuse, this._diffuse);
+    gl.uniform3fv(uniforms.uLight, [this.light.x, this.light.y, this.light.z]);
+    gl.uniform3fv(uniforms.uDiffuse, CommonUtils.hex2rgb(this.color));
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 }
@@ -103,7 +137,7 @@ _getFrameBufferSpec() {
         mag            : gl.NEAREST,
         format         : gl.RGBA,
         internalFormat : gl.RGBA16F,
-        type           : gl.FLOAT
+        type           : gl.FLOAT,
     }];
 }
 
@@ -116,7 +150,7 @@ _getAccumulationBufferSpec() {
         mag            : gl.NEAREST,
         format         : gl.RGBA,
         internalFormat : gl.RGBA16F,
-        type           : gl.FLOAT
+        type           : gl.FLOAT,
     }];
 }
 

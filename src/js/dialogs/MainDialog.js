@@ -58,8 +58,4 @@ _handleToneMapperChange() {
     this.dispatchEvent(new Event('tonemapperchange'));
 }
 
-disableMCC() {
-    this._binds.rendererSelect.removeOption('mcc');
-}
-
 }

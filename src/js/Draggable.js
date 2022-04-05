@@ -3,25 +3,25 @@
 class Draggable {
 
 constructor(element, handle) {
-    this._handleMouseDown = this._handleMouseDown.bind(this);
-    this._handleMouseUp = this._handleMouseUp.bind(this);
-    this._handleMouseMove = this._handleMouseMove.bind(this);
+    this._handlePointerDown = this._handlePointerDown.bind(this);
+    this._handlePointerUp = this._handlePointerUp.bind(this);
+    this._handlePointerMove = this._handlePointerMove.bind(this);
 
     this._element = element;
     this._handle = handle;
     this._startX = 0;
     this._startY = 0;
 
-    this._handle.addEventListener('mousedown', this._handleMouseDown);
+    this._handle.addEventListener('pointerdown', this._handlePointerDown);
 }
 
-_handleMouseDown(e) {
+_handlePointerDown(e) {
     this._startX = e.pageX;
     this._startY = e.pageY;
 
-    document.addEventListener('mousemove', this._handleMouseMove);
-    document.addEventListener('mouseup', this._handleMouseUp);
-    this._handle.removeEventListener('mousedown', this._handleMouseDown);
+    document.addEventListener('pointermove', this._handlePointerMove);
+    document.addEventListener('pointerup', this._handlePointerUp);
+    this._handle.removeEventListener('pointerdown', this._handlePointerDown);
 
     const event = new CustomEvent('draggablestart', {
         detail: {
@@ -32,10 +32,10 @@ _handleMouseDown(e) {
     this._element.dispatchEvent(event);
 }
 
-_handleMouseUp(e) {
-    document.removeEventListener('mousemove', this._handleMouseMove);
-    document.removeEventListener('mouseup', this._handleMouseUp);
-    this._handle.addEventListener('mousedown', this._handleMouseDown);
+_handlePointerUp(e) {
+    document.removeEventListener('pointermove', this._handlePointerMove);
+    document.removeEventListener('pointerup', this._handlePointerUp);
+    this._handle.addEventListener('pointerdown', this._handlePointerDown);
 
     const event = new CustomEvent('draggableend', {
         detail: {
@@ -46,7 +46,7 @@ _handleMouseUp(e) {
     this._element.dispatchEvent(event);
 }
 
-_handleMouseMove(e) {
+_handlePointerMove(e) {
     const dx = e.pageX - this._startX;
     const dy = e.pageY - this._startY;
     const x = this._element.offsetLeft;

@@ -5,7 +5,7 @@
   "children": [
     {
       "type": "field",
-      "label": "Type:",
+      "label": "Type",
       "children": [
         {
           "type": "dropdown",
@@ -35,7 +35,7 @@
       "children": [
         {
           "type": "field",
-          "label": "File:",
+          "label": "File",
           "children": [
             {
               "type": "file-chooser",
@@ -52,7 +52,7 @@
       "children": [
         {
           "type": "field",
-          "label": "URL:",
+          "label": "URL",
           "children": [
             {
               "type": "textbox",
@@ -70,7 +70,7 @@
       "children": [
         {
           "type": "field",
-          "label": "File:",
+          "label": "File",
           "children": [
             {
               "type": "dropdown",

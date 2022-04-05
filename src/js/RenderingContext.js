@@ -24,6 +24,8 @@ constructor(options) {
     }, options);
 
     this._canvas = document.createElement('canvas');
+    this._canvas.width = this._resolution;
+    this._canvas.height = this._resolution;
     this._canvas.addEventListener('webglcontextlost', this._webglcontextlostHandler);
     this._canvas.addEventListener('webglcontextrestored', this._webglcontextrestoredHandler);
 
@@ -57,14 +59,8 @@ _initGL() {
 
     this._contextRestorable = true;
 
-    this._gl = this._canvas.getContext('webgl2-compute', contextSettings);
-    if (this._gl) {
-        this._hasCompute = true;
-    } else {
-        this._hasCompute = false;
-        this._gl = this._canvas.getContext('webgl2', contextSettings);
-    }
-    const gl = this._gl;
+    const gl = this._gl = this._canvas.getContext('webgl2', contextSettings);
+
     this._extLoseContext = gl.getExtension('WEBGL_lose_context');
     this._extColorBufferFloat = gl.getExtension('EXT_color_buffer_float');
     this._extTextureFloatLinear = gl.getExtension('OES_texture_float_linear');
@@ -89,7 +85,7 @@ _initGL() {
         wrapS          : gl.CLAMP_TO_EDGE,
         wrapT          : gl.CLAMP_TO_EDGE,
         min            : gl.LINEAR,
-        max            : gl.LINEAR
+        max            : gl.LINEAR,
     });
 
     this._program = WebGL.buildPrograms(gl, {
@@ -151,7 +147,9 @@ chooseRenderer(renderer) {
         this._renderer.destroy();
     }
     const rendererClass = this._getRendererClass(renderer);
-    this._renderer = new rendererClass(this._gl, this._volume, this._environmentTexture);
+    this._renderer = new rendererClass(this._gl, this._volume, this._environmentTexture, {
+        _bufferSize: this._resolution,
+    });
     if (this._toneMapper) {
         this._toneMapper.setTexture(this._renderer.getTexture());
     }
@@ -174,7 +172,9 @@ chooseToneMapper(toneMapper) {
         });
     }
     const toneMapperClass = this._getToneMapperClass(toneMapper);
-    this._toneMapper = new toneMapperClass(gl, texture);
+    this._toneMapper = new toneMapperClass(gl, texture, {
+        _bufferSize: this._resolution,
+    });
 }
 
 getCanvas() {
@@ -271,6 +271,9 @@ getResolution() {
 }
 
 setResolution(resolution) {
+    this._resolution = resolution;
+    this._canvas.width = resolution;
+    this._canvas.height = resolution;
     if (this._renderer) {
         this._renderer.setResolution(resolution);
     }
@@ -290,10 +293,6 @@ stopRendering() {
     Ticker.remove(this._render);
 }
 
-hasComputeCapabilities() {
-    return this._hasCompute;
-}
-
 _getRendererClass(renderer) {
     switch (renderer) {
         case 'mip' : return MIPRenderer;
@@ -301,7 +300,6 @@ _getRendererClass(renderer) {
         case 'eam' : return EAMRenderer;
         case 'mcs' : return MCSRenderer;
         case 'mcm' : return MCMRenderer;
-        case 'mcc' : return MCCRenderer;
         case 'dos' : return DOSRenderer;
     }
 }
