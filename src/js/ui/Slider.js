@@ -15,20 +15,20 @@ constructor(options) {
         logarithmic : false
     }, options);
 
-    this._handleMouseDown = this._handleMouseDown.bind(this);
-    this._handleMouseUp   = this._handleMouseUp.bind(this);
-    this._handleMouseMove = this._handleMouseMove.bind(this);
+    this._handlePointerDown = this._handlePointerDown.bind(this);
+    this._handlePointerUp   = this._handlePointerUp.bind(this);
+    this._handlePointerMove = this._handlePointerMove.bind(this);
     this._handleWheel     = this._handleWheel.bind(this);
 
     this._updateUI();
 
-    this._element.addEventListener('mousedown', this._handleMouseDown);
+    this._element.addEventListener('pointerdown', this._handlePointerDown);
     this._element.addEventListener('wheel', this._handleWheel);
 }
 
 destroy() {
-    document.removeEventListener('mouseup', this._handleMouseUp);
-    document.removeEventListener('mousemove', this._handleMouseMove);
+    document.removeEventListener('pointerup', this._handlePointerUp);
+    document.removeEventListener('pointermove', this._handlePointerMove);
 
     super.destroy();
 }
@@ -69,19 +69,19 @@ _setValueByEvent(e) {
     }
 }
 
-_handleMouseDown(e) {
-    document.addEventListener('mouseup', this._handleMouseUp);
-    document.addEventListener('mousemove', this._handleMouseMove);
+_handlePointerDown(e) {
+    document.addEventListener('pointerup', this._handlePointerUp);
+    document.addEventListener('pointermove', this._handlePointerMove);
     this._setValueByEvent(e);
 }
 
-_handleMouseUp(e) {
-    document.removeEventListener('mouseup', this._handleMouseUp);
-    document.removeEventListener('mousemove', this._handleMouseMove);
+_handlePointerUp(e) {
+    document.removeEventListener('pointerup', this._handlePointerUp);
+    document.removeEventListener('pointermove', this._handlePointerMove);
     this._setValueByEvent(e);
 }
 
-_handleMouseMove(e) {
+_handlePointerMove(e) {
     this._setValueByEvent(e);
 }
 

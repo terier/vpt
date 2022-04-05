@@ -188,11 +188,11 @@ _addHandle(index) {
         this.render();
         this.trigger('change');
     });
-    handle.addEventListener('mousedown', e => {
+    handle.addEventListener('pointerdown', e => {
         const i = parseInt(e.currentTarget.dataset.index);
         this.selectBump(i);
     });
-    handle.addEventListener('mousewheel', e => {
+    handle.addEventListener('wheel', e => {
         const amount = e.deltaY * this.scaleSpeed;
         const scale = Math.exp(-amount);
         const i = parseInt(e.currentTarget.dataset.index);
