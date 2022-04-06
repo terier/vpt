@@ -53,7 +53,7 @@
                 {
                   "type": "vector",
                   "bind": "dimensions",
-                  "value": 128,
+                  "value": { "x": 128, "y": 128, "z": 128 },
                   "min": 1
                 }
               ]
