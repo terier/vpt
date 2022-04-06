@@ -11,14 +11,10 @@ import { Volume } from './Volume.js';
 import { RendererFactory } from './renderers/RendererFactory.js';
 import { ToneMapperFactory } from './tonemappers/ToneMapperFactory.js';
 
-const [
-    vertex,
-    fragment,
-] = await Promise.all([
-    'glsl/shaders/quad/vertex',
-    'glsl/shaders/quad/fragment',
-]
-.map(url => fetch(url).then(response => response.text())));
+const [ SHADERS, MIXINS ] = await Promise.all([
+    'shaders.json',
+    'mixins.json',
+].map(url => fetch(url).then(response => response.json())));
 
 export class RenderingContext extends EventTarget {
 
@@ -100,8 +96,8 @@ _initGL() {
     });
 
     this._program = WebGL.buildPrograms(gl, {
-        quad: { vertex, fragment }
-    }).quad;
+        quad: SHADERS.quad
+    }, MIXINS).quad;
 
     this._clipQuad = WebGL.createClipQuad(gl);
 }

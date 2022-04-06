@@ -1,14 +1,10 @@
 import { WebGL } from '../WebGL.js';
 import { AbstractToneMapper } from './AbstractToneMapper.js';
 
-const [
-    vertex,
-    fragment,
-] = await Promise.all([
-    './glsl/shaders/tonemappers/AcesToneMapper/vertex',
-    './glsl/shaders/tonemappers/AcesToneMapper/fragment',
-]
-.map(url => fetch(url).then(response => response.text())));
+const [ SHADERS, MIXINS ] = await Promise.all([
+    'shaders.json',
+    'mixins.json',
+].map(url => fetch(url).then(response => response.json())));
 
 export class AcesToneMapper extends AbstractToneMapper {
 
@@ -25,9 +21,9 @@ constructor(gl, texture, options) {
         }
     ]);
 
-    this._program = WebGL.buildPrograms(this._gl, {
-        AcesToneMapper: { vertex, fragment }
-    }).AcesToneMapper;
+    this._program = WebGL.buildPrograms(gl, {
+        AcesToneMapper: SHADERS.tonemappers.AcesToneMapper
+    }, MIXINS).AcesToneMapper;
 }
 
 destroy() {

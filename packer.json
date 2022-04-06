@@ -2,7 +2,7 @@
     "input": [
         {
             "input": "src",
-            "output": "/",
+            "output": "/static",
             "filter": "\\.(js|html|css|json)$",
             "recursive": true
         },
@@ -15,16 +15,26 @@
         },
         {
             "input": "src/images",
-            "output": "/images",
+            "output": "/static/images",
             "recursive": true
         }
     ],
     "transform": [],
     "output": [
         {
-            "input": "/",
+            "input": "/static",
             "output": "build",
             "mode": "each"
+        },
+        {
+            "input": "/glsl/shaders",
+            "output": "build/shaders.json",
+            "mode": "json"
+        },
+        {
+            "input": "/glsl/mixins",
+            "output": "build/mixins.json",
+            "mode": "json"
         }
     ]
 }

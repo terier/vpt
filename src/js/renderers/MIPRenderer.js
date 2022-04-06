@@ -1,26 +1,10 @@
 import { WebGL } from '../WebGL.js';
 import { AbstractRenderer } from './AbstractRenderer.js';
 
-const [
-    generateVertex,
-    generateFragment,
-    integrateVertex,
-    integrateFragment,
-    renderVertex,
-    renderFragment,
-    resetVertex,
-    resetFragment,
-] = await Promise.all([
-    './glsl/shaders/renderers/MIP/generate/vertex',
-    './glsl/shaders/renderers/MIP/generate/fragment',
-    './glsl/shaders/renderers/MIP/integrate/vertex',
-    './glsl/shaders/renderers/MIP/integrate/fragment',
-    './glsl/shaders/renderers/MIP/render/vertex',
-    './glsl/shaders/renderers/MIP/render/fragment',
-    './glsl/shaders/renderers/MIP/reset/vertex',
-    './glsl/shaders/renderers/MIP/reset/fragment',
-]
-.map(url => fetch(url).then(response => response.text())));
+const [ SHADERS, MIXINS ] = await Promise.all([
+    'shaders.json',
+    'mixins.json',
+].map(url => fetch(url).then(response => response.json())));
 
 export class MIPRenderer extends AbstractRenderer {
 
@@ -37,12 +21,7 @@ constructor(gl, volume, environmentTexture, options) {
         },
     ]);
 
-    this._programs = WebGL.buildPrograms(this._gl, {
-        generate: { vertex: generateVertex, fragment: generateFragment },
-        integrate: { vertex: integrateVertex, fragment: integrateFragment },
-        render: { vertex: renderVertex, fragment: renderFragment },
-        reset: { vertex: resetVertex, fragment: resetFragment },
-    });
+    this._programs = WebGL.buildPrograms(this._gl, SHADERS.renderers.MIP, MIXINS);
 }
 
 destroy() {

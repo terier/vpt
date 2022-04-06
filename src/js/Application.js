@@ -1,5 +1,6 @@
 import { DOMUtils } from './utils/DOMUtils.js';
 
+import { UI } from './ui/UI.js';
 import { StatusBar } from './ui/StatusBar.js';
 
 import { LoaderFactory } from './loaders/LoaderFactory.js';

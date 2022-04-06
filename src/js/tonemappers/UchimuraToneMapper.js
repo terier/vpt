@@ -1,14 +1,10 @@
 import { WebGL } from '../WebGL.js';
 import { AbstractToneMapper } from './AbstractToneMapper.js';
 
-const [
-    vertex,
-    fragment,
-] = await Promise.all([
-    './glsl/shaders/tonemappers/UchimuraToneMapper/vertex',
-    './glsl/shaders/tonemappers/UchimuraToneMapper/fragment',
-]
-.map(url => fetch(url).then(response => response.text())));
+const [ SHADERS, MIXINS ] = await Promise.all([
+    'shaders.json',
+    'mixins.json',
+].map(url => fetch(url).then(response => response.json())));
 
 export class UchimuraToneMapper extends AbstractToneMapper {
 
@@ -25,9 +21,9 @@ constructor(gl, texture, options) {
         }
     ]);
 
-    this._program = WebGL.buildPrograms(this._gl, {
-        UchimuraToneMapper: { vertex, fragment }
-    }).UchimuraToneMapper;
+    this._program = WebGL.buildPrograms(gl, {
+        UchimuraToneMapper: SHADERS.tonemappers.UchimuraToneMapper
+    }, MIXINS).UchimuraToneMapper;
 }
 
 destroy() {

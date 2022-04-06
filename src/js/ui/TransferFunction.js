@@ -5,18 +5,15 @@ import { CommonUtils } from '../utils/CommonUtils.js';
 import { WebGL } from '../WebGL.js';
 import { Draggable } from '../Draggable.js';
 
-const [
-    template,
-    templateBump,
-    vertex,
-    fragment,
-] = await Promise.all([
+const [ SHADERS, MIXINS ] = await Promise.all([
+    'shaders.json',
+    'mixins.json',
+].map(url => fetch(url).then(response => response.json())));
+
+const [ template, templateBump ] = await Promise.all([
     './html/ui/TransferFunction.html',
     './html/ui/TransferFunctionBump.html',
-    './glsl/shaders/TransferFunction/vertex',
-    './glsl/shaders/TransferFunction/fragment',
-]
-.map(url => fetch(url).then(response => response.text())));
+].map(url => fetch(url).then(response => response.text())));
 
 export class TransferFunction extends UIObject {
 
@@ -51,8 +48,8 @@ constructor(options) {
 
     this._clipQuad = WebGL.createClipQuad(gl);
     this._program = WebGL.buildPrograms(gl, {
-        drawTransferFunction: shader,
-    }).drawTransferFunction;
+        TransferFunction: SHADERS.TransferFunction
+    }, MIXINS).TransferFunction;
     const program = this._program;
     gl.useProgram(program.program);
     gl.bindBuffer(gl.ARRAY_BUFFER, this._clipQuad);

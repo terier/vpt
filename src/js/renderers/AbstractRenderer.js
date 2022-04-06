@@ -4,11 +4,10 @@ import { WebGL } from '../WebGL.js';
 import { SingleBuffer } from '../SingleBuffer.js';
 import { DoubleBuffer } from '../DoubleBuffer.js';
 
-const [vertex, fragment] = await Promise.all([
-    './glsl/shaders/quad/vertex',
-    './glsl/shaders/quad/fragment',
-]
-.map(url => fetch(url).then(response => response.text())));
+const [ SHADERS, MIXINS ] = await Promise.all([
+    'shaders.json',
+    'mixins.json',
+].map(url => fetch(url).then(response => response.json())));
 
 export class AbstractRenderer extends PropertyBag {
 
@@ -41,8 +40,8 @@ constructor(gl, volume, environmentTexture, options) {
 
     this._clipQuad = WebGL.createClipQuad(gl);
     this._clipQuadProgram = WebGL.buildPrograms(gl, {
-        quad: { vertex, fragment }
-    }).quad;
+        quad: SHADERS.quad
+    }, MIXINS).quad;
 }
 
 destroy() {

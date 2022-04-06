@@ -1,14 +1,10 @@
 import { WebGL } from '../WebGL.js';
 import { AbstractToneMapper } from './AbstractToneMapper.js';
 
-const [
-    vertex,
-    fragment,
-] = await Promise.all([
-    './glsl/shaders/tonemappers/RangeToneMapper/vertex',
-    './glsl/shaders/tonemappers/RangeToneMapper/fragment',
-]
-.map(url => fetch(url).then(response => response.text())));
+const [ SHADERS, MIXINS ] = await Promise.all([
+    'shaders.json',
+    'mixins.json',
+].map(url => fetch(url).then(response => response.json())));
 
 export class RangeToneMapper extends AbstractToneMapper {
 
@@ -30,9 +26,9 @@ constructor(gl, texture, options) {
         },
     ]);
 
-    this._program = WebGL.buildPrograms(this._gl, {
-        RangeToneMapper: { vertex, fragment }
-    }).RangeToneMapper;
+    this._program = WebGL.buildPrograms(gl, {
+        RangeToneMapper: SHADERS.tonemappers.RangeToneMapper
+    }, MIXINS).RangeToneMapper;
 }
 
 destroy() {

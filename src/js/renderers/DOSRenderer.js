@@ -4,22 +4,10 @@ import { AbstractRenderer } from './AbstractRenderer.js';
 import { Vector } from '../math/Vector.js';
 import { Matrix } from '../math/Matrix.js';
 
-const [
-    integrateVertex,
-    integrateFragment,
-    renderVertex,
-    renderFragment,
-    resetVertex,
-    resetFragment,
-] = await Promise.all([
-    './glsl/shaders/renderers/DOS/integrate/vertex',
-    './glsl/shaders/renderers/DOS/integrate/fragment',
-    './glsl/shaders/renderers/DOS/render/vertex',
-    './glsl/shaders/renderers/DOS/render/fragment',
-    './glsl/shaders/renderers/DOS/reset/vertex',
-    './glsl/shaders/renderers/DOS/reset/fragment',
-]
-.map(url => fetch(url).then(response => response.text())));
+const [ SHADERS, MIXINS ] = await Promise.all([
+    'shaders.json',
+    'mixins.json',
+].map(url => fetch(url).then(response => response.json())));
 
 export class DOSRenderer extends AbstractRenderer {
 
@@ -99,11 +87,7 @@ constructor(gl, volume, environmentTexture, options) {
     this._minDepth = 0;
     this._maxDepth = 0;
 
-    this._programs = WebGL.buildPrograms(this._gl, {
-        integrate: { vertex: integrateVertex, fragment: integrateFragment },
-        render: { vertex: renderVertex, fragment: renderFragment },
-        reset: { vertex: resetVertex, fragment: resetFragment },
-    });
+    this._programs = WebGL.buildPrograms(this._gl, SHADERS.renderers.DOS, MIXINS);
 
     this.generateOcclusionSamples();
 }
