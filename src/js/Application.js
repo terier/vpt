@@ -176,7 +176,7 @@ _handleVolumeLoad(e) {
             this._renderingContext.setVolume(reader);
         }
     } else if (options.type === 'url') {
-        const readerClass = this._getReaderForFileType(options.filetype);
+        const readerClass = ReaderFactory(options.filetype);
         if (readerClass) {
             const loaderClass = LoaderFactory('ajax');
             const loader = new loaderClass(options.url);
