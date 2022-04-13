@@ -3,7 +3,7 @@ export class DOMUtils {
 static template(tmpl) {
     let div = document.createElement('div');
     div.innerHTML = tmpl;
-    const element = div.querySelector('.instantiate');
+    const element = div.firstChild;
     div.removeChild(element);
     return element;
 }

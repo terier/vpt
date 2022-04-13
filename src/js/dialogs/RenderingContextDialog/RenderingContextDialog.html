@@ -1,0 +1,18 @@
+<ui-panel>
+    <ui-field>
+        <label slot="label">Linear filter</label>
+        <ui-checkbox data-bind="filter" checked></ui-checkbox>
+    </ui-field>
+    <ui-field>
+        <label slot="label">Resolution</label>
+        <ui-spinner data-bind="resolution" min="1" max="4096" value="512"></ui-spinner>
+    </ui-field>
+    <ui-field>
+        <label slot="label">Scale</label>
+        <ui-vector-spinner data-bind="scale" min="0" value="1"></ui-vector-spinner>
+    </ui-field>
+    <ui-field>
+        <label slot="label">Translation</label>
+        <ui-spinner data-bind="translation" value="0"></ui-spinner>
+    </ui-field>
+</ui-panel>

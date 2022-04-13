@@ -1,17 +1,18 @@
 import { DOMUtils } from './utils/DOMUtils.js';
 
-import { UI } from './ui/UI.js';
-import { StatusBar } from './ui/StatusBar.js';
+import './ui/UI.js';
+
+import { StatusBar } from './ui/StatusBar/StatusBar.js';
 
 import { LoaderFactory } from './loaders/LoaderFactory.js';
 import { ReaderFactory } from './readers/ReaderFactory.js';
 
-import { MainDialog } from './dialogs/MainDialog.js';
-import { VolumeLoadDialog } from './dialogs/VolumeLoadDialog.js';
-import { EnvmapLoadDialog } from './dialogs/EnvmapLoadDialog.js';
+import { MainDialog } from './dialogs/MainDialog/MainDialog.js';
+import { VolumeLoadDialog } from './dialogs/VolumeLoadDialog/VolumeLoadDialog.js';
+import { EnvmapLoadDialog } from './dialogs/EnvmapLoadDialog/EnvmapLoadDialog.js';
+import { RenderingContextDialog } from './dialogs/RenderingContextDialog/RenderingContextDialog.js';
 
 import { RenderingContext } from './RenderingContext.js';
-import { RenderingContextDialog } from './dialogs/RenderingContextDialog.js';
 
 export class Application {
 
@@ -22,51 +23,51 @@ constructor() {
     this._handleVolumeLoad = this._handleVolumeLoad.bind(this);
     this._handleEnvmapLoad = this._handleEnvmapLoad.bind(this);
 
-    this._binds = DOMUtils.bind(document.body);
+    this.binds = DOMUtils.bind(document.body);
 
-    this._renderingContext = new RenderingContext();
-    this._binds.container.appendChild(this._renderingContext.getCanvas());
+    this.renderingContext = new RenderingContext();
+    this.binds.container.appendChild(this.renderingContext.getCanvas());
 
     document.body.addEventListener('dragover', e => e.preventDefault());
     document.body.addEventListener('drop', this._handleFileDrop);
 
-    this._mainDialog = new MainDialog();
+    this.mainDialog = new MainDialog();
 
-    this._statusBar = new StatusBar();
-    this._statusBar.appendTo(document.body);
+    this.statusBar = new StatusBar();
+    document.body.appendChild(this.statusBar);
 
-    this._volumeLoadDialog = new VolumeLoadDialog();
-    this._volumeLoadDialog.appendTo(this._mainDialog.getVolumeLoadContainer());
-    this._volumeLoadDialog.addEventListener('load', this._handleVolumeLoad);
+    this.volumeLoadDialog = new VolumeLoadDialog();
+    this.mainDialog.getVolumeLoadContainer().appendChild(this.volumeLoadDialog.object);
+    this.volumeLoadDialog.addEventListener('load', this._handleVolumeLoad);
 
-    this._envmapLoadDialog = new EnvmapLoadDialog();
-    this._envmapLoadDialog.appendTo(this._mainDialog.getEnvmapLoadContainer());
-    this._envmapLoadDialog.addEventListener('load', this._handleEnvmapLoad);
+    this.envmapLoadDialog = new EnvmapLoadDialog();
+    this.mainDialog.getEnvmapLoadContainer().appendChild(this.envmapLoadDialog.object);
+    this.envmapLoadDialog.addEventListener('load', this._handleEnvmapLoad);
 
-    this._renderingContextDialog = new RenderingContextDialog();
-    this._renderingContextDialog.appendTo(
-        this._mainDialog.getRenderingContextSettingsContainer());
-    this._renderingContextDialog.addEventListener('resolution', e => {
-        const resolution = this._renderingContextDialog.resolution;
-        this._renderingContext.setResolution(resolution);
+    this.renderingContextDialog = new RenderingContextDialog();
+    this.mainDialog.getRenderingContextSettingsContainer().appendChild(
+            this.renderingContextDialog.object);
+    this.renderingContextDialog.addEventListener('resolution', e => {
+        const resolution = this.renderingContextDialog.resolution;
+        this.renderingContext.setResolution(resolution);
     });
-    this._renderingContextDialog.addEventListener('transformation', e => {
-        const s = this._renderingContextDialog.scale;
-        const t = this._renderingContextDialog.translation;
-        this._renderingContext.setScale(s.x, s.y, s.z);
-        this._renderingContext.setTranslation(t.x, t.y, t.z);
+    this.renderingContextDialog.addEventListener('transformation', e => {
+        const s = this.renderingContextDialog.scale;
+        const t = this.renderingContextDialog.translation;
+        this.renderingContext.setScale(s.x, s.y, s.z);
+        this.renderingContext.setTranslation(t.x, t.y, t.z);
     });
-    this._renderingContextDialog.addEventListener('filter', e => {
-        const filter = this._renderingContextDialog.filter;
-        this._renderingContext.setFilter(filter);
-    });
-
-    this._renderingContext.addEventListener('progress', e => {
-        this._volumeLoadDialog._binds.loadProgress.setProgress(e.detail * 100);
+    this.renderingContextDialog.addEventListener('filter', e => {
+        const filter = this.renderingContextDialog.filter;
+        this.renderingContext.setFilter(filter);
     });
 
-    this._mainDialog.addEventListener('rendererchange', this._handleRendererChange);
-    this._mainDialog.addEventListener('tonemapperchange', this._handleToneMapperChange);
+    this.renderingContext.addEventListener('progress', e => {
+        this.volumeLoadDialog.binds.loadProgress.setProgress(e.detail * 100);
+    });
+
+    this.mainDialog.addEventListener('rendererchange', this._handleRendererChange);
+    this.mainDialog.addEventListener('tonemapperchange', this._handleToneMapperChange);
     this._handleRendererChange();
     this._handleToneMapperChange();
 }
@@ -112,18 +113,21 @@ _constructDialogFromProperties(object) {
             });
         }
     }
-    return UI.create(panel);
+    //return UI.create(panel);
+    return document.createElement('div');
 }
 
 _handleRendererChange() {
-    if (this._rendererDialog) {
-        this._rendererDialog.destroy();
+    if (this.rendererDialog) {
+        this.rendererDialog.destroy();
     }
-    const which = this._mainDialog.getSelectedRenderer();
-    this._renderingContext.chooseRenderer(which);
-    const renderer = this._renderingContext.getRenderer();
-    const { object, binds } = this._constructDialogFromProperties(renderer);
-    this._rendererDialog = object;
+    const which = this.mainDialog.getSelectedRenderer();
+    this.renderingContext.chooseRenderer(which);
+    const renderer = this.renderingContext.getRenderer();
+    //const { object, binds } = this._constructDialogFromProperties(renderer);
+    const object = document.createElement('div');
+    const binds = DOMUtils.bind(object);
+    this.rendererDialog = object;
     for (const name in binds) {
         binds[name].addEventListener('change', e => {
             const value = binds[name].getValue();
@@ -133,19 +137,21 @@ _handleRendererChange() {
             }));
         });
     }
-    const container = this._mainDialog.getRendererSettingsContainer()._element;
-    this._rendererDialog.appendTo(container);
+    const container = this.mainDialog.getRendererSettingsContainer();
+    container.appendChild(this.rendererDialog);
 }
 
 _handleToneMapperChange() {
-    if (this._toneMapperDialog) {
-        this._toneMapperDialog.destroy();
+    if (this.toneMapperDialog) {
+        this.toneMapperDialog.destroy();
     }
-    const which = this._mainDialog.getSelectedToneMapper();
-    this._renderingContext.chooseToneMapper(which);
-    const toneMapper = this._renderingContext.getToneMapper();
-    const { object, binds } = this._constructDialogFromProperties(toneMapper);
-    this._toneMapperDialog = object;
+    const which = this.mainDialog.getSelectedToneMapper();
+    this.renderingContext.chooseToneMapper(which);
+    const toneMapper = this.renderingContext.getToneMapper();
+    //const { object, binds } = this._constructDialogFromProperties(toneMapper);
+    const object = document.createElement('div');
+    const binds = DOMUtils.bind(object);
+    this.toneMapperDialog = object;
     for (const name in binds) {
         binds[name].addEventListener('change', e => {
             const value = binds[name].getValue();
@@ -155,8 +161,8 @@ _handleToneMapperChange() {
             }));
         });
     }
-    const container = this._mainDialog.getToneMapperSettingsContainer()._element;
-    this._toneMapperDialog.appendTo(container);
+    const container = this.mainDialog.getToneMapperSettingsContainer();
+    container.appendChild(this.toneMapperDialog);
 }
 
 _handleVolumeLoad(e) {
@@ -172,8 +178,8 @@ _handleVolumeLoad(e) {
                 depth  : options.dimensions.z,
                 bits   : options.precision,
             });
-            this._renderingContext.stopRendering();
-            this._renderingContext.setVolume(reader);
+            this.renderingContext.stopRendering();
+            this.renderingContext.setVolume(reader);
         }
     } else if (options.type === 'url') {
         const readerClass = ReaderFactory(options.filetype);
@@ -181,8 +187,8 @@ _handleVolumeLoad(e) {
             const loaderClass = LoaderFactory('ajax');
             const loader = new loaderClass(options.url);
             const reader = new readerClass(loader);
-            this._renderingContext.stopRendering();
-            this._renderingContext.setVolume(reader);
+            this.renderingContext.stopRendering();
+            this.renderingContext.setVolume(reader);
         }
     }
 }
@@ -192,8 +198,8 @@ _handleEnvmapLoad(e) {
     let image = new Image();
     image.crossOrigin = 'anonymous';
     image.addEventListener('load', () => {
-        this._renderingContext.setEnvironmentMap(image);
-        this._renderingContext.getRenderer().reset();
+        this.renderingContext.setEnvironmentMap(image);
+        this.renderingContext.getRenderer().reset();
     });
 
     if (options.type === 'file') {

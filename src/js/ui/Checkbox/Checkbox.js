@@ -1,0 +1,41 @@
+import { DOMUtils } from '../../utils/DOMUtils.js';
+
+const template = document.createElement('template');
+template.innerHTML = await fetch(new URL('Checkbox.html', import.meta.url))
+    .then(response => response.text());
+
+export class Checkbox extends HTMLElement {
+
+constructor() {
+    super();
+
+    this.clickListener = this.clickListener.bind(this);
+
+    this.shadow = this.attachShadow({ mode: 'open' });
+    this.shadow.appendChild(template.content.cloneNode(true));
+    this.binds = DOMUtils.bind(this.shadow);
+
+    this.addEventListener('click', this.clickListener);
+}
+
+get checked() {
+    return this.hasAttribute('checked');
+}
+
+set checked(checked) {
+    if (checked) {
+        this.setAttribute('checked', '');
+    } else {
+        this.removeAttribute('checked');
+    }
+}
+
+clickListener() {
+    if (this.enabled) {
+        this.checked = !this.checked;
+    }
+}
+
+}
+
+customElements.define('ui-checkbox', Checkbox);

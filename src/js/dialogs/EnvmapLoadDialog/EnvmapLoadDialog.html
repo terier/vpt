@@ -1,0 +1,40 @@
+<ui-panel>
+    <ui-field>
+        <label slot="label">Type</label>
+        <ui-dropdown data-bind="type">
+            <option value="file" selected>File</option>
+            <option value="url">URL</option>
+            <option value="demo">Demo</option>
+        </ui-dropdown>
+    </ui-field>
+
+    <ui-panel data-bind="filePanel">
+        <ui-field>
+            <label slot="label">File</label>
+            <ui-file-chooser data-bind="file"></ui-file-chooser>
+        </ui-field>
+    </ui-panel>
+
+    <ui-panel data-bind="urlPanel">
+        <ui-field>
+            <label slot="label">URL</label>
+            <ui-textbox data-bind="url" placeholder="http://"></ui-textbox>
+        </ui-field>
+    </ui-panel>
+
+    <ui-panel data-bind="demoPanel">
+        <ui-field>
+            <label slot="label">File</label>
+            <ui-dropdown data-bind="demo"></ui-dropdown>
+        </ui-field>
+    </ui-panel>
+
+    <ui-panel data-bind="loadButtonAndProgress">
+        <ui-field>
+            <ui-button data-bind="loadButton" label="Load"></ui-button>
+        </ui-field>
+        <ui-field>
+            <ui-progress-bar data-bind="loadProgress"></ui-progress-bar>
+        </ui-field>
+    </ui-panel>
+</ui-panel>
