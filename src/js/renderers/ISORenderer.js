@@ -1,5 +1,6 @@
 import { WebGL } from '../WebGL.js';
 import { AbstractRenderer } from './AbstractRenderer.js';
+import { CommonUtils } from '../utils/CommonUtils.js';
 
 const [ SHADERS, MIXINS ] = await Promise.all([
     'shaders.json',
