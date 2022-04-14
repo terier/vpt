@@ -9,11 +9,11 @@
 }
 
 :host {
-    width: 100%;
+    display: block;
     height: 24px;
 }
 
-:host > input {
+input {
     width: 100%;
     height: 100%;
     padding: 0;
@@ -26,11 +26,11 @@
     color: var(--enabled-text-color);
 }
 
-:host > input:hover {
+input:hover {
     background: var(--hover-background-color);
 }
 
-:host[disabled] > input {
+:host([disabled]) > input {
     border: 1px solid var(--disabled-border-color);
     background: var(--disabled-background-color);
     color: var(--disabled-text-color);

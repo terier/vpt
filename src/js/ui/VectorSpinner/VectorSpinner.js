@@ -1,4 +1,5 @@
 import { Spinner } from '../Spinner/Spinner.js';
+import { DOMUtils } from '../../utils/DOMUtils.js';
 
 const template = document.createElement('template');
 template.innerHTML = await fetch(new URL('./VectorSpinner.html', import.meta.url))
@@ -9,19 +10,9 @@ export class VectorSpinner extends HTMLElement {
 constructor() {
     super();
 
-    this.changeListener = this.changeListener.bind(this);
-    this.inputListener = this.inputListener.bind(this);
-
     this.shadow = this.attachShadow({ mode: 'open' });
     this.shadow.appendChild(template.content.cloneNode(true));
     this.binds = DOMUtils.bind(this.shadow);
-
-    this.binds.x.addEventListener('change', this.changeListener);
-    this.binds.y.addEventListener('change', this.changeListener);
-    this.binds.z.addEventListener('change', this.changeListener);
-    this.binds.x.addEventListener('input', this.inputListener);
-    this.binds.y.addEventListener('input', this.inputListener);
-    this.binds.z.addEventListener('input', this.inputListener);
 }
 
 get value() {
@@ -81,3 +72,5 @@ set step(step) {
 }
 
 }
+
+customElements.define('ui-vector-spinner', VectorSpinner);

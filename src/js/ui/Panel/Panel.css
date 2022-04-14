@@ -1,4 +1,8 @@
-:host[scrollable] {
+:host {
+    display: block;
+}
+
+:host([scrollable]) {
     height: 100%;
     overflow: auto;
 }

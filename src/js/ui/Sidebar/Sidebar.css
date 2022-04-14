@@ -19,15 +19,15 @@
     transition: width 100ms;
 }
 
-:host[contracted] {
+:host([contracted]) {
     width: var(--handle-width);
 }
 
-:host > .handle {
+.handle {
     flex: 0 0 var(--handle-width);
     background-color: var(--handle-color);
 
-    background-image: url(../../images/icons/left-arrow-angle-big-gross-symbol.svg);
+    background-image: url(../../../images/icons/left-arrow-angle-big-gross-symbol.svg);
     background-position: 50% 10px;
     background-repeat: no-repeat;
     background-size: var(--icon-size);
@@ -37,15 +37,15 @@
     z-index: 1;
 }
 
-:host > .handle:hover {
+.handle:hover {
     background-color: var(--hover-color);
 }
 
-:host[contracted] > .handle {
-    background-image: url(../../images/icons/arrow-angle-pointing-to-right.svg);
+:host([contracted]) > .handle {
+    background-image: url(../../../images/icons/arrow-angle-pointing-to-right.svg);
 }
 
-:host > .container {
+.container {
     flex: 1;
     background-color: var(--background-color);
     border-right: 1px solid var(--border-color);

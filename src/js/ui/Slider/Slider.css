@@ -7,20 +7,20 @@
 }
 
 :host {
-    width: 100%;
+    display: block;
     height: var(--height);
 
     cursor: pointer;
 }
 
-:host .container {
+.container {
     position: relative;
     width: calc(100% - var(--button-size));
     height: 100%;
     margin: auto;
 }
 
-:host .track {
+.track {
     position: absolute;
     top: calc((var(--height) - var(--track-height)) / 2);
     width: 100%;
@@ -29,7 +29,7 @@
     background-color: var(--enabled-color);
 }
 
-:host .button {
+.button {
     position: absolute;
     width: var(--button-size);
     height: var(--button-size);

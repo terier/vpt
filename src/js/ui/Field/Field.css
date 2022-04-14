@@ -14,7 +14,7 @@
     margin: var(--vertical-margin) var(--horizontal-margin);
 }
 
-:host > label {
+label {
     flex: 0 0 var(--label-width);
     padding: 0 var(--label-margin);
 
@@ -23,10 +23,10 @@
     color: var(--enabled-color);
 }
 
-:host[disabled] > label {
+:host([disabled]) > label {
     color: var(--disabled-color);
 }
 
-:host > .container {
+.container {
     flex: 1;
 }

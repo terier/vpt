@@ -1,21 +1,25 @@
-:host .widget {
+:host {
+    display: block;
+}
+
+.widget {
     overflow: hidden;
     line-height: 0;
     display: inline-block;
     position: relative;
 }
 
-:host canvas {
+canvas {
     background: url('../../images/alpha-checkerboard.png') repeat;
 }
 
-:host .bump {
+.bump {
     width: 0;
     height: 0;
     position: absolute;
 }
 
-:host .bump .bump-handle {
+.bump .bump-handle {
     box-sizing: border-box;
     border: 2px solid black;
     border-radius: 5px;
@@ -26,7 +30,7 @@
     left: -5px;
 }
 
-:host .bump.selected .bump-handle {
+.bump.selected .bump-handle {
     border: 4px solid orange;
     border-radius: 7px;
     width: 14px;

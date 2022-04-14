@@ -23,7 +23,11 @@ get contracted() {
 }
 
 set contracted(contracted) {
-    this.setAttribute('contracted', '');
+    if (contracted) {
+        this.setAttribute('contracted', '');
+    } else {
+        this.removeAttribute('contracted');
+    }
 }
 
 clickListener(e) {

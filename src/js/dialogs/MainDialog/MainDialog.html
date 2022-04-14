@@ -16,14 +16,14 @@
                     <label slot="label">Renderer</label>
                     <ui-field>
                         <label slot="label">Renderer</label>
-                        <select data-bind="rendererSelect">
+                        <ui-dropdown data-bind="rendererSelect">
                             <option value="mip">Maximum intensity projection</option>
                             <option value="iso">Isosurface extraction</option>
                             <option value="eam">Emission-absorption model</option>
                             <option value="dos">Directional occlusion shading</option>
                             <option value="mcs">Single scattering</option>
                             <option value="mcm" selected>Multiple scattering</option>
-                        </select>
+                        </ui-dropdown>
                     </ui-field>
                     <ui-panel data-bind="rendererSettingsContainer"></ui-panel>
                 </ui-accordion>
@@ -31,7 +31,7 @@
                     <label slot="label">Tone mapper</label>
                     <ui-field>
                         <label slot="label">Tone mapper</label>
-                        <select data-bind="toneMapperSelect">
+                        <ui-dropdown data-bind="toneMapperSelect">
                             <option value="artistic" selected>Artistic</option>
                             <option value="range">Range</option>
                             <option value="reinhard">Reinhard</option>
@@ -42,7 +42,7 @@
                             <option value="aces">Aces</option>
                             <option value="lottes">Lottes</option>
                             <option value="uchimura">Uchimura</option>
-                        </select>
+                        </ui-dropdown>
                     </ui-field>
                     <ui-panel data-bind="toneMapperSettingsContainer"></ui-panel>
                 </ui-accordion>

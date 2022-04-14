@@ -1,22 +1,20 @@
 <link rel="stylesheet" href="js/ui/TransferFunction/TransferFunction.css">
 
-<div class="transfer-function">
-  <div class="widget">
+<div class="widget">
     <canvas></canvas>
-  </div>
-  <div class="controls">
+</div>
+<div class="controls">
     <input type="button" class="button" value="Add bump" data-bind="addBump">
     <input type="button" class="button" value="Remove selected bump" data-bind="removeSelectedBump">
     <input type="button" class="button" value="Remove all bumps" data-bind="removeAllBumps">
     <input type="button" class="button" value="Load" data-bind="load">
     <input type="button" class="button" value="Save" data-bind="save">
     <div class="panel">
-      <label>Color</label>
-      <input data-bind="color" type="color">
+        <label>Color</label>
+        <input data-bind="color" type="color">
     </div>
     <div>
-      <label>Alpha</label>
-      <input data-bind="alpha" type="number" min="0" max="1" step="0.1" value="1">
+        <label>Alpha</label>
+        <input data-bind="alpha" type="number" min="0" max="1" step="0.1" value="1">
     </div>
-  </div>
 </div>

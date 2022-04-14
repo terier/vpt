@@ -31,9 +31,7 @@ set contracted(contracted) {
 }
 
 clickListener() {
-    if (this.enabled) {
-        this.contracted = !this.contracted;
-    }
+    this.contracted = !this.contracted;
 }
 
 }

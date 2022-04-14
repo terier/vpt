@@ -9,17 +9,18 @@
 }
 
 :host {
+    display: block;
     overflow: hidden;
 }
 
-:host > .handle {
+.handle {
     height: var(--handle-height);
     padding-left: 20px;
 
     line-height: var(--handle-height);
 
     background-color: var(--handle-color);
-    background-image: url(../../images/icons/down-arrow.svg);
+    background-image: url(../../../images/icons/down-arrow.svg);
     background-position: 5px 50%;
     background-repeat: no-repeat;
     background-size: var(--icon-size);
@@ -31,11 +32,11 @@
     z-index: 1;
 }
 
-:host > .handle:hover {
+.handle:hover {
     background-color: var(--hover-color);
 }
 
-:host[contracted] > .handle:hover {
+:host([contracted]) > .handle:hover {
     color: var(--text-high-color);
 }
 
@@ -43,15 +44,15 @@
     color: var(--text-high-color);
 }
 
-:host[contracted] > .handle {
-    background-image: url(../../images/icons/arrow-angle-pointing-to-right.svg);
+:host([contracted]) > .handle {
+    background-image: url(../../../images/icons/arrow-angle-pointing-to-right.svg);
     color: var(--text-color);
 }
 
-:host > .container {
+.container {
     overflow: hidden;
 }
 
-:host[contracted] > .container {
+:host([contracted]) > .container {
     height: 0;
 }

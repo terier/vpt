@@ -31,9 +31,7 @@ set checked(checked) {
 }
 
 clickListener() {
-    if (this.enabled) {
-        this.checked = !this.checked;
-    }
+    this.checked = !this.checked;
 }
 
 }

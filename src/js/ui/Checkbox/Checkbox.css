@@ -9,6 +9,8 @@
 }
 
 :host {
+    display: block;
+
     width: var(--width);
     height: var(--height);
     padding: var(--padding);
@@ -20,11 +22,11 @@
     user-select: none;
 }
 
-:host:not([disabled]) {
+:host(:not([disabled])) {
     cursor: pointer;
 }
 
-:host > .handle {
+.handle {
     width: calc(var(--height) - 2 * var(--padding));
     height: calc(var(--height) - 2 * var(--padding));
     border-radius: 50%;
@@ -32,12 +34,12 @@
     background-color: var(--handle-color);
 }
 
-:host[checked] {
+:host([checked]) {
     padding-left: calc(var(--width) - var(--height) + var(--padding));
     background-color: var(--checked-color);
 }
 
-:host[disabled],
-:host[checked][disabled] {
+:host([disabled]),
+:host([checked][disabled]) {
     background-color: var(--disabled-color);
 }

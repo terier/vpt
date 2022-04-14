@@ -118,9 +118,6 @@ _constructDialogFromProperties(object) {
 }
 
 _handleRendererChange() {
-    if (this.rendererDialog) {
-        this.rendererDialog.destroy();
-    }
     const which = this.mainDialog.getSelectedRenderer();
     this.renderingContext.chooseRenderer(which);
     const renderer = this.renderingContext.getRenderer();
@@ -142,9 +139,6 @@ _handleRendererChange() {
 }
 
 _handleToneMapperChange() {
-    if (this.toneMapperDialog) {
-        this.toneMapperDialog.destroy();
-    }
     const which = this.mainDialog.getSelectedToneMapper();
     this.renderingContext.chooseToneMapper(which);
     const toneMapper = this.renderingContext.getToneMapper();

@@ -5,7 +5,7 @@
 }
 
 :host {
-    width: 100%;
+    display: block;
     height: 18px;
     position: relative;
     border: 1px solid var(--border-color);
@@ -15,19 +15,19 @@
     align-content: center;
 }
 
-:host .label {
+.label {
     font-style: italic;
     user-select: none;
     z-index: 1;
 }
 
-:host .progress {
+.progress {
     height: 100%;
     position: absolute;
 
     background-color: var(--enabled-progress-color);
 }
 
-:host[disabled] .progress {
+:host([disabled]) .progress {
     background-color: var(--disabled-progress-color);
 }
