@@ -1,6 +1,8 @@
 <link rel="stylesheet" href="js/ui/Accordion/Accordion.css">
 
-<div class="handle" data-bind="handle"></div>
+<div class="handle" data-bind="handle">
+    <slot name="label"></slot>
+</div>
 <div class="container" data-bind="container">
     <slot></slot>
 </div>

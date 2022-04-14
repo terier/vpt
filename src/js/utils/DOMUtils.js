@@ -33,8 +33,8 @@ static hide(element) {
     element.classList.add('invisible');
 }
 
-static toggle(element) {
-    element.classList.toggle('invisible');
+static toggle(element, force) {
+    element.classList.toggle('invisible', force);
 }
 
 }

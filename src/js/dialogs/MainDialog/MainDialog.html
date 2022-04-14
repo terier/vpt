@@ -1,37 +1,39 @@
 <ui-sidebar data-bind="sidebar">
-    <ui-panel scrollable>
+    <div scrollable>
         <ui-tabs>
 
-            <ui-panel> <!-- Data -->
+            <div slot="header">Data</div>
+            <div>
                 <ui-accordion data-bind="volumeLoadContainer">
-                    <label slot="label">Volume</label>
+                    <span slot="label">Volume</span>
                 </ui-accordion>
                 <ui-accordion data-bind="envmapLoadContainer">
-                    <label slot="label">Environment</label>
+                    <span slot="label">Environment</span>
                 </ui-accordion>
-            </ui-panel>
+            </div>
 
-            <ui-panel> <!-- Settings -->
+            <div slot="header">Settings</div>
+            <div>
                 <ui-accordion>
-                    <label slot="label">Renderer</label>
+                    <span slot="label">Renderer</span>
                     <ui-field>
                         <label slot="label">Renderer</label>
-                        <ui-dropdown data-bind="rendererSelect">
+                        <select data-bind="rendererSelect">
                             <option value="mip">Maximum intensity projection</option>
                             <option value="iso">Isosurface extraction</option>
                             <option value="eam">Emission-absorption model</option>
                             <option value="dos">Directional occlusion shading</option>
                             <option value="mcs">Single scattering</option>
                             <option value="mcm" selected>Multiple scattering</option>
-                        </ui-dropdown>
+                        </select>
                     </ui-field>
-                    <ui-panel data-bind="rendererSettingsContainer"></ui-panel>
+                    <div data-bind="rendererSettingsContainer"></div>
                 </ui-accordion>
                 <ui-accordion>
-                    <label slot="label">Tone mapper</label>
+                    <span slot="label">Tone mapper</span>
                     <ui-field>
                         <label slot="label">Tone mapper</label>
-                        <ui-dropdown data-bind="toneMapperSelect">
+                        <select data-bind="toneMapperSelect">
                             <option value="artistic" selected>Artistic</option>
                             <option value="range">Range</option>
                             <option value="reinhard">Reinhard</option>
@@ -42,18 +44,19 @@
                             <option value="aces">Aces</option>
                             <option value="lottes">Lottes</option>
                             <option value="uchimura">Uchimura</option>
-                        </ui-dropdown>
+                        </select>
                     </ui-field>
-                    <ui-panel data-bind="toneMapperSettingsContainer"></ui-panel>
+                    <div data-bind="toneMapperSettingsContainer"></div>
                 </ui-accordion>
                 <ui-accordion data-bind="renderingContextSettingsContainer">
-                    <label slot="label">Context</label>
+                    <span slot="label">Context</span>
                 </ui-accordion>
-            </ui-panel>
+            </div>
 
-            <ui-panel data-bind="about"> <!-- About -->
-            </ui-panel>
+            <div slot="header">About</div>
+            <div data-bind="about">
+            </div>
 
         </ui-tabs>
-    </ui-panel>
+    </div>
 </ui-sidebar>

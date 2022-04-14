@@ -1,11 +1,11 @@
-<ui-panel>
+<div>
     <ui-field>
         <label slot="label">Linear filter</label>
         <ui-checkbox data-bind="filter" checked></ui-checkbox>
     </ui-field>
     <ui-field>
         <label slot="label">Resolution</label>
-        <ui-spinner data-bind="resolution" min="1" max="4096" value="512"></ui-spinner>
+        <input type="number" data-bind="resolution" min="1" max="4096" value="512">
     </ui-field>
     <ui-field>
         <label slot="label">Scale</label>
@@ -13,6 +13,6 @@
     </ui-field>
     <ui-field>
         <label slot="label">Translation</label>
-        <ui-spinner data-bind="translation" value="0"></ui-spinner>
+        <input type="number" data-bind="translation" value="0">
     </ui-field>
-</ui-panel>
+</div>

@@ -55,7 +55,7 @@ _getVolumeTypeFromURL(filename) {
 }
 
 _handleLoadClick() {
-    switch (this.binds.type.getValue()) {
+    switch (this.binds.type.value) {
         case 'file' : this._handleLoadFile(); break;
         case 'url'  : this._handleLoadURL();  break;
         case 'demo' : this._handleLoadDemo(); break;
@@ -63,7 +63,7 @@ _handleLoadClick() {
 }
 
 _handleLoadFile() {
-    const files = this.binds.file.getFiles();
+    const files = this.binds.file.files;
     if (files.length === 0) {
         // update status bar?
         return;
@@ -71,8 +71,8 @@ _handleLoadFile() {
 
     const file = files[0];
     const filetype = this._getVolumeTypeFromURL(file.name);
-    const dimensions = this.binds.dimensions.getValue();
-    const precision = parseInt(this.binds.precision.getValue(), 10);
+    const dimensions = this.binds.dimensions.value;
+    const precision = parseInt(this.binds.precision.value, 10);
 
     this.dispatchEvent(new CustomEvent('load', {
         detail: {
@@ -86,7 +86,7 @@ _handleLoadFile() {
 }
 
 _handleLoadURL() {
-    const url = this.binds.url.getValue();
+    const url = this.binds.url.value;
     const filetype = this._getVolumeTypeFromURL(url);
     this.dispatchEvent(new CustomEvent('load', {
         detail: {
@@ -98,7 +98,7 @@ _handleLoadURL() {
 }
 
 _handleLoadDemo() {
-    const demo = this.binds.demo.getValue();
+    const demo = this.binds.demo.value;
     const found = this._demos.find(d => d.value === demo);
     const filetype = this._getVolumeTypeFromURL(found.url);
     this.dispatchEvent(new CustomEvent('load', {
@@ -112,34 +112,34 @@ _handleLoadDemo() {
 
 _handleTypeChange() {
     // TODO: switching panel
-    switch (this.binds.type.getValue()) {
+    switch (this.binds.type.value) {
         case 'file':
-            this.binds.filePanel.setVisible(true);
-            this.binds.urlPanel.setVisible(false);
-            this.binds.demoPanel.setVisible(false);
+            DOMUtils.show(this.binds.filePanel);
+            DOMUtils.hide(this.binds.urlPanel);
+            DOMUtils.hide(this.binds.demoPanel);
             break;
         case 'url':
-            this.binds.filePanel.setVisible(false);
-            this.binds.urlPanel.setVisible(true);
-            this.binds.demoPanel.setVisible(false);
+            DOMUtils.hide(this.binds.filePanel);
+            DOMUtils.show(this.binds.urlPanel);
+            DOMUtils.hide(this.binds.demoPanel);
             break;
         case 'demo':
-            this.binds.filePanel.setVisible(false);
-            this.binds.urlPanel.setVisible(false);
-            this.binds.demoPanel.setVisible(true);
+            DOMUtils.hide(this.binds.filePanel);
+            DOMUtils.hide(this.binds.urlPanel);
+            DOMUtils.show(this.binds.demoPanel);
             break;
     }
     this._updateLoadButtonAndProgressVisibility();
 }
 
 _handleFileChange() {
-    const files = this.binds.file.getFiles();
+    const files = this.binds.file.files;
     if (files.length === 0) {
-        this.binds.rawSettingsPanel.setVisible(false);
+        DOMUtils.hide(this.binds.rawSettingsPanel);
     } else {
         const file = files[0];
         const type = this._getVolumeTypeFromURL(file.name);
-        this.binds.rawSettingsPanel.setVisible(type === 'raw');
+        DOMUtils.toggle(this.binds.rawSettingsPanel, type === 'raw');
     }
     this._updateLoadButtonAndProgressVisibility();
 }
@@ -153,18 +153,18 @@ _handleDemoChange() {
 }
 
 _updateLoadButtonAndProgressVisibility() {
-    switch (this.binds.type.getValue()) {
+    switch (this.binds.type.value) {
         case 'file':
-            const files = this.binds.file.getFiles();
-            this.binds.loadButtonAndProgress.setVisible(files.length > 0);
+            const files = this.binds.file.files;
+            DOMUtils.toggle(this.binds.loadButtonAndProgress, files.length > 0);
             break;
         case 'url':
-            const urlEmpty = this.binds.url.getValue() === '';
-            this.binds.loadButtonAndProgress.setVisible(!urlEmpty);
+            const urlEmpty = this.binds.url.value === '';
+            DOMUtils.toggle(this.binds.loadButtonAndProgress, !urlEmpty);
             break;
         case 'demo':
-            const demo = this.binds.demo.getValue();
-            this.binds.loadButtonAndProgress.setVisible(!!demo);
+            const demo = this.binds.demo.value;
+            DOMUtils.toggle(this.binds.loadButtonAndProgress, !!demo);
             break;
     }
 }

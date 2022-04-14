@@ -1,40 +1,42 @@
-<ui-panel>
+<div>
     <ui-field>
         <label slot="label">Type</label>
-        <ui-dropdown data-bind="type">
+        <select data-bind="type">
             <option value="file" selected>File</option>
             <option value="url">URL</option>
             <option value="demo">Demo</option>
-        </ui-dropdown>
+        </select>
     </ui-field>
 
-    <ui-panel data-bind="filePanel">
+    <div data-bind="filePanel">
         <ui-field>
             <label slot="label">File</label>
             <ui-file-chooser data-bind="file"></ui-file-chooser>
         </ui-field>
-    </ui-panel>
+    </div>
 
-    <ui-panel data-bind="urlPanel">
+    <div data-bind="urlPanel">
         <ui-field>
             <label slot="label">URL</label>
-            <ui-textbox data-bind="url" placeholder="http://"></ui-textbox>
+            <input type="text" data-bind="url" placeholder="http://">
         </ui-field>
-    </ui-panel>
+    </div>
 
-    <ui-panel data-bind="demoPanel">
+    <div data-bind="demoPanel">
         <ui-field>
             <label slot="label">File</label>
-            <ui-dropdown data-bind="demo"></ui-dropdown>
+            <select data-bind="demo">
+                <option disabled selected hidden>Select...</option>
+            </select>
         </ui-field>
-    </ui-panel>
+    </div>
 
-    <ui-panel data-bind="loadButtonAndProgress">
+    <div data-bind="loadButtonAndProgress">
         <ui-field>
-            <ui-button data-bind="loadButton" label="Load"></ui-button>
+            <button data-bind="loadButton">Load</button>
         </ui-field>
         <ui-field>
             <ui-progress-bar data-bind="loadProgress"></ui-progress-bar>
         </ui-field>
-    </ui-panel>
-</ui-panel>
+    </div>
+</div>

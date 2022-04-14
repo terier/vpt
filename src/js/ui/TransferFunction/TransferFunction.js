@@ -124,7 +124,7 @@ render() {
     }
 }
 
-getValue() {
+get value() {
     return this.canvas;
 }
 

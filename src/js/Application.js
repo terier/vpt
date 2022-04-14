@@ -127,7 +127,7 @@ _handleRendererChange() {
     this.rendererDialog = object;
     for (const name in binds) {
         binds[name].addEventListener('change', e => {
-            const value = binds[name].getValue();
+            const value = binds[name].value;
             renderer[name] = value;
             renderer.dispatchEvent(new CustomEvent('change', {
                 detail: { name, value }
@@ -148,7 +148,7 @@ _handleToneMapperChange() {
     this.toneMapperDialog = object;
     for (const name in binds) {
         binds[name].addEventListener('change', e => {
-            const value = binds[name].getValue();
+            const value = binds[name].value;
             toneMapper[name] = value;
             toneMapper.dispatchEvent(new CustomEvent('change', {
                 detail: { name, value }

@@ -23,15 +23,15 @@ constructor() {
 }
 
 get resolution() {
-    return this.binds.resolution.getValue();
+    return this.binds.resolution.value;
 }
 
 get scale() {
-    return this.binds.scale.getValue();
+    return this.binds.scale.value;
 }
 
 get translation() {
-    return this.binds.translation.getValue();
+    return this.binds.translation.value;
 }
 
 get filter() {

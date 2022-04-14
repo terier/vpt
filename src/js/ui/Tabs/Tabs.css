@@ -9,12 +9,12 @@
     --text-high-color  : #000000;
 }
 
-:host > .headers {
+.headers {
     display: flex;
     overflow: hidden;
 }
 
-:host > .headers > .header {
+slot[name="header"]::slotted(*) {
     height: var(--header-height);
     line-height: var(--header-height);
     padding: 0 var(--header-padding);
@@ -28,29 +28,29 @@
     overflow: hidden;
 }
 
-:host > .headers > .header.selected {
+slot[name="header"]::slotted(.selected) {
     border-bottom: 2px solid var(--selected-color);
     color: var(--text-high-color);
 }
 
-:host > .headers > .header:not(.selected):hover {
+slot[name="header"]::slotted(:not(.selected):hover) {
     background-color: var(--hover-color);
     color: var(--text-high-color);
 }
 
-:host > .headers > .filler {
+.headers > .filler {
     flex: 1;
     order: 999999;
     background-color: var(--unselected-color);
     border-bottom: 1px solid var(--border-color);
 }
 
-:host > .container {
+.container {
     display: flex;
     overflow: hidden;
 }
 
-:host > .container > * {
+.container ::slotted(*) {
     position: relative;
     flex: 0 0 100%;
     overflow: hidden;

@@ -19,7 +19,7 @@ get value() {
 }
 
 set value(value) {
-    const percentage = Math.min(Math.max(progress * 100, 0), 100);
+    const percentage = Math.min(Math.max(value * 100, 0), 100);
     this.binds.progress.style.width = percentage.toFixed(3) + '%';
     this.binds.label.textContent = percentage.toFixed(0) + '%';
 }
