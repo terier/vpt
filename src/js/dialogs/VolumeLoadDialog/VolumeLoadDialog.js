@@ -37,7 +37,10 @@ async _loadDemoJson() {
         const response = await fetch('demo-volumes.json');
         this._demos = await response.json();
         this._demos.forEach(demo => {
-            this.binds.demo.addOption(demo.value, demo.label);
+            const option = document.createElement('option');
+            option.value = demo.value;
+            option.textContent = demo.label;
+            this.binds.demo.appendChild(option);
         });
     } catch (e) {
         console.warn('demo-volumes.json not available');
@@ -156,11 +159,11 @@ _updateLoadButtonAndProgressVisibility() {
     switch (this.binds.type.value) {
         case 'file':
             const files = this.binds.file.files;
-            DOMUtils.toggle(this.binds.loadButtonAndProgress, files.length > 0);
+            DOMUtils.toggle(this.binds.loadButtonAndProgress, files.length === 0);
             break;
         case 'url':
             const urlEmpty = this.binds.url.value === '';
-            DOMUtils.toggle(this.binds.loadButtonAndProgress, !urlEmpty);
+            DOMUtils.toggle(this.binds.loadButtonAndProgress, urlEmpty);
             break;
         case 'demo':
             const demo = this.binds.demo.value;

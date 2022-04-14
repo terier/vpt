@@ -13,7 +13,7 @@
             <label slot="label">File</label>
             <ui-file-chooser bind="file"></ui-file-chooser>
         </ui-field>
-        <div bind="rawSettingsPanel">
+        <div bind="rawSettingsPanel" class="invisible">
             <ui-field>
                 <label slot="label">Dimensions</label>
                 <ui-vector-spinner bind="dimensions" min="1"></ui-vector-spinner>
@@ -29,14 +29,14 @@
         </div>
     </div>
 
-    <div bind="urlPanel">
+    <div bind="urlPanel" class="invisible">
         <ui-field>
             <label slot="label">URL</label>
             <input type="text" bind="url" placeholder="http://">
         </ui-field>
     </div>
 
-    <div bind="demoPanel">
+    <div bind="demoPanel" class="invisible">
         <ui-field>
             <label slot="label">File</label>
             <select bind="demo">
@@ -45,7 +45,7 @@
         </ui-field>
     </div>
 
-    <div bind="loadButtonAndProgress">
+    <div bind="loadButtonAndProgress" class="invisible">
         <ui-field>
             <button bind="loadButton">Load</button>
         </ui-field>
