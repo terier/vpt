@@ -1,42 +1,42 @@
 <div>
     <ui-field>
         <label slot="label">Type</label>
-        <select data-bind="type">
+        <select bind="type">
             <option value="file" selected>File</option>
             <option value="url">URL</option>
             <option value="demo">Demo</option>
         </select>
     </ui-field>
 
-    <div data-bind="filePanel">
+    <div bind="filePanel">
         <ui-field>
             <label slot="label">File</label>
-            <ui-file-chooser data-bind="file"></ui-file-chooser>
+            <ui-file-chooser bind="file"></ui-file-chooser>
         </ui-field>
     </div>
 
-    <div data-bind="urlPanel">
+    <div bind="urlPanel">
         <ui-field>
             <label slot="label">URL</label>
-            <input type="text" data-bind="url" placeholder="http://">
+            <input type="text" bind="url" placeholder="http://">
         </ui-field>
     </div>
 
-    <div data-bind="demoPanel">
+    <div bind="demoPanel">
         <ui-field>
             <label slot="label">File</label>
-            <select data-bind="demo">
+            <select bind="demo">
                 <option disabled selected hidden>Select...</option>
             </select>
         </ui-field>
     </div>
 
-    <div data-bind="loadButtonAndProgress">
+    <div bind="loadButtonAndProgress">
         <ui-field>
-            <button data-bind="loadButton">Load</button>
+            <button bind="loadButton">Load</button>
         </ui-field>
         <ui-field>
-            <ui-progress-bar data-bind="loadProgress"></ui-progress-bar>
+            <ui-progress-bar bind="loadProgress"></ui-progress-bar>
         </ui-field>
     </div>
 </div>

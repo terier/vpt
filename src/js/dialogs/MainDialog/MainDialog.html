@@ -1,13 +1,13 @@
-<ui-sidebar data-bind="sidebar">
+<ui-sidebar bind="sidebar">
     <div scrollable>
         <ui-tabs>
 
             <div slot="header">Data</div>
             <div>
-                <ui-accordion data-bind="volumeLoadContainer">
+                <ui-accordion bind="volumeLoadContainer">
                     <span slot="label">Volume</span>
                 </ui-accordion>
-                <ui-accordion data-bind="envmapLoadContainer">
+                <ui-accordion bind="envmapLoadContainer">
                     <span slot="label">Environment</span>
                 </ui-accordion>
             </div>
@@ -18,7 +18,7 @@
                     <span slot="label">Renderer</span>
                     <ui-field>
                         <label slot="label">Renderer</label>
-                        <select data-bind="rendererSelect">
+                        <select bind="rendererSelect">
                             <option value="mip">Maximum intensity projection</option>
                             <option value="iso">Isosurface extraction</option>
                             <option value="eam">Emission-absorption model</option>
@@ -27,13 +27,13 @@
                             <option value="mcm" selected>Multiple scattering</option>
                         </select>
                     </ui-field>
-                    <div data-bind="rendererSettingsContainer"></div>
+                    <div bind="rendererSettingsContainer"></div>
                 </ui-accordion>
                 <ui-accordion>
                     <span slot="label">Tone mapper</span>
                     <ui-field>
                         <label slot="label">Tone mapper</label>
-                        <select data-bind="toneMapperSelect">
+                        <select bind="toneMapperSelect">
                             <option value="artistic" selected>Artistic</option>
                             <option value="range">Range</option>
                             <option value="reinhard">Reinhard</option>
@@ -46,15 +46,15 @@
                             <option value="uchimura">Uchimura</option>
                         </select>
                     </ui-field>
-                    <div data-bind="toneMapperSettingsContainer"></div>
+                    <div bind="toneMapperSettingsContainer"></div>
                 </ui-accordion>
-                <ui-accordion data-bind="renderingContextSettingsContainer">
+                <ui-accordion bind="renderingContextSettingsContainer">
                     <span slot="label">Context</span>
                 </ui-accordion>
             </div>
 
             <div slot="header">About</div>
-            <div data-bind="about">
+            <div bind="about">
             </div>
 
         </ui-tabs>

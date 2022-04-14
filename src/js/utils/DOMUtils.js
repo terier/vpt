@@ -18,9 +18,9 @@ static instantiate(tmpl) {
 
 static bind(element) {
     const binds = {};
-    const elements = element.querySelectorAll('[data-bind]');
+    const elements = element.querySelectorAll('[bind]');
     for (const element of elements) {
-        binds[element.dataset.bind] = element;
+        binds[element.getAttribute('bind')] = element;
     }
     return binds;
 }
