@@ -22,6 +22,10 @@ isChecked() {
     return this.checked;
 }
 
+getValue() {
+    return this.checked ? 1 : 0;
+}
+
 setChecked(checked) {
     if (this.checked !== checked) {
         this.checked = checked;

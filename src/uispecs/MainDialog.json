@@ -52,6 +52,10 @@
                               "label": "Emission-absorption model"
                             },
                             {
+                              "value": "lao",
+                              "label": "Local ambient occlusion shading"
+                            },
+                            {
                               "value": "dos",
                               "label": "Directional occlusion shading"
                             },
