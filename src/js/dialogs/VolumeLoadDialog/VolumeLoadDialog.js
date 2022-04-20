@@ -168,7 +168,6 @@ _updateLoadButtonAndProgressVisibility() {
             break;
         case 'demo':
             const demo = this.binds.demo.value;
-            console.log(demo);
             DOMUtils.toggle(this.binds.loadButtonAndProgress, !!demo);
             break;
     }

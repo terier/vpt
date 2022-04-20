@@ -1,4 +1,3 @@
-import { Spinner } from '../Spinner/Spinner.js';
 import { DOMUtils } from '../../utils/DOMUtils.js';
 
 const template = document.createElement('template');
