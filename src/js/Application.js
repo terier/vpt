@@ -54,8 +54,8 @@ constructor() {
     this.renderingContextDialog.addEventListener('transformation', e => {
         const s = this.renderingContextDialog.scale;
         const t = this.renderingContextDialog.translation;
-        this.renderingContext.setScale(s.x, s.y, s.z);
-        this.renderingContext.setTranslation(t.x, t.y, t.z);
+        this.renderingContext.setScale(...s);
+        this.renderingContext.setTranslation(...t);
     });
     this.renderingContextDialog.addEventListener('filter', e => {
         const filter = this.renderingContextDialog.filter;

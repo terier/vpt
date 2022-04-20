@@ -39,9 +39,8 @@ _updateStyle() {
     const headers = this.binds.headers.assignedElements();
 
     for (let i = 0; i < tabs.length; i++) {
-        const offset = -this.index * 100;
-        tabs[i].style.left = offset + '%';
         tabs[i].classList.toggle('selected', i === this.index);
+        tabs[i].classList.toggle('invisible', i !== this.index);
         headers[i].classList.toggle('selected', i === this.index);
     }
 }
