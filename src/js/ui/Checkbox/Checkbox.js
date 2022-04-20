@@ -34,6 +34,12 @@ clickListener() {
     this.checked = !this.checked;
 }
 
+static observedAttributes = ['checked'];
+
+attributeChangedCallback() {
+    this.dispatchEvent(new Event('change'));
+}
+
 }
 
 customElements.define('ui-checkbox', Checkbox);

@@ -66,6 +66,12 @@ clickListener(e) {
     e.currentTarget.parentNode.querySelector('input').checked = true;
 }
 
+static observedAttributes = ['value'];
+
+attributeChangedCallback() {
+    this.dispatchEvent(new Event('change'));
+}
+
 }
 
 customElements.define('ui-radio', Radio);

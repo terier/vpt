@@ -24,6 +24,12 @@ set value(value) {
     this.binds.label.textContent = percentage.toFixed(0) + '%';
 }
 
+static observedAttributes = ['value'];
+
+attributeChangedCallback() {
+    this.dispatchEvent(new Event('change'));
+}
+
 }
 
 customElements.define('ui-progress-bar', ProgressBar);

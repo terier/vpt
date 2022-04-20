@@ -34,7 +34,7 @@ static hide(element) {
 }
 
 static toggle(element, force) {
-    element.classList.toggle('invisible', force);
+    element.classList.toggle('invisible', !force);
 }
 
 }

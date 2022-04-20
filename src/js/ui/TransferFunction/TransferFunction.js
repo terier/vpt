@@ -80,7 +80,7 @@ constructor() {
             this.bumps = JSON.parse(data);
             this.render();
             this._rebuildHandles();
-            this.trigger('change');
+            this.dispatchEvent(new Event('change'));
         });
     });
 
@@ -150,7 +150,7 @@ addBump(options) {
     this._addHandle(bumpIndex);
     this.selectBump(bumpIndex);
     this.render();
-    this.trigger('change');
+    this.dispatchEvent(new Event('change'));
 }
 
 removeSelectedBump() {
@@ -161,7 +161,7 @@ removeAllBumps() {
     this.bumps = [];
     this._rebuildHandles();
     this.render();
-    this.trigger('change');
+    this.dispatchEvent(new Event('change'));
 }
 
 _removeHandle(index) {
@@ -174,7 +174,7 @@ _removeHandle(index) {
     }
     this._rebuildHandles();
     this.render();
-    this.trigger('change');
+    this.dispatchEvent(new Event('change'));
 }
 
 _addHandle(index) {
@@ -195,7 +195,7 @@ _addHandle(index) {
         this.bumps[i].position.x = x;
         this.bumps[i].position.y = y;
         this.render();
-        this.trigger('change');
+        this.dispatchEvent(new Event('change'));
     });
     handle.addEventListener('pointerdown', e => {
         const i = parseInt(e.currentTarget.dataset.index);
@@ -212,7 +212,7 @@ _addHandle(index) {
             this.bumps[i].size.x *= scale;
         }
         this.render();
-        this.trigger('change');
+        this.dispatchEvent(new Event('change'));
     });
 }
 
@@ -261,7 +261,7 @@ changeListener() {
     this.bumps[index].color.b = color[2];
     this.bumps[index].color.a = alpha;
     this.render();
-    this.trigger('change');
+    this.dispatchEvent(new Event('change'));
 }
 
 }

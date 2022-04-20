@@ -26,7 +26,7 @@
         <ui-field>
             <label slot="label">File</label>
             <select bind="demo">
-                <option disabled selected hidden>Select...</option>
+                <option disabled selected hidden value>Select...</option>
             </select>
         </ui-field>
     </div>
@@ -36,7 +36,7 @@
             <button bind="loadButton">Load</button>
         </ui-field>
         <ui-field>
-            <ui-progress-bar bind="loadProgress"></ui-progress-bar>
+            <ui-progress-bar bind="loadProgress" value="0"></ui-progress-bar>
         </ui-field>
     </div>
 </div>

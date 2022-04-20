@@ -63,7 +63,7 @@ constructor() {
     });
 
     this.renderingContext.addEventListener('progress', e => {
-        this.volumeLoadDialog.binds.loadProgress.setProgress(e.detail * 100);
+        this.volumeLoadDialog.binds.loadProgress.value = e.detail;
     });
 
     this.mainDialog.addEventListener('rendererchange', this._handleRendererChange);
@@ -167,9 +167,9 @@ _handleVolumeLoad(e) {
             const loaderClass = LoaderFactory('blob');
             const loader = new loaderClass(options.file);
             const reader = new readerClass(loader, {
-                width  : options.dimensions.x,
-                height : options.dimensions.y,
-                depth  : options.dimensions.z,
+                width  : options.dimensions[0],
+                height : options.dimensions[1],
+                depth  : options.dimensions[2],
                 bits   : options.precision,
             });
             this.renderingContext.stopRendering();

@@ -127,14 +127,15 @@ _updateLoadButtonAndProgressVisibility() {
     switch (this.binds.type.value) {
         case 'file':
             const files = this.binds.file.files;
-            DOMUtils.toggle(this.binds.loadButtonAndProgress, files.length === 0);
+            DOMUtils.toggle(this.binds.loadButtonAndProgress, files.length !== 0);
             break;
         case 'url':
             const urlEmpty = this.binds.url.value === '';
-            DOMUtils.toggle(this.binds.loadButtonAndProgress, urlEmpty);
+            DOMUtils.toggle(this.binds.loadButtonAndProgress, !urlEmpty);
             break;
         case 'demo':
             const demo = this.binds.demo.value;
+            console.log(demo);
             DOMUtils.toggle(this.binds.loadButtonAndProgress, !!demo);
             break;
     }

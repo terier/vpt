@@ -46,8 +46,11 @@ set logarithmic(logarithmic) {
 
 static observedAttributes = [ 'value', 'min', 'max' ];
 
-attributeChangedCallback() {
+attributeChangedCallback(name) {
     this._updateUI();
+    if (name === 'value') {
+        this.dispatchEvent(new Event('change'));
+    }
 }
 
 _updateUI() {

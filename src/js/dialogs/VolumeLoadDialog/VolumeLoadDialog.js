@@ -75,7 +75,8 @@ _handleLoadFile() {
     const file = files[0];
     const filetype = this._getVolumeTypeFromURL(file.name);
     const dimensions = this.binds.dimensions.value;
-    const precision = parseInt(this.binds.precision.value, 10);
+    const precisionChecked = this.binds.precision.querySelector('input:checked');
+    const precision = parseInt(precisionChecked.value, 10);
 
     this.dispatchEvent(new CustomEvent('load', {
         detail: {
@@ -159,14 +160,15 @@ _updateLoadButtonAndProgressVisibility() {
     switch (this.binds.type.value) {
         case 'file':
             const files = this.binds.file.files;
-            DOMUtils.toggle(this.binds.loadButtonAndProgress, files.length === 0);
+            DOMUtils.toggle(this.binds.loadButtonAndProgress, files.length !== 0);
             break;
         case 'url':
             const urlEmpty = this.binds.url.value === '';
-            DOMUtils.toggle(this.binds.loadButtonAndProgress, urlEmpty);
+            DOMUtils.toggle(this.binds.loadButtonAndProgress, !urlEmpty);
             break;
         case 'demo':
             const demo = this.binds.demo.value;
+            console.log(demo);
             DOMUtils.toggle(this.binds.loadButtonAndProgress, !!demo);
             break;
     }

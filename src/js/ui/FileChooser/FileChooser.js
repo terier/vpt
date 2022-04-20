@@ -27,6 +27,7 @@ changeListener() {
     } else {
         this.binds.label.textContent = '';
     }
+    this.dispatchEvent(new Event('change'));
 }
 
 clickListener() {
