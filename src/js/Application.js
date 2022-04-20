@@ -94,35 +94,31 @@ _handleFileDrop(e) {
 }
 
 _constructDialogFromProperties(object) {
-    const panel = {
-        type: 'panel',
-        children: [],
-    };
+    const panel = document.createElement('div');
     for (const property of object.properties) {
-        if (property.type === 'transfer-function') {
-            panel.children.push({
-                type: 'accordion',
-                label: property.label,
-                children: [{ ...property, bind: property.name }]
-            });
-        } else {
-            panel.children.push({
-                type: 'field',
-                label: property.label,
-                children: [{ ...property, bind: property.name }]
-            });
-        }
+        const widget = this.createUIFromProperty(property);
+        const field = `<ui-field><label slot="label">${property.label}</label>${widget}</ui-field>`;
+        const instance = DOMUtils.instantiate(field);
+        panel.appendChild(instance);
     }
-    //return UI.create(panel);
-    return document.createElement('div');
+    return panel;
+}
+
+createUIFromProperty(property) {
+    switch (property.type) {
+        case 'spinner': return `<input type="number" bind="${property.name}" value="${property.value}" min="${property.min}" max="${property.max}" step="${property.step}">`;
+        case 'slider': return `<ui-slider bind="${property.name}" value="${property.value}" min="${property.min}" max="${property.max}" step="${property.step}"></ui-slider>`;
+        case 'transfer-function': return `<ui-accordion><ui-transfer-function bind="${property.name}"></ui-transfer-function></ui-accordion>`;
+        default: return `<div></div>`;
+    }
 }
 
 _handleRendererChange() {
     const which = this.mainDialog.getSelectedRenderer();
     this.renderingContext.chooseRenderer(which);
     const renderer = this.renderingContext.getRenderer();
-    //const { object, binds } = this._constructDialogFromProperties(renderer);
-    const object = document.createElement('div');
+    const object = this._constructDialogFromProperties(renderer);
+    console.log(object);
     const binds = DOMUtils.bind(object);
     this.rendererDialog = object;
     for (const name in binds) {
@@ -142,8 +138,7 @@ _handleToneMapperChange() {
     const which = this.mainDialog.getSelectedToneMapper();
     this.renderingContext.chooseToneMapper(which);
     const toneMapper = this.renderingContext.getToneMapper();
-    //const { object, binds } = this._constructDialogFromProperties(toneMapper);
-    const object = document.createElement('div');
+    const object = this._constructDialogFromProperties(toneMapper);
     const binds = DOMUtils.bind(object);
     this.toneMapperDialog = object;
     for (const name in binds) {

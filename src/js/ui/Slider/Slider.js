@@ -1,3 +1,5 @@
+import { DOMUtils } from '../../utils/DOMUtils.js';
+
 const template = document.createElement('template');
 template.innerHTML = await fetch(new URL('./Slider.html', import.meta.url))
     .then(response => response.text());

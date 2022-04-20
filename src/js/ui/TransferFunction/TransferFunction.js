@@ -33,7 +33,7 @@ constructor() {
         transferFunctionWidth  : 256,
         transferFunctionHeight : 256,
         scaleSpeed             : 0.003
-    }, options);
+    });
 
     this.canvas = this.shadow.querySelector('canvas');
     this.canvas.width = this._transferFunctionWidth;
