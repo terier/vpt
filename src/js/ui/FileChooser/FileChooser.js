@@ -38,6 +38,10 @@ get files() {
     return this.binds.input.files;
 }
 
+get value() {
+    return this.files;
+}
+
 }
 
 customElements.define('ui-file-chooser', FileChooser);

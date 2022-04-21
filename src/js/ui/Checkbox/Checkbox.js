@@ -18,6 +18,14 @@ constructor() {
     this.addEventListener('click', this.clickListener);
 }
 
+get value() {
+    return this.checked;
+}
+
+set value(value) {
+    this.checked = value;
+}
+
 get checked() {
     return this.hasAttribute('checked');
 }
