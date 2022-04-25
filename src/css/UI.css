@@ -1,0 +1,188 @@
+div[scrollable] {
+    height: 100%;
+    overflow: auto;
+}
+
+/* Button */
+
+button {
+    --enabled-background-color  : #f3f3f3;
+    --hover-background-color    : #eaeaea;
+    --disabled-background-color : #f3f3f3;
+    --enabled-border-color      : #aaaaaa;
+    --disabled-border-color     : #cccccc;
+    --enabled-text-color        : #333333;
+    --disabled-text-color       : #aaaaaa;
+}
+
+button {
+    display: block;
+    width: 100%;
+    height: 24px;
+
+    padding: 0;
+    margin: 0;
+
+    cursor: pointer;
+    box-sizing: border-box;
+    border: 1px solid var(--enabled-border-color);
+    background: var(--enabled-background-color);
+    color: var(--enabled-text-color);
+}
+
+button:hover {
+    background: var(--hover-background-color);
+}
+
+button[disabled] {
+    border: 1px solid var(--disabled-border-color);
+    background: var(--disabled-background-color);
+    color: var(--disabled-text-color);
+}
+
+/* Select */
+
+select {
+    --enabled-background-color  : #ffffff;
+    --disabled-background-color : #f3f3f3;
+    --enabled-border-color      : #aaaaaa;
+    --disabled-border-color     : #cccccc;
+    --enabled-text-color        : #333333;
+    --disabled-text-color       : #aaaaaa;
+}
+
+select {
+    display: block;
+    width: 100%;
+    height: 18px;
+
+    margin: 0;
+    padding: 0;
+
+    background-color: var(--enabled-background-color);
+    border: 1px solid var(--enabled-border-color);
+    color: var(--enabled-text-color);
+    box-sizing: border-box;
+    display: block;
+}
+
+select:disabled {
+    background-color: var(--disabled-background-color);
+    border-color: var(--disabled-border-color);
+    color: var(--disabled-text-color);
+}
+
+/* Spinner */
+
+input[type="number"] {
+    --enabled-background-color  : #ffffff;
+    --disabled-background-color : #f3f3f3;
+    --enabled-border-color      : #aaaaaa;
+    --disabled-border-color     : #cccccc;
+    --enabled-text-color        : #333333;
+    --disabled-text-color       : #aaaaaa;
+}
+
+input[type="number"] {
+    display: block;
+    width: 100%;
+    height: 18px;
+
+    margin: 0;
+    padding: 0;
+    padding-left: 3px;
+
+    background-color: var(--enabled-background-color);
+    border: 1px solid var(--enabled-border-color);
+    color: var(--enabled-text-color);
+    box-sizing: border-box;
+    display: block;
+}
+
+input[type="number"]:disabled {
+    background-color: var(--disabled-background-color);
+    border-color: var(--disabled-border-color);
+    color: var(--disabled-text-color);
+}
+
+/* Textbox */
+
+input[type="text"] {
+    --enabled-background-color  : #ffffff;
+    --disabled-background-color : #f3f3f3;
+    --invalid-background-color  : #ffccbb;
+    --enabled-border-color      : #aaaaaa;
+    --disabled-border-color     : #cccccc;
+    --enabled-text-color        : #333333;
+    --disabled-text-color       : #aaaaaa;
+}
+
+input[type="text"] {
+    display: block;
+    width: 100%;
+    height: 18px;
+    padding: 0;
+    margin: 0;
+
+    padding-left: 5px;
+
+    cursor: text;
+    box-sizing: border-box;
+    border: 1px solid var(--enabled-border-color);
+    background: var(--enabled-background-color);
+    color: var(--enabled-text-color);
+}
+
+input[type="text"]:invalid {
+    background: var(--invalid-background-color);
+}
+
+input[type="text"]:disabled {
+    border: 1px solid var(--disabled-border-color);
+    background: var(--disabled-background-color);
+    color: var(--disabled-text-color);
+}
+
+/* Radio */
+
+div.radio {
+    display: flex;
+}
+
+div.radio > label {
+    --radio-margin: 5px;
+
+    line-height: 18px;
+    padding: 0 var(--radio-margin);
+    color: #333;
+    cursor: pointer;
+
+    overflow: hidden;
+    text-overflow: clip;
+    white-space: nowrap;
+}
+
+input[type="radio"] {
+    --checked-border-color       : #2196f3;
+    --checked-background-color   : #ffffff;
+    --unchecked-border-color     : #cccccc;
+    --unchecked-background-color : #cccccc;
+}
+
+input[type="radio"] {
+    margin: 0;
+    width: 16px;
+    height: 16px;
+    box-sizing: border-box;
+    border-radius: 50%;
+    border: 5px solid var(--unchecked-border-color);
+    background-color: var(--unchecked-background-color);
+    transition: 200ms;
+    cursor: pointer;
+    outline: none;
+}
+
+input[type="radio"]:checked {
+    border-color: var(--checked-border-color);
+    background-color: var(--checked-background-color);
+}

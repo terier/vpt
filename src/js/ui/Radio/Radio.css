@@ -1,0 +1,54 @@
+:host {
+    --radio-margin               : 5px;
+    --checked-border-color       : #2196f3;
+    --checked-background-color   : #ffffff;
+    --unchecked-border-color     : #cccccc;
+    --unchecked-background-color : #cccccc;
+}
+
+:host {
+    display: flex;
+}
+
+:host([vertical]) {
+    flex-direction: column;
+}
+
+::slotted(*) {
+    display: flex;
+    align-items: center;
+    height: 18px;
+}
+
+::slotted(*) {
+    margin-right: var(--radio-margin);
+}
+
+::slotted(*) > input {
+    margin: 0;
+    width: 16px;
+    height: 16px;
+    box-sizing: border-box;
+    border-radius: 50%;
+    border: 5px solid var(--unchecked-border-color);
+    background-color: var(--unchecked-background-color);
+    transition: 200ms;
+    cursor: pointer;
+    outline: none;
+}
+
+::slotted(*) > input:checked {
+    border-color: var(--checked-border-color);
+    background-color: var(--checked-background-color);
+}
+
+::slotted(*) > label {
+    line-height: 18px;
+    padding: 0 var(--radio-margin);
+    color: #333;
+    cursor: pointer;
+
+    overflow: hidden;
+    text-overflow: clip;
+    white-space: nowrap;
+}

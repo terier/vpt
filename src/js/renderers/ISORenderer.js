@@ -1,5 +1,6 @@
 import { WebGL } from '../WebGL.js';
 import { AbstractRenderer } from './AbstractRenderer.js';
+import { CommonUtils } from '../utils/CommonUtils.js';
 
 const [ SHADERS, MIXINS ] = await Promise.all([
     'shaders.json',
@@ -30,8 +31,8 @@ constructor(gl, volume, environmentTexture, options) {
         {
             name: 'light',
             label: 'Light direction',
-            type: 'vector',
-            value: { x: 0, y: 0, z: -1 },
+            type: 'vector-spinner',
+            value: [ 0, 0, -1 ],
         },
         {
             name: 'color',
@@ -124,7 +125,7 @@ _renderFrame() {
 
     gl.uniform1i(uniforms.uClosest, 0);
     gl.uniform1i(uniforms.uVolume, 1);
-    gl.uniform3fv(uniforms.uLight, [this.light.x, this.light.y, this.light.z]);
+    gl.uniform3fv(uniforms.uLight, this.light);
     gl.uniform3fv(uniforms.uDiffuse, CommonUtils.hex2rgb(this.color));
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);

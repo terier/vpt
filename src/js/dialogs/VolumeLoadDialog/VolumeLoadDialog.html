@@ -1,0 +1,73 @@
+<div>
+    <ui-field>
+        <label slot="label">Type</label>
+        <select bind="type">
+            <option value="file" selected>File</option>
+            <option value="url">URL</option>
+            <option value="demo">Demo</option>
+        </select>
+    </ui-field>
+
+    <div bind="filePanel">
+        <ui-field>
+            <label slot="label">File</label>
+            <ui-file-chooser bind="file"></ui-file-chooser>
+        </ui-field>
+        <div bind="rawSettingsPanel" class="invisible">
+            <ui-field>
+                <label slot="label">Dimensions</label>
+                <ui-vector-spinner bind="dimensions" min="1" value="[128,128,128]"></ui-vector-spinner>
+            </ui-field>
+            <ui-field>
+                <label slot="label">Precision</label>
+                <div bind="precision">
+                    <div class="radio">
+                        <input type="radio" name="precision" id="precision8" value="8" checked>
+                        <label for="precision8">8-bit</label>
+                    </div>
+                    <div class="radio">
+                        <input type="radio" name="precision" id="precision16" value="16">
+                        <label for="precision16">16-bit</label>
+                    </div>
+                    <div class="radio">
+                        <input type="radio" name="precision" id="precision32" value="32">
+                        <label for="precision32">32-bit</label>
+                    </div>
+                </div>
+                <!-- TODO: refactor radio to take sensible options -->
+                <!--
+                <ui-radio>
+                    <option value="8">8-bit</option>
+                    <option value="16">16-bit</option>
+                    <option value="32">32-bit</option>
+                </ui-radio>
+                -->
+            </ui-field>
+        </div>
+    </div>
+
+    <div bind="urlPanel" class="invisible">
+        <ui-field>
+            <label slot="label">URL</label>
+            <input type="text" bind="url" placeholder="http://">
+        </ui-field>
+    </div>
+
+    <div bind="demoPanel" class="invisible">
+        <ui-field>
+            <label slot="label">File</label>
+            <select bind="demo">
+                <option disabled selected hidden value>Select...</option>
+            </select>
+        </ui-field>
+    </div>
+
+    <div bind="loadButtonAndProgress" class="invisible">
+        <ui-field>
+            <button bind="loadButton">Load</button>
+        </ui-field>
+        <ui-field>
+            <ui-progress-bar bind="loadProgress" value="0"></ui-progress-bar>
+        </ui-field>
+    </div>
+</div>

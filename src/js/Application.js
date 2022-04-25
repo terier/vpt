@@ -1,17 +1,19 @@
 import { DOMUtils } from './utils/DOMUtils.js';
 
-import { UI } from './ui/UI.js';
-import { StatusBar } from './ui/StatusBar.js';
+import './ui/UI.js';
+
+import { StatusBar } from './ui/StatusBar/StatusBar.js';
 
 import { LoaderFactory } from './loaders/LoaderFactory.js';
 import { ReaderFactory } from './readers/ReaderFactory.js';
 
-import { MainDialog } from './dialogs/MainDialog.js';
-import { VolumeLoadDialog } from './dialogs/VolumeLoadDialog.js';
-import { EnvmapLoadDialog } from './dialogs/EnvmapLoadDialog.js';
+import { MainDialog } from './dialogs/MainDialog/MainDialog.js';
+import { VolumeLoadDialog } from './dialogs/VolumeLoadDialog/VolumeLoadDialog.js';
+import { EnvmapLoadDialog } from './dialogs/EnvmapLoadDialog/EnvmapLoadDialog.js';
+import { RenderingContextDialog } from './dialogs/RenderingContextDialog/RenderingContextDialog.js';
+import { DialogConstructor } from './dialogs/DialogConstructor.js';
 
 import { RenderingContext } from './RenderingContext.js';
-import { RenderingContextDialog } from './dialogs/RenderingContextDialog.js';
 
 export class Application {
 
@@ -22,51 +24,60 @@ constructor() {
     this._handleVolumeLoad = this._handleVolumeLoad.bind(this);
     this._handleEnvmapLoad = this._handleEnvmapLoad.bind(this);
 
-    this._binds = DOMUtils.bind(document.body);
+    this.binds = DOMUtils.bind(document.body);
 
-    this._renderingContext = new RenderingContext();
-    this._binds.container.appendChild(this._renderingContext.getCanvas());
+    this.renderingContext = new RenderingContext();
+    this.binds.container.appendChild(this.renderingContext.getCanvas());
 
     document.body.addEventListener('dragover', e => e.preventDefault());
     document.body.addEventListener('drop', this._handleFileDrop);
 
-    this._mainDialog = new MainDialog();
+    this.mainDialog = new MainDialog();
 
-    this._statusBar = new StatusBar();
-    this._statusBar.appendTo(document.body);
+    this.statusBar = new StatusBar();
+    document.body.appendChild(this.statusBar);
 
-    this._volumeLoadDialog = new VolumeLoadDialog();
-    this._volumeLoadDialog.appendTo(this._mainDialog.getVolumeLoadContainer());
-    this._volumeLoadDialog.addEventListener('load', this._handleVolumeLoad);
+    this.volumeLoadDialog = new VolumeLoadDialog();
+    this.mainDialog.getVolumeLoadContainer().appendChild(this.volumeLoadDialog.object);
+    this.volumeLoadDialog.addEventListener('load', this._handleVolumeLoad);
 
-    this._envmapLoadDialog = new EnvmapLoadDialog();
-    this._envmapLoadDialog.appendTo(this._mainDialog.getEnvmapLoadContainer());
-    this._envmapLoadDialog.addEventListener('load', this._handleEnvmapLoad);
+    this.envmapLoadDialog = new EnvmapLoadDialog();
+    this.mainDialog.getEnvmapLoadContainer().appendChild(this.envmapLoadDialog.object);
+    this.envmapLoadDialog.addEventListener('load', this._handleEnvmapLoad);
 
-    this._renderingContextDialog = new RenderingContextDialog();
-    this._renderingContextDialog.appendTo(
-        this._mainDialog.getRenderingContextSettingsContainer());
-    this._renderingContextDialog.addEventListener('resolution', e => {
-        const resolution = this._renderingContextDialog.resolution;
-        this._renderingContext.setResolution(resolution);
+    this.renderingContextDialog = new RenderingContextDialog();
+    this.mainDialog.getRenderingContextSettingsContainer().appendChild(
+            this.renderingContextDialog.object);
+    this.renderingContextDialog.addEventListener('resolution', e => {
+        const resolution = this.renderingContextDialog.resolution;
+        this.renderingContext.setResolution(resolution);
     });
-    this._renderingContextDialog.addEventListener('transformation', e => {
-        const s = this._renderingContextDialog.scale;
-        const t = this._renderingContextDialog.translation;
-        this._renderingContext.setScale(s.x, s.y, s.z);
-        this._renderingContext.setTranslation(t.x, t.y, t.z);
+    this.renderingContextDialog.addEventListener('transformation', e => {
+        const s = this.renderingContextDialog.scale;
+        const t = this.renderingContextDialog.translation;
+        this.renderingContext.setScale(...s);
+        this.renderingContext.setTranslation(...t);
     });
-    this._renderingContextDialog.addEventListener('filter', e => {
-        const filter = this._renderingContextDialog.filter;
-        this._renderingContext.setFilter(filter);
+    this.renderingContextDialog.addEventListener('filter', e => {
+        const filter = this.renderingContextDialog.filter;
+        this.renderingContext.setFilter(filter);
+    });
+    this.renderingContextDialog.addEventListener('fullscreen', e => {
+        this.renderingContext.getCanvas().classList.toggle('fullscreen',
+            this.renderingContextDialog.fullscreen);
     });
 
-    this._renderingContext.addEventListener('progress', e => {
-        this._volumeLoadDialog._binds.loadProgress.setProgress(e.detail * 100);
+    new ResizeObserver(entries => {
+        const size = entries[0].contentBoxSize[0];
+        this.renderingContext._camera.resize(size.inlineSize, size.blockSize);
+    }).observe(this.renderingContext.getCanvas());
+
+    this.renderingContext.addEventListener('progress', e => {
+        this.volumeLoadDialog.binds.loadProgress.value = e.detail;
     });
 
-    this._mainDialog.addEventListener('rendererchange', this._handleRendererChange);
-    this._mainDialog.addEventListener('tonemapperchange', this._handleToneMapperChange);
+    this.mainDialog.addEventListener('rendererchange', this._handleRendererChange);
+    this.mainDialog.addEventListener('tonemapperchange', this._handleToneMapperChange);
     this._handleRendererChange();
     this._handleToneMapperChange();
 }
@@ -92,71 +103,52 @@ _handleFileDrop(e) {
     }));
 }
 
-_constructDialogFromProperties(object) {
-    const panel = {
-        type: 'panel',
-        children: [],
-    };
-    for (const property of object.properties) {
-        if (property.type === 'transfer-function') {
-            panel.children.push({
-                type: 'accordion',
-                label: property.label,
-                children: [{ ...property, bind: property.name }]
-            });
-        } else {
-            panel.children.push({
-                type: 'field',
-                label: property.label,
-                children: [{ ...property, bind: property.name }]
-            });
-        }
-    }
-    return UI.create(panel);
-}
-
 _handleRendererChange() {
-    if (this._rendererDialog) {
-        this._rendererDialog.destroy();
+    if (this.rendererDialog) {
+        this.rendererDialog.remove();
     }
-    const which = this._mainDialog.getSelectedRenderer();
-    this._renderingContext.chooseRenderer(which);
-    const renderer = this._renderingContext.getRenderer();
-    const { object, binds } = this._constructDialogFromProperties(renderer);
-    this._rendererDialog = object;
+
+    const which = this.mainDialog.getSelectedRenderer();
+    this.renderingContext.chooseRenderer(which);
+    const renderer = this.renderingContext.getRenderer();
+    const object = DialogConstructor.construct(renderer.properties);
+    const binds = DOMUtils.bind(object);
+    this.rendererDialog = object;
     for (const name in binds) {
         binds[name].addEventListener('change', e => {
-            const value = binds[name].getValue();
+            const value = binds[name].value;
             renderer[name] = value;
             renderer.dispatchEvent(new CustomEvent('change', {
                 detail: { name, value }
             }));
         });
     }
-    const container = this._mainDialog.getRendererSettingsContainer()._element;
-    this._rendererDialog.appendTo(container);
+    const container = this.mainDialog.getRendererSettingsContainer();
+    container.appendChild(this.rendererDialog);
 }
 
 _handleToneMapperChange() {
-    if (this._toneMapperDialog) {
-        this._toneMapperDialog.destroy();
+    if (this.toneMapperDialog) {
+        this.toneMapperDialog.remove();
     }
-    const which = this._mainDialog.getSelectedToneMapper();
-    this._renderingContext.chooseToneMapper(which);
-    const toneMapper = this._renderingContext.getToneMapper();
-    const { object, binds } = this._constructDialogFromProperties(toneMapper);
-    this._toneMapperDialog = object;
+
+    const which = this.mainDialog.getSelectedToneMapper();
+    this.renderingContext.chooseToneMapper(which);
+    const toneMapper = this.renderingContext.getToneMapper();
+    const object = DialogConstructor.construct(toneMapper.properties);
+    const binds = DOMUtils.bind(object);
+    this.toneMapperDialog = object;
     for (const name in binds) {
         binds[name].addEventListener('change', e => {
-            const value = binds[name].getValue();
+            const value = binds[name].value;
             toneMapper[name] = value;
             toneMapper.dispatchEvent(new CustomEvent('change', {
                 detail: { name, value }
             }));
         });
     }
-    const container = this._mainDialog.getToneMapperSettingsContainer()._element;
-    this._toneMapperDialog.appendTo(container);
+    const container = this.mainDialog.getToneMapperSettingsContainer();
+    container.appendChild(this.toneMapperDialog);
 }
 
 _handleVolumeLoad(e) {
@@ -167,13 +159,13 @@ _handleVolumeLoad(e) {
             const loaderClass = LoaderFactory('blob');
             const loader = new loaderClass(options.file);
             const reader = new readerClass(loader, {
-                width  : options.dimensions.x,
-                height : options.dimensions.y,
-                depth  : options.dimensions.z,
+                width  : options.dimensions[0],
+                height : options.dimensions[1],
+                depth  : options.dimensions[2],
                 bits   : options.precision,
             });
-            this._renderingContext.stopRendering();
-            this._renderingContext.setVolume(reader);
+            this.renderingContext.stopRendering();
+            this.renderingContext.setVolume(reader);
         }
     } else if (options.type === 'url') {
         const readerClass = ReaderFactory(options.filetype);
@@ -181,8 +173,8 @@ _handleVolumeLoad(e) {
             const loaderClass = LoaderFactory('ajax');
             const loader = new loaderClass(options.url);
             const reader = new readerClass(loader);
-            this._renderingContext.stopRendering();
-            this._renderingContext.setVolume(reader);
+            this.renderingContext.stopRendering();
+            this.renderingContext.setVolume(reader);
         }
     }
 }
@@ -192,8 +184,8 @@ _handleEnvmapLoad(e) {
     let image = new Image();
     image.crossOrigin = 'anonymous';
     image.addEventListener('load', () => {
-        this._renderingContext.setEnvironmentMap(image);
-        this._renderingContext.getRenderer().reset();
+        this.renderingContext.setEnvironmentMap(image);
+        this.renderingContext.getRenderer().reset();
     });
 
     if (options.type === 'file') {

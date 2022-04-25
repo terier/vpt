@@ -1,0 +1,62 @@
+<ui-sidebar bind="sidebar">
+    <div scrollable>
+        <ui-tabs>
+
+            <div slot="header">Data</div>
+            <div>
+                <ui-accordion bind="volumeLoadContainer">
+                    <span slot="label">Volume</span>
+                </ui-accordion>
+                <ui-accordion bind="envmapLoadContainer">
+                    <span slot="label">Environment</span>
+                </ui-accordion>
+            </div>
+
+            <div slot="header">Settings</div>
+            <div>
+                <ui-accordion>
+                    <span slot="label">Renderer</span>
+                    <ui-field>
+                        <label slot="label">Renderer</label>
+                        <select bind="rendererSelect">
+                            <option value="mip">Maximum intensity projection</option>
+                            <option value="iso">Isosurface extraction</option>
+                            <option value="eam">Emission-absorption model</option>
+                            <option value="dos">Directional occlusion shading</option>
+                            <option value="mcs">Single scattering</option>
+                            <option value="mcm" selected>Multiple scattering</option>
+                        </select>
+                    </ui-field>
+                    <div bind="rendererSettingsContainer"></div>
+                </ui-accordion>
+                <ui-accordion>
+                    <span slot="label">Tone mapper</span>
+                    <ui-field>
+                        <label slot="label">Tone mapper</label>
+                        <select bind="toneMapperSelect">
+                            <option value="artistic" selected>Artistic</option>
+                            <option value="range">Range</option>
+                            <option value="reinhard">Reinhard</option>
+                            <option value="reinhard2">Reinhard 2</option>
+                            <option value="uncharted2">Uncharted 2</option>
+                            <option value="filmic">Filmic</option>
+                            <option value="unreal">Unreal</option>
+                            <option value="aces">Aces</option>
+                            <option value="lottes">Lottes</option>
+                            <option value="uchimura">Uchimura</option>
+                        </select>
+                    </ui-field>
+                    <div bind="toneMapperSettingsContainer"></div>
+                </ui-accordion>
+                <ui-accordion bind="renderingContextSettingsContainer">
+                    <span slot="label">Context</span>
+                </ui-accordion>
+            </div>
+
+            <div slot="header">About</div>
+            <div bind="about">
+            </div>
+
+        </ui-tabs>
+    </div>
+</ui-sidebar>

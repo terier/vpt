@@ -3,7 +3,7 @@ export class DOMUtils {
 static template(tmpl) {
     let div = document.createElement('div');
     div.innerHTML = tmpl;
-    const element = div.querySelector('.instantiate');
+    const element = div.firstChild;
     div.removeChild(element);
     return element;
 }
@@ -18,9 +18,9 @@ static instantiate(tmpl) {
 
 static bind(element) {
     const binds = {};
-    const elements = element.querySelectorAll('[data-bind]');
+    const elements = element.querySelectorAll('[bind]');
     for (const element of elements) {
-        binds[element.dataset.bind] = element;
+        binds[element.getAttribute('bind')] = element;
     }
     return binds;
 }
@@ -33,8 +33,8 @@ static hide(element) {
     element.classList.add('invisible');
 }
 
-static toggle(element) {
-    element.classList.toggle('invisible');
+static toggle(element, force) {
+    element.classList.toggle('invisible', !force);
 }
 
 }
