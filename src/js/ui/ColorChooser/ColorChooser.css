@@ -8,7 +8,7 @@
 
     height: 18px;
     border: 1px solid var(--enabled-border-color);
-    background: url('../images/alpha-checkerboard-small.png') repeat;
+    background: url('../../../images/alpha-checkerboard-small.png') repeat;
     background-position: 50% 50%;
     box-sizing: border-box;
     cursor: pointer;

@@ -1,3 +1,5 @@
+import { DOMUtils } from '../../utils/DOMUtils.js';
+
 const template = document.createElement('template');
 template.innerHTML = await fetch(new URL('./ColorChooser.html', import.meta.url))
     .then(response => response.text());
@@ -30,6 +32,10 @@ set value(value) {
 
 clickListener(e) {
     this.binds.input.click();
+}
+
+inputListener(e) {
+    this.dispatchEvent(new Event('change'));
 }
 
 }

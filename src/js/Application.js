@@ -104,6 +104,10 @@ _handleFileDrop(e) {
 }
 
 _handleRendererChange() {
+    if (this.rendererDialog) {
+        this.rendererDialog.remove();
+    }
+
     const which = this.mainDialog.getSelectedRenderer();
     this.renderingContext.chooseRenderer(which);
     const renderer = this.renderingContext.getRenderer();
@@ -124,6 +128,10 @@ _handleRendererChange() {
 }
 
 _handleToneMapperChange() {
+    if (this.toneMapperDialog) {
+        this.toneMapperDialog.remove();
+    }
+
     const which = this.mainDialog.getSelectedToneMapper();
     this.renderingContext.chooseToneMapper(which);
     const toneMapper = this.renderingContext.getToneMapper();

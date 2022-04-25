@@ -19,10 +19,13 @@ static construct(properties) {
     return panel;
 }
 
+// TODO: This is ugly. Fix ASAP.
 static constructProperty(property) {
     switch (property.type) {
         case 'spinner': return `<input type="number" bind="${property.name}" value="${property.value}" min="${property.min}" max="${property.max}" step="${property.step}">`;
+        case 'vector-spinner': return `<ui-vector-spinner bind="${property.name}" value="${JSON.stringify(property.value)}" min="${property.min}" max="${property.max}" step="${property.step}"></ui-slider>`;
         case 'slider': return `<ui-slider bind="${property.name}" value="${property.value}" min="${property.min}" max="${property.max}" step="${property.step}"></ui-slider>`;
+        case 'color-chooser': return `<ui-color-chooser bind="${property.name}" value="${property.value}"></ui-color-chooser>`;
         case 'transfer-function': return `<ui-transfer-function bind="${property.name}"></ui-transfer-function>`;
         default: return `<div></div>`;
     }
