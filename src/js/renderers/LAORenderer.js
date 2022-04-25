@@ -23,7 +23,7 @@ constructor(gl, volume, environmentTexture, options) {
             name: 'localAmbientOcclusion',
             label: 'Local Ambient Occlusion',
             type: 'checkbox',
-            checked: true,
+            value: true,
         },
         {
             name: 'LAOWeight',
@@ -51,7 +51,7 @@ constructor(gl, volume, environmentTexture, options) {
             name: 'softShadows',
             label: 'Soft Shadows',
             type: 'checkbox',
-            checked: true,
+            value: true,
         },
         {
             name: 'shadowsWeight',
@@ -76,10 +76,10 @@ constructor(gl, volume, environmentTexture, options) {
             min: 0,
         },
         {
-            name: 'light',
+            name: 'lightPosition',
             label: 'Light position',
-            type: 'vector',
-            value: { x: 2.0, y: 12.0, z: 3.0 },
+            type: 'vector-spinner',
+            value: [ 2, 12, 3 ],
         },
         {
             name: 'lightCoeficient',
@@ -163,6 +163,7 @@ _generateFrame() {
     gl.uniform1i(uniforms.uNumShadowSamples, this.numShadowSamples);
     gl.uniform1f(uniforms.uLightRadious, this.lightRadious);
     gl.uniform1f(uniforms.uLightCoeficient, this.lightCoeficient);
+    gl.uniform3fv(uniforms.uLightPosition, this.lightPosition);
     gl.uniform1f(uniforms.uOffset, Math.random());
     const mvpit = this.calculateMVPInverseTranspose();
     gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, mvpit.m);

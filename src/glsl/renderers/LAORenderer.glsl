@@ -3,23 +3,21 @@
 #version 300 es
 
 uniform mat4 uMvpInverseMatrix;
-uniform vec3 lightPosition;
+uniform vec3 uLightPosition;
 
 layout(location = 0) in vec2 aPosition;
 out vec3 vRayFrom;
 out vec3 vRayTo;
-out vec3 light;
-out vec2 aPos;
+out vec3 vLight;
+out vec2 vPosition;
 
 // #link /glsl/mixins/unproject.glsl
 @unproject
 
 void main() {
     unproject(aPosition, uMvpInverseMatrix, vRayFrom, vRayTo);
-	// mat4 inv = inverse(modelview);
-	light = vec3(uMvpInverseMatrix * vec4(lightPosition, 1.0)).rgb;
-	// light = lightPosition;
-    aPos = aPosition;
+	vLight = vec3(uMvpInverseMatrix * vec4(uLightPosition, 1.0)).rgb;
+    vPosition = aPosition;
     gl_Position = vec4(aPosition, 0, 1);
 }
 
@@ -45,8 +43,9 @@ uniform float uLightCoeficient; // = 1.0;
 
 in vec3 vRayFrom;
 in vec3 vRayTo;
-in vec3 light;
-in vec2 aPos;
+in vec3 vLight;
+in vec2 vPosition;
+
 out vec4 oColor;
 
 vec3 voxelSize = 1.0 / vec3(32.0); // TODO: calculate size from volume dimensions
@@ -105,7 +104,7 @@ void main() {
         float value = 0.0;
 
         float t = 0.0;
-        t = rand(aPos * seed).r * uStepSize * 1.5;
+        t = rand(vPosition * seed).r * uStepSize * 1.5;
         t = clamp(t, 0.0, 1.0);
         vec4 accumulator = vec4(0.00);
 
@@ -120,7 +119,7 @@ void main() {
 
             value = sampleVolume(position);
 
-            halfVector = normalize(light - position);
+            halfVector = normalize(vLlight - position);
 
             vec4 LAOContribution = vec4(0.0);
             vec4 uSoftShadowsContribution = vec4(0.0);
@@ -129,9 +128,9 @@ void main() {
                 vec4 accumuLAOContribution = vec4(0.0);
                 for (int samp = 0; samp < uNumLAOSamples; samp++) {
                     for (float t = 0.001; t < 1.0; t += uLAOStepSize) {
-                        vec3 randomDirection = -1.0 + 2.0 * vec3(rand(aPos * seed).x, rand(aPos * seed).x, rand(aPos * seed).x);
-                        randomDirection = normalize(randomDirection) * rand(aPos * seed).x;
-                        vec3 laoHalfVector = normalize(light + randomDirection * mix(0.0, uLightRadious, t) - position);
+                        vec3 randomDirection = -1.0 + 2.0 * vec3(rand(vPosition * seed).x, rand(vPosition * seed).x, rand(vPosition * seed).x);
+                        randomDirection = normalize(randomDirection) * rand(vPosition * seed).x;
+                        vec3 laoHalfVector = normalize(vLight + randomDirection * mix(0.0, uLightRadious, t) - position);
                         vec3 samplePos = position + laoHalfVector * t;
                         float laoSample = sampleVolume(samplePos);
                         accumuLAOContribution += laoSample * pow(1.0 - t, 2.0);
@@ -146,8 +145,8 @@ void main() {
             if (uSoftShadows) {
                 vec4 accumulatedShadowContribution = vec4(0.0);
                 for (int samp = 0; samp < uNumShadowSamples; samp++) {
-                    vec3 randomDirection = vec3(-1.0 + light.x * rand(aPos * seed).x, light.y + rand(aPos * seed).x * light.z, -1.0 + 2.0 * rand(seed).x);
-                    randomDirection = normalize(randomDirection) * rand(aPos * seed).x;
+                    vec3 randomDirection = vec3(-1.0 + vLight.x * rand(vPosition * seed).x, vLight.y + rand(vPosition * seed).x * vLight.z, -1.0 + 2.0 * rand(seed).x);
+                    randomDirection = normalize(randomDirection) * rand(vPosition * seed).x;
 
                     float volumeShadowSample = sampleVolume(position + randomDirection * uLightRadious) * 0.2;
                     accumulatedShadowContribution += sampleVolume(position + randomDirection * uLightRadious) * volumeShadowSample * pow(length(randomDirection), 1.0);
