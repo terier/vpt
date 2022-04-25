@@ -61,6 +61,15 @@ constructor() {
         const filter = this.renderingContextDialog.filter;
         this.renderingContext.setFilter(filter);
     });
+    this.renderingContextDialog.addEventListener('fullscreen', e => {
+        this.renderingContext.getCanvas().classList.toggle('fullscreen',
+            this.renderingContextDialog.fullscreen);
+    });
+
+    new ResizeObserver(entries => {
+        const size = entries[0].contentBoxSize[0];
+        this.renderingContext._camera.resize(size.inlineSize, size.blockSize);
+    }).observe(this.renderingContext.getCanvas());
 
     this.renderingContext.addEventListener('progress', e => {
         this.volumeLoadDialog.binds.loadProgress.value = e.detail;
