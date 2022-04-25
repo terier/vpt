@@ -10,7 +10,7 @@
 }
 
 canvas {
-    background: url('../../images/alpha-checkerboard.png') repeat;
+    background: url('../../../images/alpha-checkerboard.png') repeat;
 }
 
 .bump {

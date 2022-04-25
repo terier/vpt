@@ -11,6 +11,7 @@ import { MainDialog } from './dialogs/MainDialog/MainDialog.js';
 import { VolumeLoadDialog } from './dialogs/VolumeLoadDialog/VolumeLoadDialog.js';
 import { EnvmapLoadDialog } from './dialogs/EnvmapLoadDialog/EnvmapLoadDialog.js';
 import { RenderingContextDialog } from './dialogs/RenderingContextDialog/RenderingContextDialog.js';
+import { DialogConstructor } from './dialogs/DialogConstructor.js';
 
 import { RenderingContext } from './RenderingContext.js';
 
@@ -102,32 +103,11 @@ _handleFileDrop(e) {
     }));
 }
 
-_constructDialogFromProperties(object) {
-    const panel = document.createElement('div');
-    for (const property of object.properties) {
-        const widget = this.createUIFromProperty(property);
-        const field = `<ui-field><label slot="label">${property.label}</label>${widget}</ui-field>`;
-        const instance = DOMUtils.instantiate(field);
-        panel.appendChild(instance);
-    }
-    return panel;
-}
-
-createUIFromProperty(property) {
-    switch (property.type) {
-        case 'spinner': return `<input type="number" bind="${property.name}" value="${property.value}" min="${property.min}" max="${property.max}" step="${property.step}">`;
-        case 'slider': return `<ui-slider bind="${property.name}" value="${property.value}" min="${property.min}" max="${property.max}" step="${property.step}"></ui-slider>`;
-        case 'transfer-function': return `<ui-accordion><ui-transfer-function bind="${property.name}"></ui-transfer-function></ui-accordion>`;
-        default: return `<div></div>`;
-    }
-}
-
 _handleRendererChange() {
     const which = this.mainDialog.getSelectedRenderer();
     this.renderingContext.chooseRenderer(which);
     const renderer = this.renderingContext.getRenderer();
-    const object = this._constructDialogFromProperties(renderer);
-    console.log(object);
+    const object = DialogConstructor.construct(renderer.properties);
     const binds = DOMUtils.bind(object);
     this.rendererDialog = object;
     for (const name in binds) {
@@ -147,7 +127,7 @@ _handleToneMapperChange() {
     const which = this.mainDialog.getSelectedToneMapper();
     this.renderingContext.chooseToneMapper(which);
     const toneMapper = this.renderingContext.getToneMapper();
-    const object = this._constructDialogFromProperties(toneMapper);
+    const object = DialogConstructor.construct(toneMapper.properties);
     const binds = DOMUtils.bind(object);
     this.toneMapperDialog = object;
     for (const name in binds) {
