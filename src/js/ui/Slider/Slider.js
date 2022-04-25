@@ -69,7 +69,7 @@ _updateUI() {
 
 _setValueByEvent(e) {
     const rect = this.binds.container.getBoundingClientRect();
-    const ratio = (e.pageX - rect.left) / (rect.right - rect.left);
+    const ratio = Math.min(Math.max((e.pageX - rect.left) / (rect.right - rect.left), 0), 1);
     if (this.logarithmic) {
         const logmin = Math.log(this.min);
         const logmax = Math.log(this.max);
