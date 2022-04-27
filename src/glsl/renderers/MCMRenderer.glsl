@@ -43,10 +43,8 @@ uniform vec2 uInverseResolution;
 uniform float uRandSeed;
 uniform float uBlur;
 
-uniform float uAbsorptionCoefficient;
-uniform float uScatteringCoefficient;
-uniform float uScatteringBias;
-uniform float uMajorant;
+uniform float uExtinction;
+uniform float uAnisotropy;
 uniform uint uMaxBounces;
 uniform uint uSteps;
 
@@ -102,6 +100,14 @@ vec3 sampleHenyeyGreenstein(float g, vec2 U, vec3 direction) {
     return normalize(u + lambda * direction);
 }
 
+float max3(vec3 v) {
+    return max(max(v.x, v.y), v.z);
+}
+
+float mean3(vec3 v) {
+    return dot(v, vec3(1.0 / 3.0));
+}
+
 void main() {
     Photon photon;
     vec2 mappedPosition = vPosition * 0.5 + 0.5;
@@ -117,17 +123,19 @@ void main() {
     vec2 r = rand(vPosition * uRandSeed);
     for (uint i = 0u; i < uSteps; i++) {
         r = rand(r);
-        float t = -log(r.x) / uMajorant;
+        float t = -log(r.x) / uExtinction;
         photon.position += t * photon.direction;
 
         vec4 volumeSample = sampleVolumeColor(photon.position);
-        float muAbsorption = volumeSample.a * uAbsorptionCoefficient;
-        float muScattering = volumeSample.a * uScatteringCoefficient;
-        float muNull = uMajorant - muAbsorption - muScattering;
-        float muMajorant = muAbsorption + muScattering + abs(muNull);
-        float PNull = abs(muNull) / muMajorant;
-        float PAbsorption = muAbsorption / muMajorant;
-        float PScattering = muScattering / muMajorant;
+
+        float PNull = 1.0 - volumeSample.a;
+        float PScattering;
+        if (photon.bounces >= uMaxBounces) {
+            PScattering = 0.0;
+        } else {
+            PScattering = volumeSample.a * max3(volumeSample.rgb);
+        }
+        float PAbsorption = 1.0 - PNull - PScattering;
 
         if (any(greaterThan(photon.position, vec3(1))) || any(lessThan(photon.position, vec3(0)))) {
             // out of bounds
@@ -136,25 +144,20 @@ void main() {
             photon.samples++;
             photon.radiance += (radiance - photon.radiance) / float(photon.samples);
             resetPhoton(r, photon);
-        } else if (photon.bounces >= uMaxBounces) {
-            // max bounces achieved -> only estimate transmittance
-            float weightAS = (muAbsorption + muScattering) / uMajorant;
-            photon.transmittance *= 1.0 - weightAS;
         } else if (r.y < PAbsorption) {
             // absorption
-            float weightA = muAbsorption / (uMajorant * PAbsorption);
-            photon.transmittance *= 1.0 - weightA;
+            vec3 radiance = vec3(0);
+            photon.samples++;
+            photon.radiance += (radiance - photon.radiance) / float(photon.samples);
+            resetPhoton(r, photon);
         } else if (r.y < PAbsorption + PScattering) {
             // scattering
             r = rand(r);
-            float weightS = muScattering / (uMajorant * PScattering);
-            photon.transmittance *= volumeSample.rgb * weightS;
-            photon.direction = sampleHenyeyGreenstein(uScatteringBias, r, photon.direction);
+            photon.transmittance *= volumeSample.rgb;
+            photon.direction = sampleHenyeyGreenstein(uAnisotropy, r, photon.direction);
             photon.bounces++;
         } else {
             // null collision
-            float weightN = muNull / (uMajorant * PNull);
-            photon.transmittance *= weightN;
         }
     }
 
