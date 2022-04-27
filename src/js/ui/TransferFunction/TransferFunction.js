@@ -36,8 +36,8 @@ constructor() {
     });
 
     this.canvas = this.shadow.querySelector('canvas');
-    this.canvas.width = this._transferFunctionWidth;
-    this.canvas.height = this._transferFunctionHeight;
+    this.canvas.width = this.transferFunctionWidth;
+    this.canvas.height = this.transferFunctionHeight;
     this.resize(this.width, this.height);
 
     this._gl = this.canvas.getContext('webgl2', {
@@ -105,8 +105,8 @@ resize(width, height) {
 resizeTransferFunction(width, height) {
     this.canvas.width = width;
     this.canvas.height = height;
-    this._transferFunctionWidth = width;
-    this._transferFunctionHeight = height;
+    this.transferFunctionWidth = width;
+    this.transferFunctionHeight = height;
     const gl = this._gl;
     gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 }
