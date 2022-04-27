@@ -119,7 +119,7 @@ void main() {
 
             value = sampleVolume(position);
 
-            halfVector = normalize(vLlight - position);
+            halfVector = normalize(vLight - position);
 
             vec4 LAOContribution = vec4(0.0);
             vec4 uSoftShadowsContribution = vec4(0.0);
