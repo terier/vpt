@@ -6,7 +6,8 @@
   "scripts": {
     "build": "bin/packer",
     "start": "bin/server-express",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "node bin/watcher \"node bin/packer\" src"
   },
   "repository": {
     "type": "git",

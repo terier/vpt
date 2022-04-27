@@ -60,9 +60,13 @@
                               "label": "Single scattering"
                             },
                             {
-                              "selected": true,
                               "value": "mcm",
                               "label": "Multiple scattering"
+                            },
+                            {
+                              "selected": true,
+                              "value": "fld",
+                              "label": "Flux-Limited Diffusion"
                             }
                           ]
                         }

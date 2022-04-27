@@ -4,6 +4,7 @@ import { EAMRenderer } from './EAMRenderer.js';
 import { MCSRenderer } from './MCSRenderer.js';
 import { MCMRenderer } from './MCMRenderer.js';
 import { DOSRenderer } from './DOSRenderer.js';
+import { FLDRenderer } from './FLDRenderer.js';
 
 export function RendererFactory(which) {
     switch (which) {
@@ -13,6 +14,7 @@ export function RendererFactory(which) {
         case 'mcs': return MCSRenderer;
         case 'mcm': return MCMRenderer;
         case 'dos': return DOSRenderer;
+        case 'fld': return FLDRenderer;
 
         default: throw new Error('No suitable class');
     }
