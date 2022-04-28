@@ -1,8 +1,8 @@
-// #part /js/animators/CircleAnimator
+import { Matrix } from '../math/Matrix.js';
+import { Vector } from '../math/Vector.js';
+import { Quaternion } from '../math/Quaternion.js';
 
-// #link ../math
-
-class CircleAnimator {
+export class CircleAnimator {
 
 constructor(node, options) {
     this.node = node;

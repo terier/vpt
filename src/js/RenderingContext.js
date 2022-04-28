@@ -11,6 +11,8 @@ import { Volume } from './Volume.js';
 import { RendererFactory } from './renderers/RendererFactory.js';
 import { ToneMapperFactory } from './tonemappers/ToneMapperFactory.js';
 
+import { CircleAnimator } from './animators/CircleAnimator.js';
+
 const [ SHADERS, MIXINS ] = await Promise.all([
     'shaders.json',
     'mixins.json',
