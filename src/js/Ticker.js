@@ -1,6 +1,4 @@
-// #part /js/Ticker
-
-const Ticker = (() => {
+export const Ticker = (() => {
 
 let queue = [];
 

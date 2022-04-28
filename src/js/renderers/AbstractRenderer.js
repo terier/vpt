@@ -1,13 +1,19 @@
-// #part /js/renderers/AbstractRenderer
+import { PropertyBag } from '../PropertyBag.js';
+import { Matrix } from '../math/Matrix.js';
+import { WebGL } from '../WebGL.js';
+import { SingleBuffer } from '../SingleBuffer.js';
+import { DoubleBuffer } from '../DoubleBuffer.js';
 
-// #link ../math
-// #link ../WebGL
-// #link ../SingleBuffer
-// #link ../DoubleBuffer
+const [ SHADERS, MIXINS ] = await Promise.all([
+    'shaders.json',
+    'mixins.json',
+].map(url => fetch(url).then(response => response.json())));
 
-class AbstractRenderer {
+export class AbstractRenderer extends PropertyBag {
 
 constructor(gl, volume, environmentTexture, options) {
+    super();
+
     Object.assign(this, {
         _bufferSize : 512
     }, options);
@@ -25,7 +31,7 @@ constructor(gl, volume, environmentTexture, options) {
         wrapS  : gl.CLAMP_TO_EDGE,
         wrapT  : gl.CLAMP_TO_EDGE,
         min    : gl.LINEAR,
-        mag    : gl.LINEAR
+        mag    : gl.LINEAR,
     });
 
     this.modelMatrix = new Matrix();
@@ -35,7 +41,7 @@ constructor(gl, volume, environmentTexture, options) {
     this._clipQuad = WebGL.createClipQuad(gl);
     this._clipQuadProgram = WebGL.buildPrograms(gl, {
         quad: SHADERS.quad
-    }).quad;
+    }, MIXINS).quad;
 }
 
 destroy() {
@@ -104,7 +110,6 @@ setTransferFunction(transferFunction) {
     gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
     gl.texImage2D(gl.TEXTURE_2D, 0,
         gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, transferFunction);
-    gl.bindTexture(gl.TEXTURE_2D, null);
 }
 
 setResolution(resolution) {
@@ -161,7 +166,7 @@ _getRenderBufferSpec() {
         wrapT          : gl.CLAMP_TO_EDGE,
         format         : gl.RGBA,
         internalFormat : gl.RGBA16F,
-        type           : gl.FLOAT
+        type           : gl.FLOAT,
     }];
 }
 

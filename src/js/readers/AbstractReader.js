@@ -1,6 +1,4 @@
-// #part /js/readers/AbstractReader
-
-class AbstractReader {
+export class AbstractReader {
 
 constructor(loader) {
     this._loader = loader;

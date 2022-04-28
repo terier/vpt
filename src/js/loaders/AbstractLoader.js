@@ -1,6 +1,4 @@
-// #part /js/loaders/AbstractLoader
-
-class AbstractLoader {
+export class AbstractLoader {
 
 async readLength() {
     // IMPLEMENT

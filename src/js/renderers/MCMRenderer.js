@@ -1,21 +1,70 @@
-// #part /js/renderers/MCMRenderer
+import { WebGL } from '../WebGL.js';
+import { AbstractRenderer } from './AbstractRenderer.js';
 
-// #link ../WebGL
-// #link AbstractRenderer
+const [ SHADERS, MIXINS ] = await Promise.all([
+    'shaders.json',
+    'mixins.json',
+].map(url => fetch(url).then(response => response.json())));
 
-class MCMRenderer extends AbstractRenderer {
+export class MCMRenderer extends AbstractRenderer {
 
 constructor(gl, volume, environmentTexture, options) {
     super(gl, volume, environmentTexture, options);
 
-    Object.assign(this, {
-        absorptionCoefficient : 1,
-        scatteringCoefficient : 1,
-        scatteringBias        : 0,
-        majorant              : 2,
-        maxBounces            : 8,
-        steps                 : 1
-    }, options);
+    this.registerProperties([
+        {
+            name: 'extinction',
+            label: 'Extinction',
+            type: 'spinner',
+            value: 1,
+            min: 0,
+        },
+        {
+            name: 'anisotropy',
+            label: 'Anisotropy',
+            type: 'slider',
+            value: 0,
+            min: -1,
+            max: 1,
+        },
+        {
+            name: 'bounces',
+            label: 'Max bounces',
+            type: 'spinner',
+            value: 8,
+            min: 0,
+        },
+        {
+            name: 'steps',
+            label: 'Steps',
+            type: 'spinner',
+            value: 8,
+            min: 0,
+        },
+        {
+            name: 'transferFunction',
+            label: 'Transfer function',
+            type: 'transfer-function',
+            value: new Uint8Array(256),
+        },
+    ]);
+
+    this.addEventListener('change', e => {
+        const { name, value } = e.detail;
+
+        if (name === 'transferFunction') {
+            this.setTransferFunction(this.transferFunction);
+        }
+
+        if ([
+            'extinction',
+            'anisotropy',
+            'bounces',
+            'transferFunction',
+        ].includes(name)) {
+            this.reset();
+        }
+    });
 
     this._programs = WebGL.buildPrograms(gl, SHADERS.renderers.MCM, MIXINS);
 }
@@ -45,7 +94,7 @@ _resetFrame() {
         gl.COLOR_ATTACHMENT0,
         gl.COLOR_ATTACHMENT1,
         gl.COLOR_ATTACHMENT2,
-        gl.COLOR_ATTACHMENT3
+        gl.COLOR_ATTACHMENT3,
     ]);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
@@ -91,18 +140,16 @@ _integrateFrame() {
     gl.uniform1f(uniforms.uRandSeed, Math.random());
     gl.uniform1f(uniforms.uBlur, 0);
 
-    gl.uniform1f(uniforms.uAbsorptionCoefficient, this.absorptionCoefficient);
-    gl.uniform1f(uniforms.uScatteringCoefficient, this.scatteringCoefficient);
-    gl.uniform1f(uniforms.uScatteringBias, this.scatteringBias);
-    gl.uniform1f(uniforms.uMajorant, this.majorant);
-    gl.uniform1ui(uniforms.uMaxBounces, this.maxBounces);
+    gl.uniform1f(uniforms.uExtinction, this.extinction);
+    gl.uniform1f(uniforms.uAnisotropy, this.anisotropy);
+    gl.uniform1ui(uniforms.uMaxBounces, this.bounces);
     gl.uniform1ui(uniforms.uSteps, this.steps);
 
     gl.drawBuffers([
         gl.COLOR_ATTACHMENT0,
         gl.COLOR_ATTACHMENT1,
         gl.COLOR_ATTACHMENT2,
-        gl.COLOR_ATTACHMENT3
+        gl.COLOR_ATTACHMENT3,
     ]);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
@@ -131,7 +178,7 @@ _getFrameBufferSpec() {
         mag            : gl.NEAREST,
         format         : gl.RGBA,
         internalFormat : gl.RGBA32F,
-        type           : gl.FLOAT
+        type           : gl.FLOAT,
     }];
 }
 
@@ -145,7 +192,7 @@ _getAccumulationBufferSpec() {
         mag            : gl.NEAREST,
         format         : gl.RGBA,
         internalFormat : gl.RGBA32F,
-        type           : gl.FLOAT
+        type           : gl.FLOAT,
     };
 
     const directionBufferSpec = {
@@ -155,7 +202,7 @@ _getAccumulationBufferSpec() {
         mag            : gl.NEAREST,
         format         : gl.RGBA,
         internalFormat : gl.RGBA32F,
-        type           : gl.FLOAT
+        type           : gl.FLOAT,
     };
 
     const transmittanceBufferSpec = {
@@ -165,7 +212,7 @@ _getAccumulationBufferSpec() {
         mag            : gl.NEAREST,
         format         : gl.RGBA,
         internalFormat : gl.RGBA32F,
-        type           : gl.FLOAT
+        type           : gl.FLOAT,
     };
 
     const radianceBufferSpec = {
@@ -175,14 +222,14 @@ _getAccumulationBufferSpec() {
         mag            : gl.NEAREST,
         format         : gl.RGBA,
         internalFormat : gl.RGBA32F,
-        type           : gl.FLOAT
+        type           : gl.FLOAT,
     };
 
     return [
         positionBufferSpec,
         directionBufferSpec,
         transmittanceBufferSpec,
-        radianceBufferSpec
+        radianceBufferSpec,
     ];
 }
 

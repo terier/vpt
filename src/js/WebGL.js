@@ -1,6 +1,4 @@
-// #part /js/WebGL
-
-class WebGL {
+export class WebGL {
 
 static createShader(gl, source, type) {
     const shader = gl.createShader(type);

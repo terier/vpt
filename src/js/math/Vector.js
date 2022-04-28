@@ -1,6 +1,4 @@
-// #part /js/math/Vector
-
-class Vector {
+export class Vector {
 
 constructor(x, y, z, w) {
     this.x = x || 0;

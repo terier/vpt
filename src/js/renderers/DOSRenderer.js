@@ -1,24 +1,91 @@
-// #part /js/renderers/DOSRenderer
+import { WebGL } from '../WebGL.js';
+import { AbstractRenderer } from './AbstractRenderer.js';
 
-// #link ../math
-// #link ../WebGL
-// #link AbstractRenderer
+import { Vector } from '../math/Vector.js';
+import { Matrix } from '../math/Matrix.js';
 
-class DOSRenderer extends AbstractRenderer {
+const [ SHADERS, MIXINS ] = await Promise.all([
+    'shaders.json',
+    'mixins.json',
+].map(url => fetch(url).then(response => response.json())));
+
+export class DOSRenderer extends AbstractRenderer {
 
 constructor(gl, volume, environmentTexture, options) {
     super(gl, volume, environmentTexture, options);
 
-    Object.assign(this, {
-        steps      : 50,
-        slices     : 200,
-        extinction : 100,
-        aperture   : 30,
-        samples    : 8,
-        _depth     : 0,
-        _minDepth  : 0,
-        _maxDepth  : 0,
-    }, options);
+    this.registerProperties([
+        {
+            name: 'steps',
+            label: 'Steps',
+            type: 'spinner',
+            value: 50,
+            min: 1,
+        },
+        {
+            name: 'slices',
+            label: 'Slices',
+            type: 'spinner',
+            value: 200,
+            min: 1,
+        },
+        {
+            name: 'extinction',
+            label: 'Extinction',
+            type: 'spinner',
+            value: 100,
+            min: 0,
+        },
+        {
+            name: 'aperture',
+            label: 'Aperture',
+            type: 'spinner',
+            value: 30,
+            min: 0,
+            max: 89,
+        },
+        {
+            name: 'samples',
+            label: 'Samples',
+            type: 'spinner',
+            value: 8,
+            min: 1,
+            max: 200,
+            step: 1,
+        },
+        {
+            name: 'transferFunction',
+            label: 'Transfer function',
+            type: 'transfer-function',
+            value: new Uint8Array(256),
+        },
+    ]);
+
+    this.addEventListener('change', e => {
+        const { name, value } = e.detail;
+
+        if (name === 'transferFunction') {
+            this.setTransferFunction(this.transferFunction);
+        }
+
+        if (name === 'samples') {
+            this.generateOcclusionSamples();
+        }
+
+        if ([
+            'slices',
+            'extinction',
+            'aperture',
+            'samples',
+            'transferFunction',
+        ].includes(name)) {
+            this.reset();
+        }
+    });
+
+    this._depth = 0;
+    this._minDepth = 0;
+    this._maxDepth = 0;
 
     this._programs = WebGL.buildPrograms(this._gl, SHADERS.renderers.DOS, MIXINS);
 
@@ -96,7 +163,7 @@ _resetFrame() {
 
     gl.drawBuffers([
         gl.COLOR_ATTACHMENT0,
-        gl.COLOR_ATTACHMENT1
+        gl.COLOR_ATTACHMENT1,
     ]);
 
     const { program, uniforms } = this._programs.reset;
@@ -113,7 +180,7 @@ _integrateFrame() {
 
     gl.drawBuffers([
         gl.COLOR_ATTACHMENT0,
-        gl.COLOR_ATTACHMENT1
+        gl.COLOR_ATTACHMENT1,
     ]);
 
     gl.activeTexture(gl.TEXTURE2);
@@ -193,7 +260,7 @@ _getFrameBufferSpec() {
         mag            : gl.NEAREST,
         format         : gl.RGBA,
         internalFormat : gl.RGBA32F,
-        type           : gl.FLOAT
+        type           : gl.FLOAT,
     }];
 }
 
@@ -207,7 +274,7 @@ _getAccumulationBufferSpec() {
         mag            : gl.NEAREST,
         format         : gl.RGBA,
         internalFormat : gl.RGBA32F,
-        type           : gl.FLOAT
+        type           : gl.FLOAT,
     };
 
     const occlusionBuffer = {
@@ -217,12 +284,12 @@ _getAccumulationBufferSpec() {
         mag            : gl.LINEAR,
         format         : gl.RED,
         internalFormat : gl.R32F,
-        type           : gl.FLOAT
+        type           : gl.FLOAT,
     };
 
     return [
         colorBuffer,
-        occlusionBuffer
+        occlusionBuffer,
     ];
 }
 

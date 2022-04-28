@@ -1,16 +1,15 @@
-// #part /js/OrbitCameraController
+import { Vector } from './math/Vector.js';
+import { Quaternion } from './math/Quaternion.js';
+import { Ticker } from './Ticker.js';
 
-// #link math
-// #link Ticker
-
-class OrbitCameraController {
+export class OrbitCameraController {
 
 constructor(camera, domElement, options) {
     this._update = this._update.bind(this);
-    this._handleMouseDown = this._handleMouseDown.bind(this);
-    this._handleMouseUp = this._handleMouseUp.bind(this);
-    this._handleMouseMove = this._handleMouseMove.bind(this);
-    this._handleMouseWheel = this._handleMouseWheel.bind(this);
+    this._handlePointerDown = this._handlePointerDown.bind(this);
+    this._handlePointerUp = this._handlePointerUp.bind(this);
+    this._handlePointerMove = this._handlePointerMove.bind(this);
+    this._handleWheel = this._handleWheel.bind(this);
     this._handleKeyDown = this._handleKeyDown.bind(this);
     this._handleKeyUp = this._handleKeyUp.bind(this);
 
@@ -41,18 +40,15 @@ constructor(camera, domElement, options) {
 }
 
 _addEventListeners() {
-    this._domElement.addEventListener('mousedown', this._handleMouseDown);
-    this._domElement.addEventListener('touchstart', this._handleMouseDown);
-    document.addEventListener('mouseup', this._handleMouseUp);
-    document.addEventListener('touchend', this._handleMouseUp);
-    document.addEventListener('mousemove', this._handleMouseMove);
-    document.addEventListener('touchmove', this._handleMouseMove);
-    this._domElement.addEventListener('mousewheel', this._handleMouseWheel);
+    this._domElement.addEventListener('pointerdown', this._handlePointerDown);
+    document.addEventListener('pointerup', this._handlePointerUp);
+    document.addEventListener('pointermove', this._handlePointerMove);
+    this._domElement.addEventListener('wheel', this._handleWheel);
     document.addEventListener('keydown', this._handleKeyDown);
     document.addEventListener('keyup', this._handleKeyUp);
 }
 
-_handleMouseDown(e) {
+_handlePointerDown(e) {
     e.preventDefault();
     if (typeof e.touches === 'object') {
         this._startX = e.touches[0].pageX;
@@ -69,13 +65,13 @@ _handleMouseDown(e) {
     }
 }
 
-_handleMouseUp(e) {
+_handlePointerUp(e) {
     e.preventDefault();
     this._isTranslating = false;
     this._isRotating = false;
 }
 
-_handleMouseMove(e) {
+_handlePointerMove(e) {
     e.preventDefault();
 
     const x = typeof e.pageX !== 'undefined' ? e.pageX : e.touches[0].pageX;
@@ -103,7 +99,7 @@ _handleMouseMove(e) {
     this._startY = y;
 }
 
-_handleMouseWheel(e) {
+_handleWheel(e) {
     e.preventDefault();
     const amount = e.deltaY * this.zoomSpeed;
     const keepScale = e.shiftKey;

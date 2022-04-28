@@ -1,0 +1,33 @@
+:host {
+    --border-color            : #aaaaaa;
+    --enabled-progress-color  : #2196f3;
+    --disabled-progress-color : #cccccc;
+}
+
+:host {
+    display: block;
+    height: 18px;
+    position: relative;
+    border: 1px solid var(--border-color);
+    box-sizing: border-box;
+    display: grid;
+    justify-content: center;
+    align-content: center;
+}
+
+.label {
+    font-style: italic;
+    user-select: none;
+    z-index: 1;
+}
+
+.progress {
+    height: 100%;
+    position: absolute;
+
+    background-color: var(--enabled-progress-color);
+}
+
+:host([disabled]) .progress {
+    background-color: var(--disabled-progress-color);
+}

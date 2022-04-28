@@ -1,22 +1,47 @@
-// #part /js/tonemappers/ArtisticToneMapper
+import { WebGL } from '../WebGL.js';
+import { AbstractToneMapper } from './AbstractToneMapper.js';
 
-// #link ../WebGL
-// #link AbstractToneMapper
+const [ SHADERS, MIXINS ] = await Promise.all([
+    'shaders.json',
+    'mixins.json',
+].map(url => fetch(url).then(response => response.json())));
 
-class ArtisticToneMapper extends AbstractToneMapper {
+export class ArtisticToneMapper extends AbstractToneMapper {
 
 constructor(gl, texture, options) {
     super(gl, texture, options);
 
-    Object.assign(this, {
-        low        : 0,
-        mid        : 0.5,
-        high       : 1,
-        saturation : 1
-    }, options);
+    this.registerProperties([
+        {
+            name: 'low',
+            label: 'Low',
+            type: 'spinner',
+            value: 0,
+        },
+        {
+            name: 'high',
+            label: 'High',
+            type: 'spinner',
+            value: 1,
+        },
+        {
+            name: 'mid',
+            label: 'Midtones',
+            type: 'slider',
+            value: 0.5,
+            min: 0.00001,
+            max: 0.99999,
+        },
+        {
+            name: 'saturation',
+            label: 'Saturation',
+            type: 'spinner',
+            value: 1,
+        },
+    ]);
 
-    this._program = WebGL.buildPrograms(this._gl, {
-        ArtisticToneMapper : SHADERS.ArtisticToneMapper
+    this._program = WebGL.buildPrograms(gl, {
+        ArtisticToneMapper: SHADERS.tonemappers.ArtisticToneMapper
     }, MIXINS).ArtisticToneMapper;
 }
 

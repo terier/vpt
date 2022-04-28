@@ -1,6 +1,4 @@
-// #part /js/math/Quaternion
-
-class Quaternion {
+export class Quaternion {
 
 constructor(x, y, z, w) {
     this.x = x || 0;

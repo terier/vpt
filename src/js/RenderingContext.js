@@ -1,15 +1,22 @@
-// #part /js/RenderingContext
+import { Vector } from './math/Vector.js';
+import { Matrix } from './math/Matrix.js';
+import { Quaternion } from './math/Quaternion.js';
 
-// #link math
-// #link WebGL
-// #link Ticker
-// #link Camera
-// #link OrbitCameraController
-// #link Volume
-// #link renderers
-// #link tonemappers
+import { WebGL } from './WebGL.js';
+import { Ticker } from './Ticker.js';
+import { Camera } from './Camera.js';
+import { OrbitCameraController } from './OrbitCameraController.js';
+import { Volume } from './Volume.js';
 
-class RenderingContext extends EventTarget {
+import { RendererFactory } from './renderers/RendererFactory.js';
+import { ToneMapperFactory } from './tonemappers/ToneMapperFactory.js';
+
+const [ SHADERS, MIXINS ] = await Promise.all([
+    'shaders.json',
+    'mixins.json',
+].map(url => fetch(url).then(response => response.json())));
+
+export class RenderingContext extends EventTarget {
 
 constructor(options) {
     super();
@@ -62,14 +69,8 @@ _initGL() {
 
     this._contextRestorable = true;
 
-    this._gl = this._canvas.getContext('webgl2-compute', contextSettings);
-    if (this._gl) {
-        this._hasCompute = true;
-    } else {
-        this._hasCompute = false;
-        this._gl = this._canvas.getContext('webgl2', contextSettings);
-    }
-    const gl = this._gl;
+    const gl = this._gl = this._canvas.getContext('webgl2', contextSettings);
+
     this._extLoseContext = gl.getExtension('WEBGL_lose_context');
     this._extColorBufferFloat = gl.getExtension('EXT_color_buffer_float');
     this._extTextureFloatLinear = gl.getExtension('OES_texture_float_linear');
@@ -94,7 +95,7 @@ _initGL() {
         wrapS          : gl.CLAMP_TO_EDGE,
         wrapT          : gl.CLAMP_TO_EDGE,
         min            : gl.LINEAR,
-        max            : gl.LINEAR
+        max            : gl.LINEAR,
     });
 
     this._program = WebGL.buildPrograms(gl, {
@@ -155,7 +156,7 @@ chooseRenderer(renderer) {
     if (this._renderer) {
         this._renderer.destroy();
     }
-    const rendererClass = this._getRendererClass(renderer);
+    const rendererClass = RendererFactory(renderer);
     this._renderer = new rendererClass(this._gl, this._volume, this._environmentTexture, {
         _bufferSize: this._resolution,
     });
@@ -180,7 +181,7 @@ chooseToneMapper(toneMapper) {
             data   : new Uint8Array([255, 255, 255, 255]),
         });
     }
-    const toneMapperClass = this._getToneMapperClass(toneMapper);
+    const toneMapperClass = ToneMapperFactory(toneMapper);
     this._toneMapper = new toneMapperClass(gl, texture, {
         _bufferSize: this._resolution,
     });
@@ -299,37 +300,6 @@ startRendering() {
 
 stopRendering() {
     Ticker.remove(this._render);
-}
-
-hasComputeCapabilities() {
-    return this._hasCompute;
-}
-
-_getRendererClass(renderer) {
-    switch (renderer) {
-        case 'mip' : return MIPRenderer;
-        case 'iso' : return ISORenderer;
-        case 'eam' : return EAMRenderer;
-        case 'mcs' : return MCSRenderer;
-        case 'mcm' : return MCMRenderer;
-        case 'mcc' : return MCCRenderer;
-        case 'dos' : return DOSRenderer;
-    }
-}
-
-_getToneMapperClass(toneMapper) {
-    switch (toneMapper) {
-        case 'artistic'   : return ArtisticToneMapper;
-        case 'range'      : return RangeToneMapper;
-        case 'reinhard'   : return ReinhardToneMapper;
-        case 'reinhard2'  : return Reinhard2ToneMapper;
-        case 'uncharted2' : return Uncharted2ToneMapper;
-        case 'filmic'     : return FilmicToneMapper;
-        case 'unreal'     : return UnrealToneMapper;
-        case 'aces'       : return AcesToneMapper;
-        case 'lottes'     : return LottesToneMapper;
-        case 'uchimura'   : return UchimuraToneMapper;
-    }
 }
 
 }

@@ -1,4 +1,4 @@
-// #part /glsl/shaders/AcesToneMapper/vertex
+// #part /glsl/shaders/tonemappers/AcesToneMapper/vertex
 
 #version 300 es
 
@@ -10,7 +10,7 @@ void main() {
     vPosition = aPosition * 0.5 + 0.5;
 }
 
-// #part /glsl/shaders/AcesToneMapper/fragment
+// #part /glsl/shaders/tonemappers/AcesToneMapper/fragment
 
 #version 300 es
 precision mediump float;

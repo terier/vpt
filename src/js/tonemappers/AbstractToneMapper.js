@@ -1,10 +1,17 @@
-// #part /js/tonemappers/AbstractToneMapper
+import { PropertyBag } from '../PropertyBag.js';
+import { WebGL } from '../WebGL.js';
+import { SingleBuffer } from '../SingleBuffer.js';
 
-// #link ../WebGL
+const [ SHADERS, MIXINS ] = await Promise.all([
+    'shaders.json',
+    'mixins.json',
+].map(url => fetch(url).then(response => response.json())));
 
-class AbstractToneMapper {
+export class AbstractToneMapper extends PropertyBag {
 
 constructor(gl, texture, options) {
+    super();
+
     Object.assign(this, {
         _bufferSize : 512
     }, options);
@@ -17,7 +24,7 @@ constructor(gl, texture, options) {
     this._clipQuad = WebGL.createClipQuad(gl);
     this._clipQuadProgram = WebGL.buildPrograms(gl, {
         quad: SHADERS.quad
-    }).quad;
+    }, MIXINS).quad;
 }
 
 destroy() {
@@ -77,7 +84,7 @@ _getRenderBufferSpec() {
         wrapT          : gl.CLAMP_TO_EDGE,
         format         : gl.RGBA,
         internalFormat : gl.RGBA,
-        type           : gl.UNSIGNED_BYTE
+        type           : gl.UNSIGNED_BYTE,
     }];
 }
 

@@ -1,8 +1,6 @@
-// #part /js/readers/RAWReader
+import { AbstractReader } from './AbstractReader.js';
 
-// #link AbstractReader
-
-class RAWReader extends AbstractReader {
+export class RAWReader extends AbstractReader {
 
 constructor(loader, options) {
     super(loader);

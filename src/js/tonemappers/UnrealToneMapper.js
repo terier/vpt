@@ -1,17 +1,28 @@
-// #part /js/tonemappers/UnrealToneMapper
+import { WebGL } from '../WebGL.js';
+import { AbstractToneMapper } from './AbstractToneMapper.js';
 
-// #link ../WebGL
-// #link AbstractToneMapper
+const [ SHADERS, MIXINS ] = await Promise.all([
+    'shaders.json',
+    'mixins.json',
+].map(url => fetch(url).then(response => response.json())));
 
-class UnrealToneMapper extends AbstractToneMapper {
+export class UnrealToneMapper extends AbstractToneMapper {
 
 constructor(gl, texture, options) {
     super(gl, texture, options);
 
-    this.exposure = 1;
+    this.registerProperties([
+        {
+            name: 'exposure',
+            label: 'Exposure',
+            type: 'spinner',
+            value: 1,
+            min: 0,
+        }
+    ]);
 
-    this._program = WebGL.buildPrograms(this._gl, {
-        UnrealToneMapper : SHADERS.UnrealToneMapper
+    this._program = WebGL.buildPrograms(gl, {
+        UnrealToneMapper: SHADERS.tonemappers.UnrealToneMapper
     }, MIXINS).UnrealToneMapper;
 }
 

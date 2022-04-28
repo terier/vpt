@@ -1,8 +1,6 @@
-// #part /js/SingleBuffer
+import { WebGL } from './WebGL.js';
 
-// #link WebGL
-
-class SingleBuffer {
+export class SingleBuffer {
 
 constructor(gl, spec) {
     this._gl = gl;

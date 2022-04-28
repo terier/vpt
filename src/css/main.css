@@ -1,4 +1,5 @@
-/* #part /css/main */
+@import 'AboutText.css';
+@import 'UI.css';
 
 html, body {
     padding: 0;

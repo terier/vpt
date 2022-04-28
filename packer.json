@@ -2,61 +2,38 @@
     "input": [
         {
             "input": "src",
+            "output": "/static",
+            "filter": "\\.(js|html|css|json)$",
+            "recursive": true
+        },
+        {
+            "input": "src",
             "output": "/",
-            "filter": "\\.(js|html|css|json|glsl)$",
+            "filter": "\\.(glsl)$",
             "recursive": true,
             "parse": true
         },
         {
             "input": "src/images",
-            "output": "/images",
+            "output": "/static/images",
             "recursive": true
-        },
-        {
-            "input": "src/index.html",
-            "output": "/index.html"
         }
     ],
     "transform": [],
     "output": [
         {
-            "input": "/images",
-            "output": "build/images",
+            "input": "/static",
+            "output": "build",
             "mode": "each"
-        },
-        {
-            "input": "/index.html",
-            "output": "build/index.html",
-            "mode": "each"
-        },
-        {
-            "input": "/js",
-            "output": "build/js/main.js",
-            "mode": "concat"
-        },
-        {
-            "input": "/css",
-            "output": "build/css/main.css",
-            "mode": "concat"
-        },
-        {
-            "input": "/html",
-            "output": "build/html/templates.json",
-            "mode": "json"
         },
         {
             "input": "/glsl/shaders",
-            "output": "build/glsl/shaders.json",
+            "output": "build/shaders.json",
             "mode": "json"
         },
         {
             "input": "/glsl/mixins",
-            "output": "build/glsl/mixins.json",
-            "mode": "json"
-        },
-        {
-            "input": "/uispecs",
-            "output": "build/uispecs.json",
+            "output": "build/mixins.json",
             "mode": "json"
         }
     ]
