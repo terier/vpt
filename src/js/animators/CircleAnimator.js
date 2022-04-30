@@ -18,7 +18,7 @@ constructor(node, options) {
 update(t) {
     const scale = new Matrix().fromScale(this.radius, this.radius, this.radius);
 
-    const angle = this.frequency * t;
+    const angle = this.frequency * t * 2 * Math.PI;
     const phase = new Matrix().fromRotationZ(angle);
 
     const from = new Vector(0, 0, 1);
@@ -40,7 +40,7 @@ update(t) {
     const position = new Vector(1, 0, 0);
     this.node.position = composite.transform(position);
     this.node.rotation = orientationQuat.clone();
-    this.node.updateMatrices();
+    this.node.isDirty = true;
 }
 
 }

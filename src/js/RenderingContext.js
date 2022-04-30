@@ -48,7 +48,7 @@ constructor(options) {
         center: new Vector(0, 0, 2),
         direction: new Vector(0, 0, 1),
         radius: 0.01,
-        frequency: 5,
+        frequency: 1,
     });
 
     this._volume = new Volume(this._gl);
@@ -206,9 +206,6 @@ _updateMvpInverseMatrix() {
     this._isTransformationDirty = false;
     this._camera.updateMatrices();
 
-    const t = performance.now() / 1000;
-    this._cameraAnimator.update(t);
-
     const centerTranslation = new Matrix().fromTranslation(-0.5, -0.5, -0.5);
     const volumeTranslation = new Matrix().fromTranslation(
         this._translation.x, this._translation.y, this._translation.z);
@@ -226,7 +223,6 @@ _updateMvpInverseMatrix() {
         this._renderer.modelMatrix.copy(modelMatrix);
         this._renderer.viewMatrix.copy(viewMatrix);
         this._renderer.projectionMatrix.copy(projectionMatrix);
-        this._renderer.reset();
     }
 }
 
@@ -294,6 +290,131 @@ setResolution(resolution) {
             this._toneMapper.setTexture(this._renderer.getTexture());
         }
     }
+}
+
+async recordAnimation(options) {
+    const date = new Date();
+    const timestamp = [
+        date.getUTCFullYear(),
+        date.getUTCMonth(),
+        date.getUTCDate(),
+        date.getUTCHours(),
+        date.getUTCMinutes(),
+        date.getUTCSeconds(),
+    ].join('_');
+
+    if (options.type === 'images') {
+        const parentDirectory = await showDirectoryPicker();
+        const directory = await parentDirectory.getDirectoryHandle(timestamp, { create: true });
+        this.recordAnimationToImageSequence({ directory, ...options });
+    } else if (options.type === 'video') {
+        const outputStream = await showSaveFilePicker({
+            suggestedName: timestamp + '.mp4',
+        }).then(file => file.createWritable());
+        this.recordAnimationToVideo({ outputStream, ...options });
+    } else {
+        throw new Error(`animation output type (${options.type}) not supported`);
+    }
+}
+
+async recordAnimationToImageSequence(options) {
+    const { directory, startTime, endTime, frameTime, fps } = options;
+    const frames = Math.max(Math.ceil((endTime - startTime) * fps), 1);
+    const timeStep = 1 / fps;
+
+    function wait(millis) {
+        return new Promise((resolve, reject) => setTimeout(resolve, millis));
+    }
+
+    function pad(number, length) {
+        const string = String(number);
+        const remaining = length - string.length;
+        const padding = new Array(remaining).fill('0').join('');
+        return padding + string;
+    }
+
+    const canvas = this._canvas;
+    function getCanvasBlob() {
+        return new Promise((resolve, reject) => {
+            canvas.toBlob(blob => resolve(blob));
+        });
+    }
+
+    this.stopRendering();
+
+    for (let i = 0; i < frames; i++) {
+        const t = startTime + i * timeStep;
+        this._cameraAnimator.update(t);
+        this._updateMvpInverseMatrix();
+
+        this._renderer.reset();
+        this.startRendering();
+        await wait(frameTime * 1000);
+        this.stopRendering();
+
+        const filename = `frame${pad(i, 4)}.png`;
+        const file = await directory.getFileHandle(filename, { create: true })
+            .then(file => file.createWritable());
+        const blob = await getCanvasBlob();
+        file.write(blob);
+        file.close();
+
+        this.dispatchEvent(new CustomEvent('animationprogress', {
+            detail: (i + 1) / frames
+        }));
+    }
+
+    this.startRendering();
+}
+
+async recordAnimationToVideo(options) {
+    const { outputStream, startTime, endTime, frameTime, fps } = options;
+    const frames = Math.max(Math.ceil((endTime - startTime) * fps), 1);
+    const timeStep = 1 / fps;
+
+    function wait(millis) {
+        return new Promise((resolve, reject) => setTimeout(resolve, millis));
+    }
+
+    function pad(number, length) {
+        const string = String(number);
+        const remaining = length - string.length;
+        const padding = new Array(remaining).fill('0').join('');
+        return padding + string;
+    }
+
+    const canvasStream = this._canvas.captureStream(0);
+    const videoStream = canvasStream.getVideoTracks()[0];
+    const recorder = new MediaRecorder(canvasStream, {
+        videoBitsPerSecond : 4 * 1024 * 1024,
+    });
+    recorder.addEventListener('dataavailable', e => {
+        outputStream.write(e.data);
+        outputStream.close();
+    });
+
+    this.stopRendering();
+    recorder.start();
+
+    for (let i = 0; i < frames; i++) {
+        const t = startTime + i * timeStep;
+        this._cameraAnimator.update(t);
+        this._updateMvpInverseMatrix();
+
+        this._renderer.reset();
+        this.startRendering();
+        await wait(frameTime * 1000);
+        this.stopRendering();
+
+        videoStream.requestFrame();
+
+        this.dispatchEvent(new CustomEvent('animationprogress', {
+            detail: (i + 1) / frames
+        }));
+    }
+
+    recorder.stop();
+    this.startRendering();
 }
 
 startRendering() {

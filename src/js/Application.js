@@ -2,8 +2,6 @@ import { DOMUtils } from './utils/DOMUtils.js';
 
 import './ui/UI.js';
 
-import { StatusBar } from './ui/StatusBar/StatusBar.js';
-
 import { LoaderFactory } from './loaders/LoaderFactory.js';
 import { ReaderFactory } from './readers/ReaderFactory.js';
 
@@ -23,6 +21,7 @@ constructor() {
     this._handleToneMapperChange = this._handleToneMapperChange.bind(this);
     this._handleVolumeLoad = this._handleVolumeLoad.bind(this);
     this._handleEnvmapLoad = this._handleEnvmapLoad.bind(this);
+    this._handleRecordAnimation = this._handleRecordAnimation.bind(this);
 
     this.binds = DOMUtils.bind(document.body);
 
@@ -33,9 +32,6 @@ constructor() {
     document.body.addEventListener('drop', this._handleFileDrop);
 
     this.mainDialog = new MainDialog();
-
-    this.statusBar = new StatusBar();
-    document.body.appendChild(this.statusBar);
 
     this.volumeLoadDialog = new VolumeLoadDialog();
     this.mainDialog.getVolumeLoadContainer().appendChild(this.volumeLoadDialog.object);
@@ -76,10 +72,20 @@ constructor() {
         this.volumeLoadDialog.binds.loadProgress.value = e.detail;
     });
 
+    this.renderingContext.addEventListener('animationprogress', e => {
+        this.mainDialog.binds.animationProgress.value = e.detail;
+    });
+
     this.mainDialog.addEventListener('rendererchange', this._handleRendererChange);
     this.mainDialog.addEventListener('tonemapperchange', this._handleToneMapperChange);
     this._handleRendererChange();
     this._handleToneMapperChange();
+
+    this.mainDialog.addEventListener('recordanimation', this._handleRecordAnimation);
+}
+
+async _handleRecordAnimation(e) {
+    this.renderingContext.recordAnimation(e.detail);
 }
 
 _handleFileDrop(e) {
