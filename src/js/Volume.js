@@ -5,63 +5,49 @@ export class Volume extends EventTarget {
 constructor(gl, reader, options) {
     super();
 
-    Object.assign(this, {
-        ready: false
-    }, options);
-
     this._gl = gl;
     this._reader = reader;
 
-    this.meta       = null;
-    this.modalities = null;
-    this.blocks     = null;
-    this._texture   = null;
+    this.metadata = null;
+    this.ready = false;
+    this.texture = null;
+    this.modality = null;
 }
 
 destroy() {
     const gl = this._gl;
-    if (this._texture) {
-        gl.deleteTexture(this._texture);
+    if (this.texture) {
+        gl.deleteTexture(this.texture);
     }
 }
 
 async readMetadata() {
-    if (!this._reader) {
-        return;
+    if (!this.metadata) {
+        this.metadata = await this._reader.readMetadata();
     }
-
-    this.ready = false;
-    const data = await this._reader.readMetadata();
-    this.meta = data.meta;
-    this.modalities = data.modalities;
-    this.blocks = data.blocks;
+    return this.metadata;
 }
 
 async readModality(modalityName) {
-    if (!this._reader) {
-        throw new Error('No reader');
-    }
-
-    if (!this.modalities) {
-        throw new Error('No modalities');
-    }
-
     this.ready = false;
-    const modality = this.modalities.find(modality => modality.name === modalityName);
-    if (!modality) {
-        throw new Error('Modality does not exist');
+
+    if (!this.metadata) {
+        await this.readMetadata();
     }
 
-    const dimensions = modality.dimensions;
-    const components = modality.components;
-    const blocks = this.blocks;
+    const modality = this.metadata.modalities.find(modality => modality.name === modalityName);
+    if (!modality) {
+        throw new Error(`Modality '${modalityName}' does not exist`);
+    }
+
+    this.modality = modality;
 
     const gl = this._gl;
-    if (this._texture) {
-        gl.deleteTexture(this._texture);
+    if (this.texture) {
+        gl.deleteTexture(this.texture);
     }
-    this._texture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_3D, this._texture);
+    this.texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_3D, this.texture);
 
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
@@ -69,21 +55,23 @@ async readModality(modalityName) {
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
-    gl.texStorage3D(gl.TEXTURE_3D, 1, modality.internalFormat,
-        dimensions.width, dimensions.height, dimensions.depth);
+    const { width, height, depth } = modality.dimensions;
+    const { format, internalFormat, type } = modality;
+    gl.texStorage3D(gl.TEXTURE_3D, 1, internalFormat, width, height, depth);
 
-    for (const placement of modality.placements) {
-        const data = await this._reader.readBlock(placement.index);
-        const progress = (placement.index + 1) / modality.placements.length;
-        this.dispatchEvent(new CustomEvent('progress', { detail: progress }));
-        const position = placement.position;
-        const block = blocks[placement.index];
-        const blockdim = block.dimensions;
-        gl.bindTexture(gl.TEXTURE_3D, this._texture);
+
+    for (const { index, position } of modality.placements) {
+        const data = await this._reader.readBlock(index);
+        const block = this.metadata.blocks[index];
+        const { width, height, depth } = block.dimensions;
+        const { x, y, z } = position;
+        gl.bindTexture(gl.TEXTURE_3D, this.texture);
         gl.texSubImage3D(gl.TEXTURE_3D, 0,
-            position.x, position.y, position.z,
-            blockdim.width, blockdim.height, blockdim.depth,
-            modality.format, modality.type, this._typize(data, modality.type));
+            x, y, z, width, height, depth,
+            format, type, this._typize(data, type));
+
+        const progress = (index + 1) / modality.placements.length;
+        this.dispatchEvent(new CustomEvent('progress', { detail: progress }));
     }
 
     this.ready = true;
@@ -114,20 +102,20 @@ _typize(data, type) {
 
 getTexture() {
     if (this.ready) {
-        return this._texture;
+        return this.texture;
     } else {
         return null;
     }
 }
 
 setFilter(filter) {
-    if (!this._texture) {
+    if (!this.texture) {
         return;
     }
 
     const gl = this._gl;
     filter = filter === 'linear' ? gl.LINEAR : gl.NEAREST;
-    gl.bindTexture(gl.TEXTURE_3D, this._texture);
+    gl.bindTexture(gl.TEXTURE_3D, this.texture);
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, filter);
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, filter);
 }

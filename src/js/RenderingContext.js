@@ -7,6 +7,7 @@ import { Ticker } from './Ticker.js';
 import { Camera } from './Camera.js';
 import { OrbitCameraController } from './OrbitCameraController.js';
 import { Volume } from './Volume.js';
+import { ConductorVolume } from './ConductorVolume.js';
 
 import { RendererFactory } from './renderers/RendererFactory.js';
 import { ToneMapperFactory } from './tonemappers/ToneMapperFactory.js';
@@ -119,12 +120,11 @@ resize(width, height) {
 }
 
 async setVolume(reader) {
-    this._volume = new Volume(this._gl, reader);
+    this._volume = new ConductorVolume(this._gl, reader);
     this._volume.addEventListener('progress', e => {
         this.dispatchEvent(new CustomEvent('progress', { detail: e.detail }));
     });
-    await this._volume.readMetadata();
-    await this._volume.readModality('default');
+    await this._volume.load();
     this._volume.setFilter(this._filter);
     if (this._renderer) {
         this._renderer.setVolume(this._volume);
