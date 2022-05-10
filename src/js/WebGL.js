@@ -144,7 +144,6 @@ static createBuffer(gl, options) {
 
     gl.bindBuffer(target, buffer);
     gl.bufferData(target, options.data, hint);
-    gl.bindBuffer(target, null);
 
     return buffer;
 }
