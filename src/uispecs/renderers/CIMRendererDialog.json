@@ -45,6 +45,17 @@
       ]
     },
     {
+      "type": "field",
+      "label": "Half Float",
+      "children": [
+        {
+          "type": "checkbox",
+          "bind": "half_float",
+          "checked": false
+        }
+      ]
+    },
+    {
       "type": "accordion",
       "label": "Monte Carlo",
       "children": [

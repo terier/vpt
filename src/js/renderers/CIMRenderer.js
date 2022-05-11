@@ -21,6 +21,7 @@ class CIMRenderer extends AbstractRenderer {
             _scatteringBias             : 0,
             _maxBounces                 : 0,
             _mcEnabled                  : true,
+            _halfFloat                  : false,
             // ISO
             _isovalue                   : 0.5,
             _light                      : [1, 1, 1],
@@ -309,6 +310,13 @@ class CIMRenderer extends AbstractRenderer {
         const height = this._lightVolumeDimensions.height;
         const depth = this._lightVolumeDimensions.depth;
 
+        let type = gl.FLOAT
+        let internalFormat = gl.RGBA32F
+        if (this.halfFloat) {
+            type = gl.HALF_FLOAT
+            internalFormat = gl.RGBA16F
+        }
+
         const positionBufferSpec = {
             target         : gl.TEXTURE_3D,
             width          : width,
@@ -319,8 +327,8 @@ class CIMRenderer extends AbstractRenderer {
             // format         : gl.RGB,
             // internalFormat : gl.RGB32F,
             format         : gl.RGBA,
-            internalFormat : gl.RGBA32F,
-            type           : gl.FLOAT,
+            internalFormat : internalFormat,
+            type           : type,
             wrapS          : gl.CLAMP_TO_EDGE,
             wrapT          : gl.CLAMP_TO_EDGE,
             wrapR          : gl.CLAMP_TO_EDGE,
@@ -337,8 +345,8 @@ class CIMRenderer extends AbstractRenderer {
             // format         : gl.RGBA,
             // internalFormat : gl.RGBA32F,
             format         : gl.RGBA,
-            internalFormat : gl.RGBA32F,
-            type           : gl.FLOAT,
+            internalFormat : internalFormat,
+            type           : type,
             wrapS          : gl.CLAMP_TO_EDGE,
             wrapT          : gl.CLAMP_TO_EDGE,
             wrapR          : gl.CLAMP_TO_EDGE,
@@ -355,8 +363,8 @@ class CIMRenderer extends AbstractRenderer {
             // format         : gl.RGB,
             // internalFormat : gl.RGB32F,
             format         : gl.RGBA,
-            internalFormat : gl.RGBA32F,
-            type           : gl.FLOAT,
+            internalFormat : internalFormat,
+            type           : type,
             wrapS          : gl.CLAMP_TO_EDGE,
             wrapT          : gl.CLAMP_TO_EDGE,
             wrapR          : gl.CLAMP_TO_EDGE,
@@ -375,8 +383,8 @@ class CIMRenderer extends AbstractRenderer {
             // format         : gl.RG,
             // internalFormat : gl.RG32F,
             format         : gl.RGBA,
-            internalFormat : gl.RGBA32F,
-            type           : gl.FLOAT,
+            internalFormat : internalFormat,
+            type           : type,
             wrapS          : gl.CLAMP_TO_EDGE,
             wrapT          : gl.CLAMP_TO_EDGE,
             wrapR          : gl.CLAMP_TO_EDGE,
@@ -388,40 +396,6 @@ class CIMRenderer extends AbstractRenderer {
             directionAndBouncesBufferSpec,
             transmittanceBufferSpec,
             radianceAndSamplesBufferSpec
-        ];
-    }
-
-    _getDeferredRenderBufferSpec() {
-        const gl = this._gl;
-
-        const lighting = {
-            width          : this._bufferSize,
-            height         : this._bufferSize,
-            min            : gl.NEAREST,
-            mag            : gl.NEAREST,
-            wrapS          : gl.CLAMP_TO_EDGE,
-            wrapT          : gl.CLAMP_TO_EDGE,
-            format         : gl.RGBA,
-            internalFormat : gl.RGBA16F,
-            // format         : gl.RED,
-            // internalFormat : gl.R32F,
-            type           : gl.FLOAT
-        };
-
-        const color = {
-            width          : this._bufferSize,
-            height         : this._bufferSize,
-            min            : gl.NEAREST,
-            mag            : gl.NEAREST,
-            wrapS          : gl.CLAMP_TO_EDGE,
-            wrapT          : gl.CLAMP_TO_EDGE,
-            format         : gl.RGBA,
-            internalFormat : gl.RGBA16F,
-            type           : gl.FLOAT
-        };
-        return [
-            lighting,
-            color
         ];
     }
 }

@@ -24,7 +24,7 @@ class CIMRendererDialog extends AbstractDialog {
         this._binds.mc_enabled.addEventListener('change', this._handleChange);
 
         this._binds.ratio.addEventListener('input', this._handleChangeRatio);
-        this._binds.ratio.addEventListener('input', this._handleChangeRatio);
+        this._binds.half_float.addEventListener('change', this._handleChangeRatio);
 
         // MC
         this._binds.majorant_ratio.addEventListener('change', this._handleChangeMCParameters);
@@ -74,6 +74,7 @@ class CIMRendererDialog extends AbstractDialog {
 
         this._renderer._lightVolumeRatio = this._binds.ratio.getValue();
         this._renderer._mcEnabled = this._binds.mc_enabled.isChecked();
+        this._renderer._halfFloat = this._binds.half_float.isChecked();
 
         // ISO
         const metalic = this._binds.metalic.getValue();
