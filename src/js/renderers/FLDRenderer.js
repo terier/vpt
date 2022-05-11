@@ -1,6 +1,7 @@
 import { WebGL } from '../WebGL.js';
 import { AbstractRenderer } from './AbstractRenderer.js';
 import { SingleBuffer } from "../SingleBuffer.js";
+import { SingleBuffer3D } from "../SingleBuffer3D.js";
 import { DoubleBuffer3D } from "../DoubleBuffer3D.js";
 
 const [ SHADERS, MIXINS ] = await Promise.all([
@@ -32,7 +33,7 @@ constructor(gl, volume, environmentTexture, options) {
             name: 'light',
             label: 'Light direction',
             type: 'vector',
-            value: { x: 1, y: 1, z: 1 },
+            value: { x: 1, y: 0, z: 0 },
         },
         {
             name: 'scatteringCoefficient',
@@ -66,6 +67,14 @@ constructor(gl, volume, environmentTexture, options) {
             step: 1
         },
         {
+            name: 'LOD',
+            label: 'LOD',
+            type: 'slider',
+            value: 1,
+            min: 0,
+            max: 1
+        },
+        {
             name: 'transferFunction',
             label: 'Transfer function',
             type: 'transfer-function',
@@ -81,12 +90,10 @@ constructor(gl, volume, environmentTexture, options) {
         }
 
         if ([
-            'extinction',
-            'slices',
             'light',
             'scattering',
         ].includes(name)) {
-            this.reset();
+            this.resetVolume();
         }
     });
 
@@ -106,10 +113,11 @@ destroy() {
 setVolume(volume) {
     this._volume = volume;
     this.volumeDimensions = volume.modalities[0].dimensions;
+    this.setFrameBuffer();
     this.setAccumulationBuffer();
     this.setLightVolumeDimensions();
     console.log("Volume Loaded!");
-    this.reset();
+    this.resetVolume();
 }
 
 setLightVolumeDimensions() {
@@ -123,6 +131,14 @@ setLightVolumeDimensions() {
         this._lightVolumeDimensions.height + " " + this._lightVolumeDimensions.depth);
 }
 
+setFrameBuffer() {
+    if (this._frameBuffer) {
+        this._frameBuffer.destroy();
+    }
+    this._frameBuffer = new SingleBuffer3D(this._gl, this._getFrameBufferSpec());
+    // console.log(this._accumulationBuffer)
+}
+
 setAccumulationBuffer() {
     if (this._accumulationBuffer) {
         this._accumulationBuffer.destroy();
@@ -132,9 +148,9 @@ setAccumulationBuffer() {
 }
 
 _rebuildBuffers() {
-    if (this._frameBuffer) {
-        this._frameBuffer.destroy();
-    }
+    // if (this._frameBuffer) {
+    //     this._frameBuffer.destroy();
+    // }
     // if (this._accumulationBuffer) {
     //     this._accumulationBuffer.destroy();
     // }
@@ -142,12 +158,30 @@ _rebuildBuffers() {
         this._renderBuffer.destroy();
     }
     const gl = this._gl;
-    this._frameBuffer = new SingleBuffer(gl, this._getFrameBufferSpec());
+    // this._frameBuffer = new SingleBuffer3D(gl, this._getFrameBufferSpec());
     // this._accumulationBuffer = new DoubleBuffer3D(gl, this._getAccumulationBufferSpec());
     this._renderBuffer = new SingleBuffer(gl, this._getRenderBufferSpec());
 }
 
+reset() { }
+
+resetVolume() {
+    const gl = this._gl;
+    gl.bindBuffer(gl.ARRAY_BUFFER, this._clipQuad);
+    gl.enableVertexAttribArray(0); // position always bound to attribute 0
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+
+    this._accumulationBuffer.use();
+    this._resetFrame();
+    this._accumulationBuffer.swap();
+}
+
 _resetFrame() {
+    this._resetEmissionField()
+    this._resetFluence()
+}
+
+_resetFluence() {
     const gl = this._gl;
 
     const { program, uniforms } = this._programs.reset;
@@ -157,14 +191,14 @@ _resetFrame() {
     for (let i = 0; i < this._lightVolumeDimensions.depth; i++) {
         this._accumulationBuffer.use(i);
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[0]);
+        gl.bindTexture(gl.TEXTURE_3D, this._frameBuffer.getAttachments().color[0]);
 
         gl.activeTexture(gl.TEXTURE1);
         gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
         gl.activeTexture(gl.TEXTURE2);
         gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
 
-        gl.uniform1i(uniforms.uFluence, 0);
+        gl.uniform1i(uniforms.uEmission, 0);
         gl.uniform1i(uniforms.uVolume, 1);
         gl.uniform1i(uniforms.uTransferFunction, 2);
         gl.uniform1f(uniforms.uLayer, (i + 0.5) / this._lightVolumeDimensions.depth);
@@ -176,6 +210,36 @@ _resetFrame() {
 
         gl.uniform3f(uniforms.uStep, 1 / dimensions.width, 1 / dimensions.height, 1 / dimensions.depth);
         gl.uniform3ui(uniforms.uSize, dimensions.width, dimensions.height, dimensions.depth);
+
+        gl.drawBuffers([
+            gl.COLOR_ATTACHMENT0
+        ]);
+
+        gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+    }
+}
+
+_resetEmissionField() {
+    const gl = this._gl;
+
+    const { program, uniforms } = this._programs.generate;
+    gl.useProgram(program);
+
+    for (let i = 0; i < this._lightVolumeDimensions.depth; i++) {
+        this._frameBuffer.use(i);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
+
+        gl.uniform1i(uniforms.uVolume, 0);
+        gl.uniform1i(uniforms.uTransferFunction, 1);
+
+        gl.uniform1f(uniforms.uLayer, (i + 0.5) / this._lightVolumeDimensions.depth);
+        gl.uniform1f(uniforms.uStepSize, 1 / this.slices);
+        gl.uniform1f(uniforms.uExtinction, this.extinction);
+        gl.uniform3f(uniforms.uLight, this.light.x, this.light.y, this.light.z);
 
         gl.drawBuffers([
             gl.COLOR_ATTACHMENT0
@@ -200,21 +264,27 @@ _integrateFrame() {
 
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[0]);
-
+        gl.generateMipmap(gl.TEXTURE_3D);
         gl.activeTexture(gl.TEXTURE1);
-        gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
+        gl.bindTexture(gl.TEXTURE_3D, this._frameBuffer.getAttachments().color[0]);
+        gl.generateMipmap(gl.TEXTURE_3D);
+
         gl.activeTexture(gl.TEXTURE2);
+        gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
+        gl.activeTexture(gl.TEXTURE3);
         gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
 
         gl.uniform1i(uniforms.uFluence, 0);
-        gl.uniform1i(uniforms.uVolume, 1);
-        gl.uniform1i(uniforms.uTransferFunction, 2);
+        gl.uniform1i(uniforms.uEmission, 1);
+        gl.uniform1i(uniforms.uVolume, 2);
+        gl.uniform1i(uniforms.uTransferFunction, 3);
 
         gl.uniform1f(uniforms.uAbsorptionCoefficient, this.absorptionCoefficient);
         gl.uniform1f(uniforms.uScatteringCoefficient, this.scatteringCoefficient);
         gl.uniform1f(uniforms.uLayer, (i + 0.5) / this._lightVolumeDimensions.depth);
         gl.uniform1f(uniforms.uSOR, this.SOR);
         gl.uniform1ui(uniforms.uRed, this.red);
+        gl.uniform1f(uniforms.uLOD, this.LOD);
 
         gl.uniform1f(uniforms.uVoxelSize, 1);
         gl.uniform1f(uniforms.uEpsilon, this.epsilon);
@@ -246,6 +316,10 @@ _renderFrame() {
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[0]);
+
+    // debug
+    // gl.bindTexture(gl.TEXTURE_3D, this._frameBuffer.getAttachments().color[0]);
+
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
     gl.activeTexture(gl.TEXTURE2);
@@ -266,27 +340,31 @@ _renderFrame() {
 
 _getFrameBufferSpec() {
     const gl = this._gl;
-    return [{
-        width          : this._bufferSize,
-        height         : this._bufferSize,
-        min            : gl.NEAREST,
-        mag            : gl.NEAREST,
-        format         : gl.RGBA,
-        internalFormat : gl.RGBA32F,
-        type           : gl.FLOAT,
-    }];
-}
-
-_getAccumulationBufferSpec() {
-    const gl = this._gl;
 
     let emissionField = {
         target         : gl.TEXTURE_3D,
         width          : this.volumeDimensions.width,
         height         : this.volumeDimensions.height,
         depth          : this.volumeDimensions.depth,
-        min            : gl.NEAREST,
-        mag            : gl.NEAREST,
+        min            : gl.LINEAR_MIPMAP_LINEAR,
+        mag            : gl.LINEAR,
+        // format         : gl.RED,
+        // internalFormat : gl.R32F,
+        format         : gl.RGBA,
+        internalFormat : gl.RGBA32F,
+        type           : gl.FLOAT,
+        wrapS          : gl.CLAMP_TO_EDGE,
+        wrapT          : gl.CLAMP_TO_EDGE,
+        wrapR          : gl.CLAMP_TO_EDGE
+    };
+
+    let residualField = {
+        target         : gl.TEXTURE_3D,
+        width          : this.volumeDimensions.width,
+        height         : this.volumeDimensions.height,
+        depth          : this.volumeDimensions.depth,
+        min            : gl.LINEAR_MIPMAP_LINEAR,
+        mag            : gl.LINEAR,
         // format         : gl.RED,
         // internalFormat : gl.R32F,
         format         : gl.RG,
@@ -294,9 +372,17 @@ _getAccumulationBufferSpec() {
         type           : gl.FLOAT,
         wrapS          : gl.CLAMP_TO_EDGE,
         wrapT          : gl.CLAMP_TO_EDGE,
-        wrapR          : gl.CLAMP_TO_EDGE,
-        storage        : true
+        wrapR          : gl.CLAMP_TO_EDGE
     };
+
+    return [
+        emissionField,
+        residualField
+    ];
+}
+
+_getAccumulationBufferSpec() {
+    const gl = this._gl;
 
     let fluenceBufferSpec = {
         target         : gl.TEXTURE_3D,

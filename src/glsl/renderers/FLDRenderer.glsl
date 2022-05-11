@@ -1,3 +1,71 @@
+// #part /glsl/shaders/renderers/FLD/generate/vertex
+
+#version 300 es
+
+layout (location = 0) in vec2 aPosition;
+
+out vec2 vPosition;
+
+void main() {
+    vPosition = aPosition;
+    gl_Position = vec4(aPosition, 0.0, 1.0);
+}
+
+// #part /glsl/shaders/renderers/FLD/generate/fragment
+
+#version 300 es
+precision highp float;
+
+uniform mediump sampler3D uVolume;
+uniform mediump sampler2D uTransferFunction;
+
+uniform float uLayer;
+uniform float uStepSize;
+uniform float uExtinction;
+uniform vec3 uLight;
+
+in vec2 vPosition;
+
+layout (location = 0) out vec2 oEmission;
+
+// #link /glsl/mixins/intersectCube.glsl
+@intersectCube
+
+vec4 sampleVolumeColor(vec3 position) {
+    vec2 volumeSample = texture(uVolume, position).rg;
+    vec4 transferSample = texture(uTransferFunction, volumeSample);
+    return transferSample;
+}
+
+void main() {
+    vec2 mappedPosition = vPosition * 0.5 + 0.5;
+    vec3 from = vec3(mappedPosition, uLayer);
+    float emission = 1.0;
+    vec3 light = normalize(uLight);
+    vec3 rayDirection = -light;
+
+    vec2 tbounds = max(intersectCube(from, rayDirection), 0.0);
+
+    vec3 vRayTo = from + rayDirection;
+    vec3 to = mix(from, vRayTo, tbounds.y);
+//    vec3 to = tbounds.y * from;
+    float rayStepLength = distance(from, to) * uStepSize;
+    float t = 0.0;
+
+    while (t < 1.0 && emission > 0.0) {
+        vec3 position = mix(from, to, t);
+        float absorption = sampleVolumeColor(position).a * rayStepLength * uExtinction;
+        emission -= absorption;
+        t += uStepSize;
+    }
+
+    if (emission < 0.0) {
+        emission = 0.0;
+    }
+
+    oEmission = vec2(emission, emission * emission);
+}
+
 // #part /glsl/shaders/renderers/FLD/integrate/vertex
 
 #version 300 es
@@ -16,14 +84,15 @@ void main() {
 #version 300 es
 precision highp float;
 
-uniform mediump sampler3D uFluence;
-
+uniform highp sampler3D uFluence;
+uniform highp sampler3D uEmission;
 uniform mediump sampler3D uVolume;
 uniform mediump sampler2D uTransferFunction;
 
 uniform vec3 uStep;
 uniform uvec3 uSize;
 uniform float uLayer;
+uniform float uLOD;
 
 uniform float uAbsorptionCoefficient;
 uniform float uScatteringCoefficient;
@@ -41,15 +110,36 @@ float flux_sum(float R) {
 }
 
 float flux_kershaw(float R) {
-    return 1.0 / (2.0 * (3.0 + sqrt(9.0 + 4.0 * R * R)));
+    return 2.0 * 1.0 / (3.0 + sqrt(9.0 + 4.0 * R * R));
+}
+
+float coth(float x) {
+    return cosh(x) / sinh(x);
+}
+
+float flux_levermore_pomraning(float R) {
+    float inv_R = 1.0 / R;
+    return inv_R * (coth(R) - inv_R);
 }
 
 void main() {
     vec2 mappedPosition = vPosition * 0.5 + 0.5;
-    vec3 position = vec3(vPosition, uLayer);
+    vec3 position = vec3(mappedPosition, uLayer);
+
+    float max_dimension = float(max(max(uSize[0], uSize[1]), uSize[2]));
+    float mipmapLevel = log2(max_dimension) + 1.0;
+    float RMS_j = sqrt(textureLod(uEmission, position, mipmapLevel * uLOD).g);
+    float RMS_R = sqrt(textureLod(uFluence, position, mipmapLevel * uLOD).b);
+
+    if (RMS_R < 10e-6 * RMS_j) {
+        return;
+    }
+
     vec4 fluenceAndDiffCoeff = texture(uFluence, position);
     float fluence = fluenceAndDiffCoeff.r;
     float diffCoeff = fluenceAndDiffCoeff.g;
+    float emission = texture(uEmission, position).r;
+
     if (position.x < uStep.x || position.y < uStep.y || position.z < uStep.z ||
     position.x > 1.0 - uStep.x || position.y > 1.0 - uStep.y || position.z > 1.0 - uStep.z) {
         oFluence = fluenceAndDiffCoeff;
@@ -65,9 +155,7 @@ void main() {
     float absorption = colorSample.a * uAbsorptionCoefficient;
     float extinction = absorption + uScatteringCoefficient;
     float albedo = uScatteringCoefficient / extinction;
-    extinction = max(extinction, 10e-3 / float(uSize[0]));
-
-    float RMS_j = sqrt(float((uSize[0] * uSize[1] + uSize[0] * uSize[2] + uSize[1] * uSize[2]) / uSize[0] * uSize[1] * uSize[2]));
+    extinction = max(extinction, 10e-3 / max_dimension);
 
     vec4 left      = texture(uFluence, position + vec3(-uStep.x,  0,  0));
     vec4 right     = texture(uFluence, position + vec3( uStep.x,  0,  0));
@@ -97,10 +185,11 @@ void main() {
     DpsUp * up[0] + DpsBack * back[0] + DpsForward * forward[0];
     float sum_denominator = DpsLeft + DpsRight + DpsDown + DpsUp + DpsBack + DpsForward;
 
-    float new_fluence = sum_nominator / ((1.0 - albedo) * extinction + sum_denominator);
-    fluence = uSOR * new_fluence + (1.0 - uSOR) * fluence;
+    float new_fluence = (emission + sum_nominator) / ((1.0 - albedo) * extinction + sum_denominator);
+    new_fluence = uSOR * new_fluence + (1.0 - uSOR) * fluence;
+    float residual = new_fluence - fluence;
 
-    oFluence = vec4(fluence, D, R, D);
+    oFluence = vec4(new_fluence, D, residual * residual, 0);
 }
 
 // #part /glsl/shaders/renderers/FLD/render/vertex
@@ -124,9 +213,9 @@ void main() {
 // #part /glsl/shaders/renderers/FLD/render/fragment
 
 #version 300 es
-precision mediump float;
+precision highp float;
 
-uniform mediump sampler3D uFluence;
+uniform highp sampler3D uFluence;
 uniform mediump sampler3D uVolume;
 uniform mediump sampler2D uTransferFunction;
 
@@ -150,6 +239,7 @@ vec4 sampleVolumeColor(vec3 position) {
 void main() {
     vec3 rayDirection = vRayTo - vRayFrom;
     vec2 tbounds = max(intersectCube(vRayFrom, rayDirection), 0.0);
+
     if (tbounds.x >= tbounds.y) {
         oColor = vec4(0, 0, 0, 1);
     } else {
@@ -168,7 +258,10 @@ void main() {
             vec4 colorSample = sampleVolumeColor(position);
             colorSample.a *= rayStepLength * uExtinction;
             colorSample.rgb *= colorSample.a * fluence;
+
+            // debug
 //            vec4 colorSample = vec4(vec3(fluence), 1);
+
             accumulator += (1.0 - accumulator.a) * colorSample;
             t += uStepSize;
         }
@@ -198,6 +291,8 @@ void main() {
 #version 300 es
 precision highp float;
 
+uniform highp sampler3D uEmission;
+
 in vec2 vPosition;
 uniform mat4 uMvpInverseMatrix;
 uniform vec2 uInverseResolution;
@@ -214,7 +309,10 @@ layout (location = 0) out vec4 oFluence;
 
 void main() {
     vec3 position = vec3(vPosition, uLayer);
-//    float RMS_j = sqrt(float((uSize[0] * uSize[1] + uSize[0] * uSize[2] + uSize[1] * uSize[2]) / uSize[0] * uSize[1] * uSize[2]));
+    float max_dimension = float(max(max(uSize[0], uSize[1]), uSize[2]));
+    float mipmapLevel = log2(max_dimension) + 1.0;
+    float RMS_j = sqrt(textureLod(uEmission, position, mipmapLevel).g);
+
     float fluence = uEpsilon * RMS_j * uVoxelSize;
     float diff_coeff = uEpsilon;
 
@@ -243,5 +341,5 @@ void main() {
 
     float source = 1.0;
 
-    oFluence = vec4(fluence, diff_coeff, 0, 0);
+    oFluence = vec4(fluence, diff_coeff, 100, 0);
 }
