@@ -17,6 +17,8 @@ constructor(options) {
     this.rotation = new Quaternion();
     this.viewMatrix = new Matrix();
     this.projectionMatrix = new Matrix();
+    this.modelMatrix = new Matrix();
+    this.modelViewMatrix = new Matrix();
     this.transformationMatrix = new Matrix();
     this.isDirty = false;
 }
@@ -35,10 +37,25 @@ updateProjectionMatrix() {
     this.projectionMatrix.fromFrustum(-w, w, -h, h, this.near, this.far);
 }
 
+modelMatrixRotateX(angle) {
+    this.modelMatrix = this.modelMatrix.fromRotationX(angle);
+}
+
+modelMatrixRotateY(angle) {
+    this.modelMatrix = this.modelMatrix.fromRotationY(angle);
+}
+
+modelMatrixRotateZ(angle) {
+    this.modelMatrix = this.modelMatrix.fromRotationZ(angle);
+}
+
 updateMatrices() {
     this.updateViewMatrix();
     this.updateProjectionMatrix();
-    this.transformationMatrix.multiply(this.projectionMatrix, this.viewMatrix);
+    this.modelViewMatrix.multiply(this.viewMatrix, this.modelMatrix);
+    this.transformationMatrix.multiply(this.projectionMatrix, this.modelViewMatrix);
+    // this.transformationMatrix.multiply(this.projectionMatrix, this.viewMatrix);
+    // this.isDirty = true;
 }
 
 resize(width, height) {

@@ -1,0 +1,23 @@
+node.exe ..\..\raw2bvp.js -m default -i ts_16_bin8_lp80A_inv_Background_u8bit-crop-01.raw -d 150x150x224 -f R8 -G true -m c1 -i ts_16_bin8_lp80A_inv_Inner_u8bit-crop-01.raw -d 150x150x224 -f R8 -G true -m c2 -i ts_16_bin8_lp80A_inv_Membrane_u8bit-crop-01.raw -d 150x150x224 -f R8 -G true -m c3 -i ts_16_bin8_lp80A_inv_Spikes_u8bit-crop-01.raw -d 150x150x224 -f R8 -G true -o ts_16_bin8_lp80A_inv_u8bit-crop-01_GM.bvp
+
+
+
+node.exe .\raw2bvp.js -m 1 -i ts_17_bin4_uint8.raw -d 1024x1440x285 -f R8 -G true -m 2 -i ts_17_bin4_uint8_predictions.raw -d 1024x1440x285 -f R8 -G true -o ts_17_bin4_unit8.bvp
+
+node.exe raw2bvp.js -m default -i single-ts_52_predictions-Inner.raw -d 246x264x340 -f R8 -G false -m c1 -i single-ts_52_predictions-Membrane.raw -d 246x264x340 -f R8 -G false -m c2 -i single-ts_52_predictions-Spikes.raw -d 246x264x340 -f R8 -G false -m c3 -i single-ts_52_bin4_uint8_inv_mean_3.raw -d 246x264x340 -f R8 -o single-ts_52_predictions.bvp
+
+
+node.exe .\raw2bvp.js -m 1 -i C:\Users\bohakc\Downloads\kongres\fib-4-3-0-uint8.raw -d 256x256x256 -f R8 -G true -o C:\Users\bohakc\Downloads\kongres\fib-4-3-0-uint8.bvp
+
+
+node.exe raw2bvp.js -m default -i Fib.raw -d 1280x1024x1024 -f R8 -G false -m c1 -i Golgi.raw -d 1280x1024x1024 -f R8 -G false -m c2 -i MitoEL.raw -d 1280x1024x1024 -f R8 -G false -m c3 -i FV.raw -d 1280x1024x1024 -f R8 -o Fib1_Golgi_MitoEL_FV.bvp
+
+node.exe raw2bvp.js -m default -i Fib-1k.raw -d 1024x1024x1024 -f R8 -G false -m c1 -i Golgi-1k.raw -d 1024x1024x1024 -f R8 -G false -m c2 -i MitoEL-1k.raw -d 1024x1024x1024 -f R8 -G false -m c3 -i FV-1k.raw -d 1024x1024x1024 -f R8 -o Fib1_Golgi_MitoEL_FV-1k.bvp
+
+node.exe raw2bvp.js -m default -i Fib-1k.raw -d 996x996x996 -f R8 -G false -m c1 -i Golgi-1k.raw -d 996x996x996 -f R8 -G false -m c2 -i MitoEL-1k.raw -d 996x996x996 -f R8 -G false -m c3 -i FV-1k.raw -d 996x996x996 -f R8 -o Fib1_Golgi_MitoEL_FV-1k.bvp
+
+node.exe raw2bvp.js -m default -i Fib-256.raw -d 256x256x256 -f R8 -G false -m c1 -i Golgi-256.raw -d 256x256x256 -f R8 -G false -m c2 -i MitoEL-256.raw -d 256x256x256 -f R8 -G false -m c3 -i FV-256.raw -d 256x256x256 -f R8 -o Fib1_Golgi_MitoEL_FV-256.bvp
+
+node.exe raw2bvp.js -m default -i D:\Manca-članek\fib1-raw-128.raw -d 128x128x128 -f R8 -G false -m c1 -i D:\Manca-članek\Vol-128.raw -d 128x128x128 -f R8 -G false -o Fib1_Raw_Golgi_MitoEL_FV-128.bvp
+
+node.exe raw2bvp.js -m default -i D:\Manca-članek\fib1-raw.raw -d 1280x1024x1024 -f R8 -G false -m c1 -i D:\Manca-članek\Vol.raw -d 1280x1024x1024 -f R8 -G false -o D:\Manca-članek\Fib1_Raw_Golgi_MitoEL_FV.bvp

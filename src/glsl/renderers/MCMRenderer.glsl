@@ -198,9 +198,10 @@ void resetPhoton(inout vec2 randState, inout Photon photon) {
     unprojectRand(randState, vPosition, uMvpInverseMatrix, uInverseResolution, uBlur, from, to);
     photon.direction = normalize(to - from);
     photon.bounces = 0u;
-    vec2 tbounds = max(limitedIntersectCube(from, photon.direction, uMinCutPlaneValues, uMaxCutPlaneValues), 0.0);
-    photon.position = from + (tbounds.x + uViewCutDistance * SQRT3) * photon.direction;
-    // photon.position = from + tbounds.x * photon.direction;
+    vec2 tbounds = max(limitedIntersectCube(from, photon.direction, vec3(0), vec3(1)), 0.0);
+    // vec2 tbounds = max(limitedIntersectCube(from, photon.direction, uMinCutPlaneValues, uMaxCutPlaneValues), 0.0);
+    // photon.position = from + (tbounds.x + uViewCutDistance * SQRT3) * photon.direction;
+    photon.position = from + tbounds.x * photon.direction;
     photon.transmittance = vec3(1);
 }
 
@@ -214,29 +215,36 @@ vec4 sampleEnvironmentMap(vec3 d) {
 vec4 sampleVolumeColor(vec3 position) {
     vec4 channelContribs = uChannelContributions / max(max(max(uChannelContributions.x, uChannelContributions.y), uChannelContributions.z), uChannelContributions.w);
 
-    vec2 volumeSample0 = texture(uVolume0, position).rg ;
-    vec4 transferSample0 = texture(uTransferFunction0, volumeSample0) * channelContribs.x;
+    // vec2 volumeSample0 = texture(uVolume0, position).rg ;
+    // vec4 transferSample0 = texture(uTransferFunction0, volumeSample0) * channelContribs.x;
+    vec2 volumeSample0 = vec2(0);
+    vec4 transferSample0 = vec4(0);
+    if (position.y < uMaxCutPlaneValues.y) {
+        volumeSample0 = texture(uVolume0, position).rg ;
+        transferSample0 = texture(uTransferFunction0, volumeSample0) * channelContribs.x;
+    }
     vec4 transferSample1 = vec4(0);
     vec4 transferSample2 = vec4(0);
     vec4 transferSample3 = vec4(0);
     float maxVolValue = volumeSample0.r;
     vec4 maxVolSample = transferSample0;
 
-    if (uBilateral && !uBilateralGradient) {
-        volumeSample0.r = bilateralFiltering3D(position, volumeSample0.r);
-    } else if (uBilateral && uBilateralGradient) {
-        volumeSample0.rg = bilateralFiltering3D_2(position, volumeSample0);
-    }
+    // if (uBilateral && !uBilateralGradient) {
+    //     volumeSample0.r = bilateralFiltering3D(position, volumeSample0.r);
+    // } else if (uBilateral && uBilateralGradient) {
+    //     volumeSample0.rg = bilateralFiltering3D_2(position, volumeSample0);
+    // }
 
     if (uNumberOfChannels > 1) {
+    // if (uNumberOfChannels > 1 && all(lessThan(position, uMaxCutPlaneValues))) {
         vec2 volumeSample1 = texture(uVolume1, position).rg ;
         transferSample1 = texture(uTransferFunction1, volumeSample1) * channelContribs.y;
 
-        if (uBilateral && !uBilateralGradient) {
-            volumeSample1.r = bilateralFiltering3D(position, volumeSample1.r);
-        } else if (uBilateral && uBilateralGradient) {
-            volumeSample1.rg = bilateralFiltering3D_2(position, volumeSample1);
-        }
+        // if (uBilateral && !uBilateralGradient) {
+        //     volumeSample1.r = bilateralFiltering3D(position, volumeSample1.r);
+        // } else if (uBilateral && uBilateralGradient) {
+        //     volumeSample1.rg = bilateralFiltering3D_2(position, volumeSample1);
+        // }
 
         maxVolValue = volumeSample1.r;
         maxVolSample = transferSample1;
@@ -246,14 +254,15 @@ vec4 sampleVolumeColor(vec3 position) {
         }
     }
     if (uNumberOfChannels > 2) {
+    // if (uNumberOfChannels > 2 && all(lessThan(position, uMaxCutPlaneValues))) {
         vec2 volumeSample2 = texture(uVolume2, position).rg ;
         transferSample2 = texture(uTransferFunction2, volumeSample2) * channelContribs.z;
 
-        if (uBilateral && !uBilateralGradient) {
-            volumeSample2.r = bilateralFiltering3D(position, volumeSample2.r);
-        } else if (uBilateral && uBilateralGradient) {
-            volumeSample2.rg = bilateralFiltering3D_2(position, volumeSample2);
-        }
+        // if (uBilateral && !uBilateralGradient) {
+        //     volumeSample2.r = bilateralFiltering3D(position, volumeSample2.r);
+        // } else if (uBilateral && uBilateralGradient) {
+        //     volumeSample2.rg = bilateralFiltering3D_2(position, volumeSample2);
+        // }
 
         if (maxVolValue < volumeSample2.r) {
              maxVolValue = volumeSample2.r;
@@ -261,14 +270,15 @@ vec4 sampleVolumeColor(vec3 position) {
         }
     }
     if (uNumberOfChannels > 3) {
+    // if (uNumberOfChannels > 3 && all(lessThan(position, uMaxCutPlaneValues))) {
         vec2 volumeSample3 = texture(uVolume3, position).rg ;
         transferSample3 = texture(uTransferFunction3, volumeSample3) * channelContribs.w;
 
-        if (uBilateral && !uBilateralGradient) {
-            volumeSample3.r = bilateralFiltering3D(position, volumeSample3.r);
-        } else if (uBilateral && uBilateralGradient) {
-            volumeSample3.rg = bilateralFiltering3D_2(position, volumeSample3);
-        }
+        // if (uBilateral && !uBilateralGradient) {
+        //     volumeSample3.r = bilateralFiltering3D(position, volumeSample3.r);
+        // } else if (uBilateral && uBilateralGradient) {
+        //     volumeSample3.rg = bilateralFiltering3D_2(position, volumeSample3);
+        // }
 
         if (maxVolValue < volumeSample3.r) {
              maxVolValue = volumeSample3.r;
@@ -342,8 +352,8 @@ void main() {
         float PAbsorption = muAbsorption / muMajorant;
         float PScattering = muScattering / muMajorant;
 
-        // if (any(greaterThan(photon.position, vec3(1))) || any(lessThan(photon.position, vec3(0)))) {
-        if (any(greaterThan(photon.position, uMaxCutPlaneValues)) || any(lessThan(photon.position, uMinCutPlaneValues))) {
+        if (any(greaterThan(photon.position, vec3(1))) || any(lessThan(photon.position, vec3(0)))) {
+        // if (any(greaterThan(photon.position, uMaxCutPlaneValues)) || any(lessThan(photon.position, uMinCutPlaneValues))) {
             // out of bounds
             vec4 envSample = sampleEnvironmentMap(photon.direction);
             if (uEnvironmentTextureOverride && photon.bounces < 2u)
@@ -454,9 +464,10 @@ void main() {
     vec2 randState = rand(vPosition * uRandSeed);
     unprojectRand(randState, vPosition, uMvpInverseMatrix, uInverseResolution, uBlur, from, to);
     photon.direction = normalize(to - from);
-    vec2 tbounds = max(limitedIntersectCube(from, photon.direction, uMinCutPlaneValues, uMaxCutPlaneValues), 0.0);
-    photon.position = from + (tbounds.x + uViewCutDistance * SQRT3 ) * photon.direction;
-    // photon.position = from + tbounds.x * photon.direction;
+    vec2 tbounds = max(limitedIntersectCube(from, photon.direction, vec3(0), vec3(1)), 0.0);
+    // vec2 tbounds = max(limitedIntersectCube(from, photon.direction, uMinCutPlaneValues, uMaxCutPlaneValues), 0.0);
+    // photon.position = from + (tbounds.x + uViewCutDistance * SQRT3 ) * photon.direction;
+    photon.position = from + tbounds.x * photon.direction;
     photon.transmittance = vec3(1);
     photon.radiance = vec3(1);
     photon.bounces = 0u;
