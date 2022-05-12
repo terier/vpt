@@ -20,7 +20,15 @@ constructor(gl, reader) {
     this.mask = null;
     this.framebuffer = null;
     this.attributes = null;
-    this.groups = [];
+
+    this.instances = [];
+    this.groups = [{
+        color: [0.2, 0.3, 0.5, 0.2],
+    }, {
+        color: [0.1, 0.5, 0.7, 1.0],
+    }, {
+        color: [1, 1, 1, 1],
+    }];
 
     this.clipQuad = WebGL.createClipQuad(gl);
     this.programs = WebGL.buildPrograms(gl, {
@@ -107,10 +115,56 @@ async load() {
         wrapT: gl.CLAMP_TO_EDGE,
     });
 
-    //this.attributes = await this.zipReader.readFile('attributes.csv');
+    this.parseAttributes(await this.zipReader.readFile('attributes.csv'));
+
+    this.updateMaskValues();
+    this.updateMask();
+}
+
+parseAttributes(attributes) {
+    const decoder = new TextDecoder();
+    const text = decoder.decode(attributes);
+    const lines = text.split('\n').map(line => line.split(','));
+    const header = lines[0];
+    const instances = lines.slice(1).map(line => line.map(entry => Number(entry)));
+    const zip = rows => rows[0].map((_, i) => rows.map(row => row[i]));
+    this.instances = instances.map(attributes => ({
+        group: 1 + Math.floor(Math.random() * 2),
+        random: Math.random(),
+        attributes: Object.fromEntries(zip([header, attributes]))
+    }));
+}
+
+updateMaskValues() {
+    const groups = new Array(this.groups.length).fill(0)
+        .map((_, k) => this.maskValue(k, this.groups.length));
+
+    const rawData = [{ group: 0 }, ...this.instances]
+        .map(instance => instance.group)
+        .map(group => groups[group])
+        .flat()
+        .map(x => Math.round(x * 255));
+
+    const data = new Uint8Array(rawData);
+
+    const gl = this.gl;
+    WebGL.createTexture(gl, {
+        texture: this.maskValues,
+
+        internalFormat: gl.RG8,
+        format: gl.RG,
+        type: gl.UNSIGNED_BYTE,
+
+        width: data.length / 2,
+        height: 1,
+
+        data,
+    });
 }
 
 updateMask() {
+    const gl = this.gl;
+
     gl.bindBuffer(gl.ARRAY_BUFFER, this.clipQuad);
 
     gl.enableVertexAttribArray(0);
@@ -144,8 +198,8 @@ maskValue(k, n) {
         return [0.5, 0.5];
     }
 
-    const angle = ((k - 1) / n) * 2 * Math.PI;
-    return [Math.cos(angle), Math.sin(angle)];
+    const angle = ((k - 1) / (n - 1)) * 2 * Math.PI;
+    return [0.5 + 0.5 * Math.cos(angle), 0.5 + 0.5 * Math.sin(angle)];
 }
 
 setFilter(filter) {
