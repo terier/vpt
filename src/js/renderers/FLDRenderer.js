@@ -67,8 +67,8 @@ constructor(gl, volume, environmentTexture, options) {
             step: 1
         },
         {
-            name: 'LOD',
-            label: 'LOD',
+            name: 'voxelSize',
+            label: 'Voxel Size',
             type: 'slider',
             value: 1,
             min: 0,
@@ -92,6 +92,11 @@ constructor(gl, volume, environmentTexture, options) {
         if ([
             'light',
             'scattering',
+            'voxelSize',
+            'lightVolumeRatio',
+            'SOR',
+            'scatteringCoefficient',
+            'absorptionCoefficient'
         ].includes(name)) {
             this.resetVolume();
         }
@@ -203,7 +208,7 @@ _resetFluence() {
         gl.uniform1i(uniforms.uTransferFunction, 2);
         gl.uniform1f(uniforms.uLayer, (i + 0.5) / this._lightVolumeDimensions.depth);
 
-        gl.uniform1f(uniforms.uVoxelSize, 1);
+        gl.uniform1f(uniforms.uVoxelSize, this.voxelSize);
         gl.uniform1f(uniforms.uEpsilon, this.epsilon);
 
         gl.uniform3f(uniforms.uLight, this.light.x, this.light.y, this.light.z);
@@ -220,6 +225,7 @@ _resetFluence() {
 }
 
 _resetEmissionField() {
+    console.log("Resetting Emission Field")
     const gl = this._gl;
 
     const { program, uniforms } = this._programs.generate;
@@ -253,21 +259,26 @@ _generateFrame() {
 }
 
 _integrateFrame() {
+
     const gl = this._gl;
     this.red = 1;
     const { program, uniforms } = this._programs.integrate;
     gl.useProgram(program);
     const dimensions = this._lightVolumeDimensions;
 
+    gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[0]);
+    gl.generateMipmap(gl.TEXTURE_3D);
+    gl.bindTexture(gl.TEXTURE_3D, this._frameBuffer.getAttachments().color[0]);
+    gl.generateMipmap(gl.TEXTURE_3D);
+
     for (let i = 0; i < this._lightVolumeDimensions.depth; i++) {
         this._accumulationBuffer.use(i);
 
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[0]);
-        gl.generateMipmap(gl.TEXTURE_3D);
+
         gl.activeTexture(gl.TEXTURE1);
         gl.bindTexture(gl.TEXTURE_3D, this._frameBuffer.getAttachments().color[0]);
-        gl.generateMipmap(gl.TEXTURE_3D);
 
         gl.activeTexture(gl.TEXTURE2);
         gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());

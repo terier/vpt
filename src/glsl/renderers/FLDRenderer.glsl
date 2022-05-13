@@ -92,7 +92,6 @@ uniform mediump sampler2D uTransferFunction;
 uniform vec3 uStep;
 uniform uvec3 uSize;
 uniform float uLayer;
-uniform float uLOD;
 
 uniform float uAbsorptionCoefficient;
 uniform float uScatteringCoefficient;
@@ -128,8 +127,8 @@ void main() {
 
     float max_dimension = float(max(max(uSize[0], uSize[1]), uSize[2]));
     float mipmapLevel = log2(max_dimension) + 1.0;
-    float RMS_j = sqrt(textureLod(uEmission, position, mipmapLevel * uLOD).g);
-    float RMS_R = sqrt(textureLod(uFluence, position, mipmapLevel * uLOD).b);
+    float RMS_j = sqrt(textureLod(uEmission, position, mipmapLevel).g);
+    float RMS_R = sqrt(textureLod(uFluence, position, mipmapLevel).b);
 
     if (RMS_R < 10e-6 * RMS_j) {
         return;
@@ -140,8 +139,8 @@ void main() {
     float diffCoeff = fluenceAndDiffCoeff.g;
     float emission = texture(uEmission, position).r;
 
-    if (position.x < uStep.x || position.y < uStep.y || position.z < uStep.z ||
-    position.x > 1.0 - uStep.x || position.y > 1.0 - uStep.y || position.z > 1.0 - uStep.z) {
+    if (position.x <= uStep.x || position.y <= uStep.y || position.z <= uStep.z ||
+    position.x >= 1.0 - uStep.x || position.y >= 1.0 - uStep.y || position.z >= 1.0 - uStep.z) {
         oFluence = fluenceAndDiffCoeff;
         return;
     }
@@ -181,13 +180,18 @@ void main() {
     float DpsBack =     (back[1] +      D) / 2.0;
     float DpsForward =  (forward[1] +   D) / 2.0;
 
-    float sum_nominator = DpsLeft * left[0] + DpsRight * right[0] + DpsDown * down[0] +
+    float voxelSizeSq = uVoxelSize * uVoxelSize;
+
+    float sum_numerator = DpsLeft * left[0] + DpsRight * right[0] + DpsDown * down[0] +
     DpsUp * up[0] + DpsBack * back[0] + DpsForward * forward[0];
     float sum_denominator = DpsLeft + DpsRight + DpsDown + DpsUp + DpsBack + DpsForward;
+    float numerator = emission * voxelSizeSq + sum_numerator;
+    float denominator = (1.0 - albedo) * extinction * voxelSizeSq + sum_denominator;
 
-    float new_fluence = (emission + sum_nominator) / ((1.0 - albedo) * extinction + sum_denominator);
+    float new_fluence = numerator / denominator;
     new_fluence = uSOR * new_fluence + (1.0 - uSOR) * fluence;
-    float residual = new_fluence - fluence;
+
+    float residual = (numerator - new_fluence * denominator) / voxelSizeSq;
 
     oFluence = vec4(new_fluence, D, residual * residual, 0);
 }
