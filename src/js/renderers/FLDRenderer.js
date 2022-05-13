@@ -26,7 +26,7 @@ constructor(gl, volume, environmentTexture, options) {
             name: 'slices',
             label: 'Slices',
             type: 'spinner',
-            value: 64,
+            value: 500,
             min: 1,
         },
         {
@@ -54,7 +54,7 @@ constructor(gl, volume, environmentTexture, options) {
             name: 'SOR',
             label: 'SOR',
             type: 'spinner',
-            value: 1,
+            value: 0.5,
             min: 0,
             max: 2
         },
@@ -72,7 +72,7 @@ constructor(gl, volume, environmentTexture, options) {
             type: 'slider',
             value: 1,
             min: 0,
-            max: 1
+            max: 2
         },
         {
             name: 'transferFunction',
@@ -103,7 +103,7 @@ constructor(gl, volume, environmentTexture, options) {
     });
 
     this._programs = WebGL.buildPrograms(gl, SHADERS.renderers.FLD, MIXINS);
-
+    this.red = 1;
     this.epsilon = 10e-10
 }
 
@@ -193,6 +193,9 @@ _resetFluence() {
     gl.useProgram(program);
     const dimensions = this._lightVolumeDimensions;
 
+    gl.bindTexture(gl.TEXTURE_3D, this._frameBuffer.getAttachments().color[0]);
+    gl.generateMipmap(gl.TEXTURE_3D);
+
     for (let i = 0; i < this._lightVolumeDimensions.depth; i++) {
         this._accumulationBuffer.use(i);
         gl.activeTexture(gl.TEXTURE0);
@@ -259,17 +262,16 @@ _generateFrame() {
 }
 
 _integrateFrame() {
-
     const gl = this._gl;
-    this.red = 1;
+
     const { program, uniforms } = this._programs.integrate;
     gl.useProgram(program);
     const dimensions = this._lightVolumeDimensions;
 
     gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[0]);
     gl.generateMipmap(gl.TEXTURE_3D);
-    gl.bindTexture(gl.TEXTURE_3D, this._frameBuffer.getAttachments().color[0]);
-    gl.generateMipmap(gl.TEXTURE_3D);
+    // gl.bindTexture(gl.TEXTURE_3D, this._frameBuffer.getAttachments().color[0]);
+    // gl.generateMipmap(gl.TEXTURE_3D);
 
     for (let i = 0; i < this._lightVolumeDimensions.depth; i++) {
         this._accumulationBuffer.use(i);
@@ -295,9 +297,8 @@ _integrateFrame() {
         gl.uniform1f(uniforms.uLayer, (i + 0.5) / this._lightVolumeDimensions.depth);
         gl.uniform1f(uniforms.uSOR, this.SOR);
         gl.uniform1ui(uniforms.uRed, this.red);
-        gl.uniform1f(uniforms.uLOD, this.LOD);
 
-        gl.uniform1f(uniforms.uVoxelSize, 1);
+        gl.uniform1f(uniforms.uVoxelSize, this.voxelSize);
         gl.uniform1f(uniforms.uEpsilon, this.epsilon);
 
 

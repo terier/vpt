@@ -108,6 +108,10 @@ float flux_sum(float R) {
     return 1.0 / (3.0 + R);
 }
 
+float flux_max(float R) {
+    return 1.0 / max(3.0, R);
+}
+
 float flux_kershaw(float R) {
     return 2.0 * 1.0 / (3.0 + sqrt(9.0 + 4.0 * R * R));
 }
@@ -171,7 +175,7 @@ void main() {
     gradient = gradient / (2.0 * uVoxelSize);
 
     float R = max(length(gradient), uEpsilon * RMS_j) / max(extinction * fluence, uEpsilon * RMS_j);
-    float D = flux_kershaw(R) / extinction;
+    float D = flux_max(R) / extinction;
 
     float DpsLeft =     (left[1] +      D) / 2.0;
     float DpsRight =    (right[1] +     D) / 2.0;
