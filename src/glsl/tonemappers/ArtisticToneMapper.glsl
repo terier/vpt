@@ -32,7 +32,7 @@ void main() {
     const vec3 gray = normalize(vec3(1));
     color = vec4(mix(dot(color.rgb, gray) * gray, color.rgb, uSaturation), 1.0);
     float midpoint = (uMid - uLow) / (uHigh - uLow);
-    float exponent = -log(2.0) / log(midpoint);
+    float exponent = -log(midpoint) / log(2.0);
     color = pow(color, vec4(exponent));
     oColor = vec4(color.rgb, 1.0);
 }
