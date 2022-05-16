@@ -18,6 +18,7 @@ constructor(options) {
 
     this.binds.color.style.backgroundColor = this.binds.input.value /* + alpha */;
     this.binds.input.addEventListener('input', this.inputListener);
+    this.binds.input.addEventListener('change', this.inputListener);
     this.addEventListener('click', this.clickListener);
 }
 
@@ -35,6 +36,7 @@ clickListener(e) {
 }
 
 inputListener(e) {
+    this.binds.color.style.backgroundColor = this.binds.input.value /* + alpha */;
     this.dispatchEvent(new Event('change'));
 }
 
