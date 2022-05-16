@@ -19,15 +19,34 @@ constructor(gl, reader) {
     this.idVolume = new Volume(gl, reader);
     this.mask = null;
     this.framebuffer = null;
+
+    // List of attribute names, maybe extend later to more than names
     this.attributes = null;
 
+    // Object of the form
+    // {
+    //     group: k,
+    //     random: Math.random(), // for the purposes of sparsification
+    //     attributes: {
+    //         name: value,
+    //         name: value,
+    //     }
+    // }
     this.instances = [];
+
+    // Object of the form
+    // {
+    //     color: [r, g, b, a],
+    //     predicates: [...]
+    // }
+    // Group 0 is the background.
+    // By default there is one group for all instances, without predicates.
     this.groups = [{
-        color: [0.2, 0.3, 0.5, 0.2],
-    }, {
-        color: [0.1, 0.5, 0.7, 1.0],
+        color: [0, 0, 0, 0],
+        // predicates: ??
     }, {
         color: [1, 1, 1, 1],
+        // predicates: ??
     }];
 
     this.clipQuad = WebGL.createClipQuad(gl);
@@ -53,6 +72,8 @@ destroy() {
     super.destroy();
 }
 
+// Loads two modalities, data and id, and creates
+// the mask volume of the same dimensions.
 async load() {
     const { dataVolume, idVolume } = this;
 
@@ -129,16 +150,19 @@ parseAttributes(attributes) {
     const instances = lines.slice(1).map(line => line.map(entry => Number(entry)));
     const zip = rows => rows[0].map((_, i) => rows.map(row => row[i]));
     this.instances = instances.map(attributes => ({
-        group: 1 + Math.floor(Math.random() * 2),
+        group: 1,
         random: Math.random(),
         attributes: Object.fromEntries(zip([header, attributes]))
     }));
 }
 
+// Writes the mask value of each instance into a texture that can
+// be used in the updateMask function to generate the mask volume.
 updateMaskValues() {
     const groups = new Array(this.groups.length).fill(0)
         .map((_, k) => this.maskValue(k, this.groups.length));
 
+    // instance 0 is the background
     const rawData = [{ group: 0 }, ...this.instances]
         .map(instance => instance.group)
         .map(group => groups[group])
@@ -162,6 +186,8 @@ updateMaskValues() {
     });
 }
 
+// Writes the mask volume by mapping the ID volume
+// through the maskValue function.
 updateMask() {
     const gl = this.gl;
 
