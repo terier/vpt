@@ -20,6 +20,17 @@ constructor(gl, reader) {
     this.mask = null;
     this.framebuffer = null;
 
+    this.maskTransferFunction = WebGL.createTexture(gl, {
+        width: 256,
+        height: 256,
+
+        data: new Uint8Array(256 * 256 * 4),
+    });
+
+    this.maskTransferFunctionFramebuffer = WebGL.createFramebuffer(gl, {
+        color: [ this.maskTransferFunction ]
+    });
+
     // List of attribute names, maybe extend later to more than names
     this.attributes = null;
 
@@ -52,6 +63,7 @@ constructor(gl, reader) {
     this.clipQuad = WebGL.createClipQuad(gl);
     this.programs = WebGL.buildPrograms(gl, {
         updateMask: SHADERS.updateMask,
+        updateTransferFunction: SHADERS.updateTransferFunction,
     }, MIXINS);
 }
 
@@ -164,9 +176,7 @@ updateMaskValues() {
 
     // instance 0 is the background
     const rawData = [{ group: 0 }, ...this.instances]
-        .map(instance => instance.group)
-        .map(group => groups[group])
-        .flat()
+        .flatMap(instance => groups[instance.group])
         .map(x => Math.round(x * 255));
 
     const data = new Uint8Array(rawData);
@@ -226,6 +236,41 @@ maskValue(k, n) {
 
     const angle = ((k - 1) / (n - 1)) * 2 * Math.PI;
     return [0.5 + 0.5 * Math.cos(angle), 0.5 + 0.5 * Math.sin(angle)];
+}
+
+// Wraps group colors into a polar transfer function:
+// 1. uploads group colors into a color strip texture
+// 2. renders the polar transfer function
+updateTransferFunction() {
+    const rawData = this.groups
+        .flatMap(group => group.color)
+        .map(x => Math.round(x * 255));
+
+    const data = new Uint8Array(colors);
+
+    const gl = this.gl;
+    WebGL.createTexture(gl, {
+        unit: 0,
+        texture: this.colorStrip,
+
+        width: this.groups.length - 1, // without background group
+        height: 1,
+
+        data,
+    });
+
+    const { program, uniforms } = this.programs.updateTransferFunction;
+    gl.useProgram(program);
+    gl.uniform1i(uniforms.uColorStrip, 0);
+    gl.uniform4fv(uniforms.uBackgroundColor, this.groups[0].color);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.clipQuad);
+    gl.enableVertexAttribArray(0);
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.maskTransferFunctionFramebuffer);
+    gl.viewport(0, 0, 256, 256); // TODO: get actual TF size
+    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 }
 
 setFilter(filter) {
