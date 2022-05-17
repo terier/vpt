@@ -4,17 +4,17 @@
     <canvas></canvas>
 </div>
 <div class="controls">
-    <input type="button" class="button" value="Add bump" bind="addBump">
-    <input type="button" class="button" value="Remove selected bump" bind="removeSelectedBump">
-    <input type="button" class="button" value="Remove all bumps" bind="removeAllBumps">
-    <input type="button" class="button" value="Load" bind="load">
-    <input type="button" class="button" value="Save" bind="save">
-    <div class="panel">
-        <label>Color</label>
-        <input bind="color" type="color">
-    </div>
-    <div>
-        <label>Alpha</label>
+    <button bind="addBump">Add bump</button>
+    <button bind="removeSelectedBump">Remove selected bump</button>
+    <button bind="removeAllBumps">Remove all bumps</button>
+    <button bind="load">Load</button>
+    <button bind="save">Save</button>
+    <ui-field>
+        <label slot="label">Color</label>
+        <ui-color-chooser bind="color"></ui-color-chooser>
+    </ui-field>
+    <ui-field>
+        <label slot="label">Alpha</label>
         <input bind="alpha" type="number" min="0" max="1" step="0.1" value="1">
-    </div>
+    </ui-field>
 </div>
