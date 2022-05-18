@@ -1,7 +1,7 @@
 :host {
     --sidebar-width    : 300px;
     --handle-width     : 10px;
-    --icon-size        : 10px;
+    --icon-size        : 16px;
     --background-color : #ffffff;
     --handle-color     : #f3f3f3;
     --border-color     : #cccccc;
@@ -27,7 +27,7 @@
     flex: 0 0 var(--handle-width);
     background-color: var(--handle-color);
 
-    background-image: url(../../../images/icons/left-arrow-angle-big-gross-symbol.svg);
+    background-image: url(../../../images/icons/chevron-back-outline.svg);
     background-position: 50% 10px;
     background-repeat: no-repeat;
     background-size: var(--icon-size);
@@ -42,7 +42,7 @@
 }
 
 :host([contracted]) > .handle {
-    background-image: url(../../../images/icons/arrow-angle-pointing-to-right.svg);
+    background-image: url(../../../images/icons/chevron-forward-outline.svg);
 }
 
 .container {

@@ -1,4 +1,5 @@
 import { DOMUtils } from '../../utils/DOMUtils.js';
+import { GroupDialog } from '../GroupDialog/GroupDialog.js';
 
 const template = document.createElement('template');
 template.innerHTML = await fetch(new URL('./MainDialog.html', import.meta.url))
@@ -24,6 +25,9 @@ constructor() {
 
     const about = DOMUtils.instantiate(aboutTemplate);
     this.binds.about.appendChild(about);
+
+    const groupDialog = new GroupDialog();
+    this.binds.groups.appendChild(groupDialog.object);
 }
 
 getVolumeLoadContainer() {

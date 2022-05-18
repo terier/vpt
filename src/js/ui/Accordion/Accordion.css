@@ -1,6 +1,6 @@
 :host {
     --handle-height   : 18px;
-    --icon-size       : 10px;
+    --icon-size       : 16px;
     --handle-color    : #f3f3f3;
     --border-color    : #cccccc;
     --hover-color     : #eaeaea;
@@ -20,15 +20,13 @@
     line-height: var(--handle-height);
 
     background-color: var(--handle-color);
-    background-image: url(../../../images/icons/down-arrow.svg);
-    background-position: 5px 50%;
+    background-image: url(../../../images/icons/chevron-down-outline.svg);
+    background-position: 2px 50%;
     background-repeat: no-repeat;
     background-size: var(--icon-size);
-    box-sizing: border-box;
     border-top: 1px solid var(--border-color);
     border-bottom: 1px solid var(--border-color);
     user-select: none;
-    cursor: pointer;
     z-index: 1;
 }
 
@@ -45,7 +43,7 @@
 }
 
 :host([contracted]) > .handle {
-    background-image: url(../../../images/icons/arrow-angle-pointing-to-right.svg);
+    background-image: url(../../../images/icons/chevron-forward-outline.svg);
     color: var(--text-color);
 }
 

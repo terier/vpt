@@ -1,0 +1,34 @@
+.group-label-container {
+    display: flex;
+    justify-content: space-between;
+}
+
+.group-label {
+    cursor: text;
+}
+
+.group-move {
+    width: 80px;
+    height: 18px;
+    background-image: url(../../../images/icons/reorder-two-outline.svg);
+    background-position: 0 50%;
+    background-repeat: no-repeat;
+    background-size: 80px 18px;
+}
+
+.group-move:hover {
+    cursor: move;
+}
+
+.group-delete {
+    width: 18px;
+    height: 18px;
+    background-image: url(../../../images/icons/close-outline.svg);
+    background-position: 1px 50%;
+    background-repeat: no-repeat;
+    background-size: 16px;
+}
+
+.group-delete:hover {
+    background-color: #faa;
+}

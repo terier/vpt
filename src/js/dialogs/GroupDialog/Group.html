@@ -1,0 +1,23 @@
+<link rel="stylesheet" href="js/dialogs/GroupDialog/Group.css">
+
+<ui-accordion>
+    <div slot="label" class="group-label-container">
+        <label class="group-label">New group</label>
+        <div style="display: flex">
+            <div bind="move" class="group-move"></div>
+            <div bind="delete" class="group-delete"></div>
+        </div>
+    </div>
+    <ui-field>
+        <label slot="label">Color</label>
+        <ui-color-chooser bind="color"></ui-color-chooser>
+    </ui-field>
+    <ui-field>
+        <label slot="label">Density</label>
+        <ui-slider bind="density" value="1" min="0" max="1"></ui-slider>
+    </ui-field>
+    <ui-field>
+            <label slot="label">Predicates</label>
+            <div bind="predicates"></div>
+    </ui-field>
+</ui-accordion>
