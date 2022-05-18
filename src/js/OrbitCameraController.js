@@ -49,7 +49,6 @@ _addEventListeners() {
 }
 
 _handlePointerDown(e) {
-    e.preventDefault();
     if (typeof e.touches === 'object') {
         this._startX = e.touches[0].pageX;
         this._startY = e.touches[0].pageY;
@@ -66,13 +65,11 @@ _handlePointerDown(e) {
 }
 
 _handlePointerUp(e) {
-    e.preventDefault();
     this._isTranslating = false;
     this._isRotating = false;
 }
 
 _handlePointerMove(e) {
-    e.preventDefault();
 
     const x = typeof e.pageX !== 'undefined' ? e.pageX : e.touches[0].pageX;
     const y = typeof e.pageY !== 'undefined' ? e.pageY : e.touches[0].pageY;
@@ -100,7 +97,6 @@ _handlePointerMove(e) {
 }
 
 _handleWheel(e) {
-    e.preventDefault();
     const amount = e.deltaY * this.zoomSpeed;
     const keepScale = e.shiftKey;
     this._zoom(amount, keepScale);

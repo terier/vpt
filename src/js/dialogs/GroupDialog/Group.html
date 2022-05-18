@@ -1,13 +1,17 @@
 <link rel="stylesheet" href="js/dialogs/GroupDialog/Group.css">
 
-<ui-accordion>
+<ui-accordion bind="accordion">
     <div slot="label" class="group-label-container">
-        <label class="group-label">New group</label>
+        <label bind="label" class="group-label">New group</label>
         <div style="display: flex">
             <div bind="move" class="group-move"></div>
             <div bind="delete" class="group-delete"></div>
         </div>
     </div>
+    <ui-field>
+        <label slot="label">Name</label>
+        <input type="text" bind="name" value="New group">
+    </ui-field>
     <ui-field>
         <label slot="label">Color</label>
         <ui-color-chooser bind="color"></ui-color-chooser>
