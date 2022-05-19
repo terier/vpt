@@ -2,8 +2,6 @@ import { DOMUtils } from './utils/DOMUtils.js';
 
 import './ui/UI.js';
 
-import { StatusBar } from './ui/StatusBar/StatusBar.js';
-
 import { LoaderFactory } from './loaders/LoaderFactory.js';
 import { ReaderFactory } from './readers/ReaderFactory.js';
 
@@ -33,9 +31,6 @@ constructor() {
     document.body.addEventListener('drop', this._handleFileDrop);
 
     this.mainDialog = new MainDialog();
-
-    this.statusBar = new StatusBar();
-    document.body.appendChild(this.statusBar);
 
     this.volumeLoadDialog = new VolumeLoadDialog();
     this.mainDialog.getVolumeLoadContainer().appendChild(this.volumeLoadDialog.object);
