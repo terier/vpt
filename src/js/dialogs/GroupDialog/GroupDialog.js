@@ -83,6 +83,11 @@ addPredicate(groupBinds) {
         if (e.target !== binds.predicate) return;
     });
 
+    // delete
+    binds.delete.addEventListener('click', e => {
+        binds.predicate.remove();
+    });
+
     groupBinds.predicates.appendChild(fragment);
 }
 

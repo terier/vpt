@@ -8,12 +8,12 @@
 }
 
 .group-move {
-    width: 80px;
+    width: 50px;
     height: 18px;
     background-image: url(../../../images/icons/reorder-two-outline.svg);
     background-position: 0 50%;
     background-repeat: no-repeat;
-    background-size: 80px 18px;
+    background-size: 50px 18px;
 }
 
 .group-move:hover {
@@ -77,4 +77,21 @@
     background-position: 0 50%;
     background-repeat: no-repeat;
     background-size: 50px 18px;
+}
+
+.predicate-move:hover {
+    cursor: move;
+}
+
+.predicate-delete {
+    width: 18px;
+    flex: 0 0 18px;
+    background-image: url(../../../images/icons/close-outline.svg);
+    background-position: 1px 50%;
+    background-repeat: no-repeat;
+    background-size: 16px;
+}
+
+.predicate-delete:hover {
+    background-color: #faa;
 }
