@@ -125,6 +125,9 @@ async setVolume(reader) {
         this.dispatchEvent(new CustomEvent('progress', { detail: e.detail }));
     });
     await this._volume.load();
+    this.dispatchEvent(new CustomEvent('attributechange', {
+        detail: [...this._volume.attributes]
+    }));
     this._volume.setFilter(this._filter);
     if (this._renderer) {
         this._renderer.setVolume(this._volume);

@@ -6,6 +6,7 @@ import { LoaderFactory } from './loaders/LoaderFactory.js';
 import { ReaderFactory } from './readers/ReaderFactory.js';
 
 import { MainDialog } from './dialogs/MainDialog/MainDialog.js';
+import { GroupDialog } from './dialogs/GroupDialog/GroupDialog.js';
 import { VolumeLoadDialog } from './dialogs/VolumeLoadDialog/VolumeLoadDialog.js';
 import { EnvmapLoadDialog } from './dialogs/EnvmapLoadDialog/EnvmapLoadDialog.js';
 import { RenderingContextDialog } from './dialogs/RenderingContextDialog/RenderingContextDialog.js';
@@ -31,6 +32,12 @@ constructor() {
     document.body.addEventListener('drop', this._handleFileDrop);
 
     this.mainDialog = new MainDialog();
+
+    this.groupDialog = new GroupDialog();
+    this.mainDialog.binds.groups.appendChild(this.groupDialog.object);
+    this.renderingContext.addEventListener('attributechange', e => {
+        this.groupDialog.attributes = e.detail;
+    });
 
     this.volumeLoadDialog = new VolumeLoadDialog();
     this.mainDialog.getVolumeLoadContainer().appendChild(this.volumeLoadDialog.object);

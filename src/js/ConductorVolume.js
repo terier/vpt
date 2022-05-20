@@ -32,7 +32,7 @@ constructor(gl, reader) {
     });
 
     // List of attribute names, maybe extend later to more than names
-    this.attributes = null;
+    this.attributes = [];
 
     // Object of the form
     // {
@@ -161,6 +161,7 @@ parseAttributes(attributes) {
     const header = lines[0];
     const instances = lines.slice(1).map(line => line.map(entry => Number(entry)));
     const zip = rows => rows[0].map((_, i) => rows.map(row => row[i]));
+    this.attributes = header;
     this.instances = instances.map(attributes => ({
         group: 1,
         random: Math.random(),
