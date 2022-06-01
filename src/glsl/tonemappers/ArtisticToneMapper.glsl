@@ -22,6 +22,7 @@ uniform float uLow;
 uniform float uMid;
 uniform float uHigh;
 uniform float uSaturation;
+uniform float uGamma;
 
 in vec2 vPosition;
 out vec4 oColor;
@@ -33,6 +34,6 @@ void main() {
     color = vec4(mix(dot(color.rgb, gray) * gray, color.rgb, uSaturation), 1.0);
     float midpoint = (uMid - uLow) / (uHigh - uLow);
     float exponent = -log(midpoint) / log(2.0);
-    color = pow(color, vec4(exponent));
+    color = pow(color, vec4(exponent / uGamma));
     oColor = vec4(color.rgb, 1.0);
 }
