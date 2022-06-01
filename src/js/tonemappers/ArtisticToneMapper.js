@@ -38,6 +38,13 @@ constructor(gl, texture, options) {
             type: 'spinner',
             value: 1,
         },
+        {
+            name: 'gamma',
+            label: 'Gamma',
+            type: 'spinner',
+            value: 2.2,
+            min: 0,
+        },
     ]);
 
     this._program = WebGL.buildPrograms(gl, {
@@ -66,6 +73,7 @@ _renderFrame() {
     gl.uniform1f(uniforms.uMid, this.mid);
     gl.uniform1f(uniforms.uHigh, this.high);
     gl.uniform1f(uniforms.uSaturation, this.saturation);
+    gl.uniform1f(uniforms.uGamma, this.gamma);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 }

@@ -18,11 +18,12 @@ precision mediump float;
 uniform mediump sampler2D uTexture;
 uniform float uMin;
 uniform float uMax;
+uniform float uGamma;
 
 in vec2 vPosition;
 out vec4 oColor;
 
 void main() {
     vec4 src = texture(uTexture, vPosition);
-    oColor = (src - uMin) / (uMax - uMin);
+    oColor = pow((src - uMin) / (uMax - uMin), vec4(1.0 / uGamma));
 }

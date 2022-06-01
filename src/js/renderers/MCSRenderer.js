@@ -36,6 +36,7 @@ constructor(gl, volume, environmentTexture, options) {
 
         if ([
             'extinction',
+            'transferFunction',
         ].includes(name)) {
             this.reset();
         }
@@ -84,9 +85,8 @@ _generateFrame() {
     gl.uniform1i(uniforms.uTransferFunction, 2);
     const mvpit = this.calculateMVPInverseTranspose();
     gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, mvpit.m);
-    gl.uniform1f(uniforms.uOffset, Math.random());
-    gl.uniform1f(uniforms.uSigmaMax, this.extinction);
-    gl.uniform1f(uniforms.uAlphaCorrection, this.extinction);
+    gl.uniform1f(uniforms.uRandSeed, Math.random());
+    gl.uniform1f(uniforms.uExtinction, this.extinction);
 
     // scattering direction
     let x, y, z, length;

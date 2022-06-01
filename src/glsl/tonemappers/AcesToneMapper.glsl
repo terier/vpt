@@ -17,6 +17,7 @@ precision mediump float;
 
 uniform mediump sampler2D uTexture;
 uniform float uExposure;
+uniform float uGamma;
 
 in vec2 vPosition;
 out vec4 oColor;
@@ -41,5 +42,5 @@ float aces(float x) {
 
 void main() {
     vec4 src = texture(uTexture, vPosition);
-    oColor = vec4(aces(src.rgb * uExposure), 1);
+    oColor = pow(vec4(aces(src.rgb * uExposure), 1), vec4(1.0 / uGamma));
 }

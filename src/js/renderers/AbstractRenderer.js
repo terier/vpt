@@ -28,6 +28,11 @@ constructor(gl, volume, environmentTexture, options) {
         width  : 2,
         height : 1,
         data   : new Uint8Array([255, 0, 0, 0, 255, 0, 0, 255]),
+
+        internalFormat: gl.SRGB8_ALPHA8,
+        format : gl.RGBA,
+        type   : gl.UNSIGNED_BYTE,
+
         wrapS  : gl.CLAMP_TO_EDGE,
         wrapT  : gl.CLAMP_TO_EDGE,
         min    : gl.LINEAR,
@@ -109,7 +114,7 @@ setTransferFunction(transferFunction) {
     const gl = this._gl;
     gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
     gl.texImage2D(gl.TEXTURE_2D, 0,
-        gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, transferFunction);
+        gl.SRGB8_ALPHA8, gl.RGBA, gl.UNSIGNED_BYTE, transferFunction);
 }
 
 setResolution(resolution) {

@@ -5,7 +5,7 @@ precision mediump float;
 
 uniform mat4 uMvpInverseMatrix;
 
-layout(location = 0) in vec2 aPosition;
+layout (location = 0) in vec2 aPosition;
 out vec3 vRayFrom;
 out vec3 vRayTo;
 out vec2 vPosition;
@@ -15,8 +15,8 @@ out vec2 vPosition;
 
 void main() {
     unproject(aPosition, uMvpInverseMatrix, vRayFrom, vRayTo);
-    vPosition = (aPosition + 1.0) * 0.5;
-    gl_Position = vec4(aPosition, 0.0, 1.0);
+    vPosition = aPosition * 0.5 + 0.5;
+    gl_Position = vec4(aPosition, 0, 1);
 }
 
 // #part /glsl/shaders/renderers/MCS/generate/fragment
@@ -29,9 +29,8 @@ precision mediump float;
 uniform mediump sampler3D uVolume;
 uniform mediump sampler2D uTransferFunction;
 uniform mediump sampler2D uEnvironment;
-uniform float uOffset;
-uniform float uSigmaMax;
-uniform float uAlphaCorrection;
+uniform float uRandSeed;
+uniform float uExtinction;
 uniform vec3 uScatteringDirection;
 
 in vec3 vRayFrom;
@@ -42,20 +41,14 @@ out vec4 oColor;
 // #link /glsl/mixins/intersectCube
 @intersectCube
 
-vec2 rand(vec2 p) {
-    const mat2 M = mat2(
-        23.14069263277926, 2.665144142690225,
-        12.98987893203892, 78.23376739376591);
-    const vec2 D = vec2(
-        12345.6789,
-        43758.5453);
-    vec2 dotted = M * p;
-    vec2 mapped = vec2(cos(dotted.x), sin(dotted.y));
-    return fract(mapped * D);
-}
+@constants
+@random/hash/pcg
+@random/hash/squashlinear
+@random/distribution/uniformdivision
+@random/distribution/exponential
 
 vec4 sampleEnvironmentMap(vec3 d) {
-    vec2 texCoord = vec2(atan(d.x, -d.z), asin(-d.y) * 2.0) * M_INVPI * 0.5 + 0.5;
+    vec2 texCoord = vec2(atan(d.x, -d.z), asin(-d.y) * 2.0) * INVPI * 0.5 + 0.5;
     return texture(uEnvironment, texCoord);
 }
 
@@ -65,22 +58,18 @@ vec4 sampleVolumeColor(vec3 position) {
     return transferSample;
 }
 
-float sampleDistance(vec3 from, vec3 to, inout vec2 seed) {
+float sampleDistance(inout uint state, vec3 from, vec3 to) {
     float maxDistance = distance(from, to);
     float dist = 0.0;
-    float invSigmaMax = 1.0 / uSigmaMax;
-    float invMaxDistance = 1.0 / maxDistance;
 
     do {
-        seed = rand(seed);
-        dist -= log(1.0 - seed.x) * invSigmaMax;
+        dist += random_exponential(state, uExtinction);
         if (dist > maxDistance) {
             break;
         }
-        vec3 samplingPosition = mix(from, to, dist * invMaxDistance);
+        vec3 samplingPosition = mix(from, to, dist / maxDistance);
         vec4 transferSample = sampleVolumeColor(samplingPosition);
-        float alphaSample = transferSample.a * uAlphaCorrection;
-        if (seed.y < alphaSample * invSigmaMax) {
+        if (random_uniform(state) < transferSample.a) {
             break;
         }
     } while (true);
@@ -88,23 +77,19 @@ float sampleDistance(vec3 from, vec3 to, inout vec2 seed) {
     return dist;
 }
 
-float sampleTransmittance(vec3 from, vec3 to, inout vec2 seed) {
+float sampleTransmittance(inout uint state, vec3 from, vec3 to) {
     float maxDistance = distance(from, to);
     float dist = 0.0;
-    float invSigmaMax = 1.0 / uSigmaMax;
-    float invMaxDistance = 1.0 / maxDistance;
     float transmittance = 1.0;
 
     do {
-        seed = rand(seed);
-        dist -= log(1.0 - seed.x) * invSigmaMax;
+        dist += random_exponential(state, uExtinction);
         if (dist > maxDistance) {
             break;
         }
-        vec3 samplingPosition = mix(from, to, dist * invMaxDistance);
+        vec3 samplingPosition = mix(from, to, dist / maxDistance);
         vec4 transferSample = sampleVolumeColor(samplingPosition);
-        float alphaSample = transferSample.a * uAlphaCorrection;
-        transmittance *= 1.0 - alphaSample * invSigmaMax;
+        transmittance *= 1.0 - transferSample.a;
     } while (true);
 
     return transmittance;
@@ -117,27 +102,29 @@ void main() {
 
     if (tbounds.x >= tbounds.y) {
         oColor = sampleEnvironmentMap(rayDirectionUnit);
-    } else {
-        vec3 from = mix(vRayFrom, vRayTo, tbounds.x);
-        vec3 to = mix(vRayFrom, vRayTo, tbounds.y);
-        float maxDistance = distance(from, to);
-
-        vec2 seed = vPosition + rand(vec2(uOffset, uOffset));
-        float dist = sampleDistance(from, to, seed);
-
-        if (dist > maxDistance) {
-            oColor = sampleEnvironmentMap(rayDirectionUnit);
-        } else {
-            from = mix(from, to, dist / maxDistance);
-            tbounds = max(intersectCube(from, uScatteringDirection), 0.0);
-            to = from + uScatteringDirection * tbounds.y;
-            vec4 diffuseColor = sampleVolumeColor(from);
-            vec4 lightColor = sampleEnvironmentMap(uScatteringDirection);
-            float transmittance = sampleTransmittance(from, to, seed);
-
-            oColor = diffuseColor * lightColor * transmittance;
-        }
+        return;
     }
+
+    vec3 from = mix(vRayFrom, vRayTo, tbounds.x);
+    vec3 to = mix(vRayFrom, vRayTo, tbounds.y);
+    float maxDistance = distance(from, to);
+
+    uint state = hash(uvec3(floatBitsToUint(vPosition.x), floatBitsToUint(vPosition.y), floatBitsToUint(uRandSeed)));
+    float dist = sampleDistance(state, from, to);
+
+    if (dist > maxDistance) {
+        oColor = sampleEnvironmentMap(rayDirectionUnit);
+        return;
+    }
+
+    from = mix(from, to, dist / maxDistance);
+    tbounds = max(intersectCube(from, uScatteringDirection), 0.0);
+    to = from + uScatteringDirection * tbounds.y;
+    vec4 diffuseColor = sampleVolumeColor(from);
+    vec4 lightColor = sampleEnvironmentMap(uScatteringDirection);
+    float transmittance = sampleTransmittance(state, from, to);
+
+    oColor = diffuseColor * lightColor * transmittance;
 }
 
 // #part /glsl/shaders/renderers/MCS/integrate/vertex
@@ -145,12 +132,12 @@ void main() {
 #version 300 es
 precision mediump float;
 
-layout(location = 0) in vec2 aPosition;
+layout (location = 0) in vec2 aPosition;
 out vec2 vPosition;
 
 void main() {
-    vPosition = (aPosition + 1.0) * 0.5;
-    gl_Position = vec4(aPosition, 0.0, 1.0);
+    vPosition = aPosition * 0.5 + 0.5;
+    gl_Position = vec4(aPosition, 0, 1);
 }
 
 // #part /glsl/shaders/renderers/MCS/integrate/fragment
@@ -176,12 +163,12 @@ void main() {
 #version 300 es
 precision mediump float;
 
-layout(location = 0) in vec2 aPosition;
+layout (location = 0) in vec2 aPosition;
 out vec2 vPosition;
 
 void main() {
-    vPosition = (aPosition + 1.0) * 0.5;
-    gl_Position = vec4(aPosition, 0.0, 1.0);
+    vPosition = aPosition * 0.5 + 0.5;
+    gl_Position = vec4(aPosition, 0, 1);
 }
 
 // #part /glsl/shaders/renderers/MCS/render/fragment
@@ -204,10 +191,10 @@ void main() {
 #version 300 es
 precision mediump float;
 
-layout(location = 0) in vec2 aPosition;
+layout (location = 0) in vec2 aPosition;
 
 void main() {
-    gl_Position = vec4(aPosition, 0.0, 1.0);
+    gl_Position = vec4(aPosition, 0, 1);
 }
 
 // #part /glsl/shaders/renderers/MCS/reset/fragment
@@ -218,5 +205,5 @@ precision mediump float;
 out vec4 oColor;
 
 void main() {
-    oColor = vec4(0.0, 0.0, 0.0, 1.0);
+    oColor = vec4(0, 0, 0, 1);
 }

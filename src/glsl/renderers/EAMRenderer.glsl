@@ -50,7 +50,7 @@ void main() {
         vec3 to = mix(vRayFrom, vRayTo, tbounds.y);
         float rayStepLength = distance(from, to) * uStepSize;
 
-        float t = 0.0;
+        float t = uStepSize * uOffset;
         vec4 accumulator = vec4(0);
 
         while (t < 1.0 && accumulator.a < 0.99) {
@@ -89,12 +89,15 @@ precision mediump float;
 
 uniform mediump sampler2D uAccumulator;
 uniform mediump sampler2D uFrame;
+uniform float uMix;
 
 in vec2 vPosition;
 out vec4 oColor;
 
 void main() {
-    oColor = texture(uFrame, vPosition);
+    vec4 accumulator = texture(uAccumulator, vPosition);
+    vec4 frame = texture(uFrame, vPosition);
+    oColor = mix(accumulator, frame, uMix);
 }
 
 // #part /glsl/shaders/renderers/EAM/render/vertex

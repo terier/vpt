@@ -9,7 +9,7 @@ constructor(options) {
         fovX       : 1,
         fovY       : 1,
         near       : 0.1,
-        far        : 5,
+        far        : 50,
         zoomFactor : 0.001
     }, options);
 

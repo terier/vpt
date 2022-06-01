@@ -1,8 +1,8 @@
-import { Vector } from './math/Vector.js';
-import { Quaternion } from './math/Quaternion.js';
-import { Ticker } from './Ticker.js';
+import { Vector } from '../math/Vector.js';
+import { Quaternion } from '../math/Quaternion.js';
+import { Ticker } from '../Ticker.js';
 
-export class OrbitCameraController {
+export class OrbitCameraAnimator {
 
 constructor(camera, domElement, options) {
     this._update = this._update.bind(this);
@@ -202,6 +202,10 @@ _update() {
     if (dx !== 0 || dz !== 0) {
         this._move(dx, 0, dz);
     }
+}
+
+update(t) {
+    // this animator does not animate, it only responds to user input
 }
 
 }

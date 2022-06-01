@@ -47,8 +47,12 @@ static buildPrograms(gl, shaders, mixins) {
         cooked[name] = {};
         const types = shaders[name];
         Object.keys(types).forEach(function(type) {
-            cooked[name][type] = types[type].replace(/@([a-zA-Z0-9]+)/g, function(_, mixin) {
-                return mixins[mixin];
+            cooked[name][type] = types[type].replace(/@(\S+)/g, function(_, path) {
+                let struct = mixins;
+                for (const part of path.split('/')) {
+                    struct = struct[part];
+                }
+                return struct;
             });
         });
     });
