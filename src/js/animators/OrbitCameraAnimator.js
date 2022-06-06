@@ -41,20 +41,17 @@ constructor(camera, domElement, options) {
 
 _addEventListeners() {
     this._domElement.addEventListener('pointerdown', this._handlePointerDown);
-    document.addEventListener('pointerup', this._handlePointerUp);
-    document.addEventListener('pointermove', this._handlePointerMove);
     this._domElement.addEventListener('wheel', this._handleWheel);
     document.addEventListener('keydown', this._handleKeyDown);
     document.addEventListener('keyup', this._handleKeyUp);
 }
 
 _handlePointerDown(e) {
-    e.preventDefault();
-    if (typeof e.touches === 'object') {
-        this._startX = e.touches[0].pageX;
-        this._startY = e.touches[0].pageY;
-        this._isRotating = true;
-    } else if (e.button === 0) {
+    this._domElement.setPointerCapture(e.pointerId);
+    this._domElement.addEventListener('pointerup', this._handlePointerUp);
+    this._domElement.addEventListener('pointermove', this._handlePointerMove);
+
+    if (e.button === 0) {
         this._startX = e.pageX;
         this._startY = e.pageY;
         this._isRotating = true;
@@ -66,16 +63,17 @@ _handlePointerDown(e) {
 }
 
 _handlePointerUp(e) {
-    e.preventDefault();
+    this._domElement.releasePointerCapture(e.pointerId);
+    this._domElement.removeEventListener('pointerup', this._handlePointerUp);
+    this._domElement.removeEventListener('pointermove', this._handlePointerMove);
+
     this._isTranslating = false;
     this._isRotating = false;
 }
 
 _handlePointerMove(e) {
-    e.preventDefault();
-
-    const x = typeof e.pageX !== 'undefined' ? e.pageX : e.touches[0].pageX;
-    const y = typeof e.pageY !== 'undefined' ? e.pageY : e.touches[0].pageY;
+    const x = e.pageX;
+    const y = e.pageY;
     const dx = x - this._startX;
     const dy = y - this._startY;
 
@@ -100,7 +98,6 @@ _handlePointerMove(e) {
 }
 
 _handleWheel(e) {
-    e.preventDefault();
     const amount = e.deltaY * this.zoomSpeed;
     const keepScale = e.shiftKey;
     this._zoom(amount, keepScale);
