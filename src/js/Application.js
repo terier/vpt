@@ -212,4 +212,45 @@ _handleEnvmapLoad(e) {
     }
 }
 
+serializeView() {
+    const c = this.renderingContext._camera;
+    const s = this.renderingContext._scale;
+    const t = this.renderingContext._translation;
+    const p = c.position;
+    const r = c.rotation;
+    return JSON.stringify({
+        fovX: c.fovX,
+        fovY: c.fovY,
+        near: c.near,
+        far: c.far,
+        zoomFactor: c.zoomFactor,
+        position: [p.x, p.y, p.z],
+        rotation: [r.x, r.y, r.z, r.w],
+        scale: [s.x, s.y, s.z],
+        translation: [t.x, t.y, t.z],
+    });
+}
+
+deserializeView(v) {
+    v = JSON.parse(v);
+
+    const c = this.renderingContext._camera;
+    const p = v.position;
+    const r = v.rotation;
+
+    c.fovX = v.fovX;
+    c.fovY = v.fovY;
+    c.near = v.near;
+    c.far = v.far;
+    c.zoomFactor = v.zoomFactor;
+    c.position.set(...p, 1);
+    c.rotation.set(...r);
+    c.updateMatrices();
+
+    this.renderingContext.setScale(...v.scale);
+    this.renderingContext.setTranslation(...v.translation);
+
+    this.renderingContext._renderer.reset();
+}
+
 }
