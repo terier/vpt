@@ -18,6 +18,7 @@ constructor(gl, reader) {
     this.dataVolume = new Volume(gl, reader);
     this.idVolume = new Volume(gl, reader);
     this.mask = null;
+    this.maskSwap = null;
     this.framebuffer = null;
 
     this.maskTransferFunction = WebGL.createTexture(gl, {
@@ -63,6 +64,7 @@ constructor(gl, reader) {
     this.clipQuad = WebGL.createClipQuad(gl);
     this.programs = WebGL.buildPrograms(gl, {
         updateMask: SHADERS.updateMask,
+        smoothMask: SHADERS.smoothMask,
         updateTransferFunction: SHADERS.updateTransferFunction,
     }, MIXINS);
 }
@@ -75,6 +77,7 @@ destroy() {
 
     if (this.mask) {
         gl.deleteTexture(this.mask);
+        gl.deleteTexture(this.maskSwap);
     }
 
     Object.keys(this._programs).forEach(programName => {
@@ -129,9 +132,23 @@ async load() {
         wrapR: gl.CLAMP_TO_EDGE,
     });
 
-    this.framebuffer = gl.createFramebuffer();
-    gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
-    gl.framebufferTextureLayer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, this.mask, 0, 0);
+    this.maskSwap = WebGL.createTexture(gl, {
+        texture: this.maskSwap,
+        target: gl.TEXTURE_3D,
+
+        width, height, depth,
+
+        internalFormat: gl.RG8,
+        format: gl.RG,
+        type: gl.UNSIGNED_BYTE,
+
+        min: gl.LINEAR,
+        mag: gl.LINEAR,
+
+        wrapS: gl.CLAMP_TO_EDGE,
+        wrapT: gl.CLAMP_TO_EDGE,
+        wrapR: gl.CLAMP_TO_EDGE,
+    });
 
     this.maskValues = WebGL.createTexture(gl, {
         internalFormat: gl.RG8,
@@ -148,10 +165,13 @@ async load() {
         wrapT: gl.CLAMP_TO_EDGE,
     });
 
+    this.framebuffer = gl.createFramebuffer();
+
     this.parseAttributes(await this.zipReader.readFile('attributes.csv'));
 
     this.updateMaskValues();
     this.updateMask();
+    this.smoothMask();
 }
 
 parseAttributes(attributes) {
@@ -228,6 +248,36 @@ updateMask() {
         gl.uniform1f(uniforms.uDepth, (layer + 0.5) / depth);
         gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
     }
+}
+
+// Smooths the mask volume with a simple box filter.
+smoothMask() {
+    const gl = this.gl;
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.clipQuad);
+
+    gl.enableVertexAttribArray(0);
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
+
+    const { program, uniforms } = this.programs.smoothMask;
+    gl.useProgram(program);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_3D, this.mask);
+    gl.uniform1i(uniforms.uMaskTexture, 0);
+
+    const { width, height, depth } = this.idVolume.modality.dimensions;
+    gl.viewport(0, 0, width, height);
+
+    for (let layer = 0; layer < depth; layer++) {
+        gl.framebufferTextureLayer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, this.maskSwap, 0, layer);
+        gl.uniform1f(uniforms.uDepth, (layer + 0.5) / depth);
+        gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+    }
+
+    [ this.mask, this.maskSwap ] = [ this.maskSwap, this.mask ];
 }
 
 maskValue(k, n) {
