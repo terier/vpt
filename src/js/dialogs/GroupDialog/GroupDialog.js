@@ -39,6 +39,32 @@ addGroup() {
     });
     binds.accordion.addEventListener('dragstart', e => {
         if (e.target !== binds.accordion) return;
+        binds.accordion.classList.add('highlight-src');
+    });
+    binds.accordion.addEventListener('dragenter', e => {
+        binds.accordion.classList.add('highlight-dst');
+    });
+    binds.accordion.addEventListener('drop', e => {
+        const toMove = this.binds.groups.querySelector('ui-accordion.highlight-src');
+        if (!toMove) return;
+
+        const compare = binds.accordion.compareDocumentPosition(toMove);
+        const following = compare & Node.DOCUMENT_POSITION_FOLLOWING;
+        const referenceNode = following ? binds.accordion : binds.accordion.nextSibling;
+        this.binds.groups.insertBefore(toMove, referenceNode);
+    });
+
+    // remove highlights
+    binds.accordion.addEventListener('dragend', e => {
+        binds.accordion.classList.remove('highlight-src');
+        binds.accordion.classList.remove('highlight-dst');
+    });
+    binds.accordion.addEventListener('dragleave', e => {
+        binds.accordion.classList.remove('highlight-dst');
+    });
+    binds.accordion.addEventListener('drop', e => {
+        binds.accordion.classList.remove('highlight-src');
+        binds.accordion.classList.remove('highlight-dst');
     });
 
     // delete
@@ -81,6 +107,32 @@ addPredicate(groupBinds) {
     });
     binds.predicate.addEventListener('dragstart', e => {
         if (e.target !== binds.predicate) return;
+        binds.predicate.classList.add('highlight-src');
+    });
+    binds.predicate.addEventListener('dragenter', e => {
+        binds.predicate.classList.add('highlight-dst');
+    });
+    binds.predicate.addEventListener('drop', e => {
+        const toMove = groupBinds.predicates.querySelector('.predicate.highlight-src');
+        if (!toMove) return;
+
+        const compare = binds.predicate.compareDocumentPosition(toMove);
+        const following = compare & Node.DOCUMENT_POSITION_FOLLOWING;
+        const referenceNode = following ? binds.predicate : binds.predicate.nextSibling;
+        groupBinds.predicates.insertBefore(toMove, referenceNode);
+    });
+
+    // remove highlights
+    binds.predicate.addEventListener('dragend', e => {
+        binds.predicate.classList.remove('highlight-src');
+        binds.predicate.classList.remove('highlight-dst');
+    });
+    binds.predicate.addEventListener('dragleave', e => {
+        binds.predicate.classList.remove('highlight-dst');
+    });
+    binds.predicate.addEventListener('drop', e => {
+        binds.predicate.classList.remove('highlight-src');
+        binds.predicate.classList.remove('highlight-dst');
     });
 
     // delete

@@ -57,6 +57,22 @@
     margin-left: auto;
 }
 
+.predicate.highlight-src {
+    background: lightseagreen;
+}
+
+.predicate.highlight-dst {
+    background: lightskyblue;
+}
+
+ui-accordion.highlight-src {
+    background: lightseagreen;
+}
+
+ui-accordion.highlight-dst {
+    background: lightskyblue;
+}
+
 .predicate-operation {
     flex: 0 0 18px;
     text-align: center;
