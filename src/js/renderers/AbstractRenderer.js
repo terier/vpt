@@ -46,9 +46,15 @@ constructor(gl, volume, environmentTexture, options) {
 
 destroy() {
     const gl = this._gl;
-    this._frameBuffer.destroy();
-    this._accumulationBuffer.destroy();
-    this._renderBuffer.destroy();
+    if (this._frameBuffer) {
+        this._frameBuffer.destroy();
+    }
+    if (this._accumulationBuffer) {
+        this._accumulationBuffer.destroy();
+    }
+    if (this._renderBuffer) {
+        this._renderBuffer.destroy();
+    }
     gl.deleteTexture(this._transferFunction);
     gl.deleteBuffer(this._clipQuad);
     gl.deleteProgram(this._clipQuadProgram.program);

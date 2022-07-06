@@ -23,6 +23,14 @@ constructor(gl, volume, environmentTexture, options) {
             min: 0,
         },
         {
+            name: 'albedo',
+            label: 'Albedo',
+            type: 'spinner',
+            value: 1,
+            min: 0,
+            max: 1
+        },
+        {
             name: 'slices',
             label: 'Slices',
             type: 'spinner',
@@ -35,26 +43,26 @@ constructor(gl, volume, environmentTexture, options) {
             type: 'vector',
             value: { x: 1, y: 0, z: 0 },
         },
-        {
-            name: 'scatteringCoefficient',
-            label: 'Scattering Coefficient',
-            type: 'spinner',
-            value: 0.1,
-            min: 0,
-            max: 1
-        },
-        {
-            name: 'absorptionCoefficient',
-            label: 'Absorption Coefficient',
-            type: 'spinner',
-            value: 1,
-            min: 0,
-        },
+        // {
+        //     name: 'scatteringCoefficient',
+        //     label: 'Scattering Coefficient',
+        //     type: 'spinner',
+        //     value: 0.1,
+        //     min: 0,
+        //     max: 1
+        // },
+        // {
+        //     name: 'absorptionCoefficient',
+        //     label: 'Absorption Coefficient',
+        //     type: 'spinner',
+        //     value: 1,
+        //     min: 0,
+        // },
         {
             name: 'SOR',
             label: 'SOR',
             type: 'spinner',
-            value: 0.5,
+            value: 1,
             min: 0,
             max: 2
         },
@@ -75,11 +83,71 @@ constructor(gl, volume, environmentTexture, options) {
             max: 2
         },
         {
+            name: 'epsilon',
+            label: 'Epsilon',
+            type: 'spinner',
+            value: 10e-6,
+            min: 0,
+            max: 1
+        },
+        {
+            name: 'minExtinction',
+            label: 'Min. Extinction',
+            type: 'spinner',
+            value: 10e-5,
+            min: 0,
+            max: 1
+        },
+        {
+            name: 'fluxLimiter',
+            label: 'Flux Limiter',
+            type: "dropdown",
+            options: [
+                {
+                    value: 0,
+                    label: "Sum"
+                },
+                {
+                    value: 1,
+                    label: "Max"
+                },
+                {
+                    value: 2,
+                    label: "Kershaw",
+                    "selected": true
+                },
+                {
+                    value: 3,
+                    label: "Levermore–Pomraning"
+                }
+            ]
+        },
+        {
+            name: 'view',
+            label: 'View',
+            type: "dropdown",
+            options: [
+                {
+                    value: 0,
+                    label: "Emission"
+                },
+                {
+                    value: 1,
+                    label: "Fluence",
+                    "selected": true
+                },
+                {
+                    value: 2,
+                    label: "Result"
+                }
+            ]
+        },
+        {
             name: 'transferFunction',
             label: 'Transfer function',
             type: 'transfer-function',
             value: new Uint8Array(256),
-        },
+        }
     ]);
 
     this.addEventListener('change', e => {
@@ -90,21 +158,25 @@ constructor(gl, volume, environmentTexture, options) {
         }
 
         if ([
+            'extinction',
             'light',
             'scattering',
             'voxelSize',
             'lightVolumeRatio',
             'SOR',
-            'scatteringCoefficient',
-            'absorptionCoefficient'
+            'albedo',
+            'epsilon',
+            'minExtinction',
+            'fluxLimiter'
+            // 'scatteringCoefficient',
+            // 'absorptionCoefficient'
         ].includes(name)) {
             this.resetVolume();
         }
     });
 
     this._programs = WebGL.buildPrograms(gl, SHADERS.renderers.FLD, MIXINS);
-    this.red = 1;
-    this.epsilon = 10e-10
+    // this.red = 1;
 }
 
 destroy() {
@@ -117,11 +189,17 @@ destroy() {
 
 setVolume(volume) {
     this._volume = volume;
-    this.volumeDimensions = volume.modalities[0].dimensions;
+    this._initialize3DBuffers();
+}
+
+_initialize3DBuffers() {
+    if (!this._volume.ready)
+        return
+    console.log("Initializing Buffers")
+    this.volumeDimensions = this._volume.modalities[0].dimensions;
+    this.setLightVolumeDimensions();
     this.setFrameBuffer();
     this.setAccumulationBuffer();
-    this.setLightVolumeDimensions();
-    console.log("Volume Loaded!");
     this.resetVolume();
 }
 
@@ -159,6 +237,7 @@ _rebuildBuffers() {
     // if (this._accumulationBuffer) {
     //     this._accumulationBuffer.destroy();
     // }
+    this._initialize3DBuffers();
     if (this._renderBuffer) {
         this._renderBuffer.destroy();
     }
@@ -171,6 +250,9 @@ _rebuildBuffers() {
 reset() { }
 
 resetVolume() {
+    if (!this._volume.ready || !this._accumulationBuffer)
+        return;
+
     const gl = this._gl;
     gl.bindBuffer(gl.ARRAY_BUFFER, this._clipQuad);
     gl.enableVertexAttribArray(0); // position always bound to attribute 0
@@ -182,8 +264,8 @@ resetVolume() {
 }
 
 _resetFrame() {
-    this._resetEmissionField()
-    this._resetFluence()
+    this._resetEmissionField();
+    this._resetFluence();
 }
 
 _resetFluence() {
@@ -193,8 +275,8 @@ _resetFluence() {
     gl.useProgram(program);
     const dimensions = this._lightVolumeDimensions;
 
-    gl.bindTexture(gl.TEXTURE_3D, this._frameBuffer.getAttachments().color[0]);
-    gl.generateMipmap(gl.TEXTURE_3D);
+    // gl.bindTexture(gl.TEXTURE_3D, this._frameBuffer.getAttachments().color[0]);
+    // gl.generateMipmap(gl.TEXTURE_3D);
 
     for (let i = 0; i < this._lightVolumeDimensions.depth; i++) {
         this._accumulationBuffer.use(i);
@@ -268,9 +350,7 @@ _integrateFrame() {
     gl.useProgram(program);
     const dimensions = this._lightVolumeDimensions;
 
-    gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[0]);
-    gl.generateMipmap(gl.TEXTURE_3D);
-    // gl.bindTexture(gl.TEXTURE_3D, this._frameBuffer.getAttachments().color[0]);
+    // gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[0]);
     // gl.generateMipmap(gl.TEXTURE_3D);
 
     for (let i = 0; i < this._lightVolumeDimensions.depth; i++) {
@@ -292,14 +372,19 @@ _integrateFrame() {
         gl.uniform1i(uniforms.uVolume, 2);
         gl.uniform1i(uniforms.uTransferFunction, 3);
 
-        gl.uniform1f(uniforms.uAbsorptionCoefficient, this.absorptionCoefficient);
-        gl.uniform1f(uniforms.uScatteringCoefficient, this.scatteringCoefficient);
+        // gl.uniform1f(uniforms.uAbsorptionCoefficient, this.absorptionCoefficient);
+        // gl.uniform1f(uniforms.uScatteringCoefficient, this.scatteringCoefficient);
+        gl.uniform1f(uniforms.uExtinction, this.extinction);
+        gl.uniform1f(uniforms.uAlbedo, this.albedo);
         gl.uniform1f(uniforms.uLayer, (i + 0.5) / this._lightVolumeDimensions.depth);
         gl.uniform1f(uniforms.uSOR, this.SOR);
-        gl.uniform1ui(uniforms.uRed, this.red);
+        // gl.uniform1ui(uniforms.uRed, this.red);
 
         gl.uniform1f(uniforms.uVoxelSize, this.voxelSize);
         gl.uniform1f(uniforms.uEpsilon, this.epsilon);
+
+        gl.uniform1ui(uniforms.uFluxLimiter, this.fluxLimiter);
+        gl.uniform1f(uniforms.uMinExtinction, this.minExtinction);
 
 
         gl.uniform3f(uniforms.uStep, 1 / dimensions.width, 1 / dimensions.height, 1 / dimensions.depth);
@@ -312,12 +397,12 @@ _integrateFrame() {
         gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 
     }
-    if (this.red === 1) {
-        this.red = 0;
-    }
-    else {
-        this.red = 1;
-    }
+    // if (this.red === 1) {
+    //     this.red = 0;
+    // }
+    // else {
+    //     this.red = 1;
+    // }
 }
 
 _renderFrame() {
@@ -331,19 +416,26 @@ _renderFrame() {
 
     // debug
     // gl.bindTexture(gl.TEXTURE_3D, this._frameBuffer.getAttachments().color[0]);
-
+    //
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
     gl.activeTexture(gl.TEXTURE2);
     gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
 
+    gl.activeTexture(gl.TEXTURE3);
+    gl.bindTexture(gl.TEXTURE_3D, this._frameBuffer.getAttachments().color[0]);
+
     gl.uniform1i(uniforms.uFluence, 0);
     gl.uniform1i(uniforms.uVolume, 1);
     gl.uniform1i(uniforms.uTransferFunction, 2);
+    gl.uniform1i(uniforms.uEmission, 3);
 
     gl.uniform1f(uniforms.uStepSize, 1 / this.slices);
     gl.uniform1f(uniforms.uExtinction, this.extinction);
     gl.uniform1f(uniforms.uOffset, Math.random());
+
+    gl.uniform1ui(uniforms.uView, this.view);
+
     const mvpit = this.calculateMVPInverseTranspose();
     gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, mvpit.m);
 
@@ -358,29 +450,14 @@ _getFrameBufferSpec() {
         width          : this.volumeDimensions.width,
         height         : this.volumeDimensions.height,
         depth          : this.volumeDimensions.depth,
-        min            : gl.LINEAR_MIPMAP_LINEAR,
+        min            : gl.LINEAR,
         mag            : gl.LINEAR,
-        // format         : gl.RED,
-        // internalFormat : gl.R32F,
-        format         : gl.RGBA,
-        internalFormat : gl.RGBA32F,
-        type           : gl.FLOAT,
-        wrapS          : gl.CLAMP_TO_EDGE,
-        wrapT          : gl.CLAMP_TO_EDGE,
-        wrapR          : gl.CLAMP_TO_EDGE
-    };
-
-    let residualField = {
-        target         : gl.TEXTURE_3D,
-        width          : this.volumeDimensions.width,
-        height         : this.volumeDimensions.height,
-        depth          : this.volumeDimensions.depth,
-        min            : gl.LINEAR_MIPMAP_LINEAR,
-        mag            : gl.LINEAR,
-        // format         : gl.RED,
-        // internalFormat : gl.R32F,
-        format         : gl.RG,
-        internalFormat : gl.RG32F,
+        // min            : gl.LINEAR_MIPMAP_LINEAR,
+        // mag            : gl.LINEAR,
+        format         : gl.RED,
+        internalFormat : gl.R32F,
+        // format         : gl.RGBA,
+        // internalFormat : gl.RGBA32F,
         type           : gl.FLOAT,
         wrapS          : gl.CLAMP_TO_EDGE,
         wrapT          : gl.CLAMP_TO_EDGE,
@@ -388,8 +465,7 @@ _getFrameBufferSpec() {
     };
 
     return [
-        emissionField,
-        residualField
+        emissionField
     ];
 }
 
@@ -405,8 +481,10 @@ _getAccumulationBufferSpec() {
         mag            : gl.NEAREST,
         // format         : gl.RED,
         // internalFormat : gl.R32F,
-        format         : gl.RGBA,
-        internalFormat : gl.RGBA32F,
+        format         : gl.RG,
+        internalFormat : gl.RG32F,
+        // format         : gl.RGBA,
+        // internalFormat : gl.RGBA32F,
         type           : gl.FLOAT,
         wrapS          : gl.CLAMP_TO_EDGE,
         wrapT          : gl.CLAMP_TO_EDGE,
