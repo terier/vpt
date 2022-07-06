@@ -36,6 +36,15 @@ constructor() {
 
     this.groupDialog = new GroupDialog();
     this.mainDialog.binds.groups.appendChild(this.groupDialog.object);
+    this.groupDialog.addEventListener('groupchange', e => {
+        console.log(e);
+    });
+    this.groupDialog.addEventListener('colorchange', e => {
+        console.log(e);
+    });
+    this.groupDialog.addEventListener('densitychange', e => {
+        console.log(e);
+    });
     this.renderingContext.addEventListener('attributechange', e => {
         this.groupDialog.attributes = e.detail;
     });

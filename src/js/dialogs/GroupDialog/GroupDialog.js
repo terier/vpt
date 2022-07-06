@@ -52,6 +52,7 @@ addGroup() {
         const following = compare & Node.DOCUMENT_POSITION_FOLLOWING;
         const referenceNode = following ? binds.accordion : binds.accordion.nextSibling;
         this.binds.groups.insertBefore(toMove, referenceNode);
+        this.dispatchEvent(new Event('groupchange'));
     });
 
     // remove highlights
@@ -70,11 +71,22 @@ addGroup() {
     // delete
     binds.delete.addEventListener('click', e => {
         binds.accordion.remove();
+        this.dispatchEvent(new Event('groupchange'));
     });
 
     // rename
     binds.name.addEventListener('change', e => {
         binds.label.textContent = binds.name.value;
+    });
+
+    // color
+    binds.color.addEventListener('change', e => {
+        this.dispatchEvent(new Event('colorchange'));
+    });
+
+    // density
+    binds.density.addEventListener('change', e => {
+        this.dispatchEvent(new Event('densitychange'));
     });
 
     // add predicate
@@ -83,6 +95,7 @@ addGroup() {
     });
 
     this.binds.groups.appendChild(fragment);
+    this.dispatchEvent(new Event('groupchange'));
 }
 
 addPredicate(groupBinds) {
@@ -120,6 +133,7 @@ addPredicate(groupBinds) {
         const following = compare & Node.DOCUMENT_POSITION_FOLLOWING;
         const referenceNode = following ? binds.predicate : binds.predicate.nextSibling;
         groupBinds.predicates.insertBefore(toMove, referenceNode);
+        this.dispatchEvent(new Event('groupchange'));
     });
 
     // remove highlights
@@ -138,9 +152,22 @@ addPredicate(groupBinds) {
     // delete
     binds.delete.addEventListener('click', e => {
         binds.predicate.remove();
+        this.dispatchEvent(new Event('groupchange'));
+    });
+
+    // group change
+    binds.attribute.addEventListener('change', e => {
+        this.dispatchEvent(new Event('groupchange'));
+    });
+    binds.operation.addEventListener('change', e => {
+        this.dispatchEvent(new Event('groupchange'));
+    });
+    binds.value.addEventListener('change', e => {
+        this.dispatchEvent(new Event('groupchange'));
     });
 
     groupBinds.predicates.appendChild(fragment);
+    this.dispatchEvent(new Event('groupchange'));
 }
 
 }
