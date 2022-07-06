@@ -150,7 +150,7 @@ async load() {
         wrapR: gl.CLAMP_TO_EDGE,
     });
 
-    this.maskValues = WebGL.createTexture(gl, {
+    this.instanceMaskValues = WebGL.createTexture(gl, {
         internalFormat: gl.RG8,
         format: gl.RG,
         type: gl.UNSIGNED_BYTE,
@@ -169,7 +169,7 @@ async load() {
 
     this.parseAttributes(await this.zipReader.readFile('attributes.csv'));
 
-    this.updateMaskValues();
+    this.updateInstanceMaskValues();
     this.updateMask();
     this.smoothMask();
 }
@@ -191,7 +191,7 @@ parseAttributes(attributes) {
 
 // Writes the mask value of each instance into a texture that can
 // be used in the updateMask function to generate the mask volume.
-updateMaskValues() {
+updateInstanceMaskValues() {
     const groups = new Array(this.groups.length).fill(0)
         .map((_, k) => this.maskValue(k, this.groups.length));
 
@@ -204,7 +204,7 @@ updateMaskValues() {
 
     const gl = this.gl;
     WebGL.createTexture(gl, {
-        texture: this.maskValues,
+        texture: this.instanceMaskValues,
 
         internalFormat: gl.RG8,
         format: gl.RG,
@@ -237,7 +237,7 @@ updateMask() {
     gl.uniform1i(uniforms.uIdTexture, 0);
 
     gl.activeTexture(gl.TEXTURE1);
-    gl.bindTexture(gl.TEXTURE_2D, this.maskValues);
+    gl.bindTexture(gl.TEXTURE_2D, this.instanceMaskValues);
     gl.uniform1i(uniforms.uMaskValues, 1);
 
     const { width, height, depth } = this.idVolume.modality.dimensions;
