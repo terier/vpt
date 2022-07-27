@@ -1,4 +1,5 @@
 import { DOMUtils } from '../../utils/DOMUtils.js';
+import { CommonUtils } from '../../utils/CommonUtils.js';
 
 const template = document.createElement('template');
 template.innerHTML = await fetch(new URL('./GroupDialog.html', import.meta.url))
@@ -81,6 +82,11 @@ addGroup() {
 
     // color
     binds.color.addEventListener('change', e => {
+        this.dispatchEvent(new Event('colorchange'));
+    });
+
+    // alpha
+    binds.alpha.addEventListener('change', e => {
         this.dispatchEvent(new Event('colorchange'));
     });
 
@@ -168,6 +174,26 @@ addPredicate(groupBinds) {
 
     groupBinds.predicates.appendChild(fragment);
     this.dispatchEvent(new Event('groupchange'));
+}
+
+getGroupData() {
+    return [...this.binds.groups.children].map(accordion => {
+        const binds = DOMUtils.bind(accordion);
+
+        return {
+            name: binds.name.value,
+            color: [...CommonUtils.hex2rgb(binds.color.value), binds.alpha.value],
+            density: binds.density.value,
+            predicates: [...binds.predicates.children].map(predicate => {
+                const binds = DOMUtils.bind(predicate)
+                return {
+                    attribute: binds.attribute.value,
+                    operation: binds.operation.value,
+                    value: Number(binds.value.value),
+                };
+            }),
+        };
+    });
 }
 
 }

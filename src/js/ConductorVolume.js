@@ -49,16 +49,16 @@ constructor(gl, reader) {
     // Object of the form
     // {
     //     color: [r, g, b, a],
-    //     predicates: [...]
+    //     predicates: [{
+    //         attribute: name,
+    //         operation: operationString,
+    //         value: referenceValue,
+    //     }]
     // }
-    // Group 0 is the background.
-    // By default there is one group for all instances, without predicates.
+    // There is always one catch-all group, without predicates.
     this.groups = [{
-        color: [0, 0, 0, 0],
-        // predicates: ??
-    }, {
         color: [1, 1, 1, 1],
-        // predicates: ??
+        predicates: [],
     }];
 
     this.clipQuad = WebGL.createClipQuad(gl);
@@ -169,6 +169,7 @@ async load() {
 
     this.parseAttributes(await this.zipReader.readFile('attributes.csv'));
 
+    this.updateInstanceGroupAssignments();
     this.updateInstanceMaskValues();
     this.updateMask();
     this.smoothMask();
@@ -189,15 +190,53 @@ parseAttributes(attributes) {
     }));
 }
 
+updateInstanceGroupAssignments() {
+    for (const instance of this.instances) {
+        // check groups sequentially for a match
+        let groupMatch = false;
+
+        for (let k = 0; k < this.groups.length; k++) {
+            const group = this.groups[k];
+
+            let match = true;
+            for (const predicate of group.predicates) {
+                const attributeValue = instance.attributes[predicate.attribute];
+                switch (predicate.operation) {
+                    case '==': if (attributeValue != predicate.value) { match = false; } break;
+                    case '!=': if (attributeValue == predicate.value) { match = false; } break;
+                    case '<':  if (attributeValue >= predicate.value) { match = false; } break;
+                    case '>':  if (attributeValue <= predicate.value) { match = false; } break;
+                    case '<=': if (attributeValue >  predicate.value) { match = false; } break;
+                    case '>=': if (attributeValue <  predicate.value) { match = false; } break;
+                }
+            }
+
+            if (match) {
+                // check group density only after there is a match
+                // (group k + 1, because group 0 is added later)
+                instance.group = instance.random < group.density ? k + 1 : 0;
+                groupMatch = true;
+                break;
+            }
+        }
+
+        // if no groups match, hide the instance
+        if (!groupMatch) {
+            instance.group = 0;
+        }
+    }
+}
+
 // Writes the mask value of each instance into a texture that can
 // be used in the updateMask function to generate the mask volume.
 updateInstanceMaskValues() {
-    const groups = new Array(this.groups.length).fill(0)
-        .map((_, k) => this.maskValue(k, this.groups.length));
+    // array of mask values for each group, group 0 is the background
+    const maskValues = new Array(this.groups.length + 1).fill(0)
+        .map((_, k) => this.maskValue(k, this.groups.length + 1));
 
-    // instance 0 is the background
+    // array of mask values for each instance, instance 0 is the background
     const rawData = [{ group: 0 }, ...this.instances]
-        .flatMap(instance => groups[instance.group])
+        .flatMap(instance => maskValues[instance.group])
         .map(x => Math.round(x * 255));
 
     const data = new Uint8Array(rawData);
@@ -210,7 +249,7 @@ updateInstanceMaskValues() {
         format: gl.RG,
         type: gl.UNSIGNED_BYTE,
 
-        width: data.length / 2,
+        width: this.instances.length + 1, // instance 0 is the background
         height: 1,
 
         data,
@@ -297,14 +336,14 @@ updateTransferFunction() {
         .flatMap(group => group.color)
         .map(x => Math.round(x * 255));
 
-    const data = new Uint8Array(colors);
+    const data = new Uint8Array(rawData);
 
     const gl = this.gl;
     WebGL.createTexture(gl, {
         unit: 0,
         texture: this.colorStrip,
 
-        width: this.groups.length - 1, // without background group
+        width: this.groups.length,
         height: 1,
 
         data,
@@ -313,7 +352,7 @@ updateTransferFunction() {
     const { program, uniforms } = this.programs.updateTransferFunction;
     gl.useProgram(program);
     gl.uniform1i(uniforms.uColorStrip, 0);
-    gl.uniform4fv(uniforms.uBackgroundColor, this.groups[0].color);
+    gl.uniform4fv(uniforms.uBackgroundColor, [0, 0, 0, 0]); // TODO: allow changing the background color
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this.clipQuad);
     gl.enableVertexAttribArray(0);

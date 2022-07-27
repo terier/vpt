@@ -37,13 +37,28 @@ constructor() {
     this.groupDialog = new GroupDialog();
     this.mainDialog.binds.groups.appendChild(this.groupDialog.object);
     this.groupDialog.addEventListener('groupchange', e => {
-        console.log(e);
+        const volume = this.renderingContext._volume;
+        volume.groups = this.groupDialog.getGroupData();
+        volume.updateInstanceGroupAssignments();
+        volume.updateInstanceMaskValues();
+        volume.updateMask();
+        volume.smoothMask();
+        this.renderingContext.getRenderer().reset();
     });
     this.groupDialog.addEventListener('colorchange', e => {
-        console.log(e);
+        const volume = this.renderingContext._volume;
+        volume.groups = this.groupDialog.getGroupData();
+        volume.updateTransferFunction();
+        this.renderingContext.getRenderer().reset();
     });
     this.groupDialog.addEventListener('densitychange', e => {
-        console.log(e);
+        const volume = this.renderingContext._volume;
+        volume.groups = this.groupDialog.getGroupData();
+        volume.updateInstanceGroupAssignments();
+        volume.updateInstanceMaskValues();
+        volume.updateMask();
+        volume.smoothMask();
+        this.renderingContext.getRenderer().reset();
     });
     this.renderingContext.addEventListener('attributechange', e => {
         this.groupDialog.attributes = e.detail;
