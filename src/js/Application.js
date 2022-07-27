@@ -13,6 +13,7 @@ import { RenderingContextDialog } from './dialogs/RenderingContextDialog/Renderi
 import { DialogConstructor } from './dialogs/DialogConstructor.js';
 
 import { RenderingContext } from './RenderingContext.js';
+import { ConductorVolume } from './ConductorVolume.js';
 
 export class Application {
 
@@ -38,26 +39,34 @@ constructor() {
     this.mainDialog.binds.groups.appendChild(this.groupDialog.object);
     this.groupDialog.addEventListener('groupchange', e => {
         const volume = this.renderingContext._volume;
+        if (!(volume instanceof ConductorVolume)) return;
         volume.groups = this.groupDialog.getGroupData();
         volume.updateInstanceGroupAssignments();
         volume.updateInstanceMaskValues();
         volume.updateMask();
         volume.smoothMask();
+        volume.updateTransferFunction();
+        // TODO: set transfer function
         this.renderingContext.getRenderer().reset();
     });
     this.groupDialog.addEventListener('colorchange', e => {
         const volume = this.renderingContext._volume;
+        if (!(volume instanceof ConductorVolume)) return;
         volume.groups = this.groupDialog.getGroupData();
         volume.updateTransferFunction();
+        // TODO: set transfer function
         this.renderingContext.getRenderer().reset();
     });
     this.groupDialog.addEventListener('densitychange', e => {
         const volume = this.renderingContext._volume;
+        if (!(volume instanceof ConductorVolume)) return;
         volume.groups = this.groupDialog.getGroupData();
         volume.updateInstanceGroupAssignments();
         volume.updateInstanceMaskValues();
         volume.updateMask();
         volume.smoothMask();
+        volume.updateTransferFunction();
+        // TODO: set transfer function
         this.renderingContext.getRenderer().reset();
     });
     this.renderingContext.addEventListener('attributechange', e => {

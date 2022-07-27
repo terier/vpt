@@ -95,6 +95,11 @@ addGroup() {
         this.dispatchEvent(new Event('densitychange'));
     });
 
+    // sharpness
+    binds.sharpness.addEventListener('change', e => {
+        this.dispatchEvent(new Event('densitychange'));
+    });
+
     // add predicate
     binds.addPredicate.addEventListener('click', e => {
         this.addPredicate(binds);
@@ -184,6 +189,7 @@ getGroupData() {
             name: binds.name.value,
             color: [...CommonUtils.hex2rgb(binds.color.value), binds.alpha.value],
             density: binds.density.value,
+            sharpness: binds.sharpness.value,
             predicates: [...binds.predicates.children].map(predicate => {
                 const binds = DOMUtils.bind(predicate)
                 return {

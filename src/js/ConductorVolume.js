@@ -1,5 +1,6 @@
 import { WebGL } from './WebGL.js';
 import { Volume } from './Volume.js';
+import { CommonUtils } from './utils/CommonUtils.js';
 
 const [ SHADERS, MIXINS ] = await Promise.all([
     'shaders.json',
@@ -38,6 +39,7 @@ constructor(gl, reader) {
     // Object of the form
     // {
     //     group: k,
+    //     opacity: value,
     //     random: Math.random(), // for the purposes of sparsification
     //     attributes: {
     //         name: value,
@@ -185,6 +187,7 @@ parseAttributes(attributes) {
     this.attributes = header;
     this.instances = instances.map(attributes => ({
         group: 1,
+        opacity: 1,
         random: Math.random(),
         attributes: Object.fromEntries(zip([header, attributes]))
     }));
@@ -212,9 +215,18 @@ updateInstanceGroupAssignments() {
             }
 
             if (match) {
-                // check group density only after there is a match
-                // (group k + 1, because group 0 is added later)
-                instance.group = instance.random < group.density ? k + 1 : 0;
+                // group k + 1, because group 0 is added later
+                instance.group = k + 1;
+
+                // Opacity is an interpolation between 0 and 1,
+                // when instance.random is close to group density.
+                // gamma must be a function of group.density,
+                // where 0 maps to inf, and 1 maps to 1.
+                // Could also be 1 - log(sharpness).
+                const gamma = 1 / group.sharpness;
+                const edge0 = Math.pow(group.density, gamma);
+                const edge1 = group.density;
+                instance.opacity = CommonUtils.smoothstep(edge0, edge1, instance.random);
                 groupMatch = true;
                 break;
             }
@@ -236,7 +248,7 @@ updateInstanceMaskValues() {
 
     // array of mask values for each instance, instance 0 is the background
     const rawData = [{ group: 0 }, ...this.instances]
-        .flatMap(instance => maskValues[instance.group])
+        .flatMap(instance => maskValues[instance.group].map(v => CommonUtils.lerp(v, 0.5, instance.opacity)))
         .map(x => Math.round(x * 255));
 
     const data = new Uint8Array(rawData);
