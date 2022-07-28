@@ -247,7 +247,7 @@ updateInstanceMaskValues() {
         .map((_, k) => this.maskValue(k, this.groups.length + 1));
 
     // array of mask values for each instance, instance 0 is the background
-    const rawData = [{ group: 0 }, ...this.instances]
+    const rawData = [{ group: 0, opacity: 0 }, ...this.instances]
         .flatMap(instance => maskValues[instance.group].map(v => CommonUtils.lerp(v, 0.5, instance.opacity)))
         .map(x => Math.round(x * 255));
 
