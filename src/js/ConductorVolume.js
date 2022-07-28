@@ -358,6 +358,9 @@ updateTransferFunction() {
         width: this.groups.length,
         height: 1,
 
+        min: gl.LINEAR,
+        mag: gl.LINEAR,
+
         data,
     });
 
@@ -373,6 +376,16 @@ updateTransferFunction() {
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.maskTransferFunctionFramebuffer);
     gl.viewport(0, 0, 256, 256); // TODO: get actual TF size
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+}
+
+getTransferFunction() {
+    const gl = this.gl;
+
+    // TODO: get actual TF size
+    const pixels = new Uint8ClampedArray(256 * 256 * 4);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.maskTransferFunctionFramebuffer);
+    gl.readPixels(0, 0, 256, 256, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+    return new ImageData(pixels, 256, 256);
 }
 
 setFilter(filter) {

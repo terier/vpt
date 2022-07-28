@@ -86,7 +86,7 @@ static createTexture(gl, options) {
     const type = options.type || gl.UNSIGNED_BYTE;
     const texture = options.texture || gl.createTexture();
 
-    if (options.unit) {
+    if (options.unit != null) {
         gl.activeTexture(gl.TEXTURE0 + options.unit);
     }
     gl.bindTexture(target, texture);

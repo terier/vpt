@@ -46,7 +46,7 @@ constructor() {
         volume.updateMask();
         volume.smoothMask();
         volume.updateTransferFunction();
-        // TODO: set transfer function
+        this.renderingContext.getRenderer().setTransferFunction(volume.getTransferFunction());
         this.renderingContext.getRenderer().reset();
     });
     this.groupDialog.addEventListener('colorchange', e => {
@@ -54,7 +54,7 @@ constructor() {
         if (!(volume instanceof ConductorVolume)) return;
         volume.groups = this.groupDialog.getGroupData();
         volume.updateTransferFunction();
-        // TODO: set transfer function
+        this.renderingContext.getRenderer().setTransferFunction(volume.getTransferFunction());
         this.renderingContext.getRenderer().reset();
     });
     this.groupDialog.addEventListener('densitychange', e => {
@@ -66,7 +66,7 @@ constructor() {
         volume.updateMask();
         volume.smoothMask();
         volume.updateTransferFunction();
-        // TODO: set transfer function
+        this.renderingContext.getRenderer().setTransferFunction(volume.getTransferFunction());
         this.renderingContext.getRenderer().reset();
     });
     this.renderingContext.addEventListener('attributechange', e => {
