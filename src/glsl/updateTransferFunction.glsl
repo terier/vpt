@@ -20,6 +20,7 @@ precision mediump float;
 
 uniform sampler2D uColorStrip;
 uniform vec4 uBackgroundColor;
+uniform vec2 uInterpolationRange;
 
 in vec2 vPosition;
 out vec4 oColor;
@@ -27,7 +28,14 @@ out vec4 oColor;
 void main() {
     float radius = length(vPosition);
     float angle = atan(vPosition.y, vPosition.x);
+
+    // choose a color from the color strip based on the angle around the TF
     float offset = 0.5 / float(textureSize(uColorStrip, 0).x);
     vec4 color = texture(uColorStrip, vec2(angle * INV_2PI + offset, 0));
-    oColor = mix(uBackgroundColor, color, radius);
+
+    // interpolate alpha smoothly, but do not interpolate color
+    float smoothInterpolation = smoothstep(uInterpolationRange.x, uInterpolationRange.y, radius);
+    float stepInterpolation = step(uInterpolationRange.x, radius);
+    vec4 interpolation = vec4(vec3(stepInterpolation), smoothInterpolation);
+    oColor = mix(uBackgroundColor, color, interpolation);
 }

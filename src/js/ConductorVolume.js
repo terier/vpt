@@ -368,6 +368,7 @@ updateTransferFunction() {
     gl.useProgram(program);
     gl.uniform1i(uniforms.uColorStrip, 0);
     gl.uniform4fv(uniforms.uBackgroundColor, [0, 0, 0, 0]); // TODO: allow changing the background color
+    gl.uniform2f(uniforms.uInterpolationRange, 0.1, 0.9); // This can remain fixed for now
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this.clipQuad);
     gl.enableVertexAttribArray(0);
