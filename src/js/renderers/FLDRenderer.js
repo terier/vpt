@@ -176,7 +176,7 @@ constructor(gl, volume, environmentTexture, options) {
     });
 
     this._programs = WebGL.buildPrograms(gl, SHADERS.renderers.FLD, MIXINS);
-    // this.red = 1;
+    this.red = 1;
 }
 
 destroy() {
@@ -376,9 +376,10 @@ _integrateFrame() {
         // gl.uniform1f(uniforms.uScatteringCoefficient, this.scatteringCoefficient);
         gl.uniform1f(uniforms.uExtinction, this.extinction);
         gl.uniform1f(uniforms.uAlbedo, this.albedo);
-        gl.uniform1f(uniforms.uLayer, (i + 0.5) / this._lightVolumeDimensions.depth);
+        gl.uniform1ui(uniforms.uLayer, i);
+        gl.uniform1f(uniforms.uLayerRelative, (i + 0.5) / this._lightVolumeDimensions.depth);
         gl.uniform1f(uniforms.uSOR, this.SOR);
-        // gl.uniform1ui(uniforms.uRed, this.red);
+        gl.uniform1ui(uniforms.uRed, this.red);
 
         gl.uniform1f(uniforms.uVoxelSize, this.voxelSize);
         gl.uniform1f(uniforms.uEpsilon, this.epsilon);
@@ -397,12 +398,12 @@ _integrateFrame() {
         gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 
     }
-    // if (this.red === 1) {
-    //     this.red = 0;
-    // }
-    // else {
-    //     this.red = 1;
-    // }
+    if (this.red === 1) {
+        this.red = 0;
+    }
+    else {
+        this.red = 1;
+    }
 }
 
 _renderFrame() {

@@ -94,7 +94,8 @@ uniform mediump sampler2D uTransferFunction;
 
 uniform vec3 uStep;
 uniform uvec3 uSize;
-uniform float uLayer;
+uniform uint uLayer;
+uniform float uLayerRelative;
 
 //uniform float uAbsorptionCoefficient;
 //uniform float uScatteringCoefficient;
@@ -102,7 +103,7 @@ uniform float uExtinction;
 uniform float uAlbedo;
 uniform float uVoxelSize;
 uniform float uSOR;
-//uniform uint uRed;
+uniform uint uRed;
 uniform float uEpsilon;
 uniform uint uFluxLimiter;
 uniform float uMinExtinction;
@@ -135,9 +136,9 @@ float flux_levermore_pomraning(float R) {
 
 void main() {
     vec2 mappedPosition = vPosition * 0.5 + 0.5;
-    vec3 position = vec3(mappedPosition, uLayer);
+    vec3 position = vec3(mappedPosition, uLayerRelative);
 
-    float max_dimension = float(max(max(uSize[0], uSize[1]), uSize[2]));
+//    float max_dimension = float(max(max(uSize[0], uSize[1]), uSize[2]));
 //    float mipmapLevel = log2(max_dimension) + 1.0;
 //    float RMS_j = sqrt(textureLod(uEmission, position, mipmapLevel).g);
 //    float RMS_R = sqrt(textureLod(uFluenceAndDiffCoeff, position, mipmapLevel).b);
@@ -157,11 +158,12 @@ void main() {
         oFluence = fluenceAndDiffCoeff.rg;
         return;
     }
-//    uint texelConsecutiveNumber = uSize[0] + uSize[1] + uSize[2];
-//    if ((uRed == 1u && texelConsecutiveNumber % 2u == 0u) && (uRed == 0u && texelConsecutiveNumber % 2u == 1u)) {
-//        oFluence = fluenceAndDiffCoeff;
-//        return;
-//    }
+
+    uint texelConsecutiveNumber = uint(gl_FragCoord.x) + uint(gl_FragCoord.y) + uLayer;
+    if ((uRed == 1u && texelConsecutiveNumber % 2u == 0u) && (uRed == 0u && texelConsecutiveNumber % 2u == 1u)) {
+        oFluence = fluenceAndDiffCoeff.rg;
+        return;
+    }
     vec2 volumeSample = texture(uVolume, position).rg;
     vec4 colorSample = texture(uTransferFunction, volumeSample);
     float extinction = uExtinction * colorSample.a;
@@ -219,6 +221,7 @@ void main() {
 
     float new_fluence = numerator / denominator;
     new_fluence = uSOR * new_fluence + (1.0 - uSOR) * fluence;
+    new_fluence = clamp(new_fluence, 0.0, 1.0);
 
 //    float residual = (numerator - new_fluence * denominator) / voxelSizeSq;
     float residual = 0.0;
@@ -279,6 +282,8 @@ vec4 sampleVolumeColor(vec3 position) {
 void main() {
     vec3 rayDirection = vRayTo - vRayFrom;
     vec2 tbounds = max(intersectCube(vRayFrom, rayDirection), 0.0);
+//    oColor = vec4(uint(gl_FragCoord.x / 512.0), 0, 0, 0);
+//    return;
 
     if (tbounds.x >= tbounds.y) {
         oColor = vec4(0, 0, 0, 1);
