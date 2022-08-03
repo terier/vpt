@@ -299,7 +299,7 @@ _resetFluence() {
         gl.uniform3f(uniforms.uLight, this.light.x, this.light.y, this.light.z);
 
         gl.uniform3f(uniforms.uStep, 1 / dimensions.width, 1 / dimensions.height, 1 / dimensions.depth);
-        gl.uniform3ui(uniforms.uSize, dimensions.width, dimensions.height, dimensions.depth);
+        // gl.uniform3i(uniforms.uSize, dimensions.width, dimensions.height, dimensions.depth);
 
         gl.drawBuffers([
             gl.COLOR_ATTACHMENT0

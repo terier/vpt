@@ -93,7 +93,7 @@ uniform mediump sampler3D uVolume;
 uniform mediump sampler2D uTransferFunction;
 
 uniform vec3 uStep;
-uniform uvec3 uSize;
+//uniform ivec3 uSize;
 uniform uint uLayer;
 uniform float uLayerRelative;
 
@@ -135,8 +135,10 @@ float flux_levermore_pomraning(float R) {
 }
 
 void main() {
-    vec2 mappedPosition = vPosition * 0.5 + 0.5;
-    vec3 position = vec3(mappedPosition, uLayerRelative);
+//    vec2 mappedPosition = vPosition * 0.5 + 0.5;
+//    vec3 position = vec3(mappedPosition, uLayerRelative);
+    ivec3 position = ivec3(gl_FragCoord.x, gl_FragCoord.y, uLayer);
+    ivec3 texSize = textureSize(uFluenceAndDiffCoeff, 0);
 
 //    float max_dimension = float(max(max(uSize[0], uSize[1]), uSize[2]));
 //    float mipmapLevel = log2(max_dimension) + 1.0;
@@ -147,24 +149,28 @@ void main() {
 //        return;
 //    }
 
-    vec4 fluenceAndDiffCoeff = texture(uFluenceAndDiffCoeff, position);
+
+    vec4 fluenceAndDiffCoeff = texelFetch(uFluenceAndDiffCoeff, position, 0);
     float fluence = fluenceAndDiffCoeff.r;
     float diffCoeff = fluenceAndDiffCoeff.g;
-    float emission = texture(uEmission, position).r;
+    float emission = texelFetch(uEmission, position, 0).r;
 
-    if (position.x <= uStep.x || position.y <= uStep.y || position.z <= uStep.z ||
-    position.x >= 1.0 - uStep.x || position.y >= 1.0 - uStep.y || position.z >= 1.0 - uStep.z) {
-//        oFluence = fluenceAndDiffCoeff;
+
+    if (position.x <= 0 || position.y <= 0 || position.z <= 0 ||
+    position.x >= texSize.x - 1 || position.y >= texSize.y - 1 || position.z >= texSize.z - 1) {
         oFluence = fluenceAndDiffCoeff.rg;
         return;
     }
 
-    uint texelConsecutiveNumber = uint(gl_FragCoord.x) + uint(gl_FragCoord.y) + uLayer;
-    if ((uRed == 1u && texelConsecutiveNumber % 2u == 0u) && (uRed == 0u && texelConsecutiveNumber % 2u == 1u)) {
+    int texelConsecutiveNumber = position.x + position.y + position.z;
+    if ((uRed == 1u && texelConsecutiveNumber % 2 == 0) && (uRed == 0u && texelConsecutiveNumber % 2 == 1)) {
         oFluence = fluenceAndDiffCoeff.rg;
         return;
     }
-    vec2 volumeSample = texture(uVolume, position).rg;
+
+
+
+    vec2 volumeSample = texelFetch(uVolume, position, 0).rg;
     vec4 colorSample = texture(uTransferFunction, volumeSample);
     float extinction = uExtinction * colorSample.a;
 //    float albedo = uAlbedo;
@@ -173,12 +179,12 @@ void main() {
 //    float albedo = uScatteringCoefficient / extinction;
 //    extinction = max(extinction, 10e-3 / max_dimension);
 
-    vec4 left      = texture(uFluenceAndDiffCoeff, position + vec3(-uStep.x,  0,  0));
-    vec4 right     = texture(uFluenceAndDiffCoeff, position + vec3( uStep.x,  0,  0));
-    vec4 down      = texture(uFluenceAndDiffCoeff, position + vec3( 0, -uStep.y,  0));
-    vec4 up        = texture(uFluenceAndDiffCoeff, position + vec3( 0,  uStep.y,  0));
-    vec4 back      = texture(uFluenceAndDiffCoeff, position + vec3( 0,  0, -uStep.z));
-    vec4 forward   = texture(uFluenceAndDiffCoeff, position + vec3( 0,  0,  uStep.z));
+    vec4 left      = texelFetch(uFluenceAndDiffCoeff, position + ivec3(-1,  0,  0), 0);
+    vec4 right     = texelFetch(uFluenceAndDiffCoeff, position + ivec3( 1,  0,  0), 0);
+    vec4 down      = texelFetch(uFluenceAndDiffCoeff, position + ivec3( 0, -1,  0), 0);
+    vec4 up        = texelFetch(uFluenceAndDiffCoeff, position + ivec3( 0,  1,  0), 0);
+    vec4 back      = texelFetch(uFluenceAndDiffCoeff, position + ivec3( 0,  0, -1), 0);
+    vec4 forward   = texelFetch(uFluenceAndDiffCoeff, position + ivec3( 0,  0,  1), 0);
 
     vec3 gradient = vec3(
         right[0] - left[0],
