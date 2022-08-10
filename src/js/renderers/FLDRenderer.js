@@ -79,7 +79,7 @@ constructor(gl, volume, environmentTexture, options) {
             label: 'Voxel Size',
             type: 'slider',
             value: 1,
-            min: 0,
+            min: 0.1,
             max: 2
         },
         {
@@ -102,6 +102,7 @@ constructor(gl, volume, environmentTexture, options) {
             name: 'fluxLimiter',
             label: 'Flux Limiter',
             type: "dropdown",
+            value: 2,
             options: [
                 {
                     value: 0,
@@ -123,8 +124,9 @@ constructor(gl, volume, environmentTexture, options) {
             ]
         },
         {
-            name: 'view',
+            name: 'volume_view',
             label: 'View',
+            value: 1,
             type: "dropdown",
             options: [
                 {
@@ -160,21 +162,20 @@ constructor(gl, volume, environmentTexture, options) {
         if ([
             'extinction',
             'light',
-            'scattering',
             'voxelSize',
             'lightVolumeRatio',
             'SOR',
             'albedo',
             'epsilon',
             'minExtinction',
-            'fluxLimiter'
+            'fluxLimiter',
+            'transferFunction'
             // 'scatteringCoefficient',
             // 'absorptionCoefficient'
         ].includes(name)) {
             this.resetVolume();
         }
     });
-
     this._programs = WebGL.buildPrograms(gl, SHADERS.renderers.FLD, MIXINS);
     this.red = 1;
 }
@@ -195,7 +196,9 @@ setVolume(volume) {
 _initialize3DBuffers() {
     if (!this._volume.ready)
         return
+    console.log(this._volume)
     console.log("Initializing Buffers")
+    console.log(this)
     this.volumeDimensions = this._volume.modalities[0].dimensions;
     this.setLightVolumeDimensions();
     this.setFrameBuffer();
@@ -433,9 +436,10 @@ _renderFrame() {
 
     gl.uniform1f(uniforms.uStepSize, 1 / this.slices);
     gl.uniform1f(uniforms.uExtinction, this.extinction);
+    gl.uniform1f(uniforms.uAlbedo, this.albedo);
     gl.uniform1f(uniforms.uOffset, Math.random());
 
-    gl.uniform1ui(uniforms.uView, this.view);
+    gl.uniform1ui(uniforms.uView, this.volume_view);
 
     const mvpit = this.calculateMVPInverseTranspose();
     gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, mvpit.m);
@@ -478,8 +482,8 @@ _getAccumulationBufferSpec() {
         width          : this.volumeDimensions.width,
         height         : this.volumeDimensions.height,
         depth          : this.volumeDimensions.depth,
-        min            : gl.NEAREST,
-        mag            : gl.NEAREST,
+        min            : gl.LINEAR,
+        mag            : gl.LINEAR,
         // format         : gl.RED,
         // internalFormat : gl.R32F,
         format         : gl.RG,

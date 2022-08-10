@@ -168,8 +168,6 @@ void main() {
         return;
     }
 
-
-
     vec2 volumeSample = texelFetch(uVolume, position, 0).rg;
     vec4 colorSample = texture(uTransferFunction, volumeSample);
     float extinction = uExtinction * colorSample.a;
@@ -270,6 +268,7 @@ uniform highp sampler3D uEmission;
 uniform float uStepSize;
 uniform float uOffset;
 uniform float uExtinction;
+uniform float uAlbedo;
 uniform uint uView;
 
 in vec3 vRayFrom;
@@ -307,33 +306,33 @@ void main() {
             vec4 colorSample = sampleVolumeColor(position);
             float emission = texture(uEmission, position).r;
             float fluence = texture(uFluence, position).r;
-            vec3 factor = vec3(0.0);
-            switch (uView) {
-                case 0u:
-                    factor = vec3(emission);
-                    break;
-                case 1u:
-                    factor = vec3(fluence);
-                    break;
-                case 2u:
-                    vec3 scattering_coeff = colorSample.rgb * uExtinction;
-                    factor = (emission + scattering_coeff * fluence) / (4.0 * PI);
-                    break;
-            }
-
-//            float factor = 0.0;
+//            vec3 factor = vec3(0.0);
 //            switch (uView) {
 //                case 0u:
-//                factor = emission;
-//                break;
+//                    factor = vec3(emission);
+//                    break;
 //                case 1u:
-//                factor = fluence;
-//                break;
+//                    factor = vec3(fluence);
+//                    break;
 //                case 2u:
-//                float scattering_coeff = colorSample.rgb * uExtinction;
-//                factor = (emission + scattering_coeff * fluence) / (4.0 * PI);
-//                break;
+//                    vec3 scattering_coeff = colorSample.rgb * uExtinction * uAlbedo;
+//                    factor = (emission + scattering_coeff * fluence) / (4.0 * PI);
+//                    break;
 //            }
+
+            float factor = 0.0;
+            switch (uView) {
+                case 0u:
+                factor = emission;
+                break;
+                case 1u:
+                factor = fluence;
+                break;
+                case 2u:
+                float scattering_coeff = colorSample.a * uAlbedo;
+                factor = (emission + scattering_coeff * fluence); // / (4.0 * PI);
+                break;
+            }
 
 
 
@@ -351,7 +350,8 @@ void main() {
             accumulator.rgb /= accumulator.a;
         }
 
-        oColor = vec4(accumulator.rgb, 1);
+//        oColor = vec4(accumulator.rgb, 1);
+        oColor = mix(vec4(1), vec4(accumulator.rgb, 1), accumulator.a);
     }
 }
 
