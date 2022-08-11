@@ -412,19 +412,13 @@ void main() {
                 break;
             }
             radianceAndDiffusion = texture(uRadianceAndDiffusion, pos);
-//            energyDensity = radianceAndDiffusion.r + radianceAndDiffusion.g;
 
             colorSample = texture(uTransferFunction, val);
             colorSample.a *= rayStepLength * uAlphaCorrection;
-            // utezi z energy density
-            colorSample.rgb *= radianceAndDiffusion.rbg;
+            colorSample.rgb *= radianceAndDiffusion.rgb;
             colorSample.rgb *= colorSample.a;
-//            colorSample.rgb = vec3(energyDensity);
             accumulator += (1.0 - accumulator.a) * colorSample;
             t += uStepSize;
-//            if (val.r >= uIsovalue) {
-//                break;
-//            }
 
         }
 

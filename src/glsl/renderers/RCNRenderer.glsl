@@ -507,7 +507,7 @@ void main() {
             colorSample = texture(uTransferFunction, val);
             colorSample.a *= rayStepLength * uAlphaCorrection;
             // utezi z energy density
-            colorSample.rgb *= radianceAndDiffusion.rbg;
+            colorSample.rgb *= radianceAndDiffusion.rgb;
             colorSample.rgb *= colorSample.a;
 //            colorSample.rgb *= colorSample.a;
 //            colorSample.rgb = vec3(energyDensity);
