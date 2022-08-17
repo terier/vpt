@@ -38,7 +38,7 @@ constructor(gl, volume, environmentTexture, options) {
             name: 'random',
             label: 'Random',
             type: 'checkbox',
-            value: true,
+            value: false,
         },
         {
             name: 'transferFunction',
