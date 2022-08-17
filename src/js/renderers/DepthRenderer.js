@@ -147,6 +147,39 @@ _renderFrame() {
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 }
 
+samplePoint(tolerance = 0.01) {
+    // Samples a point on the depth image, where depth is uniformly distributed in [0, 1].
+    // Since we have to randomly choose a pixel from those whose depths fall into certain range,
+    // it is easier to transfer the depth image to CPU and do the sampling there.
+
+    const gl = this._gl;
+
+    const pixels = new Float32Array(this._bufferSize * this._bufferSize);
+
+    this._accumulationBuffer.swap();
+    this._accumulationBuffer.use();
+    gl.readPixels(0, 0, this._bufferSize, this._bufferSize, gl.RED, gl.FLOAT, pixels);
+    this._accumulationBuffer.swap();
+
+    const depths = [...pixels].map((depth, i) => ({
+        x: i % this._bufferSize,
+        y: Math.floor(i / this._bufferSize),
+        depth,
+    }));
+
+    let chosen;
+    while (true) {
+        const depth = Math.random();
+        const candidates = depths.filter(x => Math.abs(x.depth - depth) <= tolerance);
+        if (candidates.length > 0) {
+            const index = Math.floor(Math.random() * candidates.length);
+            chosen = candidates[index];
+            break;
+        }
+    }
+    return chosen;
+}
+
 _getFrameBufferSpec() {
     const gl = this._gl;
     return [{

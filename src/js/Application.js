@@ -294,4 +294,8 @@ randomizeCamera() {
     this.renderingContext.setRotation(x, y, 0);
 }
 
+samplePoint() {
+    console.log(this.renderingContext.getRenderer().samplePoint());
+}
+
 }
