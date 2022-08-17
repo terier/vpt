@@ -12,11 +12,15 @@
         <input type="number" bind="resolution" min="1" max="4096" value="512">
     </ui-field>
     <ui-field>
-        <label slot="label">Scale</label>
-        <ui-vector-spinner bind="scale" min="0" value="[1,1,1]"></ui-vector-spinner>
-    </ui-field>
-    <ui-field>
         <label slot="label">Translation</label>
         <ui-vector-spinner bind="translation" value="[0,0,0]">
+    </ui-field>
+    <ui-field>
+        <label slot="label">Rotation</label>
+        <ui-vector-spinner bind="rotation" value="[0,0,0]">
+    </ui-field>
+    <ui-field>
+        <label slot="label">Scale</label>
+        <ui-vector-spinner bind="scale" min="0" value="[1,1,1]"></ui-vector-spinner>
     </ui-field>
 </div>

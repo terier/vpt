@@ -89,10 +89,12 @@ constructor() {
         this.renderingContext.setResolution(resolution);
     });
     this.renderingContextDialog.addEventListener('transformation', e => {
-        const s = this.renderingContextDialog.scale;
         const t = this.renderingContextDialog.translation;
-        this.renderingContext.setScale(...s);
+        const r = this.renderingContextDialog.rotation;
+        const s = this.renderingContextDialog.scale;
         this.renderingContext.setTranslation(...t);
+        this.renderingContext.setRotation(...r);
+        this.renderingContext.setScale(...s);
     });
     this.renderingContextDialog.addEventListener('filter', e => {
         const filter = this.renderingContextDialog.filter;
@@ -284,6 +286,12 @@ deserializeView(v) {
     this.renderingContext.setTranslation(...v.translation);
 
     this.renderingContext._renderer.reset();
+}
+
+randomizeCamera() {
+    const x = Math.random() * Math.PI * 2;
+    const y = Math.random() * Math.PI * 2;
+    this.renderingContext.setRotation(x, y, 0);
 }
 
 }

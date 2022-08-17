@@ -57,6 +57,7 @@ constructor(options) {
     this._volume = new Volume(this._gl);
     this._scale = new Vector(1, 1, 1);
     this._translation = new Vector(0, 0, 0);
+    this._rotation = new Vector(0, 0, 0);
     this._isTransformationDirty = true;
     this._updateMvpInverseMatrix();
 }
@@ -220,9 +221,18 @@ _updateMvpInverseMatrix() {
         this._translation.x, this._translation.y, this._translation.z);
     const volumeScale = new Matrix().fromScale(
         this._scale.x, this._scale.y, this._scale.z);
+    const volumeRotationX = new Matrix().fromRotationX(this._rotation.x);
+    const volumeRotationY = new Matrix().fromRotationY(this._rotation.y);
+    const volumeRotationZ = new Matrix().fromRotationZ(this._rotation.z);
+    const volumeRotation = new Matrix();
+    volumeRotation.multiply(volumeRotation, volumeRotationX);
+    volumeRotation.multiply(volumeRotation, volumeRotationY);
+    volumeRotation.multiply(volumeRotation, volumeRotationZ);
 
     const modelMatrix = new Matrix();
-    modelMatrix.multiply(volumeScale, centerTranslation);
+    modelMatrix.multiply(centerTranslation, modelMatrix);
+    modelMatrix.multiply(volumeScale, modelMatrix);
+    modelMatrix.multiply(volumeRotation, modelMatrix);
     modelMatrix.multiply(volumeTranslation, modelMatrix);
 
     const viewMatrix = this._camera.viewMatrix;
@@ -280,6 +290,15 @@ getTranslation() {
 
 setTranslation(x, y, z) {
     this._translation.set(x, y, z);
+    this._isTransformationDirty = true;
+}
+
+getRotation() {
+    return this._rotation;
+}
+
+setRotation(x, y, z) {
+    this._rotation.set(x, y, z);
     this._isTransformationDirty = true;
 }
 
