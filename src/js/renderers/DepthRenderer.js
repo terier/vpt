@@ -163,7 +163,7 @@ samplePoint(tolerance = 0.01) {
 
     const depths = [...pixels].map((depth, i) => ({
         x: i % this._bufferSize,
-        y: Math.floor(i / this._bufferSize),
+        y: this._bufferSize - 1 - Math.floor(i / this._bufferSize),
         depth,
     }));
 

@@ -42,7 +42,7 @@ constructor(gl, texture, options) {
             name: 'gamma',
             label: 'Gamma',
             type: 'spinner',
-            value: 2.2,
+            value: 1,
             min: 0,
         },
     ]);

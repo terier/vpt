@@ -45,6 +45,8 @@ constructor(options) {
     this._camera.position.z = 1.5;
     this._camera.fovX = 0.3;
     this._camera.fovY = 0.3;
+    this._camera.near = 0.2;
+    this._camera.far = 3;
 
     //this._cameraAnimator = new CircleAnimator(this._camera, {
     //    center: new Vector(0, 0, 2),
