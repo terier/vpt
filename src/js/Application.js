@@ -249,41 +249,48 @@ _handleEnvmapLoad(e) {
 
 serializeView() {
     const c = this.renderingContext._camera;
-    const s = this.renderingContext._scale;
-    const t = this.renderingContext._translation;
-    const p = c.position;
-    const r = c.rotation;
+    const mt = this.renderingContext._translation;
+    const mr = this.renderingContext._rotation;
+    const ms = this.renderingContext._scale;
+    const cp = c.position;
+    const cr = c.rotation;
+
     return JSON.stringify({
-        fovX: c.fovX,
-        fovY: c.fovY,
-        near: c.near,
-        far: c.far,
-        zoomFactor: c.zoomFactor,
-        position: [p.x, p.y, p.z],
-        rotation: [r.x, r.y, r.z, r.w],
-        scale: [s.x, s.y, s.z],
-        translation: [t.x, t.y, t.z],
+        camera: {
+            fovX: c.fovX,
+            fovY: c.fovY,
+            near: c.near,
+            far: c.far,
+            zoomFactor: c.zoomFactor,
+            position: [cp.x, cp.y, cp.z],
+            rotation: [cr.x, cr.y, cr.z, r.w],
+        },
+        model: {
+            translation: [mt.x, mt.y, mt.z],
+            rotation: [mr.x, mr.y, mr.z],
+            scale: [ms.x, ms.y, ms.z],
+        },
     });
 }
 
 deserializeView(v) {
     v = JSON.parse(v);
 
-    const c = this.renderingContext._camera;
-    const p = v.position;
-    const r = v.rotation;
+    const c = this.renderingContext.getCamera();
+    const cfrom = v.camera;
 
-    c.fovX = v.fovX;
-    c.fovY = v.fovY;
-    c.near = v.near;
-    c.far = v.far;
-    c.zoomFactor = v.zoomFactor;
-    c.position.set(...p, 1);
-    c.rotation.set(...r);
+    c.fovX = cfrom.fovX;
+    c.fovY = cfrom.fovY;
+    c.near = cfrom.near;
+    c.far = cfrom.far;
+    c.zoomFactor = cfrom.zoomFactor;
+    c.position.set(...cfrom.position, 1);
+    c.rotation.set(...cfrom.rotation);
     c.updateMatrices();
 
-    this.renderingContext.setScale(...v.scale);
-    this.renderingContext.setTranslation(...v.translation);
+    this.renderingContext.setTranslation(...v.model.translation);
+    this.renderingContext.setRotation(...v.model.rotation);
+    this.renderingContext.setScale(...v.model.scale);
 
     this.renderingContext._renderer.reset();
 }
