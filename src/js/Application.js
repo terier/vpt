@@ -289,13 +289,13 @@ deserializeView(v) {
 }
 
 randomizeCamera() {
-    const x = Math.random() * Math.PI * 2;
+    const x = Math.acos(Math.random() * 2 - 1);
     const y = Math.random() * Math.PI * 2;
     this.renderingContext.setRotation(x, y, 0);
 }
 
 samplePoint() {
-    console.log(this.renderingContext.getRenderer().samplePoint());
+    return this.renderingContext.getRenderer().samplePoint();
 }
 
 }
