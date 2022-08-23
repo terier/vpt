@@ -77,6 +77,10 @@ async readModality(modalityName) {
     this.ready = true;
 }
 
+async load() {
+    await this.readModality('default');
+}
+
 _typize(data, type) {
     const gl = this._gl;
     switch (type) {

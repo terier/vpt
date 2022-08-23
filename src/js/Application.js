@@ -305,4 +305,89 @@ samplePoint() {
     return this.renderingContext.getRenderer().samplePoint();
 }
 
+async run() {
+    let currentFileName = null;
+
+    // I'm going to hell for this ...
+    alert('First choose the JSON with tests, then choose the directory with volumes, then choose the output directory');
+
+    const [testsHandle] = await window.showOpenFilePicker();
+    const testsFile = await testsHandle.getFile();
+    const tests = JSON.parse(await testsFile.text());
+
+    const inputFiles = {};
+    const inputDirectory = await window.showDirectoryPicker();
+    for await (const [name, handle] of inputDirectory.entries()) {
+        inputFiles[name] = await handle.getFile();
+    }
+
+    const outputDirectory = await window.showDirectoryPicker();
+
+    for (const test of tests) {
+        this.renderingContext.setResolution(test.resolution);
+
+        // setup renderer
+        this.renderingContext.chooseRenderer(test.renderer);
+        const renderer = this.renderingContext.getRenderer();
+        for (const setting in test.rendererSettings) {
+            renderer[setting] = test.rendererSettings[setting];
+        }
+
+        // setup tonemapper
+        this.renderingContext.chooseToneMapper(test.tonemapper);
+        const tonemapper = this.renderingContext.getToneMapper();
+        for (const setting in test.tonemapperSettings) {
+            tonemapper[setting] = test.tonemapperSettings[setting];
+        }
+
+        // setup camera
+        const camera = this.renderingContext.getCamera();
+        for (const setting in test.cameraSettings) {
+            camera[setting] = test.cameraSettings[setting];
+        }
+
+        // setup model
+        const { translation, rotation, scale } = test;
+        this.renderingContext.setTranslation(...translation);
+        this.renderingContext.setRotation(...rotation);
+        this.renderingContext.setScale(...scale);
+
+        // setup input data (skip if the same data)
+        if (test.data.fileName !== currentFileName) {
+            currentFileName = test.data.fileName;
+            const file = inputFiles[currentFileName];
+            const loaderClass = LoaderFactory('blob');
+            const readerClass = ReaderFactory('bvp');
+            const loader = new loaderClass(file);
+            const reader = new readerClass(loader);
+            await this.renderingContext.setVolume(test.data.type, reader);
+        }
+
+        // setup conductor groups?
+
+        // setup transfer function
+        //if (test.transferFunctionSettings) {
+            // TODO
+        //}
+
+        // generate images
+        function pad(number, length) {
+            const string = String(number);
+            const remaining = length - string.length;
+            const padding = new Array(remaining).fill('0').join('');
+            return padding + string;
+        }
+        const directoryName = `test${pad(tests.indexOf(test), 4)}`;
+        const directory = await outputDirectory.getDirectoryHandle(directoryName, { create: true });
+        await this.renderingContext.recordAnimationToImageSequence({
+            directory,
+            startTime: 0,
+            endTime: 1,
+            fps: 60,
+            frameTime: 0.5,
+            ...test.animationOptions,
+        });
+    }
+}
+
 }

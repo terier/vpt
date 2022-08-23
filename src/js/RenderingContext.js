@@ -129,8 +129,12 @@ resize(width, height) {
     this._camera.resize(width, height);
 }
 
-async setVolume(reader) {
-    this._volume = new ConductorVolume(this._gl, reader);
+async setVolume(type, reader) {
+    if (type === 'conductor') {
+        this._volume = new ConductorVolume(this._gl, reader);
+    } else if (type === 'normal') {
+        this._volume = new Volume(this._gl, reader);
+    }
     this._volume.addEventListener('progress', e => {
         this.dispatchEvent(new CustomEvent('progress', { detail: e.detail }));
     });
@@ -207,6 +211,10 @@ getRenderer() {
 
 getToneMapper() {
     return this._toneMapper;
+}
+
+getCamera() {
+    return this._camera;
 }
 
 _updateMvpInverseMatrix() {
