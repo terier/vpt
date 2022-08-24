@@ -1,0 +1,108 @@
+#!/usr/bin/env node
+
+const fs = require('fs');
+
+const files = [
+    'mitos.bvp',
+    'fibers.bvp',
+    'blender.bvp',
+    'manix.bvp',
+];
+
+const orientations = new Array(10).fill(0).map(_ => [
+    Math.acos(Math.random() * 2 - 1),
+    Math.random() * Math.PI * 2,
+    0,
+]);
+
+const renderers = [
+    {
+        renderer: 'mip',
+        settings: {
+            steps: 256,
+        },
+    },
+    {
+        renderer: 'iso',
+        settings: {
+            steps: 256,
+        },
+    },
+    {
+        renderer: 'eam',
+        settings: {
+            extinction: 100,
+            slices: 1024,
+        },
+    },
+    {
+        renderer: 'dos',
+        settings: {
+            extinction: 100,
+            slices: 1024,
+            steps: 128,
+        },
+    },
+    {
+        renderer: 'mcm',
+        settings: {
+            extinction: 100,
+            steps: 64,
+        },
+    },
+];
+
+const tonemappers = [
+    {
+        renderer: 'artistic',
+        settings: {
+            gamma: 1,
+        },
+    },
+];
+
+const cameras = [
+    {
+        near: 0.1,
+        far: 3,
+    },
+];
+
+function cartesian(...lists) {
+    if (lists.length === 0) {
+        return [];
+    } else if (lists.length === 1) {
+        return lists[0];
+    } else if (lists.length === 2) {
+        return lists[0].flatMap(x => lists[1].map(y => [x, y]));
+    } else {
+        const recursive = cartesian(...lists.slice(1));
+        return lists[0].flatMap(x => recursive.map(y => [x, ...y]));
+    }
+}
+
+const tests = cartesian(
+    files,
+    orientations,
+    renderers,
+    tonemappers,
+    cameras,
+).map(([
+    file,
+    orientation,
+    renderer,
+    tonemapper,
+    camera,
+]) => ({
+    data: file,
+    translation: [0, 0, 0],
+    rotation: orientation,
+    scale: data === 'fibers.bvp' ? [2, 1, 1] : [1, 1, 1],
+    renderer: renderer.type,
+    rendererSettings: renderer.settings,
+    tonemapper: tonemapper.type,
+    tonemapperSettings: tonemapper.settings,
+    cameraSettings: camera,
+}));
+
+console.log(JSON.stringify(tests, true, 2));
