@@ -29,7 +29,7 @@ constructor(options) {
     this._webglcontextrestoredHandler = this._webglcontextrestoredHandler.bind(this);
 
     Object.assign(this, {
-        _resolution : 512,
+        _resolution : 1024,
         _filter     : 'linear'
     }, options);
 
@@ -42,19 +42,18 @@ constructor(options) {
     this._initGL();
 
     this._camera = new Camera();
-    this._camera.position.z = 1.5;
-    this._camera.fovX = 0.3;
-    this._camera.fovY = 0.3;
-    this._camera.near = 0.2;
-    this._camera.far = 3;
+    this._camera.position.z = 3;
+    this._camera.zoomFactor = 0.0003;
+    this._camera.near = 1;
+    this._camera.far = 5;
 
-    //this._cameraAnimator = new CircleAnimator(this._camera, {
-    //    center: new Vector(0, 0, 2),
-    //    direction: new Vector(0, 0, 1),
-    //    radius: 0.01,
-    //    frequency: 1,
-    //});
-    this._cameraAnimator = new OrbitCameraAnimator(this._camera, this._canvas);
+    this._cameraAnimator = new CircleAnimator(this._camera, {
+        center: new Vector(0, 0, 3),
+        direction: new Vector(0, 0, 1),
+        radius: 0.03,
+        frequency: 1,
+    });
+    //this._cameraAnimator = new OrbitCameraAnimator(this._camera, this._canvas);
 
     this._volume = new Volume(this._gl);
     this._scale = new Vector(1, 1, 1);

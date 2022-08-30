@@ -5,7 +5,7 @@ const fs = require('fs');
 const files = [
     'mitos.bvp',
     'fibers.bvp',
-    'blender.bvp',
+    'shards.bvp',
     'manix.bvp',
 ];
 
@@ -17,34 +17,34 @@ const orientations = new Array(10).fill(0).map(_ => [
 
 const renderers = [
     {
-        renderer: 'mip',
+        type: 'mip',
         settings: {
             steps: 256,
         },
     },
     {
-        renderer: 'iso',
+        type: 'iso',
         settings: {
             steps: 256,
         },
     },
     {
-        renderer: 'eam',
+        type: 'eam',
         settings: {
             extinction: 100,
             slices: 1024,
         },
     },
     {
-        renderer: 'dos',
+        type: 'dos',
         settings: {
             extinction: 100,
             slices: 1024,
-            steps: 128,
+            steps: 1024,
         },
     },
     {
-        renderer: 'mcm',
+        type: 'mcm',
         settings: {
             extinction: 100,
             steps: 64,
@@ -54,7 +54,7 @@ const renderers = [
 
 const tonemappers = [
     {
-        renderer: 'artistic',
+        type: 'artistic',
         settings: {
             gamma: 1,
         },
@@ -63,8 +63,14 @@ const tonemappers = [
 
 const cameras = [
     {
-        near: 0.1,
-        far: 3,
+        near: 1,
+        far: 5,
+        zoomFactor: 0.0003,
+    },
+    {
+        near: 1,
+        far: 5,
+        zoomFactor: 0.0004,
     },
 ];
 
@@ -86,23 +92,24 @@ const tests = cartesian(
     orientations,
     renderers,
     tonemappers,
-    cameras,
 ).map(([
     file,
     orientation,
     renderer,
     tonemapper,
-    camera,
 ]) => ({
-    data: file,
+    fileName: file,
+    fileType: file === 'manix.bvp' ? 'normal' : 'conductor',
     translation: [0, 0, 0],
     rotation: orientation,
-    scale: data === 'fibers.bvp' ? [2, 1, 1] : [1, 1, 1],
+    scale: file === 'fibers.bvp' ? [1, 1, 2] : [1, 1, 1],
     renderer: renderer.type,
     rendererSettings: renderer.settings,
     tonemapper: tonemapper.type,
     tonemapperSettings: tonemapper.settings,
-    cameraSettings: camera,
+    cameraSettings: file === 'fibers.bvp' ? cameras[1] : cameras[0],
+    frameTime: renderer.type === 'mcm' ? 30 : 0.2,
+    resolution: 1024,
 }));
 
 console.log(JSON.stringify(tests, true, 2));

@@ -213,7 +213,7 @@ _handleVolumeLoad(e) {
                 bits   : options.precision,
             });
             this.renderingContext.stopRendering();
-            this.renderingContext.setVolume(reader);
+            this.renderingContext.setVolume('conductor', reader);
         }
     } else if (options.type === 'url') {
         const readerClass = ReaderFactory(options.filetype);
@@ -222,7 +222,7 @@ _handleVolumeLoad(e) {
             const loader = new loaderClass(options.url);
             const reader = new readerClass(loader);
             this.renderingContext.stopRendering();
-            this.renderingContext.setVolume(reader);
+            this.renderingContext.setVolume('conductor', reader);
         }
     }
 }
@@ -345,6 +345,8 @@ async run() {
         for (const setting in test.cameraSettings) {
             camera[setting] = test.cameraSettings[setting];
         }
+        camera.resize(test.resolution, test.resolution);
+        camera.updateMatrices();
 
         // setup model
         const { translation, rotation, scale } = test;
@@ -353,14 +355,14 @@ async run() {
         this.renderingContext.setScale(...scale);
 
         // setup input data (skip if the same data)
-        if (test.data.fileName !== currentFileName) {
-            currentFileName = test.data.fileName;
+        if (test.fileName !== currentFileName) {
+            currentFileName = test.fileName;
             const file = inputFiles[currentFileName];
             const loaderClass = LoaderFactory('blob');
             const readerClass = ReaderFactory('bvp');
             const loader = new loaderClass(file);
             const reader = new readerClass(loader);
-            await this.renderingContext.setVolume(test.data.type, reader);
+            await this.renderingContext.setVolume(test.fileType, reader);
         }
 
         // setup conductor groups?
@@ -383,9 +385,8 @@ async run() {
             directory,
             startTime: 0,
             endTime: 1,
-            fps: 60,
-            frameTime: 0.5,
-            ...test.animationOptions,
+            fps: 30,
+            frameTime: test.frameTime,
         });
     }
 }
