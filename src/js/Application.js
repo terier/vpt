@@ -124,6 +124,7 @@ constructor() {
     this._handleToneMapperChange();
 
     this.mainDialog.addEventListener('recordanimation', this._handleRecordAnimation);
+    this.mainDialog.addEventListener('generateTests', e => this.generateTests());
 }
 
 async _handleRecordAnimation(e) {
@@ -305,11 +306,8 @@ samplePoint() {
     return this.renderingContext.getRenderer().samplePoint();
 }
 
-async run() {
+async generateTests() {
     let currentFileName = null;
-
-    // I'm going to hell for this ...
-    alert('First choose the JSON with tests, then choose the directory with volumes, then choose the output directory');
 
     const [testsHandle] = await window.showOpenFilePicker();
     const testsFile = await testsHandle.getFile();
@@ -365,12 +363,19 @@ async run() {
             await this.renderingContext.setVolume(test.fileType, reader);
         }
 
-        // setup conductor groups?
-
-        // setup transfer function
-        //if (test.transferFunctionSettings) {
-            // TODO
-        //}
+        // setup conductor groups or transfer function
+        if (test.fileType === 'conductor') {
+            const volume = this.renderingContext._volume;
+            volume.groups = test.groups;
+            volume.updateInstanceGroupAssignments();
+            volume.updateInstanceMaskValues();
+            volume.updateMask();
+            volume.smoothMask();
+            volume.updateTransferFunction();
+            renderer.setTransferFunction(volume.getTransferFunction());
+        } else if (test.fileType === 'normal') {
+            renderer.setTransferFunction(test.transferFunction);
+        }
 
         // generate images
         function pad(number, length) {

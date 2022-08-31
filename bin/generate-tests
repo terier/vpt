@@ -26,6 +26,7 @@ const renderers = [
         type: 'iso',
         settings: {
             steps: 256,
+            isovalue: 0.5,
         },
     },
     {
@@ -41,6 +42,7 @@ const renderers = [
             extinction: 100,
             slices: 1024,
             steps: 1024,
+            aperture: 50,
         },
     },
     {
@@ -56,7 +58,7 @@ const tonemappers = [
     {
         type: 'artistic',
         settings: {
-            gamma: 1,
+            gamma: 2.2,
         },
     },
 ];
@@ -73,6 +75,69 @@ const cameras = [
         zoomFactor: 0.0004,
     },
 ];
+
+function hex2rgb(str) {
+    return [
+        parseInt(str.substring(1, 3), 16) / 255,
+        parseInt(str.substring(3, 5), 16) / 255,
+        parseInt(str.substring(5, 7), 16) / 255,
+    ];
+}
+
+const groups = [
+    {
+        color: [...hex2rgb('#38e4ff'), 1],
+        density: 1,
+        sharpness: 1,
+        predicates: [{
+            attribute: 'random',
+            operation: '<=',
+            value: 0.2,
+        }],
+    },
+    {
+        color: [...hex2rgb('#53de31'), 1],
+        density: 1,
+        sharpness: 1,
+        predicates: [{
+            attribute: 'random',
+            operation: '<=',
+            value: 0.4,
+        }],
+    },
+    {
+        color: [...hex2rgb('#f5cc43'), 1],
+        density: 1,
+        sharpness: 1,
+        predicates: [{
+            attribute: 'random',
+            operation: '<=',
+            value: 0.6,
+        }],
+    },
+    {
+        color: [...hex2rgb('#de4f31'), 1],
+        density: 1,
+        sharpness: 1,
+        predicates: [{
+            attribute: 'random',
+            operation: '<=',
+            value: 0.8,
+        }],
+    },
+    {
+        color: [...hex2rgb('#b542fc'), 1],
+        density: 1,
+        sharpness: 1,
+        predicates: [{
+            attribute: 'random',
+            operation: '<=',
+            value: 1,
+        }],
+    },
+];
+
+const transferFunction = 'TODO';
 
 function cartesian(...lists) {
     if (lists.length === 0) {
@@ -110,6 +175,8 @@ const tests = cartesian(
     cameraSettings: file === 'fibers.bvp' ? cameras[1] : cameras[0],
     frameTime: renderer.type === 'mcm' ? 30 : 0.2,
     resolution: 1024,
+    groups,
+    transferFunction,
 }));
 
 console.log(JSON.stringify(tests, true, 2));

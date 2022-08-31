@@ -27,6 +27,7 @@ constructor() {
     this.binds.about.appendChild(about);
 
     this.binds.record.addEventListener('click', this._handleRecordAnimation);
+    this.binds.generateTests.addEventListener('click', e => this.dispatchEvent(new Event('generateTests')));
 }
 
 getVolumeLoadContainer() {

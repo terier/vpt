@@ -10,6 +10,16 @@
                 <ui-accordion bind="envmapLoadContainer">
                     <span slot="label">Environment</span>
                 </ui-accordion>
+                <ui-accordion>
+                    <span slot="label">Tests</span>
+                    <ol>
+                        <li>Choose the tests JSON file (generated with bin/generate-tests)</li>
+                        <li>Choose the folder with input BVPs</li>
+                        <li>Choose the output folder for generated images</li>
+                        <li>Confirm everything</li>
+                    </ol>
+                    <button bind="generateTests">Generate tests</button>
+                </ui-accordion>
             </div>
 
             <div slot="header">Settings</div>

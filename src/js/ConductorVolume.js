@@ -184,12 +184,15 @@ parseAttributes(attributes) {
     const header = lines[0];
     const instances = lines.slice(1).map(line => line.map(entry => Number(entry)));
     const zip = rows => rows[0].map((_, i) => rows.map(row => row[i]));
-    this.attributes = header;
+    this.attributes = [...header, 'random'];
     this.instances = instances.map(attributes => ({
         group: 1,
         opacity: 1,
         random: Math.random(),
-        attributes: Object.fromEntries(zip([header, attributes]))
+        attributes: {
+            ...Object.fromEntries(zip([header, attributes])),
+            random: Math.random(),
+        },
     }));
 }
 
