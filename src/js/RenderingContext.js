@@ -12,6 +12,7 @@ import { RendererFactory } from './renderers/RendererFactory.js';
 import { ToneMapperFactory } from './tonemappers/ToneMapperFactory.js';
 
 import { CircleAnimator } from './animators/CircleAnimator.js';
+import { CircleFocusAnimator } from './animators/CircleFocusAnimator.js';
 import { OrbitCameraAnimator } from './animators/OrbitCameraAnimator.js';
 
 const [ SHADERS, MIXINS ] = await Promise.all([
@@ -47,10 +48,18 @@ constructor(options) {
     this._camera.near = 1;
     this._camera.far = 5;
 
-    this._cameraAnimator = new CircleAnimator(this._camera, {
-        center: new Vector(0, 0, 3),
-        direction: new Vector(0, 0, 1),
-        radius: 0.03,
+    //this._cameraAnimator = new CircleAnimator(this._camera, {
+    //    center: new Vector(0, 0, 3),
+    //    direction: new Vector(0, 0, 1),
+    //    radius: 0.03,
+    //    frequency: 1,
+    //});
+    this._cameraAnimator = new CircleFocusAnimator(this._camera, {
+        focus: new Vector(0, 0, 0),
+        displacement: new Vector(0, 0, 3),
+        up: new Vector(0, 1, 0),
+        coneAngle: 0.2,
+        phase: 0,
         frequency: 1,
     });
     //this._cameraAnimator = new OrbitCameraAnimator(this._camera, this._canvas);
