@@ -137,7 +137,9 @@ resize(width, height) {
     this._camera.resize(width, height);
 }
 
-async setVolume(type, reader) {
+async setVolume(reader) {
+    const metadata = await reader.readMetadata();
+    const type = metadata.modalities.find(m => m.name === 'id') ? 'conductor' : 'normal';
     if (type === 'conductor') {
         this._volume = new ConductorVolume(this._gl, reader);
     } else if (type === 'normal') {
@@ -147,9 +149,11 @@ async setVolume(type, reader) {
         this.dispatchEvent(new CustomEvent('progress', { detail: e.detail }));
     });
     await this._volume.load();
-    this.dispatchEvent(new CustomEvent('attributechange', {
-        detail: [...this._volume.attributes]
-    }));
+    if (type === 'conductor') {
+        this.dispatchEvent(new CustomEvent('attributechange', {
+            detail: [...this._volume.attributes]
+        }));
+    }
     this._volume.setFilter(this._filter);
     if (this._renderer) {
         this._renderer.setVolume(this._volume);

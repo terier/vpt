@@ -214,7 +214,7 @@ _handleVolumeLoad(e) {
                 bits   : options.precision,
             });
             this.renderingContext.stopRendering();
-            this.renderingContext.setVolume('conductor', reader);
+            this.renderingContext.setVolume(reader);
         }
     } else if (options.type === 'url') {
         const readerClass = ReaderFactory(options.filetype);
@@ -223,7 +223,7 @@ _handleVolumeLoad(e) {
             const loader = new loaderClass(options.url);
             const reader = new readerClass(loader);
             this.renderingContext.stopRendering();
-            this.renderingContext.setVolume('conductor', reader);
+            this.renderingContext.setVolume(reader);
         }
     }
 }
@@ -360,7 +360,7 @@ async generateTests() {
             const readerClass = ReaderFactory('bvp');
             const loader = new loaderClass(file);
             const reader = new readerClass(loader);
-            await this.renderingContext.setVolume(test.fileType, reader);
+            await this.renderingContext.setVolume(reader);
         }
 
         // setup conductor groups or transfer function
