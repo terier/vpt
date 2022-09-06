@@ -43,8 +43,9 @@ constructor(options) {
     this._initGL();
 
     this._camera = new Camera();
-    this._camera.position.z = 3;
-    this._camera.zoomFactor = 0.0003;
+    this._camera.position.set(0, -3, 0, 1);
+    this._camera.rotation.set(1, 0, 0, -Math.PI / 2).fromAxisAngle();
+    this._camera.zoomFactor = 0.00025;
     this._camera.near = 1;
     this._camera.far = 5;
 
@@ -56,11 +57,11 @@ constructor(options) {
     //});
     this._cameraAnimator = new CircleFocusAnimator(this._camera, {
         focus: new Vector(0, 0, 0),
-        displacement: new Vector(0, 0, 3),
-        up: new Vector(0, 1, 0),
-        coneAngle: 0.2,
+        displacement: new Vector(0, -3, 0),
+        up: new Vector(0, 0, 1),
+        coneAngle: 0.1,
         phase: 0,
-        frequency: 1,
+        frequency: 0.75,
     });
     //this._cameraAnimator = new OrbitCameraAnimator(this._camera, this._canvas);
 

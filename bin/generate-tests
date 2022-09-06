@@ -27,6 +27,7 @@ const renderers = [
         settings: {
             steps: 256,
             isovalue: 0.5,
+            light: [2, 3, -2],
         },
     },
     {
@@ -67,7 +68,7 @@ const cameras = [
     {
         near: 1,
         far: 5,
-        zoomFactor: 0.0003,
+        zoomFactor: 0.00025,
     },
     {
         near: 1,
@@ -152,6 +153,14 @@ function cartesian(...lists) {
     }
 }
 
+function renderer(file, renderer) {
+    if (file !== 'manix.bvp') {
+        if (renderer === 'iso') return 'isoconductor';
+        if (renderer === 'mip') return 'mipconductor';
+    }
+    return renderer;
+}
+
 const tests = cartesian(
     files,
     orientations,
@@ -168,12 +177,12 @@ const tests = cartesian(
     translation: [0, 0, 0],
     rotation: orientation,
     scale: file === 'fibers.bvp' ? [1, 1, 2] : [1, 1, 1],
-    renderer: renderer.type,
+    renderer: renderer(file, renderer.type),
     rendererSettings: renderer.settings,
     tonemapper: tonemapper.type,
     tonemapperSettings: tonemapper.settings,
     cameraSettings: file === 'fibers.bvp' ? cameras[1] : cameras[0],
-    frameTime: renderer.type === 'mcm' ? 30 : 0.2,
+    frameTime: renderer.type === 'mcm' ? 20 : 0.2,
     resolution: 1024,
     groups,
     transferFunction,

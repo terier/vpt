@@ -30,7 +30,7 @@ constructor(gl, volume, environmentTexture, options) {
             name: 'threshold',
             label: 'Threshold',
             type: 'slider',
-            value: 0.1,
+            value: 0.5,
             min: 0,
             max: 1,
         },

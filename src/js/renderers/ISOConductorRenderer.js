@@ -32,7 +32,7 @@ constructor(gl, volume, environmentTexture, options) {
             name: 'light',
             label: 'Light direction',
             type: 'vector-spinner',
-            value: [ 0, 0, -1 ],
+            value: [ 2, 3, -2 ],
         },
         {
             name: 'color',
