@@ -153,14 +153,6 @@ function cartesian(...lists) {
     }
 }
 
-function renderer(file, renderer) {
-    if (file !== 'manix.bvp') {
-        if (renderer === 'iso') return 'isoconductor';
-        if (renderer === 'mip') return 'mipconductor';
-    }
-    return renderer;
-}
-
 const tests = cartesian(
     files,
     orientations,
@@ -177,7 +169,7 @@ const tests = cartesian(
     translation: [0, 0, 0],
     rotation: orientation,
     scale: file === 'fibers.bvp' ? [1, 1, 2] : [1, 1, 1],
-    renderer: renderer(file, renderer.type),
+    renderer: renderer.type,
     rendererSettings: renderer.settings,
     tonemapper: tonemapper.type,
     tonemapperSettings: tonemapper.settings,

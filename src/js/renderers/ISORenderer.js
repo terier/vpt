@@ -40,6 +40,12 @@ constructor(gl, volume, environmentTexture, options) {
             type: 'color-chooser',
             value: '#ffffff',
         },
+        {
+            name: 'transferFunction',
+            label: 'Transfer function',
+            type: 'transfer-function',
+            value: new Uint8Array(256),
+        },
     ]);
 
     this.addEventListener('change', e => {
@@ -47,6 +53,7 @@ constructor(gl, volume, environmentTexture, options) {
 
         if ([
             'isovalue',
+            'transferFunction',
         ].includes(name)) {
             this.reset();
         }
@@ -83,9 +90,12 @@ _generateFrame() {
     gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[0]);
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
 
     gl.uniform1i(uniforms.uClosest, 0);
     gl.uniform1i(uniforms.uVolume, 1);
+    gl.uniform1i(uniforms.uTransferFunction, 2);
     gl.uniform1f(uniforms.uStepSize, 1 / this.steps);
     gl.uniform1f(uniforms.uOffset, Math.random());
     gl.uniform1f(uniforms.uIsovalue, this.isovalue);

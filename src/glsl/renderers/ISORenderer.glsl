@@ -27,6 +27,7 @@ precision mediump float;
 
 uniform mediump sampler2D uClosest;
 uniform mediump sampler3D uVolume;
+uniform mediump sampler2D uTransferFunction;
 uniform float uStepSize;
 uniform float uOffset;
 uniform float uIsovalue;
@@ -39,6 +40,12 @@ out vec4 oClosest;
 
 // #link /glsl/mixins/intersectCube
 @intersectCube
+
+vec4 sampleVolumeColor(vec3 position) {
+    vec2 volumeSample = texture(uVolume, position).rg;
+    vec4 transferSample = texture(uTransferFunction, volumeSample);
+    return transferSample;
+}
 
 void main() {
     vec3 rayDirection = vRayTo - vRayFrom;
@@ -61,7 +68,7 @@ void main() {
         bool found = false;
         do {
             pos = mix(from.xyz, to.xyz, offset);
-            value = texture(uVolume, pos).r;
+            value = sampleVolumeColor(pos).a;
             if (value >= uIsovalue) {
                 tbounds.y = mix(from.w, to.w, offset);
                 to = vec4(mix(vRayFrom, vRayTo, tbounds.y), tbounds.y);

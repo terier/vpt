@@ -19,8 +19,6 @@ export function RendererFactory(which) {
         case 'mcm': return MCMRenderer;
         case 'dos': return DOSRenderer;
         case 'depth': return DepthRenderer;
-        case 'mipconductor': return MIPConductorRenderer;
-        case 'isoconductor': return ISOConductorRenderer;
 
         default: throw new Error('No suitable class');
     }
