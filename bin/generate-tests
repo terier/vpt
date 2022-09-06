@@ -138,7 +138,7 @@ const groups = [
     },
 ];
 
-const transferFunction = 'TODO';
+const transferFunction = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
 
 function cartesian(...lists) {
     if (lists.length === 0) {
@@ -165,7 +165,6 @@ const tests = cartesian(
     tonemapper,
 ]) => ({
     fileName: file,
-    fileType: file === 'manix.bvp' ? 'normal' : 'conductor',
     translation: [0, 0, 0],
     rotation: orientation,
     scale: file === 'fibers.bvp' ? [1, 1, 2] : [1, 1, 1],
@@ -174,10 +173,10 @@ const tests = cartesian(
     tonemapper: tonemapper.type,
     tonemapperSettings: tonemapper.settings,
     cameraSettings: file === 'fibers.bvp' ? cameras[1] : cameras[0],
-    frameTime: renderer.type === 'mcm' ? 20 : 0.2,
+    frameTime: renderer.type === 'mcm' ? 20 : 0.1,
     resolution: 1024,
-    groups,
-    transferFunction,
+    groups: file !== 'manix.bvp' ? groups : [],
+    transferFunction: file === 'manix.bvp' ? transferFunction : [],
 }));
 
 console.log(JSON.stringify(tests, true, 2));
