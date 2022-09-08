@@ -61,7 +61,7 @@ constructor(options) {
         up: new Vector(0, 0, 1),
         coneAngle: 0.1,
         phase: 0,
-        frequency: 0.75,
+        frequency: 1,
     });
     //this._cameraAnimator = new OrbitCameraAnimator(this._camera, this._canvas);
 

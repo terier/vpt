@@ -325,23 +325,23 @@ async generateTests() {
         this.renderingContext.setResolution(test.resolution);
 
         // setup renderer
-        this.renderingContext.chooseRenderer(test.renderer);
+        this.renderingContext.chooseRenderer(test.renderer.type);
         const renderer = this.renderingContext.getRenderer();
-        for (const setting in test.rendererSettings) {
-            renderer[setting] = test.rendererSettings[setting];
+        for (const setting in test.renderer.settings) {
+            renderer[setting] = test.renderer.settings[setting];
         }
 
         // setup tonemapper
-        this.renderingContext.chooseToneMapper(test.tonemapper);
+        this.renderingContext.chooseToneMapper(test.tonemapper.type);
         const tonemapper = this.renderingContext.getToneMapper();
-        for (const setting in test.tonemapperSettings) {
-            tonemapper[setting] = test.tonemapperSettings[setting];
+        for (const setting in test.tonemapper.settings) {
+            tonemapper[setting] = test.tonemapper.settings[setting];
         }
 
         // setup camera
         const camera = this.renderingContext.getCamera();
-        for (const setting in test.cameraSettings) {
-            camera[setting] = test.cameraSettings[setting];
+        for (const setting in test.camera) {
+            camera[setting] = test.camera[setting];
         }
         camera.resize(test.resolution, test.resolution);
         camera.updateMatrices();

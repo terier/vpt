@@ -2,14 +2,14 @@
 
 const fs = require('fs');
 
-const files = [
+const fileNames = [
     'mitos.bvp',
     'fibers.bvp',
     'shards.bvp',
     'manix.bvp',
 ];
 
-const orientations = new Array(10).fill(0).map(_ => [
+const rotations = new Array(10).fill(0).map(_ => [
     Math.acos(Math.random() * 2 - 1),
     Math.random() * Math.PI * 2,
     0,
@@ -33,14 +33,14 @@ const renderers = [
     {
         type: 'eam',
         settings: {
-            extinction: 100,
+            extinction: 256,
             slices: 1024,
         },
     },
     {
         type: 'dos',
         settings: {
-            extinction: 100,
+            extinction: 256,
             slices: 1024,
             steps: 1024,
             aperture: 50,
@@ -49,8 +49,16 @@ const renderers = [
     {
         type: 'mcm',
         settings: {
-            extinction: 100,
-            steps: 64,
+            extinction: 256,
+            anisotropy: -0.8,
+            steps: 128,
+        },
+    },
+    {
+        type: 'depth',
+        settings: {
+            extinction: 256,
+            slices: 1024,
         },
     },
 ];
@@ -60,6 +68,12 @@ const tonemappers = [
         type: 'artistic',
         settings: {
             gamma: 2.2,
+        },
+    },
+    {
+        type: 'artistic',
+        settings: {
+            gamma: 1,
         },
     },
 ];
@@ -154,29 +168,33 @@ function cartesian(...lists) {
 }
 
 const tests = cartesian(
-    files,
-    orientations,
+    fileNames,
+    rotations,
     renderers,
-    tonemappers,
 ).map(([
-    file,
-    orientation,
+    fileName,
+    rotation,
     renderer,
-    tonemapper,
-]) => ({
-    fileName: file,
-    translation: [0, 0, 0],
-    rotation: orientation,
-    scale: file === 'fibers.bvp' ? [1, 1, 2] : [1, 1, 1],
-    renderer: renderer.type,
-    rendererSettings: renderer.settings,
-    tonemapper: tonemapper.type,
-    tonemapperSettings: tonemapper.settings,
-    cameraSettings: file === 'fibers.bvp' ? cameras[1] : cameras[0],
-    frameTime: renderer.type === 'mcm' ? 20 : 0.1,
-    resolution: 1024,
-    groups: file !== 'manix.bvp' ? groups : [],
-    transferFunction: file === 'manix.bvp' ? transferFunction : [],
-}));
+]) => {
+    const camera = fileName === 'fibers.bvp' ? cameras[1] : cameras[0];
+    const tonemapper = renderer.type === 'depth' ? tonemappers[1] : tonemappers[0];
+    for (const group of groups) {
+        group.density = fileName === 'shards.bvp' ? 0.2 : 1;
+    }
+    return {
+        fileName,
+        fileType: fileName === 'manix.bvp' ? 'normal' : 'conductor',
+        translation: [0, 0, 0],
+        rotation,
+        scale: fileName === 'fibers.bvp' ? [1, 1, 2] : [1, 1, 1],
+        renderer,
+        tonemapper,
+        camera,
+        frameTime: renderer.type === 'mcm' ? 2 : 0.1,
+        resolution: 1024,
+        groups: fileName !== 'manix.bvp' ? groups : [],
+        transferFunction: fileName === 'manix.bvp' ? transferFunction : [],
+    }
+});
 
 console.log(JSON.stringify(tests, true, 2));

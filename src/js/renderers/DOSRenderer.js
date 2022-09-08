@@ -40,7 +40,7 @@ constructor(gl, volume, environmentTexture, options) {
             name: 'aperture',
             label: 'Aperture',
             type: 'spinner',
-            value: 30,
+            value: 50,
             min: 0,
             max: 89,
         },
