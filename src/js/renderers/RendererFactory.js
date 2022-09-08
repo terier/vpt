@@ -6,8 +6,6 @@ import { MCSRenderer } from './MCSRenderer.js';
 import { MCMRenderer } from './MCMRenderer.js';
 import { DOSRenderer } from './DOSRenderer.js';
 import { DepthRenderer } from './DepthRenderer.js';
-import { MIPConductorRenderer } from './MIPConductorRenderer.js';
-import { ISOConductorRenderer } from './ISOConductorRenderer.js';
 
 export function RendererFactory(which) {
     switch (which) {
