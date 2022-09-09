@@ -19,15 +19,15 @@ const renderers = [
     {
         type: 'mip',
         settings: {
-            steps: 256,
+            steps: 1024,
         },
     },
     {
         type: 'iso',
         settings: {
-            steps: 256,
+            steps: 1024,
             isovalue: 0.5,
-            light: [2, 3, -2],
+            light: [2, -3, -5],
         },
     },
     {
