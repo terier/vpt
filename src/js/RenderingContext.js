@@ -158,7 +158,6 @@ async setVolume(reader) {
     this._volume.setFilter(this._filter);
     if (this._renderer) {
         this._renderer.setVolume(this._volume);
-        this.startRendering();
     }
 }
 

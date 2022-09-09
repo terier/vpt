@@ -200,7 +200,7 @@ _handleToneMapperChange() {
     container.appendChild(this.toneMapperDialog);
 }
 
-_handleVolumeLoad(e) {
+async _handleVolumeLoad(e) {
     const options = e.detail;
     if (options.type === 'file') {
         const readerClass = ReaderFactory(options.filetype);
@@ -214,7 +214,8 @@ _handleVolumeLoad(e) {
                 bits   : options.precision,
             });
             this.renderingContext.stopRendering();
-            this.renderingContext.setVolume(reader);
+            await this.renderingContext.setVolume(reader);
+            this.renderingContext.startRendering();
         }
     } else if (options.type === 'url') {
         const readerClass = ReaderFactory(options.filetype);
@@ -223,7 +224,8 @@ _handleVolumeLoad(e) {
             const loader = new loaderClass(options.url);
             const reader = new readerClass(loader);
             this.renderingContext.stopRendering();
-            this.renderingContext.setVolume(reader);
+            await this.renderingContext.setVolume(reader);
+            this.renderingContext.startRendering();
         }
     }
 }
@@ -322,6 +324,7 @@ async generateTests() {
     const outputDirectory = await window.showDirectoryPicker();
 
     for (const test of tests) {
+        this.renderingContext.stopRendering();
         this.renderingContext.setResolution(test.resolution);
 
         // setup renderer
@@ -389,6 +392,7 @@ async generateTests() {
         }
         const directoryName = `test${pad(tests.indexOf(test), 4)}`;
         const directory = await outputDirectory.getDirectoryHandle(directoryName, { create: true });
+        this.renderingContext.startRendering();
         await this.renderingContext.recordAnimationToImageSequence({
             directory,
             startTime: 0,
