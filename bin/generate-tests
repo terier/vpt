@@ -178,8 +178,14 @@ const tests = cartesian(
 ]) => {
     const camera = fileName === 'fibers.bvp' ? cameras[1] : cameras[0];
     const tonemapper = renderer.type === 'depth' ? tonemappers[1] : tonemappers[0];
-    for (const group of groups) {
-        group.density = fileName === 'shards.bvp' ? 0.2 : 1;
+    const groupsCopy = JSON.parse(JSON.stringify(groups));
+    for (const group of groupsCopy) {
+        group.density = {
+            'mitos.bvp'  : 1,
+            'fibers.bvp' : 0.2,
+            'shards.bvp' : 0.1,
+            'manix.bvp'  : 1,
+        }[fileName];
     }
     return {
         fileName,
@@ -192,7 +198,7 @@ const tests = cartesian(
         camera,
         frameTime: renderer.type === 'mcm' ? 2 : 0.1,
         resolution: 1024,
-        groups: fileName !== 'manix.bvp' ? groups : [],
+        groups: fileName !== 'manix.bvp' ? groupsCopy : [],
         transferFunction: fileName === 'manix.bvp' ? transferFunction : [],
     }
 });
