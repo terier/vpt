@@ -374,7 +374,10 @@ async generateTests() {
             volume.updateTransferFunction();
             renderer.setTransferFunction(volume.getTransferFunction());
         } else if (test.fileType === 'normal') {
-            renderer.setTransferFunction(test.transferFunction);
+            const tf = document.createElement('ui-transfer-function');
+            tf.bumps = test.transferFunction;
+            tf.render();
+            renderer.setTransferFunction(tf.value);
         }
 
         // generate images
