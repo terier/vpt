@@ -1,6 +1,8 @@
 import { WebGL } from '../WebGL.js';
 import { AbstractRenderer } from './AbstractRenderer.js';
 import { CommonUtils } from '../utils/CommonUtils.js';
+import { Vector } from '../math/Vector.js';
+import { Matrix } from '../math/Matrix.js';
 
 const [ SHADERS, MIXINS ] = await Promise.all([
     'shaders.json',
@@ -32,7 +34,7 @@ constructor(gl, volume, environmentTexture, options) {
             name: 'light',
             label: 'Light direction',
             type: 'vector-spinner',
-            value: [ 2, 3, -2 ],
+            value: [ 2, -3, -5 ],
         },
         {
             name: 'color',
@@ -135,7 +137,11 @@ _renderFrame() {
 
     gl.uniform1i(uniforms.uClosest, 0);
     gl.uniform1i(uniforms.uVolume, 1);
-    gl.uniform3fv(uniforms.uLight, this.light);
+
+    const rotation = new Matrix().multiply(this.viewMatrix, this.modelMatrix).inverse();
+    const light = new Vector(...this.light, 0);
+    rotation.transform(light);
+    gl.uniform3fv(uniforms.uLight, [light.x, light.y, light.z]);
     gl.uniform3fv(uniforms.uDiffuse, CommonUtils.hex2rgb(this.color));
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
