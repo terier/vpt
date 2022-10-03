@@ -30,7 +30,7 @@ get translation() {
 }
 
 get filter() {
-    return this._binds.filter.isChecked() ? 'linear' : 'nearest';
+    return this._binds.filter.getValue() ? 'linear' : 'nearest';
 }
 
 _handleResolutionChange() {

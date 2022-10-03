@@ -18,7 +18,7 @@ constructor(options) {
     this._element.classList.toggle('checked', this.checked);
 }
 
-isChecked() {
+getValue() {
     return this.checked;
 }
 
