@@ -194,6 +194,7 @@ parseAttributes(attributes) {
             random: Math.random(),
         },
     }));
+    console.log(`Instances: ${this.instances.length - 1}`);
 }
 
 updateInstanceGroupAssignments() {

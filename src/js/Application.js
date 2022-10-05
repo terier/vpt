@@ -125,6 +125,72 @@ constructor() {
 
     this.mainDialog.addEventListener('recordanimation', this._handleRecordAnimation);
     this.mainDialog.addEventListener('generateTests', e => this.generateTests());
+
+    this.mainDialog.binds.runrun.addEventListener('click', async e => {
+        const volume = this.renderingContext._volume;
+        const renderer = this.renderingContext._renderer;
+        const gl = this.renderingContext._gl;
+
+        const ext = gl.getExtension('EXT_disjoint_timer_query_webgl2');
+        const elapsedPrecision = gl.getQuery(ext.TIME_ELAPSED_EXT, ext.QUERY_COUNTER_BITS_EXT);
+        console.log(`Precision: ${elapsedPrecision}`);
+
+        this.renderingContext.stopRendering();
+
+        let minAll = Infinity;
+        let minUpdateInstanceGroupAssignments = Infinity;
+        let minUpdateInstanceMaskValues = Infinity;
+        let minUpdateMask = Infinity;
+        let minSmoothMask = Infinity;
+        let minUpdateTransferFunction = Infinity;
+        let minSetTransferFunction = Infinity;
+
+        for (let n = 0; n < 5; n++) {
+            minAll = Math.min(
+                minAll,
+                await this.testAll());
+        }
+        for (let n = 0; n < 5; n++) {
+            minUpdateInstanceGroupAssignments = Math.min(
+                minUpdateInstanceGroupAssignments,
+                await this.testUpdateInstanceGroupAssignments());
+        }
+        for (let n = 0; n < 5; n++) {
+            minUpdateInstanceMaskValues = Math.min(
+                minUpdateInstanceMaskValues,
+                await this.testUpdateInstanceMaskValues());
+        }
+        for (let n = 0; n < 10; n++) {
+            minUpdateMask = Math.min(
+                minUpdateMask,
+                await this.testUpdateMask());
+        }
+        for (let n = 0; n < 10; n++) {
+            minSmoothMask = Math.min(
+                minSmoothMask,
+                await this.testSmoothMask());
+        }
+        for (let n = 0; n < 5; n++) {
+            minUpdateTransferFunction = Math.min(
+                minUpdateTransferFunction,
+                await this.testUpdateTransferFunction());
+        }
+        for (let n = 0; n < 5; n++) {
+            minSetTransferFunction = Math.min(
+                minSetTransferFunction,
+                await this.testSetTransferFunction());
+        }
+
+        console.log(
+            minAll.toFixed(2),
+            minUpdateInstanceGroupAssignments.toFixed(2),
+            minUpdateInstanceMaskValues.toFixed(2),
+            minUpdateMask.toFixed(2),
+            minSmoothMask.toFixed(2),
+            minUpdateTransferFunction.toFixed(2),
+            minSetTransferFunction.toFixed(2),
+        );
+    });
 }
 
 async _handleRecordAnimation(e) {
@@ -412,6 +478,382 @@ async generateTests() {
             frameTime: test.frameTime,
         });
     }
+}
+
+async testAll() {
+    const volume = this.renderingContext._volume;
+    const renderer = this.renderingContext._renderer;
+    const gl = this.renderingContext._gl;
+
+    const ext = gl.getExtension('EXT_disjoint_timer_query_webgl2');
+
+    gl.finish();
+    gl.getParameter(ext.GPU_DISJOINT_EXT);
+
+    const query = gl.createQuery();
+    gl.beginQuery(ext.TIME_ELAPSED_EXT, query);
+    const start = performance.now();
+
+    const N = 100;
+    for (let i = 0; i < N; i++) {
+        volume.updateInstanceGroupAssignments();
+        volume.updateInstanceMaskValues();
+        volume.updateMask();
+        volume.smoothMask();
+        volume.updateTransferFunction();
+        renderer.setTransferFunction(volume.getTransferFunction());
+    }
+
+    gl.finish();
+    gl.endQuery(ext.TIME_ELAPSED_EXT);
+    const end = performance.now();
+
+    const promise = new Promise((resolve, reject) => {
+        function check() {
+            const available = gl.getQueryParameter(query, gl.QUERY_RESULT_AVAILABLE);
+            const disjoint = gl.getParameter(ext.GPU_DISJOINT_EXT);
+
+            if (disjoint) {
+                reject();
+                gl.deleteQuery(query);
+                return;
+            }
+
+            if (available) {
+                const result = gl.getQueryParameter(query, gl.QUERY_RESULT);
+                resolve(result);
+                gl.deleteQuery(query);
+                return;
+            }
+
+            setTimeout(check, 0);
+        }
+
+        setTimeout(check, 0);
+    });
+
+    const cpuTime = (end - start) / N;
+    const gpuTime = (await promise) / 1_000_000 / N;
+    console.log(`all\nCPU: ${cpuTime.toFixed(2)} ms\nGPU: ${gpuTime.toFixed(2)} ms`);
+    return Math.max(cpuTime, gpuTime);
+}
+
+async testUpdateInstanceGroupAssignments() {
+    const volume = this.renderingContext._volume;
+    const renderer = this.renderingContext._renderer;
+    const gl = this.renderingContext._gl;
+
+    const ext = gl.getExtension('EXT_disjoint_timer_query_webgl2');
+
+    gl.finish();
+    gl.getParameter(ext.GPU_DISJOINT_EXT);
+
+    const query = gl.createQuery();
+    gl.beginQuery(ext.TIME_ELAPSED_EXT, query);
+    const start = performance.now();
+
+    const N = 1000;
+    for (let i = 0; i < N; i++) {
+        volume.updateInstanceGroupAssignments();
+    }
+
+    gl.finish();
+    gl.endQuery(ext.TIME_ELAPSED_EXT);
+    const end = performance.now();
+
+    const promise = new Promise((resolve, reject) => {
+        function check() {
+            const available = gl.getQueryParameter(query, gl.QUERY_RESULT_AVAILABLE);
+            const disjoint = gl.getParameter(ext.GPU_DISJOINT_EXT);
+
+            if (disjoint) {
+                reject();
+                gl.deleteQuery(query);
+                return;
+            }
+
+            if (available) {
+                const result = gl.getQueryParameter(query, gl.QUERY_RESULT);
+                resolve(result);
+                gl.deleteQuery(query);
+                return;
+            }
+
+            setTimeout(check, 0);
+        }
+
+        setTimeout(check, 0);
+    });
+
+    const cpuTime = (end - start) / N;
+    const gpuTime = (await promise) / 1_000_000 / N;
+    console.log(`updateInstanceGroupAssignments\nCPU: ${cpuTime.toFixed(2)} ms\nGPU: ${gpuTime.toFixed(2)} ms`);
+    return Math.max(cpuTime, gpuTime);
+}
+
+async testUpdateInstanceMaskValues() {
+    const volume = this.renderingContext._volume;
+    const renderer = this.renderingContext._renderer;
+    const gl = this.renderingContext._gl;
+
+    const ext = gl.getExtension('EXT_disjoint_timer_query_webgl2');
+
+    gl.finish();
+    gl.getParameter(ext.GPU_DISJOINT_EXT);
+
+    const query = gl.createQuery();
+    gl.beginQuery(ext.TIME_ELAPSED_EXT, query);
+    const start = performance.now();
+
+    const N = 100;
+    for (let i = 0; i < N; i++) {
+        volume.updateInstanceMaskValues();
+    }
+
+    gl.finish();
+    gl.endQuery(ext.TIME_ELAPSED_EXT);
+    const end = performance.now();
+
+    const promise = new Promise((resolve, reject) => {
+        function check() {
+            const available = gl.getQueryParameter(query, gl.QUERY_RESULT_AVAILABLE);
+            const disjoint = gl.getParameter(ext.GPU_DISJOINT_EXT);
+
+            if (disjoint) {
+                reject();
+                gl.deleteQuery(query);
+                return;
+            }
+
+            if (available) {
+                const result = gl.getQueryParameter(query, gl.QUERY_RESULT);
+                resolve(result);
+                gl.deleteQuery(query);
+                return;
+            }
+
+            setTimeout(check, 0);
+        }
+
+        setTimeout(check, 0);
+    });
+
+    const cpuTime = (end - start) / N;
+    const gpuTime = (await promise) / 1_000_000 / N;
+    console.log(`updateInstanceMaskValues\nCPU: ${cpuTime.toFixed(2)} ms\nGPU: ${gpuTime.toFixed(2)} ms`);
+    return Math.max(cpuTime, gpuTime);
+}
+
+async testUpdateMask() {
+    const volume = this.renderingContext._volume;
+    const renderer = this.renderingContext._renderer;
+    const gl = this.renderingContext._gl;
+
+    const ext = gl.getExtension('EXT_disjoint_timer_query_webgl2');
+
+    gl.finish();
+    gl.getParameter(ext.GPU_DISJOINT_EXT);
+
+    const query = gl.createQuery();
+    gl.beginQuery(ext.TIME_ELAPSED_EXT, query);
+    const start = performance.now();
+
+    const N = 100;
+    for (let i = 0; i < N; i++) {
+        volume.updateMask();
+    }
+
+    gl.finish();
+    gl.endQuery(ext.TIME_ELAPSED_EXT);
+    const end = performance.now();
+
+    const promise = new Promise((resolve, reject) => {
+        function check() {
+            const available = gl.getQueryParameter(query, gl.QUERY_RESULT_AVAILABLE);
+            const disjoint = gl.getParameter(ext.GPU_DISJOINT_EXT);
+
+            if (disjoint) {
+                reject();
+                gl.deleteQuery(query);
+                return;
+            }
+
+            if (available) {
+                const result = gl.getQueryParameter(query, gl.QUERY_RESULT);
+                resolve(result);
+                gl.deleteQuery(query);
+                return;
+            }
+
+            setTimeout(check, 0);
+        }
+
+        setTimeout(check, 0);
+    });
+
+    const cpuTime = (end - start) / N;
+    const gpuTime = (await promise) / 1_000_000 / N;
+    console.log(`updateMask\nCPU: ${cpuTime.toFixed(2)} ms\nGPU: ${gpuTime.toFixed(2)} ms`);
+    return Math.max(cpuTime, gpuTime);
+}
+
+async testSmoothMask() {
+    const volume = this.renderingContext._volume;
+    const renderer = this.renderingContext._renderer;
+    const gl = this.renderingContext._gl;
+
+    const ext = gl.getExtension('EXT_disjoint_timer_query_webgl2');
+
+    gl.finish();
+    gl.getParameter(ext.GPU_DISJOINT_EXT);
+
+    const query = gl.createQuery();
+    gl.beginQuery(ext.TIME_ELAPSED_EXT, query);
+    const start = performance.now();
+
+    const N = 50;
+    for (let i = 0; i < N; i++) {
+        volume.smoothMask();
+    }
+
+    gl.finish();
+    gl.endQuery(ext.TIME_ELAPSED_EXT);
+    const end = performance.now();
+
+    const promise = new Promise((resolve, reject) => {
+        function check() {
+            const available = gl.getQueryParameter(query, gl.QUERY_RESULT_AVAILABLE);
+            const disjoint = gl.getParameter(ext.GPU_DISJOINT_EXT);
+
+            if (disjoint) {
+                reject();
+                gl.deleteQuery(query);
+                return;
+            }
+
+            if (available) {
+                const result = gl.getQueryParameter(query, gl.QUERY_RESULT);
+                resolve(result);
+                gl.deleteQuery(query);
+                return;
+            }
+
+            setTimeout(check, 0);
+        }
+
+        setTimeout(check, 0);
+    });
+
+    const cpuTime = (end - start) / N;
+    const gpuTime = (await promise) / 1_000_000 / N;
+    console.log(`smoothMask\nCPU: ${cpuTime.toFixed(2)} ms\nGPU: ${gpuTime.toFixed(2)} ms`);
+    return Math.max(cpuTime, gpuTime);
+}
+
+async testUpdateTransferFunction() {
+    const volume = this.renderingContext._volume;
+    const renderer = this.renderingContext._renderer;
+    const gl = this.renderingContext._gl;
+
+    const ext = gl.getExtension('EXT_disjoint_timer_query_webgl2');
+
+    gl.finish();
+    gl.getParameter(ext.GPU_DISJOINT_EXT);
+
+    const query = gl.createQuery();
+    gl.beginQuery(ext.TIME_ELAPSED_EXT, query);
+    const start = performance.now();
+
+    const N = 1000;
+    for (let i = 0; i < N; i++) {
+        volume.updateTransferFunction();
+    }
+
+    gl.finish();
+    gl.endQuery(ext.TIME_ELAPSED_EXT);
+    const end = performance.now();
+
+    const promise = new Promise((resolve, reject) => {
+        function check() {
+            const available = gl.getQueryParameter(query, gl.QUERY_RESULT_AVAILABLE);
+            const disjoint = gl.getParameter(ext.GPU_DISJOINT_EXT);
+
+            if (disjoint) {
+                reject();
+                gl.deleteQuery(query);
+                return;
+            }
+
+            if (available) {
+                const result = gl.getQueryParameter(query, gl.QUERY_RESULT);
+                resolve(result);
+                gl.deleteQuery(query);
+                return;
+            }
+
+            setTimeout(check, 0);
+        }
+
+        setTimeout(check, 0);
+    });
+
+    const cpuTime = (end - start) / N;
+    const gpuTime = (await promise) / 1_000_000 / N;
+    console.log(`updateTransferFunction\nCPU: ${cpuTime.toFixed(2)} ms\nGPU: ${gpuTime.toFixed(2)} ms`);
+    return Math.max(cpuTime, gpuTime);
+}
+
+async testSetTransferFunction() {
+    const volume = this.renderingContext._volume;
+    const renderer = this.renderingContext._renderer;
+    const gl = this.renderingContext._gl;
+
+    const ext = gl.getExtension('EXT_disjoint_timer_query_webgl2');
+
+    gl.finish();
+    gl.getParameter(ext.GPU_DISJOINT_EXT);
+
+    const query = gl.createQuery();
+    gl.beginQuery(ext.TIME_ELAPSED_EXT, query);
+    const start = performance.now();
+
+    const N = 1000;
+    for (let i = 0; i < N; i++) {
+        renderer.setTransferFunction(volume.getTransferFunction());
+    }
+
+    gl.finish();
+    gl.endQuery(ext.TIME_ELAPSED_EXT);
+    const end = performance.now();
+
+    const promise = new Promise((resolve, reject) => {
+        function check() {
+            const available = gl.getQueryParameter(query, gl.QUERY_RESULT_AVAILABLE);
+            const disjoint = gl.getParameter(ext.GPU_DISJOINT_EXT);
+
+            if (disjoint) {
+                reject();
+                gl.deleteQuery(query);
+                return;
+            }
+
+            if (available) {
+                const result = gl.getQueryParameter(query, gl.QUERY_RESULT);
+                resolve(result);
+                gl.deleteQuery(query);
+                return;
+            }
+
+            setTimeout(check, 0);
+        }
+
+        setTimeout(check, 0);
+    });
+
+    const cpuTime = (end - start) / N;
+    const gpuTime = (await promise) / 1_000_000 / N;
+    console.log(`setTransferFunction\nCPU: ${cpuTime.toFixed(2)} ms\nGPU: ${gpuTime.toFixed(2)} ms`);
+    return Math.max(cpuTime, gpuTime);
 }
 
 }
