@@ -180,6 +180,45 @@ constructor(gl, volume, environmentTexture, options) {
             checked: false,
         },
         {
+            name: 'bloom',
+            label: 'Bloom',
+            type: "checkbox",
+            value: true,
+            checked: true,
+        },
+        {
+            name: 'preExposure',
+            label: 'Pre-Exposure',
+            type: "slider",
+            value: 1,
+            min: 0,
+            max: 5
+        },
+        {
+            name: 'bloomIntensity',
+            label: 'Bloom Intensity',
+            type: "slider",
+            value: 0.7,
+            min: 0,
+            max: 2
+        },
+        {
+            name: 'bloomThreshold',
+            label: 'Bloom Threshold',
+            type: "slider",
+            value: 1.5,
+            min: 0,
+            max: 5
+        },
+        {
+            name: 'bloomKnee',
+            label: 'Bloom Knee',
+            type: "slider",
+            value: 0.9,
+            min: 0,
+            max: 1
+        },
+        {
             name: 'transferFunction',
             label: 'Transfer function',
             type: 'transfer-function',
@@ -216,12 +255,6 @@ constructor(gl, volume, environmentTexture, options) {
         }
     });
 
-    this.addEventListener('change', e => {
-        const { name, value } = e.detail;
-
-
-
-    });
     this._programs = WebGL.buildPrograms(gl, SHADERS.renderers.FLD, MIXINS);
     this.red = 1;
 }
@@ -231,9 +264,13 @@ destroy() {
     if (this._defferedRenderBuffer) {
         this._destroyDeferredRenderBuffer()
     }
+    if (this._combinedRenderBuffer) {
+        this._combinedRenderBuffer.destroy();
+    }
     Object.keys(this._programs).forEach(programName => {
         gl.deleteProgram(this._programs[programName].program);
     });
+    this._destroyBloomBuffers();
     super.destroy();
 }
 
@@ -304,6 +341,7 @@ _rebuildBuffers() {
     this._renderBuffer = new SingleBuffer(gl, this._getRenderBufferSpec());
     if (this.deferred_enabled)
         this._buildDeferredRenderBuffer();
+    this._buildBloomBuffers();
 }
 
 _buildDeferredRenderBuffer() {
@@ -323,6 +361,16 @@ _checkDeferredRendering() {
         this._destroyDeferredRenderBuffer();
 }
 
+_buildBloomBuffers() {
+    const gl = this._gl;
+
+    if (this._combinedRenderBuffer) {
+        this._combinedRenderBuffer.destroy();
+    }
+    this._combinedRenderBuffer = new SingleBuffer(gl, this._getCombinedRenderBufferSpec());
+    this._createBloomBuffers();
+}
+
 render() {
     const gl = this._gl;
     gl.bindBuffer(gl.ARRAY_BUFFER, this._clipQuad);
@@ -338,7 +386,17 @@ render() {
 
     if (this.deferred_enabled) {
         this._deferredRenderFrame();
-        this._combineRenderFrame();
+        if (!this.bloom) {
+            this._renderBuffer.use();
+            this._combineRenderFrame();
+        }
+        else {
+            this._combinedRenderBuffer.use();
+            this._combineRenderFrame();
+            this._renderBright();
+            this._renderBloomTest();
+            this._renderToCanvas();
+        }
     } else {
         this._renderBuffer.use();
         this._renderFrame();
@@ -586,7 +644,6 @@ _deferredRenderFrame() {
 
 _combineRenderFrame() {
     const gl = this._gl;
-    this._renderBuffer.use()
 
     const { program, uniforms } = this._programs.combine_render;
     gl.useProgram(program);
@@ -604,9 +661,162 @@ _combineRenderFrame() {
     gl.uniform1f(uniforms.uKSigma, 1);
     gl.uniform1f(uniforms.uTreshold, 1);
 
+    gl.uniform1f(uniforms.uExposure, this.preExposure);
+
     gl.uniform1ui(uniforms.uDeferredView, this.deferred_view);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+}
+
+_renderBright() {
+    const gl = this._gl;
+
+    this.bloomBuffers[0].use()
+
+    // this._renderBuffer.use();
+
+    const { program, uniforms } = this._programs.renderBright;
+    gl.useProgram(program);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, this._combinedRenderBuffer.getAttachments().color[0]);
+    gl.uniform1i(uniforms.uColor, 0);
+
+    gl.uniform1f(uniforms.uBloomThreshold, this.bloomThreshold);
+    gl.uniform1f(uniforms.uBloomKnee, this.bloomKnee);
+
+    // gl.drawArrays(gl.TRIANGLES, 0, 3);
+    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+
+}
+
+_renderBloomTest() {
+    const gl = this._gl;
+
+    const levels = this.bloomBuffers.length;
+
+    for (let i = 1; i < levels; i++) {
+        this.bloomBuffers[i].use()
+
+        const { program, uniforms } = this._programs.downsampleAndBlur;
+        gl.useProgram(program);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this.bloomBuffers[i - 1].getAttachments().color[0]);
+        gl.uniform1i(uniforms.uColor, 0);
+
+        // gl.drawArrays(gl.TRIANGLES, 0, 3);
+        gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+    }
+
+    gl.enable(gl.BLEND);
+    gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE, gl.ONE, gl.ZERO);
+
+    for (let i = levels - 2; i >= 0; i--) {
+        this.bloomBuffers[i].use()
+
+        const { program, uniforms } = this._programs.upsampleAndCombine;
+        gl.useProgram(program);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this.bloomBuffers[i + 1].getAttachments().color[0]);
+        gl.uniform1i(uniforms.uColor, 0);
+
+        gl.uniform1f(uniforms.uBloomIntensity, this.bloomIntensity);
+
+        // gl.drawArrays(gl.TRIANGLES, 0, 3);
+        gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+    }
+
+    gl.blendFuncSeparate(gl.ONE, gl.ONE, gl.ONE, gl.ZERO);
+
+    this.bloomBuffers[0].use();
+
+    const { program, uniforms } = this._programs.upsampleAndCombine;
+    gl.useProgram(program);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, this._combinedRenderBuffer.getAttachments().color[0]);
+    gl.uniform1i(uniforms.uColor, 0);
+
+    gl.uniform1f(uniforms.uBloomIntensity, 1);
+
+    // gl.drawArrays(gl.TRIANGLES, 0, 3);
+    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+
+    gl.disable(gl.BLEND);
+}
+
+_renderToCanvas() {
+    const gl = this._gl;
+
+    this._renderBuffer.use();
+
+    const { program, uniforms } = this._programs.renderToCanvas;
+    gl.useProgram(program);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, this.bloomBuffers[0].getAttachments().color[0]);
+    gl.uniform1i(uniforms.uColor, 0);
+
+    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+}
+
+_renderBloom() {
+    const gl = this._gl;
+
+    const levels = this.bloomBuffers.length;
+
+    for (let i = 1; i < levels; i++) {
+        this.bloomBuffers[i].use()
+
+        const { program, uniforms } = this._programs.downsampleAndBlur;
+        gl.useProgram(program);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this.bloomBuffers[i - 1].getAttachments().color[0]);
+        gl.uniform1i(uniforms.uColor, 0);
+
+        // gl.drawArrays(gl.TRIANGLES, 0, 3);
+        gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+    }
+
+    gl.enable(gl.BLEND);
+    gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE, gl.ONE, gl.ZERO);
+
+    for (let i = levels - 2; i >= 0; i--) {
+        this.bloomBuffers[i].use()
+
+        const { program, uniforms } = this._programs.upsampleAndCombine;
+        gl.useProgram(program);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this.bloomBuffers[i + 1].getAttachments().color[0]);
+        gl.uniform1i(uniforms.uColor, 0);
+
+        gl.uniform1f(uniforms.uBloomIntensity, this.bloomIntensity);
+
+        // gl.drawArrays(gl.TRIANGLES, 0, 3);
+        gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+    }
+
+    gl.blendFuncSeparate(gl.ONE, gl.ONE, gl.ONE, gl.ZERO);
+
+    this._renderBuffer.use();
+
+    const { program, uniforms } = this._programs.upsampleAndCombine;
+    gl.useProgram(program);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, this._combinedRenderBuffer.getAttachments().color[0]);
+    gl.uniform1i(uniforms.uColor, 0);
+
+    gl.uniform1f(uniforms.uBloomIntensity, 1);
+
+    // gl.drawArrays(gl.TRIANGLES, 0, 3);
+    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+
+    gl.disable(gl.BLEND);
 }
 
 _getFrameBufferSpec() {
@@ -694,6 +904,105 @@ _getDeferredRenderBufferSpec() {
         color,
         lighting
     ];
+}
+
+_getCombinedRenderBufferSpec() {
+    const gl = this._gl;
+    const color = {
+        width          : this._bufferSize,
+        height         : this._bufferSize,
+        min            : gl.LINEAR,
+        mag            : gl.LINEAR,
+        wrapS          : gl.CLAMP_TO_EDGE,
+        wrapT          : gl.CLAMP_TO_EDGE,
+        format         : gl.RGBA,
+        internalFormat : gl.RGBA32F,
+        type           : gl.FLOAT
+    };
+
+    return [
+        color,
+    ];
+}
+
+_getBloomBufferSpec(width, height) {
+    const gl = this._gl;
+    const color = {
+        width          : width,
+        height         : height,
+        min            : gl.LINEAR,
+        mag            : gl.LINEAR,
+        wrapS          : gl.CLAMP_TO_EDGE,
+        wrapT          : gl.CLAMP_TO_EDGE,
+        format         : gl.RGBA,
+        internalFormat : gl.RGBA16F,
+        type           : gl.FLOAT
+    };
+
+    return [
+        color
+    ];
+}
+
+_destroyBloomBuffers() {
+    if (this.bloomBuffers) {
+        for (const buffer of this.bloomBuffers) {
+            buffer.destroy()
+        }
+    }
+}
+
+_createBloomBuffers() {
+    const gl = this._gl;
+
+    this._destroyBloomBuffers()
+    // const sampling = {
+    //     min: gl.LINEAR,
+    //     mag: gl.LINEAR,
+    //     wrapS: gl.CLAMP_TO_EDGE,
+    //     wrapT: gl.CLAMP_TO_EDGE,
+    // };
+    //
+    // const format = {
+    //     format: gl.RGBA,
+    //     internalFormat: gl.RGBA16F,
+    //     type: gl.FLOAT,
+    // };
+
+    function numberOfLevels(width, height) {
+        return Math.ceil(Math.log2(Math.max(width, height)));
+    }
+
+    function sizeAtLevel(level, baseWidth, baseHeight) {
+        return {
+            width: Math.max(1, Math.floor(baseWidth / (2 ** level))),
+            height: Math.max(1, Math.floor(baseHeight / (2 ** level))),
+        };
+    }
+
+    const levels = numberOfLevels(gl.drawingBufferWidth, gl.drawingBufferHeight);
+
+
+    this.bloomBuffers = new Array(levels).fill(0).map((_, level) => {
+        const size = sizeAtLevel(level, gl.drawingBufferWidth, gl.drawingBufferHeight);
+        return new SingleBuffer(this._gl, this._getBloomBufferSpec(size.width, size.height));
+
+        // const texture = WebGL.createTexture(gl, {
+        //     ...size,
+        //     ...sampling,
+        //     ...format,
+        // });
+        //
+        // const framebuffer = gl.createFramebuffer();
+        // gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+        // gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+        //
+        // return {
+        //     texture,
+        //     framebuffer,
+        //     size,
+        // };
+    });
 }
 
 }

@@ -556,6 +556,7 @@ uniform int uSmartDeNoise;
 uniform float uSigma;
 uniform float uKSigma;
 uniform float uTreshold;
+uniform float uExposure;
 
 uniform uint uDeferredView;
 
@@ -577,18 +578,156 @@ void main() {
 
     switch (uDeferredView) {
         case 0u:
-        oColor = colorSample;
+        oColor = uExposure * colorSample;
         break;
         case 1u:
 //        oColor = mix(vec4(vec3(lightingSample), 1), vec4(0, 0, 0, 1), lightingSample);
-        oColor = vec4(vec3(lightingSample), 1);
+        oColor = vec4(vec3(uExposure * lightingSample), 1);
         break;
         case 2u:
 //        oColor = mix(colorSample, vec4(0, 0, 0, 1), lightingSample);
 //        oColor = colorSample * (1.0 - lightingSample);
-        oColor = mix(vec4(0, 0, 0, 1), colorSample, lightingSample);
+        oColor = mix(vec4(0, 0, 0, 1), uExposure * colorSample, lightingSample);
 //        oColor = colorSample * lightingSample;
 
         break;
     }
+}
+
+// #part /glsl/shaders/renderers/FLD/renderBright/vertex
+
+#version 300 es
+precision mediump float;
+
+layout(location = 0) in vec2 aPosition;
+
+out vec2 vPosition;
+
+void main() {
+    gl_Position = vec4(aPosition, 0.0, 1.0);
+    vPosition = (aPosition + 1.0) * 0.5;
+}
+
+// #part /glsl/shaders/renderers/FLD/renderBright/fragment
+
+#version 300 es
+precision highp float;
+
+uniform highp sampler2D uColor;
+uniform float uBloomThreshold;
+uniform float uBloomKnee;
+
+in vec2 vPosition;
+
+out vec4 oColor;
+
+void main() {
+
+    vec4 color = texture(uColor, vPosition);
+    oColor = vec4(color.rgb, 1);
+    return;
+    float brightness = dot(color.rgb, vec3(0.2126, 0.7152, 0.0722));
+
+    const float epsilon = 1e-4;
+    float knee = uBloomThreshold * uBloomKnee;
+    float source = brightness - uBloomThreshold + knee;
+    source = clamp(source, 0.0, 2.0 * knee);
+    source = source * source / (4.0 * knee + epsilon);
+    float weight = max(brightness - uBloomThreshold, source) / max(brightness, epsilon);
+
+    oColor = vec4(color.rgb * weight, 1);
+}
+
+// #part /glsl/shaders/renderers/FLD/downsampleAndBlur/vertex
+
+#version 300 es
+precision mediump float;
+
+layout(location = 0) in vec2 aPosition;
+
+out vec2 vPosition;
+
+void main() {
+    gl_Position = vec4(aPosition, 0.0, 1.0);
+    vPosition = (aPosition + 1.0) * 0.5;
+}
+
+// #part /glsl/shaders/renderers/FLD/downsampleAndBlur/fragment
+
+#version 300 es
+precision highp float;
+
+uniform highp sampler2D uColor;
+
+in vec2 vPosition;
+
+out vec4 oColor;
+
+void main() {
+    vec2 texelSize = vec2(1) / vec2(textureSize(uColor, 0));
+    vec4 offset = texelSize.xyxy * vec2(-1, 1).xxyy;
+    oColor = 0.25 * (
+        texture(uColor, vPosition + offset.xy) +
+        texture(uColor, vPosition + offset.zy) +
+        texture(uColor, vPosition + offset.xw) +
+        texture(uColor, vPosition + offset.zw));
+}
+
+// #part /glsl/shaders/renderers/FLD/upsampleAndCombine/vertex
+
+#version 300 es
+precision mediump float;
+
+layout(location = 0) in vec2 aPosition;
+
+out vec2 vPosition;
+
+void main() {
+    gl_Position = vec4(aPosition, 0.0, 1.0);
+    vPosition = (aPosition + 1.0) * 0.5;
+}
+
+// #part /glsl/shaders/renderers/FLD/upsampleAndCombine/fragment
+
+#version 300 es
+precision highp float;
+
+uniform highp sampler2D uColor;
+uniform float uBloomIntensity;
+
+in vec2 vPosition;
+
+out vec4 oColor;
+
+void main() {
+    oColor = vec4(texture(uColor, vPosition).rgb, uBloomIntensity);
+}
+
+// #part /glsl/shaders/renderers/FLD/renderToCanvas/vertex
+
+#version 300 es
+precision mediump float;
+
+layout(location = 0) in vec2 aPosition;
+
+out vec2 vPosition;
+
+void main() {
+    gl_Position = vec4(aPosition, 0.0, 1.0);
+    vPosition = (aPosition + 1.0) * 0.5;
+}
+
+// #part /glsl/shaders/renderers/FLD/renderToCanvas/fragment
+
+#version 300 es
+precision highp float;
+
+uniform highp sampler2D uColor;
+
+in vec2 vPosition;
+
+out vec4 oColor;
+
+void main() {
+    oColor = vec4(texture(uColor, vPosition).rgb, 1);
 }
