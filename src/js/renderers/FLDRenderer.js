@@ -3,6 +3,7 @@ import { AbstractRenderer } from './AbstractRenderer.js';
 import { SingleBuffer } from "../SingleBuffer.js";
 import { SingleBuffer3D } from "../SingleBuffer3D.js";
 import { DoubleBuffer3D } from "../DoubleBuffer3D.js";
+import { CommonUtils } from '../utils/CommonUtils.js';
 
 const [ SHADERS, MIXINS ] = await Promise.all([
     'shaders.json',
@@ -148,8 +149,8 @@ constructor(gl, volume, environmentTexture, options) {
             name: 'deferred_enabled',
             label: 'Deferred Rendering',
             type: "checkbox",
-            value: true,
-            checked: true,
+            value: false,
+            checked: false,
         },
         {
             name: 'deferred_view',
@@ -183,8 +184,8 @@ constructor(gl, volume, environmentTexture, options) {
             name: 'bloom',
             label: 'Bloom',
             type: "checkbox",
-            value: true,
-            checked: true,
+            value: false,
+            checked: false,
         },
         {
             name: 'preExposure',
@@ -217,6 +218,51 @@ constructor(gl, volume, environmentTexture, options) {
             value: 0.9,
             min: 0,
             max: 1
+        },
+        {
+            name: 'renderGradient',
+            label: 'Render Gradient',
+            type: "checkbox",
+            value: false,
+            checked: false,
+        },
+        {
+            name: 'gradientFactor',
+            label: 'Gradient Factor',
+            type: "spinner",
+            value: 1,
+            min: 0,
+        },
+        {
+            name: 'metallic',
+            label: 'Metallic',
+            type: "slider",
+            value: 0,
+            min: 0,
+            max: 1
+        },
+        {
+            name: 'f90',
+            label: 'f90',
+            type: "color-chooser",
+            value: "#ffffff",
+        },
+        {
+            name: 'specularWeight',
+            label: 'Specular Weight',
+            type: "slider",
+            value: 1.0,
+            min: 0,
+            max: 1,
+        },
+        {
+            name: 'alphaRoughness',
+            label: 'Alpha Roughness',
+            type: "slider",
+            value: 0.08,
+            min: 0,
+            max: 1,
+            step: 0.05
         },
         {
             name: 'transferFunction',
@@ -399,7 +445,13 @@ render() {
         }
     } else {
         this._renderBuffer.use();
-        this._renderFrame();
+        if (this.renderGradient) {
+            this._RenderFrameGradient();
+        }
+        else {
+            this._renderFrame();
+        }
+
     }
 }
 
@@ -593,6 +645,49 @@ _renderFrame() {
     gl.uniform1f(uniforms.uOffset, Math.random());
 
     gl.uniform1ui(uniforms.uView, this.volume_view);
+
+    const mvpit = this.calculateMVPInverseTranspose();
+    gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, mvpit.m);
+
+    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+}
+
+_RenderFrameGradient() {
+    const gl = this._gl;
+
+    const { program, uniforms } = this._programs.render_gradient;
+    gl.useProgram(program);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[0]);
+
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
+
+    gl.activeTexture(gl.TEXTURE3);
+    gl.bindTexture(gl.TEXTURE_3D, this._frameBuffer.getAttachments().color[0]);
+
+    gl.uniform1i(uniforms.uFluence, 0);
+    gl.uniform1i(uniforms.uVolume, 1);
+    gl.uniform1i(uniforms.uTransferFunction, 2);
+    gl.uniform1i(uniforms.uEmission, 3);
+
+    gl.uniform1f(uniforms.uStepSize, 1 / this.slices);
+    gl.uniform1f(uniforms.uExtinction, this.extinction);
+    gl.uniform1f(uniforms.uAlbedo, this.albedo);
+    gl.uniform1f(uniforms.uOffset, Math.random());
+
+    gl.uniform1ui(uniforms.uView, this.volume_view);
+
+    gl.uniform1f(uniforms.uGradientFactor, this.gradientFactor);
+
+    gl.uniform3f(uniforms.uLight, this.light.x, this.light.y, this.light.z);
+    gl.uniform1f(uniforms.uSpecularWeight, this.specularWeight);
+    gl.uniform1f(uniforms.uAlphaRoughness, this.alphaRoughness);
+    gl.uniform1f(uniforms.uMetallic, this.metallic);
+    gl.uniform3fv(uniforms.uF90, CommonUtils.hex2rgb(this.f90));
 
     const mvpit = this.calculateMVPInverseTranspose();
     gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, mvpit.m);

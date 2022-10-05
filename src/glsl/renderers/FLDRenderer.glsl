@@ -355,6 +355,158 @@ void main() {
     }
 }
 
+// #part /glsl/shaders/renderers/FLD/render_gradient/vertex
+
+#version 300 es
+precision highp float;
+
+uniform mat4 uMvpInverseMatrix;
+
+layout(location = 0) in vec2 aPosition;
+out vec3 vRayFrom;
+out vec3 vRayTo;
+
+// #link /glsl/mixins/unproject.glsl
+@unproject
+
+void main() {
+    unproject(aPosition, uMvpInverseMatrix, vRayFrom, vRayTo);
+    gl_Position = vec4(aPosition, 0.0, 1.0);
+}
+
+// #part /glsl/shaders/renderers/FLD/render_gradient/fragment
+
+#version 300 es
+#define M_PI 3.141592653589793
+precision highp float;
+
+uniform mat4 uMvpInverseMatrix;
+
+uniform highp sampler3D uFluence;
+uniform mediump sampler3D uVolume;
+uniform mediump sampler2D uTransferFunction;
+uniform highp sampler3D uEmission;
+
+uniform float uStepSize;
+uniform float uOffset;
+uniform float uExtinction;
+uniform float uAlbedo;
+uniform uint uView;
+
+uniform float uGradientFactor;
+
+uniform vec3 uLight;
+uniform float uSpecularWeight;
+uniform float uAlphaRoughness;
+uniform float uMetallic;
+uniform vec3 uF90;
+
+in vec3 vRayFrom;
+in vec3 vRayTo;
+out vec4 oColor;
+
+//debug
+in vec2 vPosition;
+
+// #link /glsl/mixins/intersectCube.glsl
+@intersectCube
+
+// #link /glsl/mixins/rand
+@rand
+
+// #link /glsl/mixins/BRDF
+@BRDF
+
+vec3 gradient(vec3 pos, float h) {
+    vec3 positive = vec3(
+    texture(uVolume, pos + vec3( h, 0.0, 0.0)).r,
+    texture(uVolume, pos + vec3(0.0,  h, 0.0)).r,
+    texture(uVolume, pos + vec3(0.0, 0.0,  h)).r
+    );
+    vec3 negative = vec3(
+    texture(uVolume, pos + vec3(-h, 0.0, 0.0)).r,
+    texture(uVolume, pos + vec3(0.0, -h, 0.0)).r,
+    texture(uVolume, pos + vec3(0.0, 0.0, -h)).r
+    );
+    return normalize(positive - negative);
+}
+
+vec4 sampleVolumeColor(vec3 position) {
+    vec2 volumeSample = texture(uVolume, position).rg;
+    vec4 transferSample = texture(uTransferFunction, volumeSample);
+    return transferSample;
+}
+
+void main() {
+    vec3 rayDirection = vRayTo - vRayFrom;
+    vec2 tbounds = max(intersectCube(vRayFrom, rayDirection), 0.0);
+    if (tbounds.x >= tbounds.y) {
+        oColor = vec4(0, 0, 0, 1);
+    } else {
+        vec3 from = mix(vRayFrom, vRayTo, tbounds.x);
+        vec3 to = mix(vRayFrom, vRayTo, tbounds.y);
+        float rayStepLength = distance(from, to) * uStepSize;
+
+        float t = 0.0;
+        vec4 accumulator = vec4(0);
+
+        while (t < 1.0 && accumulator.a < 0.99) {
+            vec3 position = mix(from, to, t);
+
+            vec4 colorSample = sampleVolumeColor(position);
+
+            // Lighting Factor
+            float emission = texture(uEmission, position).r;
+            float fluence = texture(uFluence, position).r;
+
+            float lightingFactor = 0.0;
+            switch (uView) {
+                case 0u:
+                lightingFactor = emission;
+                break;
+                case 1u:
+                lightingFactor = fluence;
+                break;
+                case 2u:
+                float scatteringCoeff = colorSample.a * uAlbedo;
+                lightingFactor = (emission + scatteringCoeff * fluence); // / (4.0 * PI);
+                break;
+            }
+
+            vec3 grad = gradient(position, 0.005);
+            float p_brdf = colorSample.a * (1.0 - exp(-25.0 * pow(uGradientFactor, 3.0) * length(grad)));
+            if (p_brdf > 0.0) {
+                grad = -normalize(grad);
+                vec3 diffuse;
+                vec3 specular;
+                vec3 f0 = 0.04 * (1.0 - uMetallic) + colorSample.rgb * uMetallic;
+                vec3 BRDFDiffuse = colorSample.rgb * (1.0 - uMetallic);
+                BRDF(position, f0, uF90, uSpecularWeight, uAlphaRoughness, uMvpInverseMatrix, grad, uLight, diffuse, specular);
+
+                vec3 BRDFRes = diffuse * BRDFDiffuse + specular;
+                vec3 diffusionRes = colorSample.rgb * lightingFactor;
+                colorSample.rgb = p_brdf * BRDFRes + (1.0 - p_brdf) * diffusionRes;
+            }
+            else {
+                colorSample.rgb *= lightingFactor;
+            }
+
+            // Color
+            colorSample.a *= rayStepLength * uExtinction;
+            colorSample.rgb *= colorSample.a;
+
+            accumulator += (1.0 - accumulator.a) * colorSample;
+            t += uStepSize;
+        }
+
+        if (accumulator.a > 1.0) {
+            accumulator.rgb /= accumulator.a;
+        }
+
+        oColor = vec4(accumulator.rgb, 1);
+    }
+}
+
 // #part /glsl/shaders/renderers/FLD/reset/vertex
 
 #version 300 es
