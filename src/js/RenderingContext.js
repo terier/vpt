@@ -55,15 +55,15 @@ constructor(options) {
     //    radius: 0.03,
     //    frequency: 1,
     //});
-    this._cameraAnimator = new CircleFocusAnimator(this._camera, {
-        focus: new Vector(0, 0, 0),
-        displacement: new Vector(0, -3, 0),
-        up: new Vector(0, 0, 1),
-        coneAngle: 0.1,
-        phase: 0,
-        frequency: 1,
-    });
-    //this._cameraAnimator = new OrbitCameraAnimator(this._camera, this._canvas);
+    //this._cameraAnimator = new CircleFocusAnimator(this._camera, {
+    //    focus: new Vector(0, 0, 0),
+    //    displacement: new Vector(0, -3, 0),
+    //    up: new Vector(0, 0, 1),
+    //    coneAngle: 0.1,
+    //    phase: 0,
+    //    frequency: 1,
+    //});
+    this._cameraAnimator = new OrbitCameraAnimator(this._camera, this._canvas);
 
     this._volume = new Volume(this._gl);
     this._scale = new Vector(1, 1, 1);

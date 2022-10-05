@@ -1,17 +1,17 @@
 import { AbstractReader } from './AbstractReader.js';
-import { ZIPReader } from './ZIPReader.js';
+import { SAFReader } from './SAFReader.js';
 
-export class BVPReader extends AbstractReader {
+export class BVPSAFReader extends AbstractReader {
 
 constructor(loader) {
     super(loader);
 
     this._metadata = null;
-    this._zipReader = new ZIPReader(this._loader);
+    this._safReader = new SAFReader(this._loader);
 }
 
 async readMetadata() {
-    const data = await this._zipReader.readFile('manifest.json');
+    const data = await this._safReader.readFile('manifest.json');
     const decoder = new TextDecoder('utf-8');
     const jsonString = decoder.decode(data);
     const json = JSON.parse(jsonString);
@@ -25,7 +25,7 @@ async readBlock(block) {
     }
 
     const blockMeta = this._metadata.blocks[block];
-    return await this._zipReader.readFile(blockMeta.url);
+    return await this._safReader.readFile(blockMeta.url);
 }
 
 }

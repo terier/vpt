@@ -138,18 +138,29 @@ _handleFileDrop(e) {
         return;
     }
     const file = files[0];
-    if (!file.name.toLowerCase().endsWith('.bvp')) {
-        throw new Error('Filename extension must be .bvp');
+    if (file.name.toLowerCase().endsWith('.bvp.zip')) {
+        this._handleVolumeLoad(new CustomEvent('load', {
+            detail: {
+                type       : 'file',
+                file       : file,
+                filetype   : 'bvpzip',
+                dimensions : { x: 0, y: 0, z: 0 }, // doesn't matter
+                precision  : 8, // doesn't matter
+            }
+        }));
+    } else if (file.name.toLowerCase().endsWith('.bvp.saf')) {
+        this._handleVolumeLoad(new CustomEvent('load', {
+            detail: {
+                type       : 'file',
+                file       : file,
+                filetype   : 'bvpsaf',
+                dimensions : { x: 0, y: 0, z: 0 }, // doesn't matter
+                precision  : 8, // doesn't matter
+            }
+        }));
+    } else {
+        throw new Error('Unknown file name extension');
     }
-    this._handleVolumeLoad(new CustomEvent('load', {
-        detail: {
-            type       : 'file',
-            file       : file,
-            filetype   : 'bvp',
-            dimensions : { x: 0, y: 0, z: 0 }, // doesn't matter
-            precision  : 8, // doesn't matter
-        }
-    }));
 }
 
 _handleRendererChange() {
@@ -360,7 +371,7 @@ async generateTests() {
             currentFileName = test.fileName;
             const file = inputFiles[currentFileName];
             const loaderClass = LoaderFactory('blob');
-            const readerClass = ReaderFactory('bvp');
+            const readerClass = ReaderFactory('bvpsaf');
             const loader = new loaderClass(file);
             const reader = new readerClass(loader);
             await this.renderingContext.setVolume(reader);

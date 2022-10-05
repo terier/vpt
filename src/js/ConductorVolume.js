@@ -14,7 +14,7 @@ constructor(gl, reader) {
 
     this.gl = gl;
 
-    this.zipReader = reader._zipReader;
+    this.safReader = reader._safReader;
 
     this.dataVolume = new Volume(gl, reader);
     this.idVolume = new Volume(gl, reader);
@@ -169,7 +169,7 @@ async load() {
 
     this.framebuffer = gl.createFramebuffer();
 
-    this.parseAttributes(await this.zipReader.readFile('attributes.csv'));
+    this.parseAttributes(await this.safReader.readFile('attributes.csv'));
 
     this.updateInstanceGroupAssignments();
     this.updateInstanceMaskValues();
