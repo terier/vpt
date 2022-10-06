@@ -665,7 +665,10 @@ void main() {
         if (accumulator.a > 1.0) {
             accumulator.rgb /= accumulator.a;
         }
-        lightingAccumulator /= accumulator.a;
+        if (accumulator.a > 0.0) {
+            lightingAccumulator /= accumulator.a;
+        }
+//        lightingAccumulator /= accumulator.a;
 
         //        oColor = vec4(accumulator.rgb, 1.0);
 //        oColor = mix(vec4(1), vec4(accumulator.rgb, 1), accumulator.a);
@@ -776,8 +779,14 @@ out vec4 oColor;
 void main() {
 
     vec4 color = texture(uColor, vPosition);
-    oColor = vec4(color.rgb, 1);
-    return;
+    color = clamp(color, 0.0, 1.0);
+//    if (any(isnan(color)) || any(greaterThan(color, vec4(1))) || any(lessThan(color, vec4(0)))) {
+//        oColor = vec4(0,1,0,1);
+//    }
+//    else {
+//        oColor = color;
+//    }
+//    return;
     float brightness = dot(color.rgb, vec3(0.2126, 0.7152, 0.0722));
 
     const float epsilon = 1e-4;
@@ -786,7 +795,7 @@ void main() {
     source = clamp(source, 0.0, 2.0 * knee);
     source = source * source / (4.0 * knee + epsilon);
     float weight = max(brightness - uBloomThreshold, source) / max(brightness, epsilon);
-
+//    color = clamp(color * weight, 0.0, 1.0);
     oColor = vec4(color.rgb * weight, 1);
 }
 
@@ -818,11 +827,20 @@ out vec4 oColor;
 void main() {
     vec2 texelSize = vec2(1) / vec2(textureSize(uColor, 0));
     vec4 offset = texelSize.xyxy * vec2(-1, 1).xxyy;
-    oColor = 0.25 * (
+    vec4 color = 0.25 * (
         texture(uColor, vPosition + offset.xy) +
         texture(uColor, vPosition + offset.zy) +
         texture(uColor, vPosition + offset.xw) +
         texture(uColor, vPosition + offset.zw));
+
+    oColor = color;
+
+//    if (any(isnan(color))) {
+//        oColor = vec4(0,1,0,1);
+//    }
+//    else {
+//        oColor = color;
+//    }
 }
 
 // #part /glsl/shaders/renderers/FLD/upsampleAndCombine/vertex
