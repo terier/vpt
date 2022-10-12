@@ -271,6 +271,8 @@ uniform float uExtinction;
 uniform float uAlbedo;
 uniform uint uView;
 
+uniform float uExposure;
+
 in vec3 vRayFrom;
 in vec3 vRayTo;
 out vec4 oColor;
@@ -309,13 +311,13 @@ void main() {
             float fluence = texture(uFluence, position).r;
 //            vec3 factor = vec3(0.0);
 //            switch (uView) {
-//                case 0u:
+//                case 1u:
 //                    factor = vec3(emission);
 //                    break;
-//                case 1u:
+//                case 2u:
 //                    factor = vec3(fluence);
 //                    break;
-//                case 2u:
+//                case 3u:
 //                    vec3 scattering_coeff = colorSample.rgb * uExtinction * uAlbedo;
 //                    factor = (emission + scattering_coeff * fluence) / (4.0 * PI);
 //                    break;
@@ -324,12 +326,15 @@ void main() {
             float factor = 0.0;
             switch (uView) {
                 case 0u:
-                factor = emission;
+                factor = 1.0;
                 break;
                 case 1u:
-                factor = fluence;
+                factor = emission;
                 break;
                 case 2u:
+                factor = fluence;
+                break;
+                case 3u:
                 float scattering_coeff = colorSample.a * uAlbedo;
                 factor = (emission + scattering_coeff * fluence); // / (4.0 * PI);
                 break;
@@ -349,7 +354,7 @@ void main() {
             accumulator.rgb /= accumulator.a;
         }
 
-        oColor = vec4(accumulator.rgb, 1);
+        oColor = vec4(uExposure * accumulator.rgb, 1);
 //        oColor = mix(vec4(1), vec4(accumulator.rgb, 1), accumulator.a);
 //        oColor = mix(vec4(0), vec4(accumulator.rgb, 1), accumulator.a);
     }
@@ -462,12 +467,15 @@ void main() {
             float lightingFactor = 0.0;
             switch (uView) {
                 case 0u:
-                lightingFactor = emission;
+                lightingFactor = 1.0;
                 break;
                 case 1u:
-                lightingFactor = fluence;
+                lightingFactor = emission;
                 break;
                 case 2u:
+                lightingFactor = fluence;
+                break;
+                case 3u:
                 float scatteringCoeff = colorSample.a * uAlbedo;
                 lightingFactor = (emission + scatteringCoeff * fluence); // / (4.0 * PI);
                 break;
@@ -636,12 +644,15 @@ void main() {
             float lightingFactor = 0.0;
             switch (uView) {
                 case 0u:
-                lightingFactor = emission;
+                lightingFactor = 1.0;
                 break;
                 case 1u:
-                lightingFactor = fluence;
+                lightingFactor = emission;
                 break;
                 case 2u:
+                lightingFactor = fluence;
+                break;
+                case 3u:
                 float scatteringCoeff = colorSample.a * uAlbedo;
                 lightingFactor = (emission + scatteringCoeff * fluence); // / (4.0 * PI);
                 break;
@@ -683,11 +694,7 @@ void main() {
 #version 300 es
 precision mediump float;
 
-uniform mat4 uMvpInverseMatrix;
-
 layout(location = 0) in vec2 aPosition;
-out vec3 vRayFrom;
-out vec3 vRayTo;
 
 out vec2 vPosition;
 
@@ -695,7 +702,6 @@ out vec2 vPosition;
 @unproject
 
 void main() {
-    unproject(aPosition, uMvpInverseMatrix, vRayFrom, vRayTo);
     gl_Position = vec4(aPosition, 0.0, 1.0);
     vPosition = (aPosition + 1.0) * 0.5;
 }
@@ -711,7 +717,6 @@ uniform int uSmartDeNoise;
 uniform float uSigma;
 uniform float uKSigma;
 uniform float uTreshold;
-uniform float uExposure;
 
 uniform uint uDeferredView;
 
@@ -733,18 +738,17 @@ void main() {
 
     switch (uDeferredView) {
         case 0u:
-        oColor = uExposure * colorSample;
+        oColor = colorSample;
         break;
         case 1u:
 //        oColor = mix(vec4(vec3(lightingSample), 1), vec4(0, 0, 0, 1), lightingSample);
-        oColor = vec4(vec3(uExposure * lightingSample), 1);
+        oColor = vec4(vec3(lightingSample), 1);
         break;
-        case 2u:
+        case 2u: default:
 //        oColor = mix(colorSample, vec4(0, 0, 0, 1), lightingSample);
 //        oColor = colorSample * (1.0 - lightingSample);
-        oColor = mix(vec4(0, 0, 0, 1), uExposure * colorSample, lightingSample);
-//        oColor = colorSample * lightingSample;
-
+//        oColor = mix(vec4(0, 0, 0, 1), colorSample, lightingSample);
+        oColor = vec4(colorSample.rgb * lightingSample, 1);
         break;
     }
 }
@@ -893,11 +897,54 @@ void main() {
 precision highp float;
 
 uniform highp sampler2D uColor;
+uniform highp sampler2D uLighting;
+uniform highp sampler2D uBloom;
+
+uniform int uSmartDeNoise;
+uniform float uSigma;
+uniform float uKSigma;
+uniform float uTreshold;
+
+uniform float uExposure;
+
+uniform uint uDeferredView;
 
 in vec2 vPosition;
 
 out vec4 oColor;
 
+// #link /glsl/mixins/smartDeNoiseF.glsl
+@smartDeNoiseF
+
 void main() {
-    oColor = vec4(texture(uColor, vPosition).rgb, 1);
+    vec4 bloom = texture(uBloom, vPosition);
+    bloom = clamp(bloom, 0.0, 1.0);
+
+    vec4 colorSample = texture(uColor, vPosition);
+    float lightingSample;
+    if (uSmartDeNoise == 1)
+    lightingSample = smartDeNoiseF(uLighting, vPosition, 5.0, 2.0, 0.1); // 5.0, 2.0, .100;
+    else
+    lightingSample = texture(uLighting, vPosition).r;
+
+    switch (uDeferredView) {
+        case 0u:
+        oColor = vec4((colorSample.rgb + bloom.rgb) * uExposure, 1);
+        break;
+        case 1u:
+        oColor = vec4((vec3(lightingSample) + bloom.rgb) * uExposure, 1);
+        break;
+        case 2u: default:
+//        oColor = mix(vec4(0, 0, 0, 1), vec4((colorSample.rgb + bloom.rgb) * uExposure, 1), lightingSample);
+        oColor = vec4((colorSample.rgb + bloom.rgb) * lightingSample * uExposure, 1);
+        break;
+        case 3u:
+        //        oColor = mix(vec4(0, 0, 0, 1), vec4((colorSample.rgb + bloom.rgb) * uExposure, 1), lightingSample);
+        oColor = vec4(bloom.rgb * uExposure, 1);
+        break;
+        case 4u:
+        //        oColor = mix(vec4(0, 0, 0, 1), vec4((colorSample.rgb + bloom.rgb) * uExposure, 1), lightingSample);
+        oColor = vec4(bloom.rgb * lightingSample * uExposure, 1);
+        break;
+    }
 }

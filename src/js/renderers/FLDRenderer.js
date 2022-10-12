@@ -15,6 +15,16 @@ export class FLDRenderer extends AbstractRenderer {
 constructor(gl, volume, environmentTexture, options) {
     super(gl, volume, environmentTexture, options);
 
+    this._bloomTransferFunction = WebGL.createTexture(gl, {
+        width  : 2,
+        height : 1,
+        data   : new Uint8Array([255, 0, 0, 0, 255, 0, 0, 255]),
+        wrapS  : gl.CLAMP_TO_EDGE,
+        wrapT  : gl.CLAMP_TO_EDGE,
+        min    : gl.LINEAR,
+        mag    : gl.LINEAR,
+    });
+
     this.registerProperties([
         {
             name: 'extinction',
@@ -127,19 +137,23 @@ constructor(gl, volume, environmentTexture, options) {
         {
             name: 'volume_view',
             label: 'View',
-            value: 2,
+            value: 3,
             type: "dropdown",
             options: [
                 {
                     value: 0,
-                    label: "Emission"
+                    label: "Color"
                 },
                 {
                     value: 1,
-                    label: "Fluence"
+                    label: "Emission"
                 },
                 {
                     value: 2,
+                    label: "Fluence"
+                },
+                {
+                    value: 3,
                     label: "Result",
                     selected: true
                 }
@@ -170,6 +184,14 @@ constructor(gl, volume, environmentTexture, options) {
                     value: 2,
                     label: "Result",
                     selected: true
+                },
+                {
+                    value: 3,
+                    label: "Bloom",
+                },
+                {
+                    value: 4,
+                    label: "Bloom * Light",
                 }
             ]
         },
@@ -188,8 +210,41 @@ constructor(gl, volume, environmentTexture, options) {
             checked: false,
         },
         {
+            name: 'bloomBase',
+            label: 'Bloom Base',
+            value: 3,
+            type: "dropdown",
+            options: [
+                {
+                    value: 0,
+                    label: "Color"
+                },
+                {
+                    value: 1,
+                    label: "Emission"
+                },
+                {
+                    value: 2,
+                    label: "Fluence"
+                },
+                {
+                    value: 3,
+                    label: "Result",
+                    selected: true
+                }
+            ]
+        },
+        {
             name: 'preExposure',
             label: 'Pre-Exposure',
+            type: "slider",
+            value: 1,
+            min: 0,
+            max: 5
+        },
+        {
+            name: 'postExposure',
+            label: 'Post-Exposure',
             type: "slider",
             value: 1,
             min: 0,
@@ -269,6 +324,12 @@ constructor(gl, volume, environmentTexture, options) {
             label: 'Transfer function',
             type: 'transfer-function',
             value: new Uint8Array(256),
+        },
+        {
+            name: 'bloomTransferFunction',
+            label: 'Bloom transfer function',
+            type: 'transfer-function',
+            value: new Uint8Array(256),
         }
     ]);
 
@@ -299,6 +360,10 @@ constructor(gl, volume, environmentTexture, options) {
         if (name === 'deferred_enabled') {
             this._checkDeferredRendering();
         }
+
+        if (name === 'bloomTransferFunction') {
+            this.setBloomTransferFunction(this.bloomTransferFunction);
+        }
     });
 
     this._programs = WebGL.buildPrograms(gl, SHADERS.renderers.FLD, MIXINS);
@@ -310,8 +375,8 @@ destroy() {
     if (this._defferedRenderBuffer) {
         this._destroyDeferredRenderBuffer()
     }
-    if (this._combinedRenderBuffer) {
-        this._combinedRenderBuffer.destroy();
+    if (this._bloomBaseBuffer) {
+        this._bloomBaseBuffer.destroy();
     }
     Object.keys(this._programs).forEach(programName => {
         gl.deleteProgram(this._programs[programName].program);
@@ -325,6 +390,13 @@ setVolume(volume) {
     if (this.deferred_enabled)
         this._buildDeferredRenderBuffer();
     this._initialize3DBuffers();
+}
+
+setBloomTransferFunction(transferFunction) {
+    const gl = this._gl;
+    gl.bindTexture(gl.TEXTURE_2D, this._bloomTransferFunction);
+    gl.texImage2D(gl.TEXTURE_2D, 0,
+        gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, transferFunction);
 }
 
 _initialize3DBuffers() {
@@ -410,10 +482,10 @@ _checkDeferredRendering() {
 _buildBloomBuffers() {
     const gl = this._gl;
 
-    if (this._combinedRenderBuffer) {
-        this._combinedRenderBuffer.destroy();
+    if (this._bloomBaseBuffer) {
+        this._bloomBaseBuffer.destroy();
     }
-    this._combinedRenderBuffer = new SingleBuffer(gl, this._getCombinedRenderBufferSpec());
+    this._bloomBaseBuffer = new SingleBuffer(gl, this._getBloomBaseBufferSpec());
     this._createBloomBuffers();
 }
 
@@ -431,25 +503,26 @@ render() {
     this._accumulationBuffer.swap();
 
     if (this.deferred_enabled) {
-        this._deferredRenderFrame();
+        this._deferredRenderFrame(this._transferFunction);
         if (!this.bloom) {
             this._renderBuffer.use();
             this._combineRenderFrame();
         }
         else {
-            this._combinedRenderBuffer.use();
-            this._combineRenderFrame();
+            this._bloomBaseBuffer.use();
+            this._renderFrame(this._bloomTransferFunction, this.bloomBase);
             this._renderBright();
-            this._renderBloomTest();
-            this._renderToCanvas();
+            this._renderBloom();
+            this._renderBuffer.use();
+            this._combineBloomRenderFrame();
         }
     } else {
         this._renderBuffer.use();
         if (this.renderGradient) {
-            this._RenderFrameGradient();
+            this._renderFrameGradient();
         }
         else {
-            this._renderFrame();
+            this._renderFrame(this._transferFunction, this.volume_view);
         }
 
     }
@@ -614,7 +687,7 @@ _integrateFrame() {
     }
 }
 
-_renderFrame() {
+_renderFrame(transferFunction, volumeView) {
     const gl = this._gl;
 
     const { program, uniforms } = this._programs.render;
@@ -629,7 +702,7 @@ _renderFrame() {
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
     gl.activeTexture(gl.TEXTURE2);
-    gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
+    gl.bindTexture(gl.TEXTURE_2D, transferFunction);
 
     gl.activeTexture(gl.TEXTURE3);
     gl.bindTexture(gl.TEXTURE_3D, this._frameBuffer.getAttachments().color[0]);
@@ -644,7 +717,9 @@ _renderFrame() {
     gl.uniform1f(uniforms.uAlbedo, this.albedo);
     gl.uniform1f(uniforms.uOffset, Math.random());
 
-    gl.uniform1ui(uniforms.uView, this.volume_view);
+    gl.uniform1ui(uniforms.uView, volumeView);
+
+    gl.uniform1f(uniforms.uExposure, this.preExposure);
 
     const mvpit = this.calculateMVPInverseTranspose();
     gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, mvpit.m);
@@ -652,7 +727,7 @@ _renderFrame() {
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 }
 
-_RenderFrameGradient() {
+_renderFrameGradient() {
     const gl = this._gl;
 
     const { program, uniforms } = this._programs.render_gradient;
@@ -695,7 +770,7 @@ _RenderFrameGradient() {
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 }
 
-_deferredRenderFrame() {
+_deferredRenderFrame(transferFunction) {
     const gl = this._gl;
 
     this._defferedRenderBuffer.use()
@@ -709,7 +784,7 @@ _deferredRenderFrame() {
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
     gl.activeTexture(gl.TEXTURE2);
-    gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
+    gl.bindTexture(gl.TEXTURE_2D, transferFunction);
 
     gl.activeTexture(gl.TEXTURE3);
     gl.bindTexture(gl.TEXTURE_3D, this._frameBuffer.getAttachments().color[0]);
@@ -756,8 +831,6 @@ _combineRenderFrame() {
     gl.uniform1f(uniforms.uKSigma, 1);
     gl.uniform1f(uniforms.uTreshold, 1);
 
-    gl.uniform1f(uniforms.uExposure, this.preExposure);
-
     gl.uniform1ui(uniforms.uDeferredView, this.deferred_view);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
@@ -774,7 +847,7 @@ _renderBright() {
     gl.useProgram(program);
 
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this._combinedRenderBuffer.getAttachments().color[0]);
+    gl.bindTexture(gl.TEXTURE_2D, this._bloomBaseBuffer.getAttachments().color[0]);
     gl.uniform1i(uniforms.uColor, 0);
 
     gl.uniform1f(uniforms.uBloomThreshold, this.bloomThreshold);
@@ -783,78 +856,6 @@ _renderBright() {
     // gl.drawArrays(gl.TRIANGLES, 0, 3);
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 
-}
-
-_renderBloomTest() {
-    const gl = this._gl;
-
-    const levels = this.bloomBuffers.length;
-
-    for (let i = 1; i < levels; i++) {
-        this.bloomBuffers[i].use()
-
-        const { program, uniforms } = this._programs.downsampleAndBlur;
-        gl.useProgram(program);
-
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this.bloomBuffers[i - 1].getAttachments().color[0]);
-        gl.uniform1i(uniforms.uColor, 0);
-
-        // gl.drawArrays(gl.TRIANGLES, 0, 3);
-        gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-    }
-
-    gl.enable(gl.BLEND);
-    gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE, gl.ONE, gl.ZERO);
-
-    for (let i = levels - 2; i >= 0; i--) {
-        this.bloomBuffers[i].use()
-
-        const { program, uniforms } = this._programs.upsampleAndCombine;
-        gl.useProgram(program);
-
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this.bloomBuffers[i + 1].getAttachments().color[0]);
-        gl.uniform1i(uniforms.uColor, 0);
-
-        gl.uniform1f(uniforms.uBloomIntensity, this.bloomIntensity);
-
-        // gl.drawArrays(gl.TRIANGLES, 0, 3);
-        gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-    }
-
-    gl.blendFuncSeparate(gl.ONE, gl.ONE, gl.ONE, gl.ZERO);
-
-    this.bloomBuffers[0].use();
-
-    const { program, uniforms } = this._programs.upsampleAndCombine;
-    gl.useProgram(program);
-
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this._combinedRenderBuffer.getAttachments().color[0]);
-    gl.uniform1i(uniforms.uColor, 0);
-
-    gl.uniform1f(uniforms.uBloomIntensity, 1);
-
-    // gl.drawArrays(gl.TRIANGLES, 0, 3);
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-
-    gl.disable(gl.BLEND);
-}
-
-_renderToCanvas() {
-    const gl = this._gl;
-
-    this._renderBuffer.use();
-
-    const { program, uniforms } = this._programs.renderToCanvas;
-    gl.useProgram(program);
-
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this.bloomBuffers[0].getAttachments().color[0]);
-    gl.uniform1i(uniforms.uColor, 0);
-
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 }
 
 _renderBloom() {
@@ -895,23 +896,52 @@ _renderBloom() {
         gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
     }
 
-    gl.blendFuncSeparate(gl.ONE, gl.ONE, gl.ONE, gl.ZERO);
+    // gl.blendFuncSeparate(gl.ONE, gl.ONE, gl.ONE, gl.ZERO);
+    //
+    // this.bloomBuffers[0].use();
+    //
+    // const { program, uniforms } = this._programs.upsampleAndCombine;
+    // gl.useProgram(program);
+    //
+    // gl.activeTexture(gl.TEXTURE0);
+    // gl.bindTexture(gl.TEXTURE_2D, this._bloomBaseBuffer.getAttachments().color[0]);
+    // gl.uniform1i(uniforms.uColor, 0);
+    //
+    // gl.uniform1f(uniforms.uBloomIntensity, 1);
+    //
+    // // gl.drawArrays(gl.TRIANGLES, 0, 3);
+    // gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+    //
+    gl.disable(gl.BLEND);
+}
 
-    this._renderBuffer.use();
+_combineBloomRenderFrame() {
+    const gl = this._gl;
 
-    const { program, uniforms } = this._programs.upsampleAndCombine;
+    const { program, uniforms } = this._programs.renderToCanvas;
     gl.useProgram(program);
 
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this._combinedRenderBuffer.getAttachments().color[0]);
+    gl.bindTexture(gl.TEXTURE_2D, this._defferedRenderBuffer.getAttachments().color[0]);
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, this._defferedRenderBuffer.getAttachments().color[1]);
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(gl.TEXTURE_2D, this.bloomBuffers[0].getAttachments().color[0]);
+
     gl.uniform1i(uniforms.uColor, 0);
+    gl.uniform1i(uniforms.uLighting, 1);
+    gl.uniform1i(uniforms.uBloom, 2);
 
-    gl.uniform1f(uniforms.uBloomIntensity, 1);
+    gl.uniform1i(uniforms.uSmartDeNoise, this.smart_denoise);
+    gl.uniform1f(uniforms.uSigma, 1);
+    gl.uniform1f(uniforms.uKSigma, 1);
+    gl.uniform1f(uniforms.uTreshold, 1);
 
-    // gl.drawArrays(gl.TRIANGLES, 0, 3);
+    gl.uniform1f(uniforms.uExposure, this.postExposure);
+
+    gl.uniform1ui(uniforms.uDeferredView, this.deferred_view);
+
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-
-    gl.disable(gl.BLEND);
 }
 
 _getFrameBufferSpec() {
@@ -1001,7 +1031,7 @@ _getDeferredRenderBufferSpec() {
     ];
 }
 
-_getCombinedRenderBufferSpec() {
+_getBloomBaseBufferSpec() {
     const gl = this._gl;
     const color = {
         width          : this._bufferSize,
@@ -1037,6 +1067,21 @@ _getBloomBufferSpec(width, height) {
     return [
         color
     ];
+}
+
+_getBloomBaseSpec() {
+    const gl = this._gl;
+    return [{
+        width          : this._bufferSize,
+        height         : this._bufferSize,
+        min            : gl.NEAREST,
+        mag            : gl.NEAREST,
+        wrapS          : gl.CLAMP_TO_EDGE,
+        wrapT          : gl.CLAMP_TO_EDGE,
+        format         : gl.RGBA,
+        internalFormat : gl.RGBA16F,
+        type           : gl.FLOAT,
+    }];
 }
 
 _destroyBloomBuffers() {
