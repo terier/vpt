@@ -8,9 +8,6 @@ constructor() {
 
 registerProperties(properties) {
     this.properties.push(...properties);
-    for (const property of properties) {
-        this[property.name] = property.value;
-    }
 }
 
 }

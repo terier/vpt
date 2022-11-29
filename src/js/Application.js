@@ -97,22 +97,38 @@ _constructDialogFromProperties(object) {
         type: 'panel',
         children: [],
     };
-    for (const property of object.properties) {
-        if (property.type === 'transfer-function') {
-            panel.children.push({
+    this._appendPropertiesToParent(panel, object.properties, object)
+    return UI.create(panel);
+}
+
+_appendPropertiesToParent(parent, properties, object) {
+    for (const property of properties) {
+        if ("name" in property && "value" in property)
+            object[property.name] = property.value;
+
+        if (property.type === 'accordion') {
+            const accordion = {
+                ...property,
+                children: [],
+            };
+            this._appendPropertiesToParent(accordion, property.children, object)
+            parent.children.push(accordion);
+        }
+        else if (property.type === 'transfer-function') {
+            parent.children.push({
                 type: 'accordion',
                 label: property.label,
                 children: [{ ...property, bind: property.name }]
             });
         } else {
-            panel.children.push({
+            parent.children.push({
                 type: 'field',
                 label: property.label,
                 children: [{ ...property, bind: property.name }]
             });
         }
     }
-    return UI.create(panel);
+    return parent
 }
 
 _handleRendererChange() {

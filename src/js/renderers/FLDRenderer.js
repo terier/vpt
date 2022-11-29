@@ -160,174 +160,198 @@ constructor(gl, volume, environmentTexture, options) {
             ]
         },
         {
-            name: 'deferred_enabled',
+            name: 'deff_rendering_panel',
             label: 'Deferred Rendering',
-            type: "checkbox",
-            value: false,
-            checked: false,
-        },
-        {
-            name: 'deferred_view',
-            label: 'Deferred View',
-            value: 2,
-            type: "dropdown",
-            options: [
+            type: "accordion",
+            contracted: true,
+            children: [
                 {
-                    value: 0,
-                    label: "Color"
+                    name: 'deferred_enabled',
+                    label: 'Deferred Rendering',
+                    type: "checkbox",
+                    value: false,
+                    checked: false,
                 },
                 {
-                    value: 1,
-                    label: "Lighting"
-                },
-                {
+                    name: 'deferred_view',
+                    label: 'Deferred View',
                     value: 2,
-                    label: "Result",
-                    selected: true
+                    type: "dropdown",
+                    options: [
+                        {
+                            value: 0,
+                            label: "Color"
+                        },
+                        {
+                            value: 1,
+                            label: "Lighting"
+                        },
+                        {
+                            value: 2,
+                            label: "Result",
+                            selected: true
+                        },
+                        {
+                            value: 3,
+                            label: "Bloom",
+                        },
+                        {
+                            value: 4,
+                            label: "Bloom * Light",
+                        }
+                    ]
                 },
                 {
-                    value: 3,
-                    label: "Bloom",
+                    name: 'smart_denoise',
+                    label: 'Smart De-Noise',
+                    type: "checkbox",
+                    value: false,
+                    checked: false,
                 },
-                {
-                    value: 4,
-                    label: "Bloom * Light",
-                }
             ]
         },
         {
-            name: 'smart_denoise',
-            label: 'Smart De-Noise',
-            type: "checkbox",
-            value: false,
-            checked: false,
-        },
-        {
-            name: 'bloom',
+            name: 'bloom_rendering_panel',
             label: 'Bloom',
-            type: "checkbox",
-            value: false,
-            checked: false,
-        },
-        {
-            name: 'bloomBase',
-            label: 'Bloom Base',
-            value: 3,
-            type: "dropdown",
-            options: [
+            type: "accordion",
+            contracted: true,
+            children: [
                 {
-                    value: 0,
-                    label: "Color"
+                    name: 'bloom',
+                    label: 'Bloom',
+                    type: "checkbox",
+                    value: false,
+                    checked: false,
                 },
                 {
-                    value: 1,
-                    label: "Emission"
-                },
-                {
-                    value: 2,
-                    label: "Fluence"
-                },
-                {
+                    name: 'bloomBase',
+                    label: 'Bloom Base',
                     value: 3,
-                    label: "Result",
-                    selected: true
+                    type: "dropdown",
+                    options: [
+                        {
+                            value: 0,
+                            label: "Color"
+                        },
+                        {
+                            value: 1,
+                            label: "Emission"
+                        },
+                        {
+                            value: 2,
+                            label: "Fluence"
+                        },
+                        {
+                            value: 3,
+                            label: "Result",
+                            selected: true
+                        }
+                    ]
+                },
+                {
+                    name: 'preExposure',
+                    label: 'Pre-Exposure',
+                    type: "slider",
+                    value: 1,
+                    min: 0,
+                    max: 5
+                },
+                {
+                    name: 'postExposure',
+                    label: 'Post-Exposure',
+                    type: "slider",
+                    value: 1,
+                    min: 0,
+                    max: 5
+                },
+                {
+                    name: 'bloomIntensity',
+                    label: 'Bloom Intensity',
+                    type: "slider",
+                    value: 0.7,
+                    min: 0,
+                    max: 2
+                },
+                {
+                    name: 'bloomThreshold',
+                    label: 'Bloom Threshold',
+                    type: "slider",
+                    value: 1.5,
+                    min: 0,
+                    max: 5
+                },
+                {
+                    name: 'bloomKnee',
+                    label: 'Bloom Knee',
+                    type: "slider",
+                    value: 0.9,
+                    min: 0,
+                    max: 1
+                },
+                {
+                    name: 'bloomTransferFunction',
+                    label: 'Bloom transfer function',
+                    type: 'transfer-function',
+                    value: new Uint8Array(256),
                 }
             ]
         },
         {
-            name: 'preExposure',
-            label: 'Pre-Exposure',
-            type: "slider",
-            value: 1,
-            min: 0,
-            max: 5
-        },
-        {
-            name: 'postExposure',
-            label: 'Post-Exposure',
-            type: "slider",
-            value: 1,
-            min: 0,
-            max: 5
-        },
-        {
-            name: 'bloomIntensity',
-            label: 'Bloom Intensity',
-            type: "slider",
-            value: 0.7,
-            min: 0,
-            max: 2
-        },
-        {
-            name: 'bloomThreshold',
-            label: 'Bloom Threshold',
-            type: "slider",
-            value: 1.5,
-            min: 0,
-            max: 5
-        },
-        {
-            name: 'bloomKnee',
-            label: 'Bloom Knee',
-            type: "slider",
-            value: 0.9,
-            min: 0,
-            max: 1
-        },
-        {
-            name: 'renderGradient',
+            name: 'render_gradient_rendering_panel',
             label: 'Render Gradient',
-            type: "checkbox",
-            value: false,
-            checked: false,
-        },
-        {
-            name: 'gradientFactor',
-            label: 'Gradient Factor',
-            type: "spinner",
-            value: 1,
-            min: 0,
-        },
-        {
-            name: 'metallic',
-            label: 'Metallic',
-            type: "slider",
-            value: 0,
-            min: 0,
-            max: 1
-        },
-        {
-            name: 'f90',
-            label: 'f90',
-            type: "color-chooser",
-            value: "#ffffff",
-        },
-        {
-            name: 'specularWeight',
-            label: 'Specular Weight',
-            type: "slider",
-            value: 1.0,
-            min: 0,
-            max: 1,
-        },
-        {
-            name: 'alphaRoughness',
-            label: 'Alpha Roughness',
-            type: "slider",
-            value: 0.08,
-            min: 0,
-            max: 1,
-            step: 0.05
+            type: "accordion",
+            contracted: true,
+            children: [
+                {
+                    name: 'renderGradient',
+                    label: 'Render Gradient',
+                    type: "checkbox",
+                    value: false,
+                    checked: false,
+                },
+                {
+                    name: 'gradientFactor',
+                    label: 'Gradient Factor',
+                    type: "spinner",
+                    value: 1,
+                    min: 0,
+                },
+                {
+                    name: 'metallic',
+                    label: 'Metallic',
+                    type: "slider",
+                    value: 0,
+                    min: 0,
+                    max: 1
+                },
+                {
+                    name: 'f90',
+                    label: 'f90',
+                    type: "color-chooser",
+                    value: "#ffffff",
+                },
+                {
+                    name: 'specularWeight',
+                    label: 'Specular Weight',
+                    type: "slider",
+                    value: 1.0,
+                    min: 0,
+                    max: 1,
+                },
+                {
+                    name: 'alphaRoughness',
+                    label: 'Alpha Roughness',
+                    type: "slider",
+                    value: 0.08,
+                    min: 0,
+                    max: 1,
+                    step: 0.05
+                },
+            ]
         },
         {
             name: 'transferFunction',
             label: 'Transfer function',
-            type: 'transfer-function',
-            value: new Uint8Array(256),
-        },
-        {
-            name: 'bloomTransferFunction',
-            label: 'Bloom transfer function',
             type: 'transfer-function',
             value: new Uint8Array(256),
         }
