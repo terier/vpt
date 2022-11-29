@@ -243,11 +243,13 @@ uniform mat4 uMvpInverseMatrix;
 layout(location = 0) in vec2 aPosition;
 out vec3 vRayFrom;
 out vec3 vRayTo;
+out vec2 vPosition;
 
 // #link /glsl/mixins/unproject.glsl
 @unproject
 
 void main() {
+    vPosition = aPosition;
     unproject(aPosition, uMvpInverseMatrix, vRayFrom, vRayTo);
     gl_Position = vec4(aPosition, 0, 1);
 }
@@ -259,6 +261,7 @@ void main() {
 precision highp float;
 
 #define PI 3.14159265358
+#define M_2PI 6.28318530718
 
 uniform highp sampler3D uFluence;
 uniform mediump sampler3D uVolume;
@@ -273,17 +276,42 @@ uniform uint uView;
 
 uniform float uExposure;
 
+uniform int uAOSamples;
+uniform float uAORadius;
+uniform float uRandSeed;
+
 in vec3 vRayFrom;
 in vec3 vRayTo;
+in vec2 vPosition;
 out vec4 oColor;
+
+// #link /glsl/mixins/rand
+@rand
 
 // #link /glsl/mixins/intersectCube.glsl
 @intersectCube
+
+// #link /glsl/mixins/ambientOcclusion.glsl
+@ambientOcclusion
 
 vec4 sampleVolumeColor(vec3 position) {
     vec2 volumeSample = texture(uVolume, position).rg;
     vec4 transferSample = texture(uTransferFunction, volumeSample);
     return transferSample;
+}
+
+vec3 gradient(vec3 pos, float h) {
+    vec3 positive = vec3(
+    texture(uVolume, pos + vec3( h, 0.0, 0.0)).r,
+    texture(uVolume, pos + vec3(0.0,  h, 0.0)).r,
+    texture(uVolume, pos + vec3(0.0, 0.0,  h)).r
+    );
+    vec3 negative = vec3(
+    texture(uVolume, pos + vec3(-h, 0.0, 0.0)).r,
+    texture(uVolume, pos + vec3(0.0, -h, 0.0)).r,
+    texture(uVolume, pos + vec3(0.0, 0.0, -h)).r
+    );
+    return normalize(positive - negative);
 }
 
 void main() {
@@ -341,7 +369,16 @@ void main() {
             }
 
             colorSample.a *= rayStepLength * uExtinction;
-            colorSample.rgb *= colorSample.a * factor;
+            if (colorSample.a > 0. && uAOSamples >= 1) {
+                vec2 U = rand(vPosition * uRandSeed);
+//                vec3 grad = -gradient(position, 0.005);
+                float AO = ambientOcclusion(position, uAOSamples, uAORadius, U, uVolume, uTransferFunction);
+                colorSample.rgb *= colorSample.a * factor * (1. - AO);
+            }
+            else {
+                colorSample.rgb *= colorSample.a * factor;
+            }
+
 
             // debug
 //            vec4 colorSample = vec4(vec3(fluence), 1);

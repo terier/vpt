@@ -297,6 +297,27 @@ constructor(gl, volume, environmentTexture, options) {
             ]
         },
         {
+            name: 'ambient_occlusion_panel',
+            label: 'Ambient Occlusion',
+            type: 'accordion',
+            children: [
+                {
+                    name: 'ao_samples',
+                    label: 'AO Samples',
+                    type: 'spinner',
+                    value: 0,
+                    min: 0
+                },
+                {
+                    name: 'ao_radius',
+                    label: 'AO Radius',
+                    type: 'spinner',
+                    value: 0.005,
+                    min: 0
+                },
+            ]
+        },
+        {
             name: 'render_gradient_rendering_panel',
             label: 'Render Gradient',
             type: "accordion",
@@ -744,6 +765,10 @@ _renderFrame(transferFunction, volumeView) {
     gl.uniform1ui(uniforms.uView, volumeView);
 
     gl.uniform1f(uniforms.uExposure, this.preExposure);
+
+    gl.uniform1i(uniforms.uAOSamples, this.ao_samples);
+    gl.uniform1f(uniforms.uAORadius, this.ao_radius);
+    gl.uniform1f(uniforms.uRandSeed, Math.random());
 
     const mvpit = this.calculateMVPInverseTranspose();
     gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, mvpit.m);
