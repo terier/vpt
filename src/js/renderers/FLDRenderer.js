@@ -302,6 +302,13 @@ constructor(gl, volume, environmentTexture, options) {
             type: 'accordion',
             children: [
                 {
+                    name: 'ao_enabled',
+                    label: 'Ambient Occlusion',
+                    type: 'checkbox',
+                    value: true,
+                    checked: true,
+                },
+                {
                     name: 'ao_samples',
                     label: 'AO Samples',
                     type: 'spinner',
@@ -406,6 +413,10 @@ constructor(gl, volume, environmentTexture, options) {
             this._checkDeferredRendering();
         }
 
+        // if (name === 'ao_enabled') {
+        //     this._checkAmbientOcclusion();
+        // }
+
         if (name === 'bloomTransferFunction') {
             this.setBloomTransferFunction(this.bloomTransferFunction);
         }
@@ -419,6 +430,9 @@ destroy() {
     const gl = this._gl;
     if (this._defferedRenderBuffer) {
         this._destroyDeferredRenderBuffer()
+    }
+    if (this._ambientOcclusionBuffer) {
+        this._ambientOcclusionBuffer.destroy();
     }
     if (this._bloomBaseBuffer) {
         this._bloomBaseBuffer.destroy();
@@ -485,25 +499,20 @@ setAccumulationBuffer() {
 }
 
 _rebuildBuffers() {
-    // if (this._frameBuffer) {
-    //     this._frameBuffer.destroy();
-    // }
-    // if (this._accumulationBuffer) {
-    //     this._accumulationBuffer.destroy();
-    // }
     this._initialize3DBuffers();
     if (this._renderBuffer) {
         this._renderBuffer.destroy();
     }
     if (this._defferedRenderBuffer) {
-        this._destroyDeferredRenderBuffer()
+        this._destroyDeferredRenderBuffer();
     }
+    // if (this._ambientOcclusionBuffer) {
+    //     this._destroyAmbientOcclusionBuffer()
+    // }
     const gl = this._gl;
-    // this._frameBuffer = new SingleBuffer3D(gl, this._getFrameBufferSpec());
-    // this._accumulationBuffer = new DoubleBuffer3D(gl, this._getAccumulationBufferSpec());
     this._renderBuffer = new SingleBuffer(gl, this._getRenderBufferSpec());
-    if (this.deferred_enabled)
-        this._buildDeferredRenderBuffer();
+    this._checkDeferredRendering();
+    // this._checkAmbientOcclusion();
     this._buildBloomBuffers();
 }
 
@@ -517,11 +526,30 @@ _destroyDeferredRenderBuffer() {
     this._defferedRenderBuffer = null;
 }
 
+_buildAmbientOcclusionBuffer() {
+    const gl = this._gl;
+    this._ambientOcclusionBuffer = new SingleBuffer(gl, this._getAmbientOcclusionBufferSpec());
+}
+
+_destroyAmbientOcclusionBuffer() {
+    this._ambientOcclusionBuffer.destroy();
+    this._ambientOcclusionBuffer = null;
+}
+
 _checkDeferredRendering() {
     if (this.deferred_enabled && !this._defferedRenderBuffer)
         this._buildDeferredRenderBuffer();
     else if (!this.deferred_enabled && this._defferedRenderBuffer)
         this._destroyDeferredRenderBuffer();
+
+    // this._checkAmbientOcclusion();
+}
+
+_checkAmbientOcclusion() {
+    if (this.ao_enabled && !this._ambientOcclusionBuffer)
+        this._buildAmbientOcclusionBuffer();
+    else if (!this.ao_enabled && this._ambientOcclusionBuffer)
+        this._destroyAmbientOcclusionBuffer();
 }
 
 _buildBloomBuffers() {
@@ -768,7 +796,7 @@ _renderFrame(transferFunction, volumeView) {
 
     gl.uniform1i(uniforms.uAOSamples, this.ao_samples);
     gl.uniform1f(uniforms.uAORadius, this.ao_radius);
-    gl.uniform1f(uniforms.uRandSeed, Math.random());
+    gl.uniform1f(uniforms.uAORandSeed, 42);
 
     const mvpit = this.calculateMVPInverseTranspose();
     gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, mvpit.m);
@@ -1080,6 +1108,25 @@ _getDeferredRenderBufferSpec() {
     ];
 }
 
+_getAmbientOcclusionBufferSpec() {
+    const gl = this._gl;
+    const ao = {
+        width          : this._bufferSize,
+        height         : this._bufferSize,
+        min            : gl.LINEAR,
+        mag            : gl.LINEAR,
+        wrapS          : gl.CLAMP_TO_EDGE,
+        wrapT          : gl.CLAMP_TO_EDGE,
+        format         : gl.RG,
+        internalFormat : gl.RG32F,
+        type           : gl.FLOAT
+    };
+
+    return [
+        ao
+    ];
+}
+
 _getBloomBaseBufferSpec() {
     const gl = this._gl;
     const color = {
@@ -1193,5 +1240,4 @@ _createBloomBuffers() {
         // };
     });
 }
-
 }

@@ -278,7 +278,7 @@ uniform float uExposure;
 
 uniform int uAOSamples;
 uniform float uAORadius;
-uniform float uRandSeed;
+uniform float uAORandSeed;
 
 in vec3 vRayFrom;
 in vec3 vRayTo;
@@ -370,7 +370,7 @@ void main() {
 
             colorSample.a *= rayStepLength * uExtinction;
             if (colorSample.a > 0. && uAOSamples >= 1) {
-                vec2 U = rand(vPosition * uRandSeed);
+                vec2 U = rand(vPosition * uAORandSeed);
 //                vec3 grad = -gradient(position, 0.005);
                 float AO = ambientOcclusion(position, uAOSamples, uAORadius, U, uVolume, uTransferFunction);
                 colorSample.rgb *= colorSample.a * factor * (1. - AO);
