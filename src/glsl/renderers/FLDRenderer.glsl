@@ -276,6 +276,7 @@ uniform uint uView;
 
 uniform float uExposure;
 
+uniform bool uAOEnabled;
 uniform int uAOSamples;
 uniform float uAORadius;
 uniform float uAORandSeed;
@@ -369,14 +370,12 @@ void main() {
             }
 
             colorSample.a *= rayStepLength * uExtinction;
-            if (colorSample.a > 0. && uAOSamples >= 1) {
+            colorSample.rgb *= colorSample.a * factor;
+            if (uAOEnabled && colorSample.a > 0. && uAOSamples > 0) {
                 vec2 U = rand(vPosition * uAORandSeed);
 //                vec3 grad = -gradient(position, 0.005);
                 float AO = ambientOcclusion(position, uAOSamples, uAORadius, U, uVolume, uTransferFunction);
-                colorSample.rgb *= colorSample.a * factor * (1. - AO);
-            }
-            else {
-                colorSample.rgb *= colorSample.a * factor;
+                colorSample.rgb *= (1. - AO);
             }
 
 
@@ -636,10 +635,16 @@ uniform float uExtinction;
 uniform float uAlbedo;
 uniform uint uView;
 
+uniform bool uAOEnabled;
+uniform float uAOThreshold;
+
+uniform mat4 uMvMatrix;
+
 in vec3 vRayFrom;
 in vec3 vRayTo;
 layout (location = 0) out vec4 oColor;
 layout (location = 1) out float oLighting;
+layout (location = 2) out vec4 oDepth;
 
 //debug
 in vec2 vPosition;
@@ -660,6 +665,9 @@ void main() {
         oColor = vec4(0, 0, 0, 1);
 //        oColor = vec4(1, 1, 1, 1);
         oLighting = 0.0;
+        if (uAOEnabled) {
+            oDepth = vec4(1);
+        }
     } else {
         vec3 from = mix(vRayFrom, vRayTo, tbounds.x);
         vec3 to = mix(vRayFrom, vRayTo, tbounds.y);
@@ -668,6 +676,8 @@ void main() {
         float t = 0.0;
         vec4 accumulator = vec4(0);
         float lightingAccumulator = 0.0;
+        float depthAccumulator = 0.;
+        float depthDistance = -1.;
 
         while (t < 1.0 && accumulator.a < 0.99) {
             vec3 position = mix(from, to, t);
@@ -708,6 +718,11 @@ void main() {
 
             accumulator += (1.0 - accumulator.a) * colorSample;
             t += uStepSize;
+
+            if (uAOEnabled && depthAccumulator < uAOThreshold) {
+                depthAccumulator += (1.0 - depthAccumulator) * colorSample.a * rayStepLength * uExtinction;
+                depthDistance = t;
+            }
         }
 
         if (accumulator.a > 1.0) {
@@ -723,6 +738,19 @@ void main() {
 //        oColor = mix(vec4(0), vec4(accumulator.rgb, 1), accumulator.a);
         oColor = vec4(accumulator.rgb, 1);
         oLighting = lightingAccumulator;
+        if (uAOEnabled) {
+            if (depthAccumulator < uAOThreshold) {
+                oDepth = vec4(-1.);
+            } else {
+//                oDepth = mix(tbounds.x, tbounds.y, depthDistance);
+//                vec4 depthPos = vec4(mix(from, to, depthDistance), 1);
+//                depthPos      = uMvMatrix * depthPos;
+//                float depthPos_t = depthPos.z;
+//                depthPos.xyz  = depthPos.xyz * 0.5 + 0.5;
+//                oDepth = vec4(depthPos.xyz, depthDistance);
+                oDepth = vec4(mix(from, to, depthDistance), depthDistance);
+            }
+        }
     }
 }
 
@@ -746,10 +774,12 @@ void main() {
 // #part /glsl/shaders/renderers/FLD/combine_render/fragment
 
 #version 300 es
+#define M_2PI 6.28318530718
 precision highp float;
 
 uniform highp sampler2D uColor;
 uniform highp sampler2D uLighting;
+uniform highp sampler2D uDepth;
 uniform int uSmartDeNoise;
 uniform float uSigma;
 uniform float uKSigma;
@@ -757,9 +787,22 @@ uniform float uTreshold;
 
 uniform uint uDeferredView;
 
+uniform bool uAOEnabled;
+uniform int uAOSamples;
+uniform float uAORadius;
+uniform float uAORandSeed;
+uniform float uAODepthBias;
+//uniform mat4 uMvpMatrix;
+
 out vec4 oColor;
 
 in vec2 vPosition;
+
+// #link /glsl/mixins/rand
+@rand
+
+// #link /glsl/mixins/SSAO.glsl
+@SSAO
 
 // #link /glsl/mixins/smartDeNoiseF.glsl
 @smartDeNoiseF
@@ -773,20 +816,38 @@ void main() {
     else
         lightingSample = texture(uLighting, vPosition).r;
 
+    float aoSample = 0.;
+//    if (uAOEnabled && colorSample.a > 0. && uAOSamples > 0) {
+//        vec2 U = rand(vPosition * uAORandSeed);
+//        vec4 position = texture(uDepth, vPosition);
+//        aoSample = SSAO(position, uAOSamples, uAORadius, uAODepthBias, U, uMvpMatrix, uDepth);
+//    }
+
     switch (uDeferredView) {
         case 0u:
-        oColor = colorSample;
-        break;
+            oColor = colorSample;
+            break;
         case 1u:
-//        oColor = mix(vec4(vec3(lightingSample), 1), vec4(0, 0, 0, 1), lightingSample);
-        oColor = vec4(vec3(lightingSample), 1);
-        break;
+    //        oColor = mix(vec4(vec3(lightingSample), 1), vec4(0, 0, 0, 1), lightingSample);
+            oColor = vec4(vec3(lightingSample), 1);
+            break;
         case 2u: default:
-//        oColor = mix(colorSample, vec4(0, 0, 0, 1), lightingSample);
-//        oColor = colorSample * (1.0 - lightingSample);
-//        oColor = mix(vec4(0, 0, 0, 1), colorSample, lightingSample);
-        oColor = vec4(colorSample.rgb * lightingSample, 1);
-        break;
+    //        oColor = mix(colorSample, vec4(0, 0, 0, 1), lightingSample);
+    //        oColor = colorSample * (1.0 - lightingSample);
+    //        oColor = mix(vec4(0, 0, 0, 1), colorSample, lightingSample);
+            oColor = vec4(colorSample.rgb * lightingSample, 1);
+            break;
+        case 5u:
+            oColor = vec4(vec3(texture(uDepth, vPosition).w), 1);
+            break;
+        case 6u:
+            oColor = vec4(vec3(1. - aoSample), 1);
+            oColor = vec4(vec3(texture(uDepth, vPosition).z), 1);
+            break;
+        case 7u:
+//            oColor = vec4(colorSample.rgb * lightingSample * (1. - aoSample), 1);
+            oColor = vec4(vec3(aoSample), 1);
+            break;
     }
 }
 

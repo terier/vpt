@@ -4,6 +4,7 @@ import { SingleBuffer } from "../SingleBuffer.js";
 import { SingleBuffer3D } from "../SingleBuffer3D.js";
 import { DoubleBuffer3D } from "../DoubleBuffer3D.js";
 import { CommonUtils } from '../utils/CommonUtils.js';
+import { Matrix } from '../math/Matrix.js';
 
 const [ SHADERS, MIXINS ] = await Promise.all([
     'shaders.json',
@@ -163,19 +164,19 @@ constructor(gl, volume, environmentTexture, options) {
             name: 'deff_rendering_panel',
             label: 'Deferred Rendering',
             type: "accordion",
-            contracted: true,
+            contracted: false,
             children: [
                 {
                     name: 'deferred_enabled',
                     label: 'Deferred Rendering',
                     type: "checkbox",
-                    value: false,
-                    checked: false,
+                    value: true,
+                    checked: true,
                 },
                 {
                     name: 'deferred_view',
                     label: 'Deferred View',
-                    value: 2,
+                    value: 7,
                     type: "dropdown",
                     options: [
                         {
@@ -198,6 +199,18 @@ constructor(gl, volume, environmentTexture, options) {
                         {
                             value: 4,
                             label: "Bloom * Light",
+                        },
+                        {
+                            value: 5,
+                            label: "Depth",
+                        },
+                        {
+                            value: 6,
+                            label: "Ambient Occlusion",
+                        },
+                        {
+                            value: 7,
+                            label: "Result with AO",
                         }
                     ]
                 },
@@ -312,7 +325,7 @@ constructor(gl, volume, environmentTexture, options) {
                     name: 'ao_samples',
                     label: 'AO Samples',
                     type: 'spinner',
-                    value: 0,
+                    value: 10,
                     min: 0
                 },
                 {
@@ -321,6 +334,22 @@ constructor(gl, volume, environmentTexture, options) {
                     type: 'spinner',
                     value: 0.005,
                     min: 0
+                },
+                {
+                    name: 'ao_threshold',
+                    label: 'AO Threshold',
+                    type: 'slider',
+                    value: 0.15,
+                    min: 0,
+                    max: 1
+                },
+                {
+                    name: 'ao_bias',
+                    label: 'AO Bias',
+                    type: 'spinner',
+                    value: 0.025,
+                    min: 0,
+                    max: 1
                 },
             ]
         },
@@ -413,9 +442,9 @@ constructor(gl, volume, environmentTexture, options) {
             this._checkDeferredRendering();
         }
 
-        // if (name === 'ao_enabled') {
-        //     this._checkAmbientOcclusion();
-        // }
+        if (name === 'ao_enabled') {
+            this._checkAmbientOcclusion();
+        }
 
         if (name === 'bloomTransferFunction') {
             this.setBloomTransferFunction(this.bloomTransferFunction);
@@ -546,9 +575,9 @@ _checkDeferredRendering() {
 }
 
 _checkAmbientOcclusion() {
-    if (this.ao_enabled && !this._ambientOcclusionBuffer)
+    if (this.ao_enabled && this.deferred_enabled && !this._ambientOcclusionBuffer)
         this._buildAmbientOcclusionBuffer();
-    else if (!this.ao_enabled && this._ambientOcclusionBuffer)
+    else if ((!this.ao_enabled || !this.deferred_enabled) && this._ambientOcclusionBuffer)
         this._destroyAmbientOcclusionBuffer();
 }
 
@@ -794,6 +823,8 @@ _renderFrame(transferFunction, volumeView) {
 
     gl.uniform1f(uniforms.uExposure, this.preExposure);
 
+
+    gl.uniform1i(uniforms.uAOEnabled, this.ao_enabled);
     gl.uniform1i(uniforms.uAOSamples, this.ao_samples);
     gl.uniform1f(uniforms.uAORadius, this.ao_radius);
     gl.uniform1f(uniforms.uAORandSeed, 42);
@@ -847,6 +878,12 @@ _renderFrameGradient() {
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 }
 
+_calculateMV() {
+    const mv = new Matrix();
+    mv.multiply(this.viewMatrix, this.modelMatrix);
+    return mv;
+}
+
 _deferredRenderFrame(transferFunction) {
     const gl = this._gl;
 
@@ -876,14 +913,21 @@ _deferredRenderFrame(transferFunction) {
     gl.uniform1f(uniforms.uAlbedo, this.albedo);
     gl.uniform1f(uniforms.uOffset, Math.random());
 
+    gl.uniform1i(uniforms.uAOEnabled, this.ao_enabled);
+    gl.uniform1f(uniforms.uAOThreshold, this.ao_threshold);
+
     gl.uniform1ui(uniforms.uView, this.volume_view);
 
     const mvpit = this.calculateMVPInverseTranspose();
     gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, mvpit.m);
 
+    const mv = this._calculateMV();
+    gl.uniformMatrix4fv(uniforms.uMvMatrix, false, mv.m);
+
     gl.drawBuffers([
         gl.COLOR_ATTACHMENT0,
-        gl.COLOR_ATTACHMENT1
+        gl.COLOR_ATTACHMENT1,
+        gl.COLOR_ATTACHMENT2
     ]);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
@@ -899,9 +943,12 @@ _combineRenderFrame() {
     gl.bindTexture(gl.TEXTURE_2D, this._defferedRenderBuffer.getAttachments().color[0]);
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, this._defferedRenderBuffer.getAttachments().color[1]);
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(gl.TEXTURE_2D, this._defferedRenderBuffer.getAttachments().color[2]);
 
     gl.uniform1i(uniforms.uColor, 0);
     gl.uniform1i(uniforms.uLighting, 1);
+    gl.uniform1i(uniforms.uDepth, 2);
 
     gl.uniform1i(uniforms.uSmartDeNoise, this.smart_denoise);
     gl.uniform1f(uniforms.uSigma, 1);
@@ -909,6 +956,15 @@ _combineRenderFrame() {
     gl.uniform1f(uniforms.uTreshold, 1);
 
     gl.uniform1ui(uniforms.uDeferredView, this.deferred_view);
+
+    gl.uniform1i(uniforms.uAOEnabled, this.ao_enabled);
+    gl.uniform1i(uniforms.uAOSamples, this.ao_samples);
+    gl.uniform1f(uniforms.uAORadius, this.ao_radius);
+    gl.uniform1f(uniforms.uAORandSeed, 42);
+    gl.uniform1f(uniforms.uAODepthBias, this.ao_bias);
+
+    // const mvp = this._calculateMVP();
+    // gl.uniformMatrix4fv(uniforms.uMvpMatrix, false, mvp.m);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 }
@@ -1102,19 +1158,43 @@ _getDeferredRenderBufferSpec() {
         type           : gl.FLOAT
     };
 
+    const depth = {
+        width          : this._bufferSize,
+        height         : this._bufferSize,
+        min            : gl.NEAREST,
+        mag            : gl.NEAREST,
+        wrapS          : gl.CLAMP_TO_EDGE,
+        wrapT          : gl.CLAMP_TO_EDGE,
+        format         : gl.RGBA,
+        internalFormat : gl.RGBA32F,
+        type           : gl.FLOAT
+    };
+
     return [
         color,
-        lighting
+        lighting,
+        depth
     ];
 }
 
 _getAmbientOcclusionBufferSpec() {
     const gl = this._gl;
+    const depth = {
+        width          : this._bufferSize,
+        height         : this._bufferSize,
+        min            : gl.NEAREST,
+        mag            : gl.NEAREST,
+        wrapS          : gl.CLAMP_TO_EDGE,
+        wrapT          : gl.CLAMP_TO_EDGE,
+        format         : gl.RG,
+        internalFormat : gl.RG32F,
+        type           : gl.FLOAT
+    };
     const ao = {
         width          : this._bufferSize,
         height         : this._bufferSize,
-        min            : gl.LINEAR,
-        mag            : gl.LINEAR,
+        min            : gl.NEAREST,
+        mag            : gl.NEAREST,
         wrapS          : gl.CLAMP_TO_EDGE,
         wrapT          : gl.CLAMP_TO_EDGE,
         format         : gl.RG,
@@ -1123,6 +1203,7 @@ _getAmbientOcclusionBufferSpec() {
     };
 
     return [
+        depth,
         ao
     ];
 }
@@ -1192,18 +1273,6 @@ _createBloomBuffers() {
     const gl = this._gl;
 
     this._destroyBloomBuffers()
-    // const sampling = {
-    //     min: gl.LINEAR,
-    //     mag: gl.LINEAR,
-    //     wrapS: gl.CLAMP_TO_EDGE,
-    //     wrapT: gl.CLAMP_TO_EDGE,
-    // };
-    //
-    // const format = {
-    //     format: gl.RGBA,
-    //     internalFormat: gl.RGBA16F,
-    //     type: gl.FLOAT,
-    // };
 
     function numberOfLevels(width, height) {
         return Math.ceil(Math.log2(Math.max(width, height)));
@@ -1222,22 +1291,6 @@ _createBloomBuffers() {
     this.bloomBuffers = new Array(levels).fill(0).map((_, level) => {
         const size = sizeAtLevel(level, gl.drawingBufferWidth, gl.drawingBufferHeight);
         return new SingleBuffer(this._gl, this._getBloomBufferSpec(size.width, size.height));
-
-        // const texture = WebGL.createTexture(gl, {
-        //     ...size,
-        //     ...sampling,
-        //     ...format,
-        // });
-        //
-        // const framebuffer = gl.createFramebuffer();
-        // gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
-        // gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
-        //
-        // return {
-        //     texture,
-        //     framebuffer,
-        //     size,
-        // };
     });
 }
 }
