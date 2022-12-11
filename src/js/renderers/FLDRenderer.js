@@ -5,6 +5,7 @@ import { SingleBuffer3D } from "../SingleBuffer3D.js";
 import { DoubleBuffer3D } from "../DoubleBuffer3D.js";
 import { CommonUtils } from '../utils/CommonUtils.js';
 import { Matrix } from '../math/Matrix.js';
+import { Vector } from "../math/Vector.js";
 
 const [ SHADERS, MIXINS ] = await Promise.all([
     'shaders.json',
@@ -176,7 +177,7 @@ constructor(gl, volume, environmentTexture, options) {
                 {
                     name: 'deferred_view',
                     label: 'Deferred View',
-                    value: 7,
+                    value: 6,
                     type: "dropdown",
                     options: [
                         {
@@ -190,7 +191,6 @@ constructor(gl, volume, environmentTexture, options) {
                         {
                             value: 2,
                             label: "Result",
-                            selected: true
                         },
                         {
                             value: 3,
@@ -207,6 +207,7 @@ constructor(gl, volume, environmentTexture, options) {
                         {
                             value: 6,
                             label: "Ambient Occlusion",
+                            selected: true
                         },
                         {
                             value: 7,
@@ -332,7 +333,7 @@ constructor(gl, volume, environmentTexture, options) {
                     name: 'ao_radius',
                     label: 'AO Radius',
                     type: 'spinner',
-                    value: 0.005,
+                    value: 0.05,
                     min: 0
                 },
                 {
@@ -347,7 +348,7 @@ constructor(gl, volume, environmentTexture, options) {
                     name: 'ao_bias',
                     label: 'AO Bias',
                     type: 'spinner',
-                    value: 0.025,
+                    value: 0.005,
                     min: 0,
                     max: 1
                 },
@@ -630,7 +631,9 @@ render() {
     }
 }
 
-reset() { }
+reset() {
+    // this.calculateDepth()
+}
 
 resetVolume() {
     if (!this._volume.ready || !this._accumulationBuffer)
@@ -884,6 +887,39 @@ _calculateMV() {
     return mv;
 }
 
+calculateDepth() {
+    // Reminder of the mystical inner workings of VPT's View and Model matrices
+    const mvMatrix = new Matrix();
+    mvMatrix.multiply(this.viewMatrix, this.modelMatrix);
+
+    const corners = [
+        new Vector(0, 0, 0), new Vector(0, 0, 1),
+        new Vector(0, 1, 0), new Vector(0, 1, 1),
+        new Vector(1, 0, 0), new Vector(1, 0, 1),
+        new Vector(1, 1, 0), new Vector(1, 1, 1),
+    ];
+    const corners2 = [
+        new Vector(0, 0, 0), new Vector(0, 0, 1),
+        new Vector(0, 1, 0), new Vector(0, 1, 1),
+        new Vector(1, 0, 0), new Vector(1, 0, 1),
+        new Vector(1, 1, 0), new Vector(1, 1, 1),
+    ];
+    const depths = corners.map(v => mvMatrix.transform(v));
+    // const depths2 = depths.map(v => `${v.x}, ${v.y}, ${v.z}\n`);
+    // for (const v of depths2) {
+    //     console.log(v)
+    // }
+    console.log("----------")
+    for (let i = 0; i < depths.length; i++) {
+        let v = depths[i]
+        let c = corners2[i]
+        console.log(`(${c.x}, ${c.y}, ${c.z}) -> ${v.x.toFixed(2)}, ${v.y.toFixed(2)}, ${v.z.toFixed(2)}`)
+    }
+    console.log("----------")
+    // console.log(depths2)
+    // return [Math.min(...depths), Math.max(...depths)];
+}
+
 _deferredRenderFrame(transferFunction) {
     const gl = this._gl;
 
@@ -922,7 +958,8 @@ _deferredRenderFrame(transferFunction) {
     gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, mvpit.m);
 
     const mv = this._calculateMV();
-    gl.uniformMatrix4fv(uniforms.uMvMatrix, false, mv.m);
+    gl.uniformMatrix4fv(uniforms.uMvMatrix, true, mv.m);
+
 
     gl.drawBuffers([
         gl.COLOR_ATTACHMENT0,
@@ -965,6 +1002,7 @@ _combineRenderFrame() {
 
     // const mvp = this._calculateMVP();
     // gl.uniformMatrix4fv(uniforms.uMvpMatrix, false, mvp.m);
+    gl.uniformMatrix4fv(uniforms.uPMatrix, true, this.projectionMatrix.m);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 }
