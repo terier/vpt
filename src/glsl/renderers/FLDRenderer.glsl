@@ -751,6 +751,55 @@ void main() {
     }
 }
 
+// #part /glsl/shaders/renderers/FLD/ssao/vertex
+
+#version 300 es
+precision mediump float;
+
+layout(location = 0) in vec2 aPosition;
+
+out vec2 vPosition;
+
+void main() {
+    gl_Position = vec4(aPosition, 0.0, 1.0);
+    vPosition = (aPosition + 1.0) * 0.5;
+}
+
+// #part /glsl/shaders/renderers/FLD/ssao/fragment
+
+#version 300 es
+precision highp float;
+
+uniform highp sampler2D uDepth;
+
+uniform int uAOSamples;
+uniform float uAORadius;
+uniform float uAORandSeed;
+uniform float uAODepthBias;
+
+uniform mat4 uPMatrix;
+
+out float oSSAO;
+
+in vec2 vPosition;
+
+// #link /glsl/mixins/rand
+@rand
+
+// #link /glsl/mixins/SSAO.glsl
+@SSAO
+
+void main() {
+    float aoSample = 0.;
+    vec4 position = texture(uDepth, vPosition);
+    if (position.w != 42.) {
+        vec2 U = rand(vPosition * uAORandSeed);
+        aoSample = SSAO(position.xyz, uAOSamples, uAORadius, uAODepthBias, U, uPMatrix, uDepth);
+    }
+    oSSAO = aoSample;
+}
+
+
 // #part /glsl/shaders/renderers/FLD/combine_render/vertex
 
 #version 300 es
@@ -771,12 +820,11 @@ void main() {
 // #part /glsl/shaders/renderers/FLD/combine_render/fragment
 
 #version 300 es
-#define M_2PI 6.28318530718
 precision highp float;
 
 uniform highp sampler2D uColor;
 uniform highp sampler2D uLighting;
-uniform highp sampler2D uDepth;
+uniform highp sampler2D uSSAO;
 uniform int uSmartDeNoise;
 uniform float uSigma;
 uniform float uKSigma;
@@ -786,21 +834,10 @@ uniform uint uDeferredView;
 
 uniform bool uAOEnabled;
 uniform int uAOSamples;
-uniform float uAORadius;
-uniform float uAORandSeed;
-uniform float uAODepthBias;
-//uniform mat4 uMvpMatrix;
-uniform mat4 uPMatrix;
 
 out vec4 oColor;
 
 in vec2 vPosition;
-
-// #link /glsl/mixins/rand
-@rand
-
-// #link /glsl/mixins/SSAO.glsl
-@SSAO
 
 // #link /glsl/mixins/smartDeNoiseF.glsl
 @smartDeNoiseF
@@ -815,12 +852,8 @@ void main() {
         lightingSample = texture(uLighting, vPosition).r;
 
     float aoSample = 0.;
-    if (uAOEnabled && uAOSamples > 0) {
-        vec2 U = rand(vPosition * uAORandSeed);
-        vec4 position = texture(uDepth, vPosition);
-        if (position.w != 42.)
-            aoSample = SSAO(position.xyz, uAOSamples, uAORadius, uAODepthBias, U, uPMatrix, uDepth);
-    }
+    if (uAOEnabled && uAOSamples > 0)
+        aoSample = texture(uSSAO, vPosition).r;
 
     switch (uDeferredView) {
         case 0u:
@@ -837,13 +870,10 @@ void main() {
             oColor = vec4(colorSample.rgb * lightingSample, 1);
             break;
         case 5u:
-            oColor = vec4(vec3(texture(uDepth, vPosition).w), 1);
-            break;
-        case 6u:
             oColor = vec4(vec3(1. - aoSample), 1);
 //            oColor = vec4(vec3(texture(uDepth, vPosition).z), 1);
             break;
-        case 7u:
+        case 6u:
             oColor = vec4(colorSample.rgb * lightingSample * (1. - aoSample), 1);
 //            oColor = vec4(vec3(texture(uDepth, vPosition).z), 1);
             break;

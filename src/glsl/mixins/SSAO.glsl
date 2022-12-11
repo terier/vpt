@@ -1,5 +1,7 @@
 // #part /glsl/mixins/SSAO
 
+#define M_2PI 6.28318530718
+
 vec3 sampleSphere(vec2 U) {
     float theta = U.x * M_2PI;
     float phi = acos(2. * U.y - 1.);

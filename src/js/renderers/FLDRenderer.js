@@ -177,7 +177,7 @@ constructor(gl, volume, environmentTexture, options) {
                 {
                     name: 'deferred_view',
                     label: 'Deferred View',
-                    value: 6,
+                    value: 5,
                     type: "dropdown",
                     options: [
                         {
@@ -202,15 +202,11 @@ constructor(gl, volume, environmentTexture, options) {
                         },
                         {
                             value: 5,
-                            label: "Depth",
-                        },
-                        {
-                            value: 6,
                             label: "Ambient Occlusion",
                             selected: true
                         },
                         {
-                            value: 7,
+                            value: 6,
                             label: "Result with AO",
                         }
                     ]
@@ -476,8 +472,7 @@ destroy() {
 
 setVolume(volume) {
     this._volume = volume;
-    if (this.deferred_enabled)
-        this._buildDeferredRenderBuffer();
+    this._checkDeferredRendering();
     this._initialize3DBuffers();
 }
 
@@ -536,13 +531,13 @@ _rebuildBuffers() {
     if (this._defferedRenderBuffer) {
         this._destroyDeferredRenderBuffer();
     }
-    // if (this._ambientOcclusionBuffer) {
-    //     this._destroyAmbientOcclusionBuffer()
-    // }
+    if (this._ambientOcclusionBuffer) {
+        this._destroyAmbientOcclusionBuffer()
+    }
     const gl = this._gl;
     this._renderBuffer = new SingleBuffer(gl, this._getRenderBufferSpec());
     this._checkDeferredRendering();
-    // this._checkAmbientOcclusion();
+    this._checkAmbientOcclusion();
     this._buildBloomBuffers();
 }
 
@@ -567,17 +562,19 @@ _destroyAmbientOcclusionBuffer() {
 }
 
 _checkDeferredRendering() {
-    if (this.deferred_enabled && !this._defferedRenderBuffer)
+    if (this.deferred_enabled && !this._defferedRenderBuffer) {
         this._buildDeferredRenderBuffer();
+    }
     else if (!this.deferred_enabled && this._defferedRenderBuffer)
         this._destroyDeferredRenderBuffer();
 
-    // this._checkAmbientOcclusion();
+    this._checkAmbientOcclusion();
 }
 
 _checkAmbientOcclusion() {
-    if (this.ao_enabled && this.deferred_enabled && !this._ambientOcclusionBuffer)
+    if (this.ao_enabled && this.deferred_enabled && !this._ambientOcclusionBuffer) {
         this._buildAmbientOcclusionBuffer();
+    }
     else if ((!this.ao_enabled || !this.deferred_enabled) && this._ambientOcclusionBuffer)
         this._destroyAmbientOcclusionBuffer();
 }
@@ -608,6 +605,7 @@ render() {
     if (this.deferred_enabled) {
         this._deferredRenderFrame(this._transferFunction);
         if (!this.bloom) {
+            this._computeSsao();
             this._renderBuffer.use();
             this._combineRenderFrame();
         }
@@ -970,6 +968,31 @@ _deferredRenderFrame(transferFunction) {
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 }
 
+_computeSsao() {
+    if (!this.ao_enabled || this.ao_samples === 0)
+        return;
+    const gl = this._gl;
+
+    this._ambientOcclusionBuffer.use();
+
+    const { program, uniforms } = this._programs.ssao;
+    gl.useProgram(program);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, this._defferedRenderBuffer.getAttachments().color[2]);
+
+    gl.uniform1i(uniforms.uDepth, 0);
+
+    gl.uniform1i(uniforms.uAOSamples, this.ao_samples);
+    gl.uniform1f(uniforms.uAORadius, this.ao_radius);
+    gl.uniform1f(uniforms.uAORandSeed, 42);
+    gl.uniform1f(uniforms.uAODepthBias, this.ao_bias);
+
+    gl.uniformMatrix4fv(uniforms.uPMatrix, true, this.projectionMatrix.m);
+
+    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+}
+
 _combineRenderFrame() {
     const gl = this._gl;
 
@@ -980,12 +1003,15 @@ _combineRenderFrame() {
     gl.bindTexture(gl.TEXTURE_2D, this._defferedRenderBuffer.getAttachments().color[0]);
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, this._defferedRenderBuffer.getAttachments().color[1]);
-    gl.activeTexture(gl.TEXTURE2);
-    gl.bindTexture(gl.TEXTURE_2D, this._defferedRenderBuffer.getAttachments().color[2]);
 
     gl.uniform1i(uniforms.uColor, 0);
     gl.uniform1i(uniforms.uLighting, 1);
-    gl.uniform1i(uniforms.uDepth, 2);
+
+    if (this.ao_enabled && this.ao_samples > 0) {
+        gl.activeTexture(gl.TEXTURE2);
+        gl.bindTexture(gl.TEXTURE_2D, this._ambientOcclusionBuffer.getAttachments().color[0]);
+        gl.uniform1i(uniforms.uSSAO, 2);
+    }
 
     gl.uniform1i(uniforms.uSmartDeNoise, this.smart_denoise);
     gl.uniform1f(uniforms.uSigma, 1);
@@ -996,12 +1022,7 @@ _combineRenderFrame() {
 
     gl.uniform1i(uniforms.uAOEnabled, this.ao_enabled);
     gl.uniform1i(uniforms.uAOSamples, this.ao_samples);
-    gl.uniform1f(uniforms.uAORadius, this.ao_radius);
-    gl.uniform1f(uniforms.uAORandSeed, 42);
-    gl.uniform1f(uniforms.uAODepthBias, this.ao_bias);
 
-    // const mvp = this._calculateMVP();
-    // gl.uniformMatrix4fv(uniforms.uMvpMatrix, false, mvp.m);
     gl.uniformMatrix4fv(uniforms.uPMatrix, true, this.projectionMatrix.m);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
@@ -1217,32 +1238,20 @@ _getDeferredRenderBufferSpec() {
 
 _getAmbientOcclusionBufferSpec() {
     const gl = this._gl;
-    const depth = {
+    const ssao = {
         width          : this._bufferSize,
         height         : this._bufferSize,
         min            : gl.NEAREST,
         mag            : gl.NEAREST,
         wrapS          : gl.CLAMP_TO_EDGE,
         wrapT          : gl.CLAMP_TO_EDGE,
-        format         : gl.RG,
-        internalFormat : gl.RG32F,
-        type           : gl.FLOAT
-    };
-    const ao = {
-        width          : this._bufferSize,
-        height         : this._bufferSize,
-        min            : gl.NEAREST,
-        mag            : gl.NEAREST,
-        wrapS          : gl.CLAMP_TO_EDGE,
-        wrapT          : gl.CLAMP_TO_EDGE,
-        format         : gl.RG,
-        internalFormat : gl.RG32F,
+        format         : gl.RED,
+        internalFormat : gl.R32F,
         type           : gl.FLOAT
     };
 
     return [
-        depth,
-        ao
+        ssao
     ];
 }
 
