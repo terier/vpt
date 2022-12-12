@@ -799,6 +799,44 @@ void main() {
     oSSAO = aoSample;
 }
 
+// #part /glsl/shaders/renderers/FLD/gauss_blur/vertex
+
+#version 300 es
+precision mediump float;
+
+layout(location = 0) in vec2 aPosition;
+
+out vec2 vPosition;
+
+void main() {
+    gl_Position = vec4(aPosition, 0.0, 1.0);
+    vPosition = (aPosition + 1.0) * 0.5;
+}
+
+// #part /glsl/shaders/renderers/FLD/gauss_blur/fragment
+
+#version 300 es
+precision highp float;
+
+uniform highp sampler2D uImage;
+
+uniform vec2 uMask;
+uniform vec2 uStep;
+const float offset[] = float[](0.0, 1.3846153846, 3.2307692308);
+const float weight[] = float[](0.2270270270, 0.3162162162, 0.0702702703);
+
+in vec2 vPosition;
+
+out float oBlurred;
+
+void main() {
+    float value = texture(uImage, vPosition).x * weight[0];
+    for (int i=1; i<3; i++) {
+        value += texture(uImage, vPosition + offset[i] * uMask * uStep).x * weight[i];
+        value += texture(uImage, vPosition - offset[i] * uMask * uStep).x * weight[i];
+    }
+    oBlurred = value;
+}
 
 // #part /glsl/shaders/renderers/FLD/combine_render/vertex
 

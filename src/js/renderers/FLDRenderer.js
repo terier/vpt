@@ -1,6 +1,7 @@
 import { WebGL } from '../WebGL.js';
 import { AbstractRenderer } from './AbstractRenderer.js';
 import { SingleBuffer } from "../SingleBuffer.js";
+import { DoubleBuffer } from "../DoubleBuffer.js";
 import { SingleBuffer3D } from "../SingleBuffer3D.js";
 import { DoubleBuffer3D } from "../DoubleBuffer3D.js";
 import { CommonUtils } from '../utils/CommonUtils.js';
@@ -348,6 +349,13 @@ constructor(gl, volume, environmentTexture, options) {
                     min: 0,
                     max: 1
                 },
+                {
+                    name: 'ao_blur',
+                    label: 'AO Blur',
+                    type: 'spinner',
+                    value: 1,
+                    min: 0,
+                },
             ]
         },
         {
@@ -553,7 +561,7 @@ _destroyDeferredRenderBuffer() {
 
 _buildAmbientOcclusionBuffer() {
     const gl = this._gl;
-    this._ambientOcclusionBuffer = new SingleBuffer(gl, this._getAmbientOcclusionBufferSpec());
+    this._ambientOcclusionBuffer = new DoubleBuffer(gl, this._getAmbientOcclusionBufferSpec());
 }
 
 _destroyAmbientOcclusionBuffer() {
@@ -975,7 +983,7 @@ _computeSsao() {
 
     this._ambientOcclusionBuffer.use();
 
-    const { program, uniforms } = this._programs.ssao;
+    let { program, uniforms } = this._programs.ssao;
     gl.useProgram(program);
 
     gl.activeTexture(gl.TEXTURE0);
@@ -991,6 +999,43 @@ _computeSsao() {
     gl.uniformMatrix4fv(uniforms.uPMatrix, true, this.projectionMatrix.m);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+
+    this._ambientOcclusionBuffer.swap();
+
+    for (let i = 0; i < this.ao_blur; i++) {
+        this._ambientOcclusionBuffer.use();
+        program = this._programs.gauss_blur.program;
+        uniforms = this._programs.gauss_blur.uniforms;
+
+        // Horizontal
+        gl.useProgram(program);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this._ambientOcclusionBuffer.getAttachments().color[0]);
+        gl.uniform1i(uniforms.uImage, 0);
+
+        gl.uniform2f(uniforms.uStep, 1 / this._bufferSize, 1 / this._bufferSize);
+        gl.uniform2f(uniforms.uMask, 1, 0);
+
+        gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+
+        this._ambientOcclusionBuffer.swap();
+        this._ambientOcclusionBuffer.use();
+
+        // Vertical
+        gl.useProgram(program);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this._ambientOcclusionBuffer.getAttachments().color[0]);
+        gl.uniform1i(uniforms.uImage, 0);
+
+        gl.uniform2f(uniforms.uStep, 1 / this._bufferSize, 1 / this._bufferSize);
+        gl.uniform2f(uniforms.uMask, 0, 1);
+
+        gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+
+        this._ambientOcclusionBuffer.swap();
+    }
 }
 
 _combineRenderFrame() {
@@ -1241,8 +1286,8 @@ _getAmbientOcclusionBufferSpec() {
     const ssao = {
         width          : this._bufferSize,
         height         : this._bufferSize,
-        min            : gl.NEAREST,
-        mag            : gl.NEAREST,
+        min            : gl.LINEAR,
+        mag            : gl.LINEAR,
         wrapS          : gl.CLAMP_TO_EDGE,
         wrapT          : gl.CLAMP_TO_EDGE,
         format         : gl.RED,
