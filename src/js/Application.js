@@ -159,7 +159,7 @@ _handleToneMapperChange() {
     container.appendChild(this.toneMapperDialog);
 }
 
-_handleVolumeLoad(e) {
+async _handleVolumeLoad(e) {
     const options = e.detail;
     if (options.type === 'file') {
         const readerClass = ReaderFactory(options.filetype);
@@ -173,7 +173,8 @@ _handleVolumeLoad(e) {
                 bits   : options.precision,
             });
             this.renderingContext.stopRendering();
-            this.renderingContext.setVolume(reader);
+            await this.renderingContext.setVolume(reader);
+            this.renderingContext.startRendering();
         }
     } else if (options.type === 'url') {
         const readerClass = ReaderFactory(options.filetype);
@@ -182,7 +183,8 @@ _handleVolumeLoad(e) {
             const loader = new loaderClass(options.url);
             const reader = new readerClass(loader);
             this.renderingContext.stopRendering();
-            this.renderingContext.setVolume(reader);
+            await this.renderingContext.setVolume(reader);
+            this.renderingContext.startRendering();
         }
     }
 }
@@ -205,6 +207,54 @@ _handleEnvmapLoad(e) {
     } else if (options.type === 'url') {
         image.src = options.url;
     }
+}
+
+serializeView() {
+    const c = this.renderingContext._camera;
+    const mt = this.renderingContext._translation;
+    const mr = this.renderingContext._rotation;
+    const ms = this.renderingContext._scale;
+    const cp = c.position;
+    const cr = c.rotation;
+
+    return JSON.stringify({
+        camera: {
+            fovX: c.fovX,
+            fovY: c.fovY,
+            near: c.near,
+            far: c.far,
+            zoomFactor: c.zoomFactor,
+            position: [cp.x, cp.y, cp.z],
+            rotation: [cr.x, cr.y, cr.z, r.w],
+        },
+        model: {
+            translation: [mt.x, mt.y, mt.z],
+            rotation: [mr.x, mr.y, mr.z],
+            scale: [ms.x, ms.y, ms.z],
+        },
+    });
+}
+
+deserializeView(v) {
+    v = JSON.parse(v);
+
+    const c = this.renderingContext.getCamera();
+    const cfrom = v.camera;
+
+    c.fovX = cfrom.fovX;
+    c.fovY = cfrom.fovY;
+    c.near = cfrom.near;
+    c.far = cfrom.far;
+    c.zoomFactor = cfrom.zoomFactor;
+    c.position.set(...cfrom.position, 1);
+    c.rotation.set(...cfrom.rotation);
+    c.updateMatrices();
+
+    this.renderingContext.setTranslation(...v.model.translation);
+    this.renderingContext.setRotation(...v.model.rotation);
+    this.renderingContext.setScale(...v.model.scale);
+
+    this.renderingContext._renderer.reset();
 }
 
 }

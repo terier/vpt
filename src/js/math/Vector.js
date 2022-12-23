@@ -66,6 +66,14 @@ mul(a, b) {
     return this;
 }
 
+neg() {
+    this.x = -this.x;
+    this.y = -this.y;
+    this.z = -this.z;
+
+    return this;
+}
+
 normalize() {
     const len = this.len();
 

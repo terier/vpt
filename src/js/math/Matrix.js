@@ -249,4 +249,56 @@ fromAxisAngle(x, y, z, w) {
     return this;
 }
 
+getScale() {
+    const m = this.m;
+    return [
+        Math.hypot(m[ 0], m[ 1], m[ 2]),
+        Math.hypot(m[ 4], m[ 5], m[ 6]),
+        Math.hypot(m[ 8], m[ 9], m[10]),
+    ];
+}
+
+toQuaternion(q) {
+    const m = this.m;
+    const scale = this.getScale();
+
+    const m11 = m[ 0] / scale[0];
+    const m12 = m[ 1] / scale[1];
+    const m13 = m[ 2] / scale[2];
+    const m21 = m[ 4] / scale[0];
+    const m22 = m[ 5] / scale[1];
+    const m23 = m[ 6] / scale[2];
+    const m31 = m[ 8] / scale[0];
+    const m32 = m[ 9] / scale[1];
+    const m33 = m[10] / scale[2];
+
+    if (m11 + m22 + m33 > 0) {
+        const S = Math.sqrt(1 + m11 + m22 + m33) * 2;
+        q.x = (m23 - m32) / S;
+        q.y = (m31 - m13) / S;
+        q.z = (m12 - m21) / S;
+        q.w = S / 4;
+    } else if (m11 > m22 && m11 > m33) {
+        const S = Math.sqrt(1 + m11 - m22 - m33) * 2;
+        q.x = S / 4;
+        q.y = (m12 + m21) / S;
+        q.z = (m31 + m13) / S;
+        q.w = (m23 - m32) / S;
+    } else if (m22 > m33) {
+        const S = Math.sqrt(1 + m22 - m11 - m33) * 2;
+        q.x = (m12 + m21) / S;
+        q.y = S / 4;
+        q.z = (m23 + m32) / S;
+        q.w = (m31 - m13) / S;
+    } else {
+        const S = Math.sqrt(1 + m33 - m11 - m22) * 2;
+        q.x = (m31 + m13) / S;
+        q.y = (m23 + m32) / S;
+        q.z = S / 4;
+        q.w = (m12 - m21) / S;
+    }
+
+    return q;
+}
+
 }

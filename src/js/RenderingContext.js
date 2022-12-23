@@ -131,12 +131,10 @@ async setVolume(reader) {
     this._volume.addEventListener('progress', e => {
         this.dispatchEvent(new CustomEvent('progress', { detail: e.detail }));
     });
-    await this._volume.readMetadata();
-    await this._volume.readModality('default');
+    await this._volume.load();
     this._volume.setFilter(this._filter);
     if (this._renderer) {
         this._renderer.setVolume(this._volume);
-        this.startRendering();
     }
 }
 
@@ -202,6 +200,10 @@ getRenderer() {
 
 getToneMapper() {
     return this._toneMapper;
+}
+
+getCamera() {
+    return this._camera;
 }
 
 _updateMvpInverseMatrix() {

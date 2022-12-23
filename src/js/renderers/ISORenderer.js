@@ -117,7 +117,7 @@ _integrateFrame() {
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[0]);
-    gl.uniform1i(uniforms.uAccumulator, 0)
+    gl.uniform1i(uniforms.uAccumulator, 0);
 
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, this._frameBuffer.getAttachments().color[0]);
