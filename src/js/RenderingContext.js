@@ -54,8 +54,9 @@ constructor(options) {
     this._cameraAnimator = new OrbitCameraAnimator(this._camera, this._canvas);
 
     this._volume = new Volume(this._gl);
-    this._scale = new Vector(1, 1, 1);
     this._translation = new Vector(0, 0, 0);
+    this._rotation = new Vector(0, 0, 0);
+    this._scale = new Vector(1, 1, 1);
     this._isTransformationDirty = true;
     this._updateMvpInverseMatrix();
 }
@@ -213,13 +214,13 @@ _updateMvpInverseMatrix() {
     this._camera.updateMatrices();
 
     const centerTranslation = new Matrix().fromTranslation(-0.5, -0.5, -0.5);
-    const volumeTranslation = new Matrix().fromTranslation(
-        this._translation.x, this._translation.y, this._translation.z);
-    const volumeScale = new Matrix().fromScale(
-        this._scale.x, this._scale.y, this._scale.z);
+    const volumeTranslation = this.getTranslationMatrix();
+    const volumeRotation = this.getRotationMatrix();
+    const volumeScale = this.getScaleMatrix();
 
     const modelMatrix = new Matrix();
     modelMatrix.multiply(volumeScale, centerTranslation);
+    modelMatrix.multiply(volumeRotation, modelMatrix);
     modelMatrix.multiply(volumeTranslation, modelMatrix);
 
     const viewMatrix = this._camera.viewMatrix;
@@ -271,6 +272,11 @@ setScale(x, y, z) {
     this._isTransformationDirty = true;
 }
 
+getScaleMatrix() {
+    return new Matrix().fromScale(
+        this._scale.x, this._scale.y, this._scale.z);
+}
+
 getTranslation() {
     return this._translation;
 }
@@ -278,6 +284,31 @@ getTranslation() {
 setTranslation(x, y, z) {
     this._translation.set(x, y, z);
     this._isTransformationDirty = true;
+}
+
+getTranslationMatrix() {
+    return new Matrix().fromTranslation(
+        this._translation.x, this._translation.y, this._translation.z);
+}
+
+getRotation() {
+    return this._rotation;
+}
+
+setRotation(x, y, z) {
+    this._rotation.set(x, y, z);
+    this._isTransformationDirty = true;
+}
+
+getRotationMatrix() {
+    const volumeRotationX = new Matrix().fromRotationX(this._rotation.x);
+    const volumeRotationY = new Matrix().fromRotationY(this._rotation.y);
+    const volumeRotationZ = new Matrix().fromRotationZ(this._rotation.z);
+    const volumeRotation = new Matrix();
+    volumeRotation.multiply(volumeRotation, volumeRotationX);
+    volumeRotation.multiply(volumeRotation, volumeRotationY);
+    volumeRotation.multiply(volumeRotation, volumeRotationZ);
+    return volumeRotation;
 }
 
 getResolution() {
