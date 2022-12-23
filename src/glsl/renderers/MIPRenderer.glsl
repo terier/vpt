@@ -20,8 +20,11 @@ void main() {
 
 #version 300 es
 precision mediump float;
+precision mediump sampler2D;
+precision mediump sampler3D;
 
-uniform mediump sampler3D uVolume;
+uniform sampler3D uVolume;
+uniform sampler2D uTransferFunction;
 uniform float uStepSize;
 uniform float uOffset;
 
@@ -31,6 +34,12 @@ out float oColor;
 
 // #link /glsl/mixins/intersectCube
 @intersectCube
+
+vec4 sampleVolumeColor(vec3 position) {
+    vec2 volumeSample = texture(uVolume, position).rg;
+    vec4 transferSample = texture(uTransferFunction, volumeSample);
+    return transferSample;
+}
 
 void main() {
     vec3 rayDirection = vRayTo - vRayFrom;
@@ -47,7 +56,7 @@ void main() {
         vec3 pos;
         do {
             pos = mix(from, to, offset);
-            val = max(texture(uVolume, pos).r, val);
+            val = max(sampleVolumeColor(pos).a, val);
             t += uStepSize;
             offset = mod(offset + uStepSize, 1.0);
         } while (t < 1.0);

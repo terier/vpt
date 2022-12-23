@@ -19,7 +19,27 @@ constructor(gl, volume, environmentTexture, options) {
             value: 64,
             min: 1,
         },
+        {
+            name: 'transferFunction',
+            label: 'Transfer function',
+            type: 'transfer-function',
+            value: new Uint8Array(256),
+        },
     ]);
+
+    this.addEventListener('change', e => {
+        const { name, value } = e.detail;
+
+        if (name === 'transferFunction') {
+            this.setTransferFunction(this.transferFunction);
+        }
+
+        if ([
+            'transferFunction',
+        ].includes(name)) {
+            this.reset();
+        }
+    });
 
     this._programs = WebGL.buildPrograms(this._gl, SHADERS.renderers.MIP, MIXINS);
 }
@@ -50,8 +70,12 @@ _generateFrame() {
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
-
     gl.uniform1i(uniforms.uVolume, 0);
+
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
+    gl.uniform1i(uniforms.uTransferFunction, 1);
+
     gl.uniform1f(uniforms.uStepSize, 1 / this.steps);
     gl.uniform1f(uniforms.uOffset, Math.random());
 

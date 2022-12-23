@@ -1,6 +1,8 @@
 import { WebGL } from '../WebGL.js';
 import { AbstractRenderer } from './AbstractRenderer.js';
 import { CommonUtils } from '../utils/CommonUtils.js';
+import { Vector } from '../math/Vector.js';
+import { Matrix } from '../math/Matrix.js';
 
 const [ SHADERS, MIXINS ] = await Promise.all([
     'shaders.json',
@@ -32,7 +34,7 @@ constructor(gl, volume, environmentTexture, options) {
             name: 'light',
             label: 'Light direction',
             type: 'vector-spinner',
-            value: [ 0, 0, -1 ],
+            value: [ 2, -3, -5 ],
         },
         {
             name: 'color',
@@ -40,13 +42,24 @@ constructor(gl, volume, environmentTexture, options) {
             type: 'color-chooser',
             value: '#ffffff',
         },
+        {
+            name: 'transferFunction',
+            label: 'Transfer function',
+            type: 'transfer-function',
+            value: new Uint8Array(256),
+        },
     ]);
 
     this.addEventListener('change', e => {
         const { name, value } = e.detail;
 
+        if (name === 'transferFunction') {
+            this.setTransferFunction(this.transferFunction);
+        }
+
         if ([
             'isovalue',
+            'transferFunction',
         ].includes(name)) {
             this.reset();
         }
@@ -80,13 +93,14 @@ _generateFrame() {
     gl.useProgram(program);
 
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[0]);
-    gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
+    gl.uniform1i(uniforms.uVolume, 0);
 
-    gl.uniform1i(uniforms.uClosest, 0);
-    gl.uniform1i(uniforms.uVolume, 1);
-    gl.uniform1f(uniforms.uStepSize, 1 / this.steps);
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
+    gl.uniform1i(uniforms.uTransferFunction, 1);
+
+    gl.uniform1ui(uniforms.uSteps, this.steps);
     gl.uniform1f(uniforms.uOffset, Math.random());
     gl.uniform1f(uniforms.uIsovalue, this.isovalue);
     const mvpit = this.calculateMVPInverseTranspose();
@@ -103,10 +117,10 @@ _integrateFrame() {
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[0]);
+    gl.uniform1i(uniforms.uAccumulator, 0)
+
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, this._frameBuffer.getAttachments().color[0]);
-
-    gl.uniform1i(uniforms.uAccumulator, 0);
     gl.uniform1i(uniforms.uFrame, 1);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
@@ -120,13 +134,23 @@ _renderFrame() {
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[0]);
+    gl.uniform1i(uniforms.uClosest, 0);
+
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
-
-    gl.uniform1i(uniforms.uClosest, 0);
     gl.uniform1i(uniforms.uVolume, 1);
-    gl.uniform3fv(uniforms.uLight, this.light);
+
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
+    gl.uniform1i(uniforms.uTransferFunction, 2);
+
+    const rotation = new Matrix().multiply(this.viewMatrix, this.modelMatrix).inverse();
+    const light = new Vector(...this.light, 0);
+    rotation.transform(light);
+    light.normalize();
+    gl.uniform3fv(uniforms.uLight, [light.x, light.y, light.z]);
     gl.uniform3fv(uniforms.uDiffuse, CommonUtils.hex2rgb(this.color));
+    gl.uniform1f(uniforms.uGradientStep, 0.005);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 }
