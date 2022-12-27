@@ -25,18 +25,18 @@ constructor(gl, volume, camera, environmentTexture, options = {}) {
     this._rebuildBuffers();
 
     this._transferFunction = WebGL.createTexture(gl, {
-        width  : 2,
-        height : 1,
-        data   : new Uint8Array([255, 0, 0, 0, 255, 0, 0, 255]),
+        width   : 2,
+        height  : 1,
+        data    : new Uint8Array([255, 0, 0, 0, 255, 0, 0, 255]),
 
-        internalFormat: gl.SRGB8_ALPHA8,
-        format : gl.RGBA,
-        type   : gl.UNSIGNED_BYTE,
+        iformat : gl.SRGB8_ALPHA8,
+        format  : gl.RGBA,
+        type    : gl.UNSIGNED_BYTE,
 
-        wrapS  : gl.CLAMP_TO_EDGE,
-        wrapT  : gl.CLAMP_TO_EDGE,
-        min    : gl.LINEAR,
-        mag    : gl.LINEAR,
+        wrapS   : gl.CLAMP_TO_EDGE,
+        wrapT   : gl.CLAMP_TO_EDGE,
+        min     : gl.LINEAR,
+        mag     : gl.LINEAR,
     });
 
     this._clipQuadProgram = WebGL.buildPrograms(gl, {
@@ -138,15 +138,15 @@ _getAccumulationBufferSpec() {
 _getRenderBufferSpec() {
     const gl = this._gl;
     return [{
-        width          : this._resolution,
-        height         : this._resolution,
-        min            : gl.NEAREST,
-        mag            : gl.NEAREST,
-        wrapS          : gl.CLAMP_TO_EDGE,
-        wrapT          : gl.CLAMP_TO_EDGE,
-        format         : gl.RGBA,
-        internalFormat : gl.RGBA16F,
-        type           : gl.FLOAT,
+        width   : this._resolution,
+        height  : this._resolution,
+        min     : gl.NEAREST,
+        mag     : gl.NEAREST,
+        wrapS   : gl.CLAMP_TO_EDGE,
+        wrapT   : gl.CLAMP_TO_EDGE,
+        format  : gl.RGBA,
+        iformat : gl.RGBA16F,
+        type    : gl.FLOAT,
     }];
 }
 

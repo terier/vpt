@@ -164,26 +164,26 @@ _renderFrame() {
 _getFrameBufferSpec() {
     const gl = this._gl;
     return [{
-        width          : this._resolution,
-        height         : this._resolution,
-        min            : gl.NEAREST,
-        mag            : gl.NEAREST,
-        format         : gl.RED,
-        internalFormat : gl.R32F,
-        type           : gl.FLOAT,
+        width   : this._resolution,
+        height  : this._resolution,
+        min     : gl.NEAREST,
+        mag     : gl.NEAREST,
+        format  : gl.RED,
+        iformat : gl.R32F,
+        type    : gl.FLOAT,
     }];
 }
 
 _getAccumulationBufferSpec() {
     const gl = this._gl;
     return [{
-        width          : this._resolution,
-        height         : this._resolution,
-        min            : gl.NEAREST,
-        mag            : gl.NEAREST,
-        format         : gl.RED,
-        internalFormat : gl.R32F,
-        type           : gl.FLOAT,
+        width   : this._resolution,
+        height  : this._resolution,
+        min     : gl.NEAREST,
+        mag     : gl.NEAREST,
+        format  : gl.RED,
+        iformat : gl.R32F,
+        type    : gl.FLOAT,
     }];
 }
 

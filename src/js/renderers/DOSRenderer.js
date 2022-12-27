@@ -123,17 +123,17 @@ generateOcclusionSamples() {
 
     const gl = this._gl;
     this._occlusionSamples = WebGL.createTexture(gl, {
-        texture        : this._occlusionSamples,
-        width          : this.samples,
-        height         : 1,
-        format         : gl.RG,
-        internalFormat : gl.RG32F,
-        type           : gl.FLOAT,
-        min            : gl.NEAREST,
-        mag            : gl.NEAREST,
-        wrapS          : gl.CLAMP_TO_EDGE,
-        wrapT          : gl.CLAMP_TO_EDGE,
-        data           : data,
+        texture : this._occlusionSamples,
+        width   : this.samples,
+        height  : 1,
+        format  : gl.RG,
+        iformat : gl.RG32F,
+        type    : gl.FLOAT,
+        min     : gl.NEAREST,
+        mag     : gl.NEAREST,
+        wrapS   : gl.CLAMP_TO_EDGE,
+        wrapT   : gl.CLAMP_TO_EDGE,
+        data    : data,
     });
 }
 
@@ -270,13 +270,13 @@ _renderFrame() {
 _getFrameBufferSpec() {
     const gl = this._gl;
     return [{
-        width          : this._resolution,
-        height         : this._resolution,
-        min            : gl.NEAREST,
-        mag            : gl.NEAREST,
-        format         : gl.RGBA,
-        internalFormat : gl.RGBA32F,
-        type           : gl.FLOAT,
+        width   : this._resolution,
+        height  : this._resolution,
+        min     : gl.NEAREST,
+        mag     : gl.NEAREST,
+        format  : gl.RGBA,
+        iformat : gl.RGBA32F,
+        type    : gl.FLOAT,
     }];
 }
 
@@ -284,23 +284,23 @@ _getAccumulationBufferSpec() {
     const gl = this._gl;
 
     const colorBuffer = {
-        width          : this._resolution,
-        height         : this._resolution,
-        min            : gl.NEAREST,
-        mag            : gl.NEAREST,
-        format         : gl.RGBA,
-        internalFormat : gl.RGBA32F,
-        type           : gl.FLOAT,
+        width   : this._resolution,
+        height  : this._resolution,
+        min     : gl.NEAREST,
+        mag     : gl.NEAREST,
+        format  : gl.RGBA,
+        iformat : gl.RGBA32F,
+        type    : gl.FLOAT,
     };
 
     const occlusionBuffer = {
-        width          : this._resolution,
-        height         : this._resolution,
-        min            : gl.LINEAR,
-        mag            : gl.LINEAR,
-        format         : gl.RED,
-        internalFormat : gl.R32F,
-        type           : gl.FLOAT,
+        width   : this._resolution,
+        height  : this._resolution,
+        min     : gl.LINEAR,
+        mag     : gl.LINEAR,
+        format  : gl.RED,
+        iformat : gl.R32F,
+        type    : gl.FLOAT,
     };
 
     return [

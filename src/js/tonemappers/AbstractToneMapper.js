@@ -66,15 +66,15 @@ _renderFrame() {
 _getRenderBufferSpec() {
     const gl = this._gl;
     return [{
-        width          : this._resolution,
-        height         : this._resolution,
-        min            : gl.LINEAR,
-        mag            : gl.LINEAR,
-        wrapS          : gl.CLAMP_TO_EDGE,
-        wrapT          : gl.CLAMP_TO_EDGE,
-        format         : gl.RGBA,
-        internalFormat : gl.RGBA,
-        type           : gl.UNSIGNED_BYTE,
+        width   : this._resolution,
+        height  : this._resolution,
+        min     : gl.LINEAR,
+        mag     : gl.LINEAR,
+        wrapS   : gl.CLAMP_TO_EDGE,
+        wrapT   : gl.CLAMP_TO_EDGE,
+        format  : gl.RGBA,
+        iformat : gl.RGBA,
+        type    : gl.UNSIGNED_BYTE,
     }];
 }
 

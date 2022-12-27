@@ -86,16 +86,16 @@ initGL() {
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
 
     this.environmentTexture = WebGL.createTexture(gl, {
-        width          : 1,
-        height         : 1,
-        data           : new Uint8Array([255, 255, 255, 255]),
-        format         : gl.RGBA,
-        internalFormat : gl.RGBA, // TODO: HDRI & OpenEXR support
-        type           : gl.UNSIGNED_BYTE,
-        wrapS          : gl.CLAMP_TO_EDGE,
-        wrapT          : gl.CLAMP_TO_EDGE,
-        min            : gl.LINEAR,
-        max            : gl.LINEAR,
+        width   : 1,
+        height  : 1,
+        data    : new Uint8Array([255, 255, 255, 255]),
+        format  : gl.RGBA,
+        iformat : gl.RGBA, // TODO: HDRI & OpenEXR support
+        type    : gl.UNSIGNED_BYTE,
+        wrapS   : gl.CLAMP_TO_EDGE,
+        wrapT   : gl.CLAMP_TO_EDGE,
+        min     : gl.LINEAR,
+        max     : gl.LINEAR,
     });
 
     this.program = WebGL.buildPrograms(gl, {
