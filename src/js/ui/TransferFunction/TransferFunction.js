@@ -198,6 +198,7 @@ _addHandle(index) {
         this.selectBump(i);
     });
     handle.addEventListener('wheel', e => {
+        e.preventDefault();
         const amount = e.deltaY * this.scaleSpeed;
         const scale = Math.exp(-amount);
         const i = parseInt(e.currentTarget.dataset.index);
