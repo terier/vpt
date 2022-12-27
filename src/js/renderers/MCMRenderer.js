@@ -1,5 +1,9 @@
+import { mat4 } from '../../lib/gl-matrix-module.js';
+
 import { WebGL } from '../WebGL.js';
 import { AbstractRenderer } from './AbstractRenderer.js';
+
+import { PerspectiveCamera } from '../PerspectiveCamera.js';
 
 const [ SHADERS, MIXINS ] = await Promise.all([
     'shaders.json',
@@ -8,8 +12,8 @@ const [ SHADERS, MIXINS ] = await Promise.all([
 
 export class MCMRenderer extends AbstractRenderer {
 
-constructor(gl, volume, environmentTexture, options) {
-    super(gl, volume, environmentTexture, options);
+constructor(gl, volume, camera, environmentTexture, options = {}) {
+    super(gl, volume, camera, environmentTexture, options);
 
     this.registerProperties([
         {
@@ -84,11 +88,21 @@ _resetFrame() {
     const { program, uniforms } = this._programs.reset;
     gl.useProgram(program);
 
-    const mvpit = this.calculateMVPInverseTranspose();
-    gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, mvpit.m);
-    gl.uniform2f(uniforms.uInverseResolution, 1 / this._bufferSize, 1 / this._bufferSize);
+    gl.uniform2f(uniforms.uInverseResolution, 1 / this._resolution, 1 / this._resolution);
     gl.uniform1f(uniforms.uRandSeed, Math.random());
     gl.uniform1f(uniforms.uBlur, 0);
+
+    // TODO: get model matrix from volume
+    const modelMatrix = mat4.fromTranslation(mat4.create(), [-0.5, -0.5, -0.5]);
+    const viewMatrix = this._camera.transform.inverseGlobalMatrix;
+    const projectionMatrix = this._camera.getComponent(PerspectiveCamera).projectionMatrix;
+
+    const matrix = mat4.create();
+    mat4.multiply(matrix, modelMatrix, matrix);
+    mat4.multiply(matrix, viewMatrix, matrix);
+    mat4.multiply(matrix, projectionMatrix, matrix);
+    mat4.invert(matrix, matrix);
+    gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, matrix);
 
     gl.drawBuffers([
         gl.COLOR_ATTACHMENT0,
@@ -97,7 +111,7 @@ _resetFrame() {
         gl.COLOR_ATTACHMENT3,
     ]);
 
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
 }
 
 _generateFrame() {
@@ -111,32 +125,33 @@ _integrateFrame() {
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[0]);
+    gl.uniform1i(uniforms.uPosition, 0);
+
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[1]);
+    gl.uniform1i(uniforms.uDirection, 1);
+
     gl.activeTexture(gl.TEXTURE2);
     gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[2]);
+    gl.uniform1i(uniforms.uTransmittance, 2);
+
     gl.activeTexture(gl.TEXTURE3);
     gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[3]);
+    gl.uniform1i(uniforms.uRadiance, 3);
 
     gl.activeTexture(gl.TEXTURE4);
     gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
+    gl.uniform1i(uniforms.uVolume, 4);
+
     gl.activeTexture(gl.TEXTURE5);
     gl.bindTexture(gl.TEXTURE_2D, this._environmentTexture);
+    gl.uniform1i(uniforms.uEnvironment, 5);
+
     gl.activeTexture(gl.TEXTURE6);
     gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
-
-    gl.uniform1i(uniforms.uPosition, 0);
-    gl.uniform1i(uniforms.uDirection, 1);
-    gl.uniform1i(uniforms.uTransmittance, 2);
-    gl.uniform1i(uniforms.uRadiance, 3);
-
-    gl.uniform1i(uniforms.uVolume, 4);
-    gl.uniform1i(uniforms.uEnvironment, 5);
     gl.uniform1i(uniforms.uTransferFunction, 6);
 
-    const mvpit = this.calculateMVPInverseTranspose();
-    gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, mvpit.m);
-    gl.uniform2f(uniforms.uInverseResolution, 1 / this._bufferSize, 1 / this._bufferSize);
+    gl.uniform2f(uniforms.uInverseResolution, 1 / this._resolution, 1 / this._resolution);
     gl.uniform1f(uniforms.uRandSeed, Math.random());
     gl.uniform1f(uniforms.uBlur, 0);
 
@@ -145,6 +160,18 @@ _integrateFrame() {
     gl.uniform1ui(uniforms.uMaxBounces, this.bounces);
     gl.uniform1ui(uniforms.uSteps, this.steps);
 
+    // TODO: get model matrix from volume
+    const modelMatrix = mat4.fromTranslation(mat4.create(), [-0.5, -0.5, -0.5]);
+    const viewMatrix = this._camera.transform.inverseGlobalMatrix;
+    const projectionMatrix = this._camera.getComponent(PerspectiveCamera).projectionMatrix;
+
+    const matrix = mat4.create();
+    mat4.multiply(matrix, modelMatrix, matrix);
+    mat4.multiply(matrix, viewMatrix, matrix);
+    mat4.multiply(matrix, projectionMatrix, matrix);
+    mat4.invert(matrix, matrix);
+    gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, matrix);
+
     gl.drawBuffers([
         gl.COLOR_ATTACHMENT0,
         gl.COLOR_ATTACHMENT1,
@@ -152,7 +179,7 @@ _integrateFrame() {
         gl.COLOR_ATTACHMENT3,
     ]);
 
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
 }
 
 _renderFrame() {
@@ -166,14 +193,14 @@ _renderFrame() {
 
     gl.uniform1i(uniforms.uColor, 0);
 
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
 }
 
 _getFrameBufferSpec() {
     const gl = this._gl;
     return [{
-        width          : this._bufferSize,
-        height         : this._bufferSize,
+        width          : this._resolution,
+        height         : this._resolution,
         min            : gl.NEAREST,
         mag            : gl.NEAREST,
         format         : gl.RGBA,
@@ -186,8 +213,8 @@ _getAccumulationBufferSpec() {
     const gl = this._gl;
 
     const positionBufferSpec = {
-        width          : this._bufferSize,
-        height         : this._bufferSize,
+        width          : this._resolution,
+        height         : this._resolution,
         min            : gl.NEAREST,
         mag            : gl.NEAREST,
         format         : gl.RGBA,
@@ -196,8 +223,8 @@ _getAccumulationBufferSpec() {
     };
 
     const directionBufferSpec = {
-        width          : this._bufferSize,
-        height         : this._bufferSize,
+        width          : this._resolution,
+        height         : this._resolution,
         min            : gl.NEAREST,
         mag            : gl.NEAREST,
         format         : gl.RGBA,
@@ -206,8 +233,8 @@ _getAccumulationBufferSpec() {
     };
 
     const transmittanceBufferSpec = {
-        width          : this._bufferSize,
-        height         : this._bufferSize,
+        width          : this._resolution,
+        height         : this._resolution,
         min            : gl.NEAREST,
         mag            : gl.NEAREST,
         format         : gl.RGBA,
@@ -216,8 +243,8 @@ _getAccumulationBufferSpec() {
     };
 
     const radianceBufferSpec = {
-        width          : this._bufferSize,
-        height         : this._bufferSize,
+        width          : this._resolution,
+        height         : this._resolution,
         min            : gl.NEAREST,
         mag            : gl.NEAREST,
         format         : gl.RGBA,

@@ -9,19 +9,16 @@ const [ SHADERS, MIXINS ] = await Promise.all([
 
 export class AbstractToneMapper extends PropertyBag {
 
-constructor(gl, texture, options) {
+constructor(gl, texture, options = {}) {
     super();
 
-    Object.assign(this, {
-        _bufferSize : 512
-    }, options);
+    this._resolution = options.resolution ?? 512;
 
     this._gl = gl;
     this._texture = texture;
 
     this._rebuildBuffers();
 
-    this._clipQuad = WebGL.createClipQuad(gl);
     this._clipQuadProgram = WebGL.buildPrograms(gl, {
         quad: SHADERS.quad
     }, MIXINS).quad;
@@ -31,17 +28,10 @@ destroy() {
     const gl = this._gl;
 
     this._renderBuffer.destroy();
-    gl.deleteBuffer(this._clipQuad);
     gl.deleteProgram(this._clipQuadProgram.program);
 }
 
 render() {
-    // TODO: put the following logic in VAO
-    const gl = this._gl;
-    gl.bindBuffer(gl.ARRAY_BUFFER, this._clipQuad);
-    gl.enableVertexAttribArray(0); // position always bound to attribute 0
-    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-
     this._renderBuffer.use();
     this._renderFrame();
 }
@@ -63,8 +53,8 @@ _rebuildBuffers() {
 }
 
 setResolution(resolution) {
-    if (resolution !== this._bufferSize) {
-        this._bufferSize = resolution;
+    if (resolution !== this._resolution) {
+        this._resolution = resolution;
         this._rebuildBuffers();
     }
 }
@@ -76,8 +66,8 @@ _renderFrame() {
 _getRenderBufferSpec() {
     const gl = this._gl;
     return [{
-        width          : this._bufferSize,
-        height         : this._bufferSize,
+        width          : this._resolution,
+        height         : this._resolution,
         min            : gl.LINEAR,
         mag            : gl.LINEAR,
         wrapS          : gl.CLAMP_TO_EDGE,

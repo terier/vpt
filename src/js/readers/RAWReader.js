@@ -2,7 +2,7 @@ import { AbstractReader } from './AbstractReader.js';
 
 export class RAWReader extends AbstractReader {
 
-constructor(loader, options) {
+constructor(loader, options = {}) {
     super(loader);
 
     Object.assign(this, {

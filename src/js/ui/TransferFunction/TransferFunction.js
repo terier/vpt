@@ -51,15 +51,11 @@ constructor() {
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
-    this._clipQuad = WebGL.createClipQuad(gl);
     this._program = WebGL.buildPrograms(gl, {
         TransferFunction: SHADERS.TransferFunction
     }, MIXINS).TransferFunction;
-    const program = this._program;
-    gl.useProgram(program.program);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this._clipQuad);
-    gl.enableVertexAttribArray(program.attributes.aPosition);
-    gl.vertexAttribPointer(program.attributes.aPosition, 2, gl.FLOAT, false, 0, 0);
+    const { program } = this._program;
+    gl.useProgram(program);
 
     this.bumps = [];
     this.binds.addBump.addEventListener('click', e => {
@@ -120,7 +116,7 @@ render() {
         gl.uniform2f(uniforms.uPosition, bump.position.x, bump.position.y);
         gl.uniform2f(uniforms.uSize, bump.size.x, bump.size.y);
         gl.uniform4f(uniforms.uColor, bump.color.r, bump.color.g, bump.color.b, bump.color.a);
-        gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
     }
 }
 
@@ -128,7 +124,7 @@ get value() {
     return this.canvas;
 }
 
-addBump(options) {
+addBump(options = {}) {
     const bumpIndex = this.bumps.length;
     const newBump = {
         position: {

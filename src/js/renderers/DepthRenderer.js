@@ -1,5 +1,9 @@
+import { mat4 } from '../../lib/gl-matrix-module.js';
+
 import { WebGL } from '../WebGL.js';
 import { AbstractRenderer } from './AbstractRenderer.js';
+
+import { PerspectiveCamera } from '../PerspectiveCamera.js';
 
 const [ SHADERS, MIXINS ] = await Promise.all([
     'shaders.json',
@@ -8,8 +12,8 @@ const [ SHADERS, MIXINS ] = await Promise.all([
 
 export class DepthRenderer extends AbstractRenderer {
 
-constructor(gl, volume, environmentTexture, options) {
-    super(gl, volume, environmentTexture, options);
+constructor(gl, volume, camera, environmentTexture, options = {}) {
+    super(gl, volume, camera, environmentTexture, options);
 
     this.registerProperties([
         {
@@ -85,7 +89,7 @@ _resetFrame() {
     const { program, uniforms } = this._programs.reset;
     gl.useProgram(program);
 
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
 
     this._frameNumber = 0;
 }
@@ -107,10 +111,20 @@ _generateFrame() {
     gl.uniform1f(uniforms.uExtinction, this.extinction);
     gl.uniform1f(uniforms.uThreshold, this.threshold);
     gl.uniform1f(uniforms.uOffset, this.random ? Math.random() : 0);
-    const mvpit = this.calculateMVPInverseTranspose();
-    gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, mvpit.m);
 
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+    // TODO: get model matrix from volume
+    const modelMatrix = mat4.fromTranslation(mat4.create(), [-0.5, -0.5, -0.5]);
+    const viewMatrix = this._camera.transform.inverseGlobalMatrix;
+    const projectionMatrix = this._camera.getComponent(PerspectiveCamera).projectionMatrix;
+
+    const matrix = mat4.create();
+    mat4.multiply(matrix, modelMatrix, matrix);
+    mat4.multiply(matrix, viewMatrix, matrix);
+    mat4.multiply(matrix, projectionMatrix, matrix);
+    mat4.invert(matrix, matrix);
+    gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, matrix);
+
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
 
     this._frameNumber++;
 }
@@ -130,7 +144,7 @@ _integrateFrame() {
     gl.uniform1i(uniforms.uFrame, 1);
     gl.uniform1f(uniforms.uMix, 1 / this._frameNumber);
 
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
 }
 
 _renderFrame() {
@@ -144,14 +158,14 @@ _renderFrame() {
 
     gl.uniform1i(uniforms.uAccumulator, 0);
 
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
 }
 
 _getFrameBufferSpec() {
     const gl = this._gl;
     return [{
-        width          : this._bufferSize,
-        height         : this._bufferSize,
+        width          : this._resolution,
+        height         : this._resolution,
         min            : gl.NEAREST,
         mag            : gl.NEAREST,
         format         : gl.RED,
@@ -163,8 +177,8 @@ _getFrameBufferSpec() {
 _getAccumulationBufferSpec() {
     const gl = this._gl;
     return [{
-        width          : this._bufferSize,
-        height         : this._bufferSize,
+        width          : this._resolution,
+        height         : this._resolution,
         min            : gl.NEAREST,
         mag            : gl.NEAREST,
         format         : gl.RED,

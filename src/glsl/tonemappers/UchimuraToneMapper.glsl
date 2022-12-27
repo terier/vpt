@@ -2,12 +2,18 @@
 
 #version 300 es
 
-layout(location = 0) in vec2 aPosition;
+const vec2 vertices[] = vec2[](
+    vec2(-1, -1),
+    vec2( 3, -1),
+    vec2(-1,  3)
+);
+
 out vec2 vPosition;
 
 void main() {
-    gl_Position = vec4(aPosition, 0, 1);
-    vPosition = aPosition * 0.5 + 0.5;
+    vec2 position = vertices[gl_VertexID];
+    vPosition = position * 0.5 + 0.5;
+    gl_Position = vec4(position, 0, 1);
 }
 
 // #part /glsl/shaders/tonemappers/UchimuraToneMapper/fragment
@@ -20,6 +26,7 @@ uniform float uExposure;
 uniform float uGamma;
 
 in vec2 vPosition;
+
 out vec4 oColor;
 
 vec3 uchimura(vec3 x, float P, float a, float m, float l, float c, float b) {

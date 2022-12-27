@@ -79,7 +79,7 @@ static buildPrograms(gl, shaders, mixins) {
     return programs;
 }
 
-static createTexture(gl, options) {
+static createTexture(gl, options = {}) {
     const target = options.target || gl.TEXTURE_2D;
     const internalFormat = options.internalFormat || gl.RGBA;
     const format = options.format || gl.RGBA;
@@ -141,7 +141,7 @@ static createFramebuffer(gl, attachments) {
     return framebuffer;
 }
 
-static createBuffer(gl, options) {
+static createBuffer(gl, options = {}) {
     const target = options.target || gl.ARRAY_BUFFER;
     const hint = options.hint || gl.STATIC_DRAW;
     const buffer = options.buffer || gl.createBuffer();

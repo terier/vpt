@@ -1,10 +1,8 @@
-import { Vector } from './math/Vector.js';
-import { Matrix } from './math/Matrix.js';
-import { Quaternion } from './math/Quaternion.js';
-
 import { WebGL } from './WebGL.js';
 import { Ticker } from './Ticker.js';
-import { Camera } from './Camera.js';
+
+import { Node } from './Node.js';
+import { PerspectiveCamera } from './PerspectiveCamera.js';
 import { Volume } from './Volume.js';
 
 import { RendererFactory } from './renderers/RendererFactory.js';
@@ -20,77 +18,74 @@ const [ SHADERS, MIXINS ] = await Promise.all([
 
 export class RenderingContext extends EventTarget {
 
-constructor(options) {
+constructor(options = {}) {
     super();
 
-    this._render = this._render.bind(this);
-    this._webglcontextlostHandler = this._webglcontextlostHandler.bind(this);
-    this._webglcontextrestoredHandler = this._webglcontextrestoredHandler.bind(this);
+    this.render = this.render.bind(this);
+    this.webglcontextlostHandler = this.webglcontextlostHandler.bind(this);
+    this.webglcontextrestoredHandler = this.webglcontextrestoredHandler.bind(this);
 
-    Object.assign(this, {
-        _resolution : 512,
-        _filter     : 'linear'
-    }, options);
+    this.canvas = document.createElement('canvas');
+    this.canvas.addEventListener('webglcontextlost', this.webglcontextlostHandler);
+    this.canvas.addEventListener('webglcontextrestored', this.webglcontextrestoredHandler);
 
-    this._canvas = document.createElement('canvas');
-    this._canvas.width = this._resolution;
-    this._canvas.height = this._resolution;
-    this._canvas.addEventListener('webglcontextlost', this._webglcontextlostHandler);
-    this._canvas.addEventListener('webglcontextrestored', this._webglcontextrestoredHandler);
+    this.initGL();
 
-    this._initGL();
+    this.resolution = options.resolution ?? 512;
+    this.filter = options.filter ?? 'linear';
 
-    this._camera = new Camera();
-    this._camera.position.z = 1.5;
-    this._camera.fovX = 0.3;
-    this._camera.fovY = 0.3;
+    this.camera = new Node();
+    this.camera.transform.localTranslation = [0, 0, 2];
+    this.camera.components.push(new PerspectiveCamera(this.camera));
 
-    //this._cameraAnimator = new CircleAnimator(this._camera, {
-    //    center: new Vector(0, 0, 2),
-    //    direction: new Vector(0, 0, 1),
+    this.camera.transform.addEventListener('change', e => {
+        if (this.renderer) {
+            this.renderer.reset();
+        }
+    });
+
+    //this.cameraAnimator = new CircleAnimator(this.camera, {
+    //    center: [0, 0, 2],
+    //    direction: [0, 0, 1],
     //    radius: 0.01,
     //    frequency: 1,
     //});
-    this._cameraAnimator = new OrbitCameraAnimator(this._camera, this._canvas);
+    this.cameraAnimator = new OrbitCameraAnimator(this.camera, this.canvas);
 
-    this._volume = new Volume(this._gl);
-    this._translation = new Vector(0, 0, 0);
-    this._rotation = new Vector(0, 0, 0);
-    this._scale = new Vector(1, 1, 1);
-    this._isTransformationDirty = true;
-    this._updateMvpInverseMatrix();
+    this.volume = new Volume(this.gl);
 }
 
 // ============================ WEBGL SUBSYSTEM ============================ //
 
-_initGL() {
+initGL() {
     const contextSettings = {
-        alpha                 : false,
-        depth                 : false,
-        stencil               : false,
-        antialias             : false,
-        preserveDrawingBuffer : true,
+        alpha: false,
+        depth: false,
+        stencil: false,
+        antialias: false,
+        preserveDrawingBuffer: true,
     };
 
-    this._contextRestorable = true;
+    this.contextRestorable = true;
 
-    const gl = this._gl = this._canvas.getContext('webgl2', contextSettings);
+    this.gl = this.canvas.getContext('webgl2', contextSettings);
+    const gl = this.gl;
 
-    this._extLoseContext = gl.getExtension('WEBGL_lose_context');
-    this._extColorBufferFloat = gl.getExtension('EXT_color_buffer_float');
-    this._extTextureFloatLinear = gl.getExtension('OES_texture_float_linear');
+    this.extLoseContext = gl.getExtension('WEBGL_lose_context');
+    this.extColorBufferFloat = gl.getExtension('EXT_color_buffer_float');
+    this.extTextureFloatLinear = gl.getExtension('OES_texture_float_linear');
 
-    if (!this._extColorBufferFloat) {
+    if (!this.extColorBufferFloat) {
         console.error('EXT_color_buffer_float not supported!');
     }
 
-    if (!this._extTextureFloatLinear) {
+    if (!this.extTextureFloatLinear) {
         console.error('OES_texture_float_linear not supported!');
     }
 
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
 
-    this._environmentTexture = WebGL.createTexture(gl, {
+    this.environmentTexture = WebGL.createTexture(gl, {
         width          : 1,
         height         : 1,
         data           : new Uint8Array([255, 255, 255, 255]),
@@ -103,80 +98,79 @@ _initGL() {
         max            : gl.LINEAR,
     });
 
-    this._program = WebGL.buildPrograms(gl, {
+    this.program = WebGL.buildPrograms(gl, {
         quad: SHADERS.quad
     }, MIXINS).quad;
-
-    this._clipQuad = WebGL.createClipQuad(gl);
 }
 
-_webglcontextlostHandler(e) {
-    if (this._contextRestorable) {
+webglcontextlostHandler(e) {
+    if (this.contextRestorable) {
         e.preventDefault();
     }
 }
 
-_webglcontextrestoredHandler(e) {
-    this._initGL();
+webglcontextrestoredHandler(e) {
+    this.initGL();
 }
 
 resize(width, height) {
-    this._canvas.width = width;
-    this._canvas.height = height;
-    this._camera.resize(width, height);
+    this.canvas.width = width;
+    this.canvas.height = height;
+    this.camera.getComponent(PerspectiveCamera).aspect = width / height;
 }
 
 async setVolume(reader) {
-    this._volume = new Volume(this._gl, reader);
-    this._volume.addEventListener('progress', e => {
+    this.volume = new Volume(this.gl, reader);
+    this.volume.addEventListener('progress', e => {
         this.dispatchEvent(new CustomEvent('progress', { detail: e.detail }));
     });
-    await this._volume.load();
-    this._volume.setFilter(this._filter);
-    if (this._renderer) {
-        this._renderer.setVolume(this._volume);
+    await this.volume.load();
+    this.volume.setFilter(this.filter);
+    if (this.renderer) {
+        this.renderer.setVolume(this.volume);
     }
 }
 
 setEnvironmentMap(image) {
-    WebGL.createTexture(this._gl, {
-        texture : this._environmentTexture,
+    WebGL.createTexture(this.gl, {
+        texture : this.environmentTexture,
         image   : image
     });
 }
 
 setFilter(filter) {
-    this._filter = filter;
-    if (this._volume) {
-        this._volume.setFilter(filter);
-        if (this._renderer) {
-            this._renderer.reset();
+    this.filter = filter;
+    if (this.volume) {
+        this.volume.setFilter(filter);
+        if (this.renderer) {
+            this.renderer.reset();
         }
     }
 }
 
 chooseRenderer(renderer) {
-    if (this._renderer) {
-        this._renderer.destroy();
+    if (this.renderer) {
+        this.renderer.destroy();
     }
     const rendererClass = RendererFactory(renderer);
-    this._renderer = new rendererClass(this._gl, this._volume, this._environmentTexture, {
-        _bufferSize: this._resolution,
+    this.renderer = new rendererClass(this.gl, this.volume, this.camera, this.environmentTexture, {
+        resolution: this.resolution,
     });
-    if (this._toneMapper) {
-        this._toneMapper.setTexture(this._renderer.getTexture());
+    this.renderer.reset();
+    if (this.toneMapper) {
+        this.toneMapper.setTexture(this.renderer.getTexture());
     }
-    this._isTransformationDirty = true;
+    this.isTransformationDirty = true;
 }
 
 chooseToneMapper(toneMapper) {
-    if (this._toneMapper) {
-        this._toneMapper.destroy();
+    if (this.toneMapper) {
+        this.toneMapper.destroy();
     }
-    const gl = this._gl;
+    const gl = this.gl;
     let texture;
-    if (this._renderer) {
-        texture = this._renderer.getTexture();
+    if (this.renderer) {
+        texture = this.renderer.getTexture();
     } else {
         texture = WebGL.createTexture(gl, {
             width  : 1,
@@ -185,154 +179,53 @@ chooseToneMapper(toneMapper) {
         });
     }
     const toneMapperClass = ToneMapperFactory(toneMapper);
-    this._toneMapper = new toneMapperClass(gl, texture, {
-        _bufferSize: this._resolution,
+    this.toneMapper = new toneMapperClass(gl, texture, {
+        resolution: this.resolution,
     });
 }
 
-getCanvas() {
-    return this._canvas;
-}
-
-getRenderer() {
-    return this._renderer;
-}
-
-getToneMapper() {
-    return this._toneMapper;
-}
-
-getCamera() {
-    return this._camera;
-}
-
-_updateMvpInverseMatrix() {
-    if (!this._camera.isDirty && !this._isTransformationDirty) {
+render() {
+    const gl = this.gl;
+    if (!gl || !this.renderer || !this.toneMapper) {
         return;
     }
 
-    this._camera.isDirty = false;
-    this._isTransformationDirty = false;
-    this._camera.updateMatrices();
+    this.renderer.render();
+    this.toneMapper.render();
 
-    const centerTranslation = new Matrix().fromTranslation(-0.5, -0.5, -0.5);
-    const volumeTranslation = this.getTranslationMatrix();
-    const volumeRotation = this.getRotationMatrix();
-    const volumeScale = this.getScaleMatrix();
+    const { program, uniforms } = this.program;
+    gl.useProgram(program);
 
-    const modelMatrix = new Matrix();
-    modelMatrix.multiply(volumeScale, centerTranslation);
-    modelMatrix.multiply(volumeRotation, modelMatrix);
-    modelMatrix.multiply(volumeTranslation, modelMatrix);
-
-    const viewMatrix = this._camera.viewMatrix;
-    const projectionMatrix = this._camera.projectionMatrix;
-
-    if (this._renderer) {
-        this._renderer.modelMatrix.copy(modelMatrix);
-        this._renderer.viewMatrix.copy(viewMatrix);
-        this._renderer.projectionMatrix.copy(projectionMatrix);
-        this._renderer.reset();
-    }
-}
-
-_render() {
-    const gl = this._gl;
-    if (!gl || !this._renderer || !this._toneMapper) {
-        return;
-    }
-
-    this._updateMvpInverseMatrix();
-
-    this._renderer.render();
-    this._toneMapper.render();
-
-    gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
-    const program = this._program;
-    gl.useProgram(program.program);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this._clipQuad);
-    const aPosition = program.attributes.aPosition;
-    gl.enableVertexAttribArray(aPosition);
-    gl.vertexAttribPointer(aPosition, 2, gl.FLOAT, false, 0, 0);
+    gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this._toneMapper.getTexture());
-    gl.uniform1i(program.uniforms.uTexture, 0);
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+    gl.bindTexture(gl.TEXTURE_2D, this.toneMapper.getTexture());
+    gl.uniform1i(uniforms.uTexture, 0);
 
-    gl.disableVertexAttribArray(aPosition);
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
-    gl.bindTexture(gl.TEXTURE_2D, null);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
 }
 
-getScale() {
-    return this._scale;
-}
-
-setScale(x, y, z) {
-    this._scale.set(x, y, z);
-    this._isTransformationDirty = true;
-}
-
-getScaleMatrix() {
-    return new Matrix().fromScale(
-        this._scale.x, this._scale.y, this._scale.z);
-}
-
-getTranslation() {
-    return this._translation;
-}
-
-setTranslation(x, y, z) {
-    this._translation.set(x, y, z);
-    this._isTransformationDirty = true;
-}
-
-getTranslationMatrix() {
-    return new Matrix().fromTranslation(
-        this._translation.x, this._translation.y, this._translation.z);
-}
-
-getRotation() {
-    return this._rotation;
-}
-
-setRotation(x, y, z) {
-    this._rotation.set(x, y, z);
-    this._isTransformationDirty = true;
-}
-
-getRotationMatrix() {
-    const volumeRotationX = new Matrix().fromRotationX(this._rotation.x);
-    const volumeRotationY = new Matrix().fromRotationY(this._rotation.y);
-    const volumeRotationZ = new Matrix().fromRotationZ(this._rotation.z);
-    const volumeRotation = new Matrix();
-    volumeRotation.multiply(volumeRotation, volumeRotationX);
-    volumeRotation.multiply(volumeRotation, volumeRotationY);
-    volumeRotation.multiply(volumeRotation, volumeRotationZ);
-    return volumeRotation;
-}
-
-getResolution() {
+get resolution() {
     return this._resolution;
 }
 
-setResolution(resolution) {
+set resolution(resolution) {
     this._resolution = resolution;
-    this._canvas.width = resolution;
-    this._canvas.height = resolution;
-    if (this._renderer) {
-        this._renderer.setResolution(resolution);
+    this.canvas.width = resolution;
+    this.canvas.height = resolution;
+    if (this.renderer) {
+        this.renderer.setResolution(resolution);
     }
-    if (this._toneMapper) {
-        this._toneMapper.setResolution(resolution);
-        if (this._renderer) {
-            this._toneMapper.setTexture(this._renderer.getTexture());
+    if (this.toneMapper) {
+        this.toneMapper.setResolution(resolution);
+        if (this.renderer) {
+            this.toneMapper.setTexture(this.renderer.getTexture());
         }
     }
 }
 
-async recordAnimation(options) {
+async recordAnimation(options = {}) {
     const date = new Date();
     const timestamp = [
         date.getUTCFullYear(),
@@ -357,7 +250,7 @@ async recordAnimation(options) {
     }
 }
 
-async recordAnimationToImageSequence(options) {
+async recordAnimationToImageSequence(options = {}) {
     const { directory, startTime, endTime, frameTime, fps } = options;
     const frames = Math.max(Math.ceil((endTime - startTime) * fps), 1);
     const timeStep = 1 / fps;
@@ -373,7 +266,7 @@ async recordAnimationToImageSequence(options) {
         return padding + string;
     }
 
-    const canvas = this._canvas;
+    const canvas = this.canvas;
     function getCanvasBlob() {
         return new Promise((resolve, reject) => {
             canvas.toBlob(blob => resolve(blob));
@@ -384,10 +277,9 @@ async recordAnimationToImageSequence(options) {
 
     for (let i = 0; i < frames; i++) {
         const t = startTime + i * timeStep;
-        this._cameraAnimator.update(t);
-        this._updateMvpInverseMatrix();
+        this.cameraAnimator.update(t);
 
-        this._renderer.reset();
+        this.renderer.reset();
         this.startRendering();
         await wait(frameTime * 1000);
         this.stopRendering();
@@ -407,7 +299,7 @@ async recordAnimationToImageSequence(options) {
     this.startRendering();
 }
 
-async recordAnimationToVideo(options) {
+async recordAnimationToVideo(options = {}) {
     const { outputStream, startTime, endTime, frameTime, fps } = options;
     const frames = Math.max(Math.ceil((endTime - startTime) * fps), 1);
     const timeStep = 1 / fps;
@@ -423,7 +315,7 @@ async recordAnimationToVideo(options) {
         return padding + string;
     }
 
-    const canvasStream = this._canvas.captureStream(0);
+    const canvasStream = this.canvas.captureStream(0);
     const videoStream = canvasStream.getVideoTracks()[0];
     const recorder = new MediaRecorder(canvasStream, {
         videoBitsPerSecond : 4 * 1024 * 1024,
@@ -438,10 +330,9 @@ async recordAnimationToVideo(options) {
 
     for (let i = 0; i < frames; i++) {
         const t = startTime + i * timeStep;
-        this._cameraAnimator.update(t);
-        this._updateMvpInverseMatrix();
+        this.cameraAnimator.update(t);
 
-        this._renderer.reset();
+        this.renderer.reset();
         this.startRendering();
         await wait(frameTime * 1000);
         this.stopRendering();
@@ -458,11 +349,11 @@ async recordAnimationToVideo(options) {
 }
 
 startRendering() {
-    Ticker.add(this._render);
+    Ticker.add(this.render);
 }
 
 stopRendering() {
-    Ticker.remove(this._render);
+    Ticker.remove(this.render);
 }
 
 }

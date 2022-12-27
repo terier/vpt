@@ -2,7 +2,7 @@ import { WebGL } from './WebGL.js';
 
 export class Volume extends EventTarget {
 
-constructor(gl, reader, options) {
+constructor(gl, reader, options = {}) {
     super();
 
     this._gl = gl;

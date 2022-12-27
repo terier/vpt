@@ -1,11 +1,8 @@
 // #part /glsl/shaders/renderers/ISO/generate/vertex
 
 #version 300 es
-precision mediump float;
 
 uniform mat4 uMvpInverseMatrix;
-
-layout (location = 0) in vec2 aPosition;
 
 out vec3 vRayFrom;
 out vec3 vRayTo;
@@ -13,9 +10,16 @@ out vec3 vRayTo;
 // #link /glsl/mixins/unproject
 @unproject
 
+const vec2 vertices[] = vec2[](
+    vec2(-1, -1),
+    vec2( 3, -1),
+    vec2(-1,  3)
+);
+
 void main() {
-    unproject(aPosition, uMvpInverseMatrix, vRayFrom, vRayTo);
-    gl_Position = vec4(aPosition, 0, 1);
+    vec2 position = vertices[gl_VertexID];
+    unproject(position, uMvpInverseMatrix, vRayFrom, vRayTo);
+    gl_Position = vec4(position, 0, 1);
 }
 
 // #part /glsl/shaders/renderers/ISO/generate/fragment
@@ -76,22 +80,29 @@ void main() {
 #version 300 es
 precision mediump float;
 
-layout (location = 0) in vec2 aPosition;
+const vec2 vertices[] = vec2[](
+    vec2(-1, -1),
+    vec2( 3, -1),
+    vec2(-1,  3)
+);
 
 out vec2 vPosition;
 
 void main() {
-    vPosition = aPosition * 0.5 + 0.5;
-    gl_Position = vec4(aPosition, 0, 1);
+    vec2 position = vertices[gl_VertexID];
+    vPosition = position * 0.5 + 0.5;
+    gl_Position = vec4(position, 0, 1);
 }
 
 // #part /glsl/shaders/renderers/ISO/integrate/fragment
 
 #version 300 es
 precision mediump float;
+precision mediump sampler2D;
+precision mediump sampler3D;
 
-uniform mediump sampler2D uAccumulator;
-uniform mediump sampler2D uFrame;
+uniform sampler2D uAccumulator;
+uniform sampler2D uFrame;
 
 in vec2 vPosition;
 
@@ -114,13 +125,18 @@ void main() {
 #version 300 es
 precision mediump float;
 
-layout (location = 0) in vec2 aPosition;
+const vec2 vertices[] = vec2[](
+    vec2(-1, -1),
+    vec2( 3, -1),
+    vec2(-1,  3)
+);
 
 out vec2 vPosition;
 
 void main() {
-    vPosition = aPosition * 0.5 + 0.5;
-    gl_Position = vec4(aPosition, 0, 1);
+    vec2 position = vertices[gl_VertexID];
+    vPosition = position * 0.5 + 0.5;
+    gl_Position = vec4(position, 0, 1);
 }
 
 // #part /glsl/shaders/renderers/ISO/render/fragment
@@ -134,7 +150,6 @@ uniform sampler2D uClosest;
 uniform sampler3D uVolume;
 uniform sampler2D uTransferFunction;
 uniform vec3 uLight;
-uniform vec3 uDiffuse;
 uniform float uGradientStep;
 
 in vec2 vPosition;
@@ -169,7 +184,7 @@ void main() {
         vec3 normal = normalize(gradient(pos, uGradientStep));
         float lambert = max(dot(normal, uLight), 0.0);
         vec3 material = sampleVolumeColor(pos).rgb;
-        oColor = vec4(uDiffuse * material * lambert, 1);
+        oColor = vec4(material * lambert, 1);
     } else {
         oColor = vec4(1);
     }
@@ -178,12 +193,16 @@ void main() {
 // #part /glsl/shaders/renderers/ISO/reset/vertex
 
 #version 300 es
-precision mediump float;
 
-layout (location = 0) in vec2 aPosition;
+const vec2 vertices[] = vec2[](
+    vec2(-1, -1),
+    vec2( 3, -1),
+    vec2(-1,  3)
+);
 
 void main() {
-    gl_Position = vec4(aPosition, 0, 1);
+    vec2 position = vertices[gl_VertexID];
+    gl_Position = vec4(position, 0, 1);
 }
 
 // #part /glsl/shaders/renderers/ISO/reset/fragment

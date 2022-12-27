@@ -13,6 +13,8 @@ import { DialogConstructor } from './dialogs/DialogConstructor.js';
 
 import { RenderingContext } from './RenderingContext.js';
 
+import { PerspectiveCamera } from './PerspectiveCamera.js';
+
 export class Application {
 
 constructor() {
@@ -26,7 +28,7 @@ constructor() {
     this.binds = DOMUtils.bind(document.body);
 
     this.renderingContext = new RenderingContext();
-    this.binds.container.appendChild(this.renderingContext.getCanvas());
+    this.binds.container.appendChild(this.renderingContext.canvas);
 
     document.body.addEventListener('dragover', e => e.preventDefault());
     document.body.addEventListener('drop', this._handleFileDrop);
@@ -46,29 +48,28 @@ constructor() {
             this.renderingContextDialog.object);
     this.renderingContextDialog.addEventListener('resolution', e => {
         const resolution = this.renderingContextDialog.resolution;
-        this.renderingContext.setResolution(resolution);
+        this.renderingContext.resolution = resolution;
     });
     this.renderingContextDialog.addEventListener('transformation', e => {
         const t = this.renderingContextDialog.translation;
         const r = this.renderingContextDialog.rotation;
         const s = this.renderingContextDialog.scale;
-        this.renderingContext.setTranslation(...t);
-        this.renderingContext.setRotation(...r);
-        this.renderingContext.setScale(...s);
+        // TODO fix model transform
     });
     this.renderingContextDialog.addEventListener('filter', e => {
         const filter = this.renderingContextDialog.filter;
         this.renderingContext.setFilter(filter);
     });
     this.renderingContextDialog.addEventListener('fullscreen', e => {
-        this.renderingContext.getCanvas().classList.toggle('fullscreen',
+        this.renderingContext.canvas.classList.toggle('fullscreen',
             this.renderingContextDialog.fullscreen);
     });
 
     new ResizeObserver(entries => {
         const size = entries[0].contentBoxSize[0];
-        this.renderingContext._camera.resize(size.inlineSize, size.blockSize);
-    }).observe(this.renderingContext.getCanvas());
+        const camera = this.renderingContext.camera.getComponent(PerspectiveCamera);
+        camera.aspect = size.inlineSize / size.blockSize;
+    }).observe(this.renderingContext.canvas);
 
     this.renderingContext.addEventListener('progress', e => {
         this.volumeLoadDialog.binds.loadProgress.value = e.detail;
@@ -118,7 +119,7 @@ _handleRendererChange() {
 
     const which = this.mainDialog.getSelectedRenderer();
     this.renderingContext.chooseRenderer(which);
-    const renderer = this.renderingContext.getRenderer();
+    const renderer = this.renderingContext.renderer;
     const object = DialogConstructor.construct(renderer.properties);
     const binds = DOMUtils.bind(object);
     this.rendererDialog = object;
@@ -142,7 +143,7 @@ _handleToneMapperChange() {
 
     const which = this.mainDialog.getSelectedToneMapper();
     this.renderingContext.chooseToneMapper(which);
-    const toneMapper = this.renderingContext.getToneMapper();
+    const toneMapper = this.renderingContext.toneMapper;
     const object = DialogConstructor.construct(toneMapper.properties);
     const binds = DOMUtils.bind(object);
     this.toneMapperDialog = object;
@@ -195,7 +196,7 @@ _handleEnvmapLoad(e) {
     image.crossOrigin = 'anonymous';
     image.addEventListener('load', () => {
         this.renderingContext.setEnvironmentMap(image);
-        this.renderingContext.getRenderer().reset();
+        this.renderingContext.renderer.reset();
     });
 
     if (options.type === 'file') {
@@ -207,54 +208,6 @@ _handleEnvmapLoad(e) {
     } else if (options.type === 'url') {
         image.src = options.url;
     }
-}
-
-serializeView() {
-    const c = this.renderingContext._camera;
-    const mt = this.renderingContext._translation;
-    const mr = this.renderingContext._rotation;
-    const ms = this.renderingContext._scale;
-    const cp = c.position;
-    const cr = c.rotation;
-
-    return JSON.stringify({
-        camera: {
-            fovX: c.fovX,
-            fovY: c.fovY,
-            near: c.near,
-            far: c.far,
-            zoomFactor: c.zoomFactor,
-            position: [cp.x, cp.y, cp.z],
-            rotation: [cr.x, cr.y, cr.z, r.w],
-        },
-        model: {
-            translation: [mt.x, mt.y, mt.z],
-            rotation: [mr.x, mr.y, mr.z],
-            scale: [ms.x, ms.y, ms.z],
-        },
-    });
-}
-
-deserializeView(v) {
-    v = JSON.parse(v);
-
-    const c = this.renderingContext.getCamera();
-    const cfrom = v.camera;
-
-    c.fovX = cfrom.fovX;
-    c.fovY = cfrom.fovY;
-    c.near = cfrom.near;
-    c.far = cfrom.far;
-    c.zoomFactor = cfrom.zoomFactor;
-    c.position.set(...cfrom.position, 1);
-    c.rotation.set(...cfrom.rotation);
-    c.updateMatrices();
-
-    this.renderingContext.setTranslation(...v.model.translation);
-    this.renderingContext.setRotation(...v.model.rotation);
-    this.renderingContext.setScale(...v.model.scale);
-
-    this.renderingContext._renderer.reset();
 }
 
 }

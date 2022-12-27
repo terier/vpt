@@ -1,8 +1,9 @@
+import { quat, vec3, mat4 } from '../../lib/gl-matrix-module.js';
+
 import { WebGL } from '../WebGL.js';
 import { AbstractRenderer } from './AbstractRenderer.js';
 import { CommonUtils } from '../utils/CommonUtils.js';
-import { Vector } from '../math/Vector.js';
-import { Matrix } from '../math/Matrix.js';
+import { PerspectiveCamera } from '../PerspectiveCamera.js';
 
 const [ SHADERS, MIXINS ] = await Promise.all([
     'shaders.json',
@@ -11,8 +12,8 @@ const [ SHADERS, MIXINS ] = await Promise.all([
 
 export class ISORenderer extends AbstractRenderer {
 
-constructor(gl, volume, environmentTexture, options) {
-    super(gl, volume, environmentTexture, options);
+constructor(gl, volume, camera, environmentTexture, options = {}) {
+    super(gl, volume, camera, environmentTexture, options);
 
     this.registerProperties([
         {
@@ -35,12 +36,6 @@ constructor(gl, volume, environmentTexture, options) {
             label: 'Light direction',
             type: 'vector-spinner',
             value: [ 2, -3, -5 ],
-        },
-        {
-            name: 'color',
-            label: 'Diffuse color',
-            type: 'color-chooser',
-            value: '#ffffff',
         },
         {
             name: 'transferFunction',
@@ -83,7 +78,7 @@ _resetFrame() {
     const { program, uniforms } = this._programs.reset;
     gl.useProgram(program);
 
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
 }
 
 _generateFrame() {
@@ -103,10 +98,20 @@ _generateFrame() {
     gl.uniform1ui(uniforms.uSteps, this.steps);
     gl.uniform1f(uniforms.uOffset, Math.random());
     gl.uniform1f(uniforms.uIsovalue, this.isovalue);
-    const mvpit = this.calculateMVPInverseTranspose();
-    gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, mvpit.m);
 
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+    // TODO: get model matrix from volume
+    const modelMatrix = mat4.fromTranslation(mat4.create(), [-0.5, -0.5, -0.5]);
+    const viewMatrix = this._camera.transform.inverseGlobalMatrix;
+    const projectionMatrix = this._camera.getComponent(PerspectiveCamera).projectionMatrix;
+
+    const matrix = mat4.create();
+    mat4.multiply(matrix, modelMatrix, matrix);
+    mat4.multiply(matrix, viewMatrix, matrix);
+    mat4.multiply(matrix, projectionMatrix, matrix);
+    mat4.invert(matrix, matrix);
+    gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, matrix);
+
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
 }
 
 _integrateFrame() {
@@ -123,7 +128,7 @@ _integrateFrame() {
     gl.bindTexture(gl.TEXTURE_2D, this._frameBuffer.getAttachments().color[0]);
     gl.uniform1i(uniforms.uFrame, 1);
 
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
 }
 
 _renderFrame() {
@@ -144,22 +149,30 @@ _renderFrame() {
     gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
     gl.uniform1i(uniforms.uTransferFunction, 2);
 
-    const rotation = new Matrix().multiply(this.viewMatrix, this.modelMatrix).inverse();
-    const light = new Vector(...this.light, 0);
-    rotation.transform(light);
-    light.normalize();
-    gl.uniform3fv(uniforms.uLight, [light.x, light.y, light.z]);
-    gl.uniform3fv(uniforms.uDiffuse, CommonUtils.hex2rgb(this.color));
+    // Light direction is defined in view space, so transform it to model space.
+    // TODO: get model matrix from volume
+    const modelMatrix = mat4.fromTranslation(mat4.create(), [-0.5, -0.5, -0.5]);
+    const viewMatrix = this._camera.transform.inverseGlobalMatrix;
+    const matrix = mat4.create();
+    mat4.multiply(matrix, modelMatrix, matrix);
+    mat4.multiply(matrix, viewMatrix, matrix);
+    mat4.invert(matrix, matrix);
+
+    const light = vec3.transformMat4(vec3.create(), this.light, matrix);
+    vec3.normalize(light, light);
+
+    gl.uniform3fv(uniforms.uLight, light);
+
     gl.uniform1f(uniforms.uGradientStep, 0.005);
 
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
 }
 
 _getFrameBufferSpec() {
     const gl = this._gl;
     return [{
-        width          : this._bufferSize,
-        height         : this._bufferSize,
+        width          : this._resolution,
+        height         : this._resolution,
         min            : gl.NEAREST,
         mag            : gl.NEAREST,
         format         : gl.RGBA,
@@ -171,8 +184,8 @@ _getFrameBufferSpec() {
 _getAccumulationBufferSpec() {
     const gl = this._gl;
     return [{
-        width          : this._bufferSize,
-        height         : this._bufferSize,
+        width          : this._resolution,
+        height         : this._resolution,
         min            : gl.NEAREST,
         mag            : gl.NEAREST,
         format         : gl.RGBA,

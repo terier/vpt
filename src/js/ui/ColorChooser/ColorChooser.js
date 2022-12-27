@@ -6,7 +6,7 @@ template.innerHTML = await fetch(new URL('./ColorChooser.html', import.meta.url)
 
 export class ColorChooser extends HTMLElement {
 
-constructor(options) {
+constructor(options = {}) {
     super();
 
     this.inputListener = this.inputListener.bind(this);
