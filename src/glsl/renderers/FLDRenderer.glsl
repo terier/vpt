@@ -280,6 +280,9 @@ uniform bool uAOEnabled;
 uniform int uAOSamples;
 uniform float uAORadius;
 uniform float uAORandSeed;
+uniform float uLAOStepSize;
+uniform float uLAOWeight;
+uniform vec3 uLight;
 
 in vec3 vRayFrom;
 in vec3 vRayTo;
@@ -294,6 +297,9 @@ out vec4 oColor;
 
 // #link /glsl/mixins/ambientOcclusion.glsl
 @ambientOcclusion
+
+// #link /glsl/mixins/LAO.glsl
+@LAO
 
 vec4 sampleVolumeColor(vec3 position) {
     vec2 volumeSample = texture(uVolume, position).rg;
@@ -371,11 +377,14 @@ void main() {
 
             colorSample.a *= rayStepLength * uExtinction;
             colorSample.rgb *= colorSample.a * factor;
+
             if (uAOEnabled && colorSample.a > 0. && uAOSamples > 0) {
                 vec2 U = rand(vPosition * uAORandSeed);
-//                vec3 grad = -gradient(position, 0.005);
-                float AO = ambientOcclusion(position, uAOSamples, uAORadius, U, uVolume, uTransferFunction);
-                colorSample.rgb *= (1. - AO);
+                //float AO = ambientOcclusion(position, uAOSamples, uAORadius, U, uVolume, uTransferFunction);
+                //colorSample.rgb *= (1. - AO);
+
+                float AO = LAO(position, uAOSamples, uLAOStepSize, U, uLight, uVolume, uTransferFunction);
+                colorSample = mix(colorSample, colorSample * vec4(0.15, 0.18, 0.32, 1.0), AO * uLAOWeight);
             }
 
 

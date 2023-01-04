@@ -356,6 +356,20 @@ constructor(gl, volume, environmentTexture, options) {
                     value: 1,
                     min: 0,
                 },
+                {
+                    name: 'lao_step_size',
+                    label: 'LAO Step Size',
+                    type: 'spinner',
+                    value: 0.05,
+                    min: 0,
+                },
+                {
+                    name: 'lao_weight',
+                    label: 'LAO Weight',
+                    type: 'spinner',
+                    value: 0.69,
+                    min: 0,
+                },
             ]
         },
         {
@@ -837,6 +851,9 @@ _renderFrame(transferFunction, volumeView) {
     gl.uniform1i(uniforms.uAOSamples, this.ao_samples);
     gl.uniform1f(uniforms.uAORadius, this.ao_radius);
     gl.uniform1f(uniforms.uAORandSeed, 42);
+    gl.uniform1f(uniforms.uLAOStepSize, this.lao_step_size);
+    gl.uniform1f(uniforms.uLAOWeight, this.lao_weight);
+    gl.uniform3f(uniforms.uLight, this.light.x, this.light.y, this.light.z);
 
     const mvpit = this.calculateMVPInverseTranspose();
     gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, mvpit.m);
