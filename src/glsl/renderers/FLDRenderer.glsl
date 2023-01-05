@@ -283,6 +283,7 @@ uniform float uAORandSeed;
 uniform float uLAOStepSize;
 uniform float uLAOWeight;
 uniform vec3 uLight;
+uniform vec3 uDimensions;
 
 in vec3 vRayFrom;
 in vec3 vRayTo;
@@ -377,6 +378,10 @@ void main() {
 
             colorSample.a *= rayStepLength * uExtinction;
             colorSample.rgb *= colorSample.a * factor;
+
+            if (uSmartDeNoise == 1)
+                lightingSample = smartDeNoise3D(uEmission, uFluence, colorSample.a * uAlbedo, uDimensions,
+                                                position, 5.0, 2.0, 0.1);
 
             if (uAOEnabled && colorSample.a > 0. && uAOSamples > 0) {
                 vec2 U = rand(vPosition * uAORandSeed);
