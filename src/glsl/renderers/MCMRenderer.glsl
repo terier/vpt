@@ -101,8 +101,8 @@ vec3 sampleHenyeyGreenstein(inout uint state, float g, vec3 direction) {
         return u;
     }
     float hgcos = sampleHenyeyGreensteinAngleCosine(state, g);
-    float lambda = hgcos - dot(direction, u);
-    return normalize(u + lambda * direction);
+    vec3 circle = normalize(u - dot(u, direction) * direction);
+    return sqrt(1.0 - hgcos * hgcos) * circle + hgcos * direction;
 }
 
 float max3(vec3 v) {
