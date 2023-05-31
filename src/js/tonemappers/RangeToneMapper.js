@@ -8,7 +8,7 @@ const [ SHADERS, MIXINS ] = await Promise.all([
 
 export class RangeToneMapper extends AbstractToneMapper {
 
-constructor(gl, texture, options) {
+constructor(gl, texture, options = {}) {
     super(gl, texture, options);
 
     this.registerProperties([
@@ -59,7 +59,7 @@ _renderFrame() {
     gl.uniform1f(uniforms.uMax, this.max);
     gl.uniform1f(uniforms.uGamma, this.gamma);
 
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
 }
 
 }

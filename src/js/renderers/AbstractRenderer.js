@@ -1,5 +1,6 @@
+import { mat4 } from '../../lib/gl-matrix-module.js';
+
 import { PropertyBag } from '../PropertyBag.js';
-import { Matrix } from '../math/Matrix.js';
 import { WebGL } from '../WebGL.js';
 import { SingleBuffer } from '../SingleBuffer.js';
 import { DoubleBuffer } from '../DoubleBuffer.js';
@@ -11,39 +12,33 @@ const [ SHADERS, MIXINS ] = await Promise.all([
 
 export class AbstractRenderer extends PropertyBag {
 
-constructor(gl, volume, environmentTexture, options) {
+constructor(gl, volume, camera, environmentTexture, options = {}) {
     super();
 
-    Object.assign(this, {
-        _bufferSize : 512
-    }, options);
+    this._resolution = options.resolution ?? 512;
 
     this._gl = gl;
     this._volume = volume;
+    this._camera = camera;
     this._environmentTexture = environmentTexture;
 
     this._rebuildBuffers();
 
     this._transferFunction = WebGL.createTexture(gl, {
-        width  : 2,
-        height : 1,
-        data   : new Uint8Array([255, 0, 0, 0, 255, 0, 0, 255]),
+        width   : 2,
+        height  : 1,
+        data    : new Uint8Array([255, 0, 0, 0, 255, 0, 0, 255]),
 
-        internalFormat: gl.SRGB8_ALPHA8,
-        format : gl.RGBA,
-        type   : gl.UNSIGNED_BYTE,
+        iformat : gl.SRGB8_ALPHA8,
+        format  : gl.RGBA,
+        type    : gl.UNSIGNED_BYTE,
 
-        wrapS  : gl.CLAMP_TO_EDGE,
-        wrapT  : gl.CLAMP_TO_EDGE,
-        min    : gl.LINEAR,
-        mag    : gl.LINEAR,
+        wrapS   : gl.CLAMP_TO_EDGE,
+        wrapT   : gl.CLAMP_TO_EDGE,
+        min     : gl.LINEAR,
+        mag     : gl.LINEAR,
     });
 
-    this.modelMatrix = new Matrix();
-    this.viewMatrix = new Matrix();
-    this.projectionMatrix = new Matrix();
-
-    this._clipQuad = WebGL.createClipQuad(gl);
     this._clipQuadProgram = WebGL.buildPrograms(gl, {
         quad: SHADERS.quad
     }, MIXINS).quad;
@@ -55,17 +50,10 @@ destroy() {
     this._accumulationBuffer.destroy();
     this._renderBuffer.destroy();
     gl.deleteTexture(this._transferFunction);
-    gl.deleteBuffer(this._clipQuad);
     gl.deleteProgram(this._clipQuadProgram.program);
 }
 
 render() {
-    // TODO: put the following logic in VAO
-    const gl = this._gl;
-    gl.bindBuffer(gl.ARRAY_BUFFER, this._clipQuad);
-    gl.enableVertexAttribArray(0); // position always bound to attribute 0
-    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-
     this._frameBuffer.use();
     this._generateFrame();
 
@@ -78,12 +66,6 @@ render() {
 }
 
 reset() {
-    // TODO: put the following logic in VAO
-    const gl = this._gl;
-    gl.bindBuffer(gl.ARRAY_BUFFER, this._clipQuad);
-    gl.enableVertexAttribArray(0); // position always bound to attribute 0
-    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-
     this._accumulationBuffer.use();
     this._resetFrame();
     this._accumulationBuffer.swap();
@@ -118,18 +100,11 @@ setTransferFunction(transferFunction) {
 }
 
 setResolution(resolution) {
-    if (resolution !== this._bufferSize) {
-        this._bufferSize = resolution;
+    if (resolution !== this._resolution) {
+        this._resolution = resolution;
         this._rebuildBuffers();
         this.reset();
     }
-}
-
-calculateMVPInverseTranspose() {
-    const mvpit = new Matrix();
-    mvpit.multiply(this.viewMatrix, this.modelMatrix);
-    mvpit.multiply(this.projectionMatrix, mvpit);
-    return mvpit.inverse().transpose();
 }
 
 getTexture() {
@@ -163,15 +138,15 @@ _getAccumulationBufferSpec() {
 _getRenderBufferSpec() {
     const gl = this._gl;
     return [{
-        width          : this._bufferSize,
-        height         : this._bufferSize,
-        min            : gl.NEAREST,
-        mag            : gl.NEAREST,
-        wrapS          : gl.CLAMP_TO_EDGE,
-        wrapT          : gl.CLAMP_TO_EDGE,
-        format         : gl.RGBA,
-        internalFormat : gl.RGBA16F,
-        type           : gl.FLOAT,
+        width   : this._resolution,
+        height  : this._resolution,
+        min     : gl.NEAREST,
+        mag     : gl.NEAREST,
+        wrapS   : gl.CLAMP_TO_EDGE,
+        wrapT   : gl.CLAMP_TO_EDGE,
+        format  : gl.RGBA,
+        iformat : gl.RGBA16F,
+        type    : gl.FLOAT,
     }];
 }
 

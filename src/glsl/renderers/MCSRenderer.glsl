@@ -5,7 +5,6 @@ precision mediump float;
 
 uniform mat4 uMvpInverseMatrix;
 
-layout (location = 0) in vec2 aPosition;
 out vec3 vRayFrom;
 out vec3 vRayTo;
 out vec2 vPosition;
@@ -13,22 +12,31 @@ out vec2 vPosition;
 // #link /glsl/mixins/unproject
 @unproject
 
+const vec2 vertices[] = vec2[](
+    vec2(-1, -1),
+    vec2( 3, -1),
+    vec2(-1,  3)
+);
+
 void main() {
-    unproject(aPosition, uMvpInverseMatrix, vRayFrom, vRayTo);
-    vPosition = aPosition * 0.5 + 0.5;
-    gl_Position = vec4(aPosition, 0, 1);
+    vec2 position = vertices[gl_VertexID];
+    unproject(position, uMvpInverseMatrix, vRayFrom, vRayTo);
+    vPosition = position * 0.5 + 0.5;
+    gl_Position = vec4(position, 0, 1);
 }
 
 // #part /glsl/shaders/renderers/MCS/generate/fragment
 
 #version 300 es
 precision mediump float;
+precision mediump sampler2D;
+precision mediump sampler3D;
 
 #define M_INVPI 0.31830988618
 
-uniform mediump sampler3D uVolume;
-uniform mediump sampler2D uTransferFunction;
-uniform mediump sampler2D uEnvironment;
+uniform sampler3D uVolume;
+uniform sampler2D uTransferFunction;
+uniform sampler2D uEnvironment;
 uniform float uRandSeed;
 uniform float uExtinction;
 uniform vec3 uScatteringDirection;
@@ -36,6 +44,7 @@ uniform vec3 uScatteringDirection;
 in vec3 vRayFrom;
 in vec3 vRayTo;
 in vec2 vPosition;
+
 out vec4 oColor;
 
 // #link /glsl/mixins/intersectCube
@@ -132,24 +141,33 @@ void main() {
 #version 300 es
 precision mediump float;
 
-layout (location = 0) in vec2 aPosition;
+const vec2 vertices[] = vec2[](
+    vec2(-1, -1),
+    vec2( 3, -1),
+    vec2(-1,  3)
+);
+
 out vec2 vPosition;
 
 void main() {
-    vPosition = aPosition * 0.5 + 0.5;
-    gl_Position = vec4(aPosition, 0, 1);
+    vec2 position = vertices[gl_VertexID];
+    vPosition = position * 0.5 + 0.5;
+    gl_Position = vec4(position, 0, 1);
 }
 
 // #part /glsl/shaders/renderers/MCS/integrate/fragment
 
 #version 300 es
 precision mediump float;
+precision mediump sampler2D;
+precision mediump sampler3D;
 
-uniform mediump sampler2D uAccumulator;
-uniform mediump sampler2D uFrame;
+uniform sampler2D uAccumulator;
+uniform sampler2D uFrame;
 uniform float uInvFrameNumber;
 
 in vec2 vPosition;
+
 out vec4 oColor;
 
 void main() {
@@ -163,22 +181,30 @@ void main() {
 #version 300 es
 precision mediump float;
 
-layout (location = 0) in vec2 aPosition;
+const vec2 vertices[] = vec2[](
+    vec2(-1, -1),
+    vec2( 3, -1),
+    vec2(-1,  3)
+);
+
 out vec2 vPosition;
 
 void main() {
-    vPosition = aPosition * 0.5 + 0.5;
-    gl_Position = vec4(aPosition, 0, 1);
+    vec2 position = vertices[gl_VertexID];
+    vPosition = position * 0.5 + 0.5;
+    gl_Position = vec4(position, 0, 1);
 }
 
 // #part /glsl/shaders/renderers/MCS/render/fragment
 
 #version 300 es
 precision mediump float;
+precision mediump sampler2D;
 
-uniform mediump sampler2D uAccumulator;
+uniform sampler2D uAccumulator;
 
 in vec2 vPosition;
+
 out vec4 oColor;
 
 void main() {
@@ -191,10 +217,15 @@ void main() {
 #version 300 es
 precision mediump float;
 
-layout (location = 0) in vec2 aPosition;
+const vec2 vertices[] = vec2[](
+    vec2(-1, -1),
+    vec2( 3, -1),
+    vec2(-1,  3)
+);
 
 void main() {
-    gl_Position = vec4(aPosition, 0, 1);
+    vec2 position = vertices[gl_VertexID];
+    gl_Position = vec4(position, 0, 1);
 }
 
 // #part /glsl/shaders/renderers/MCS/reset/fragment

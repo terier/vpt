@@ -1,10 +1,9 @@
-import { Vector } from '../math/Vector.js';
-import { Quaternion } from '../math/Quaternion.js';
+import { quat, vec3, mat4 } from '../../lib/gl-matrix-module.js';
 import { Ticker } from '../Ticker.js';
 
 export class OrbitCameraAnimator {
 
-constructor(camera, domElement, options) {
+constructor(camera, domElement, options = {}) {
     this._update = this._update.bind(this);
     this._handlePointerDown = this._handlePointerDown.bind(this);
     this._handlePointerUp = this._handlePointerUp.bind(this);
@@ -14,16 +13,20 @@ constructor(camera, domElement, options) {
     this._handleKeyUp = this._handleKeyUp.bind(this);
 
     Object.assign(this, {
-        rotationSpeed    : 2,
-        translationSpeed : 2,
-        moveSpeed        : 0.001,
-        zoomSpeed        : 0.001
+        rotationSpeed: 0.005,
+        translationSpeed: 0.005,
+        moveSpeed: 0.001,
+        zoomSpeed: 0.001,
     }, options);
 
     this._camera = camera;
     this._domElement = domElement;
 
-    this._focus = this._camera.position.len();
+    this._focus = [0, 0, 0];
+    this._focusDistance = vec3.distance(this._focus, this._camera.transform.globalTranslation);
+
+    this._yaw = 0;
+    this._pitch = 0;
 
     this._forward = false;
     this._backward = false;
@@ -52,12 +55,8 @@ _handlePointerDown(e) {
     this._domElement.addEventListener('pointermove', this._handlePointerMove);
 
     if (e.button === 0) {
-        this._startX = e.pageX;
-        this._startY = e.pageY;
         this._isRotating = true;
     } else if (e.button === 1) {
-        this._startX = e.pageX;
-        this._startY = e.pageY;
         this._isTranslating = true;
     }
 }
@@ -72,35 +71,31 @@ _handlePointerUp(e) {
 }
 
 _handlePointerMove(e) {
-    const x = e.pageX;
-    const y = e.pageY;
-    const dx = x - this._startX;
-    const dy = y - this._startY;
+    const dx = e.movementX;
+    const dy = e.movementY;
 
     if (this._isRotating) {
-        const angleX = dx * this.rotationSpeed * this._focus * this._camera.zoomFactor;
-        const angleY = dy * this.rotationSpeed * this._focus * this._camera.zoomFactor;
+        const angleX = -dx * this.rotationSpeed;
+        const angleY = -dy * this.rotationSpeed;
 
         if (e.shiftKey) {
-            this._rotateAroundSelf(angleX, angleY);
+            // TODO: add rotateAroundSelf
+            //this._rotateAroundSelf(angleX, angleY);
+            this._rotateAroundFocus(angleX, angleY);
         } else {
             this._rotateAroundFocus(angleX, angleY);
         }
     }
 
     if (this._isTranslating) {
-        const speedFactor = this.translationSpeed * this._focus * this._camera.zoomFactor;
-        this._move(-dx * speedFactor, dy * speedFactor, 0);
+        const moveX = -dx * this.translationSpeed * this._focus;
+        const moveY =  dy * this.translationSpeed * this._focus;
+        this._move(moveX, moveY, 0);
     }
-
-    this._startX = x;
-    this._startY = y;
 }
 
 _handleWheel(e) {
-    const amount = e.deltaY * this.zoomSpeed;
-    const keepScale = e.shiftKey;
-    this._zoom(amount, keepScale);
+    this._zoom(e.deltaY * this.zoomSpeed);
 }
 
 _handleKeyDown(e) {
@@ -121,62 +116,45 @@ _handleKeyUp(e) {
     }
 }
 
+_updateCamera() {
+    const transform = this._camera.transform;
+
+    const rotation = quat.create();
+    quat.rotateY(rotation, rotation, this._yaw);
+    quat.rotateX(rotation, rotation, this._pitch);
+
+    const translation = vec3.transformQuat(vec3.create(),
+        [0, 0, this._focusDistance], rotation);
+
+    transform.localRotation = rotation;
+    transform.localTranslation = vec3.add(vec3.create(), this._focus, translation);
+}
+
 _rotateAroundFocus(dx, dy) {
-    const angle = Math.sqrt(dx * dx + dy * dy);
-    const rotation = new Quaternion(dy / angle, dx / angle, 0, angle);
-    rotation.fromAxisAngle();
+    const twopi = Math.PI * 2;
+    const halfpi = Math.PI / 2;
 
-    // get focus point
-    // TODO: refactor this and positioning
-    const cp = this._camera.position.clone();
-    const cr = this._camera.rotation.clone();
-    const f = new Quaternion(0, 0, -this._focus, 0);
-    f.multiply(f, cr);
-    f.multiply(cr.inverse(), f);
+    this._pitch += dy;
+    this._pitch = Math.min(Math.max(this._pitch, -halfpi), halfpi);
 
-    // rotate camera around self
-    this._camera.rotation.multiply(rotation, this._camera.rotation);
-    this._camera.rotation.normalize();
+    this._yaw += dx;
+    this._yaw = ((this._yaw % twopi) + twopi) % twopi;
 
-    // position camera around focus
-    // TODO: find out how this works
-    const positionQuat = new Quaternion(0, 0, this._focus, 0);
-    positionQuat.multiply(positionQuat, this._camera.rotation);
-    positionQuat.multiply(this._camera.rotation.clone().inverse(), positionQuat);
-    this._camera.position.set(positionQuat.x, positionQuat.y, positionQuat.z, 1);
-    this._camera.position.add(new Vector(cp.x + f.x, cp.y + f.y, cp.z + f.z, 0));
-
-    this._camera.isDirty = true;
+    this._updateCamera();
 }
 
-_rotateAroundSelf(dx, dy) {
-    const angle = Math.sqrt(dx * dx + dy * dy);
-    const rotation = new Quaternion(dy / angle, dx / angle, 0, angle);
-    rotation.fromAxisAngle();
-
-    this._camera.rotation.multiply(rotation, this._camera.rotation);
-    this._camera.rotation.normalize();
-
-    this._camera.isDirty = true;
+_move(v) {
+    const rotation = quat.create();
+    quat.rotateY(rotation, rotation, this._yaw);
+    quat.rotateX(rotation, rotation, this._pitch);
+    vec3.transformQuat(v, v, rotation);
+    vec3.add(this._focus, this._focus, v);
+    this._updateCamera();
 }
 
-_move(dx, dy, dz) {
-    const v = new Quaternion(dx, dy, dz, 0);
-    const r = this._camera.rotation.clone();
-    v.multiply(v, r);
-    v.multiply(r.inverse(), v);
-    this._camera.position.add(v);
-    this._camera.isDirty = true;
-}
-
-_zoom(amount, keepScale) {
-    this._camera.zoom(amount);
-    if (keepScale) {
-        const scale = Math.exp(-amount);
-        this._camera.position.mul(new Vector(scale, scale, scale, 1));
-        this._focus *= scale;
-    }
-    this._camera.isDirty = true;
+_zoom(amount) {
+    this._focusDistance *= Math.exp(amount);
+    this._updateCamera();
 }
 
 _update() {
@@ -188,20 +166,20 @@ _update() {
     let dz = 0;
 
     if (this._forward) {
-        dz -= this.moveSpeed * this._focus * dt;
+        dz -= this.moveSpeed * this._focusDistance * dt;
     }
     if (this._backward) {
-        dz += this.moveSpeed * this._focus * dt;
+        dz += this.moveSpeed * this._focusDistance * dt;
     }
     if (this._left) {
-        dx -= this.moveSpeed * this._focus * dt;
+        dx -= this.moveSpeed * this._focusDistance * dt;
     }
     if (this._right) {
-        dx += this.moveSpeed * this._focus * dt;
+        dx += this.moveSpeed * this._focusDistance * dt;
     }
 
     if (dx !== 0 || dz !== 0) {
-        this._move(dx, 0, dz);
+        this._move([dx, 0, dz]);
     }
 }
 

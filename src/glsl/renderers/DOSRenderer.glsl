@@ -5,29 +5,36 @@
 uniform mat4 uMvpInverseMatrix;
 uniform float uDepth;
 
-layout (location = 0) in vec2 aPosition;
-
 out vec2 vPosition2D;
 out vec3 vPosition3D;
 
+const vec2 vertices[] = vec2[](
+    vec2(-1, -1),
+    vec2( 3, -1),
+    vec2(-1,  3)
+);
+
 void main() {
-    vec4 dirty = uMvpInverseMatrix * vec4(aPosition, uDepth, 1);
-    vPosition3D = dirty.xyz / dirty.w;
-    vPosition2D = aPosition * 0.5 + 0.5;
-    gl_Position = vec4(aPosition, 0, 1);
+    vec2 position = vertices[gl_VertexID];
+    vPosition2D = position * 0.5 + 0.5;
+    vec4 position3D = uMvpInverseMatrix * vec4(position, uDepth, 1);
+    vPosition3D = position3D.xyz / position3D.w;
+    gl_Position = vec4(position, 0, 1);
 }
 
 // #part /glsl/shaders/renderers/DOS/integrate/fragment
 
 #version 300 es
 precision mediump float;
+precision mediump sampler2D;
+precision mediump sampler3D;
 
-uniform mediump sampler3D uVolume;
-uniform mediump sampler2D uTransferFunction;
+uniform sampler3D uVolume;
+uniform sampler2D uTransferFunction;
 
-uniform mediump sampler2D uColor;
-uniform mediump sampler2D uOcclusion;
-uniform mediump sampler2D uOcclusionSamples;
+uniform sampler2D uColor;
+uniform sampler2D uOcclusion;
+uniform sampler2D uOcclusionSamples;
 
 uniform float uExtinction;
 uniform float uSliceDistance;
@@ -78,12 +85,18 @@ void main() {
 
 #version 300 es
 
-layout (location = 0) in vec2 aPosition;
+const vec2 vertices[] = vec2[](
+    vec2(-1, -1),
+    vec2( 3, -1),
+    vec2(-1,  3)
+);
+
 out vec2 vPosition;
 
 void main() {
-    vPosition = aPosition * 0.5 + 0.5;
-    gl_Position = vec4(aPosition, 0, 1);
+    vec2 position = vertices[gl_VertexID];
+    vPosition = position * 0.5 + 0.5;
+    gl_Position = vec4(position, 0, 1);
 }
 
 // #part /glsl/shaders/renderers/DOS/render/fragment
@@ -94,6 +107,7 @@ precision mediump float;
 uniform mediump sampler2D uAccumulator;
 
 in vec2 vPosition;
+
 out vec4 oColor;
 
 void main() {
@@ -105,10 +119,15 @@ void main() {
 
 #version 300 es
 
-layout (location = 0) in vec2 aPosition;
+const vec2 vertices[] = vec2[](
+    vec2(-1, -1),
+    vec2( 3, -1),
+    vec2(-1,  3)
+);
 
 void main() {
-    gl_Position = vec4(aPosition, 0, 1);
+    vec2 position = vertices[gl_VertexID];
+    gl_Position = vec4(position, 0, 1);
 }
 
 // #part /glsl/shaders/renderers/DOS/reset/fragment

@@ -2,19 +2,26 @@
 
 #version 300 es
 
-layout (location = 0) in vec2 aPosition;
+const vec2 vertices[] = vec2[](
+    vec2(-1, -1),
+    vec2( 3, -1),
+    vec2(-1,  3)
+);
 
 out vec2 vPosition;
 
 void main() {
-    vPosition = aPosition;
-    gl_Position = vec4(aPosition, 0.0, 1.0);
+    vec2 position = vertices[gl_VertexID];
+    vPosition = position;
+    gl_Position = vec4(position, 0, 1);
 }
 
 // #part /glsl/shaders/renderers/MCM/integrate/fragment
 
 #version 300 es
 precision mediump float;
+precision mediump sampler2D;
+precision mediump sampler3D;
 
 #define EPS 1e-5
 
@@ -34,14 +41,14 @@ precision mediump float;
 
 @unprojectRand
 
-uniform mediump sampler2D uPosition;
-uniform mediump sampler2D uDirection;
-uniform mediump sampler2D uTransmittance;
-uniform mediump sampler2D uRadiance;
+uniform sampler2D uPosition;
+uniform sampler2D uDirection;
+uniform sampler2D uTransmittance;
+uniform sampler2D uRadiance;
 
-uniform mediump sampler3D uVolume;
-uniform mediump sampler2D uTransferFunction;
-uniform mediump sampler2D uEnvironment;
+uniform sampler3D uVolume;
+uniform sampler2D uTransferFunction;
+uniform sampler2D uEnvironment;
 
 uniform mat4 uMvpInverseMatrix;
 uniform vec2 uInverseResolution;
@@ -94,8 +101,8 @@ vec3 sampleHenyeyGreenstein(inout uint state, float g, vec3 direction) {
         return u;
     }
     float hgcos = sampleHenyeyGreensteinAngleCosine(state, g);
-    float lambda = hgcos - dot(direction, u);
-    return normalize(u + lambda * direction);
+    vec3 circle = normalize(u - dot(u, direction) * direction);
+    return sqrt(1.0 - hgcos * hgcos) * circle + hgcos * direction;
 }
 
 float max3(vec3 v) {
@@ -118,7 +125,7 @@ void main() {
     photon.radiance = radianceAndSamples.rgb;
     photon.samples = uint(radianceAndSamples.w + 0.5);
 
-    uint state = hash(uvec3(floatBitsToUint(vPosition.x), floatBitsToUint(vPosition.y), floatBitsToUint(uRandSeed)));
+    uint state = hash(uvec3(floatBitsToUint(mappedPosition.x), floatBitsToUint(mappedPosition.y), floatBitsToUint(uRandSeed)));
     for (uint i = 0u; i < uSteps; i++) {
         float dist = random_exponential(state, uExtinction);
         photon.position += dist * photon.direction;
@@ -168,22 +175,30 @@ void main() {
 
 #version 300 es
 
-layout (location = 0) in vec2 aPosition;
+const vec2 vertices[] = vec2[](
+    vec2(-1, -1),
+    vec2( 3, -1),
+    vec2(-1,  3)
+);
+
 out vec2 vPosition;
 
 void main() {
-    vPosition = (aPosition + 1.0) * 0.5;
-    gl_Position = vec4(aPosition, 0.0, 1.0);
+    vec2 position = vertices[gl_VertexID];
+    vPosition = position * 0.5 + 0.5;
+    gl_Position = vec4(position, 0, 1);
 }
 
 // #part /glsl/shaders/renderers/MCM/render/fragment
 
 #version 300 es
 precision mediump float;
+precision mediump sampler2D;
 
-uniform mediump sampler2D uColor;
+uniform sampler2D uColor;
 
 in vec2 vPosition;
+
 out vec4 oColor;
 
 void main() {
@@ -194,13 +209,18 @@ void main() {
 
 #version 300 es
 
-layout (location = 0) in vec2 aPosition;
+const vec2 vertices[] = vec2[](
+    vec2(-1, -1),
+    vec2( 3, -1),
+    vec2(-1,  3)
+);
 
 out vec2 vPosition;
 
 void main() {
-    vPosition = aPosition;
-    gl_Position = vec4(aPosition, 0.0, 1.0);
+    vec2 position = vertices[gl_VertexID];
+    vPosition = position;
+    gl_Position = vec4(position, 0, 1);
 }
 
 // #part /glsl/shaders/renderers/MCM/reset/fragment

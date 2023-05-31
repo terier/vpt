@@ -1,8 +1,9 @@
+import { quat, vec3, mat4 } from '../../lib/gl-matrix-module.js';
+
 import { WebGL } from '../WebGL.js';
 import { AbstractRenderer } from './AbstractRenderer.js';
 
-import { Vector } from '../math/Vector.js';
-import { Matrix } from '../math/Matrix.js';
+import { PerspectiveCamera } from '../PerspectiveCamera.js';
 
 const [ SHADERS, MIXINS ] = await Promise.all([
     'shaders.json',
@@ -11,8 +12,8 @@ const [ SHADERS, MIXINS ] = await Promise.all([
 
 export class DOSRenderer extends AbstractRenderer {
 
-constructor(gl, volume, environmentTexture, options) {
-    super(gl, volume, environmentTexture, options);
+constructor(gl, volume, camera, environmentTexture, options = {}) {
+    super(gl, volume, camera, environmentTexture, options);
 
     this.registerProperties([
         {
@@ -122,35 +123,40 @@ generateOcclusionSamples() {
 
     const gl = this._gl;
     this._occlusionSamples = WebGL.createTexture(gl, {
-        texture        : this._occlusionSamples,
-        width          : this.samples,
-        height         : 1,
-        format         : gl.RG,
-        internalFormat : gl.RG32F,
-        type           : gl.FLOAT,
-        min            : gl.NEAREST,
-        mag            : gl.NEAREST,
-        wrapS          : gl.CLAMP_TO_EDGE,
-        wrapT          : gl.CLAMP_TO_EDGE,
-        data           : data,
+        texture : this._occlusionSamples,
+        width   : this.samples,
+        height  : 1,
+        format  : gl.RG,
+        iformat : gl.RG32F,
+        type    : gl.FLOAT,
+        min     : gl.NEAREST,
+        mag     : gl.NEAREST,
+        wrapS   : gl.CLAMP_TO_EDGE,
+        wrapT   : gl.CLAMP_TO_EDGE,
+        data    : data,
     });
 }
 
 calculateDepth() {
-    const mvMatrix = new Matrix();
-    mvMatrix.multiply(this.viewMatrix, this.modelMatrix);
+    // TODO: get model matrix from volume
+    const modelMatrix = mat4.fromTranslation(mat4.create(), [-0.5, -0.5, -0.5]);
+    const viewMatrix = this._camera.transform.inverseGlobalMatrix;
+
+    const matrix = mat4.create();
+    mat4.multiply(matrix, modelMatrix, matrix);
+    mat4.multiply(matrix, viewMatrix, matrix);
 
     const corners = [
-        new Vector(0, 0, 0),
-        new Vector(0, 0, 1),
-        new Vector(0, 1, 0),
-        new Vector(0, 1, 1),
-        new Vector(1, 0, 0),
-        new Vector(1, 0, 1),
-        new Vector(1, 1, 0),
-        new Vector(1, 1, 1),
+        [0, 0, 0],
+        [0, 0, 1],
+        [0, 1, 0],
+        [0, 1, 1],
+        [1, 0, 0],
+        [1, 0, 1],
+        [1, 1, 0],
+        [1, 1, 1],
     ];
-    const depths = corners.map(v => -mvMatrix.transform(v).homogenize().z);
+    const depths = corners.map(v => -vec3.transformMat4(v, v, matrix)[2]);
     return [Math.min(...depths), Math.max(...depths)];
 }
 
@@ -169,7 +175,7 @@ _resetFrame() {
     const { program, uniforms } = this._programs.reset;
     gl.useProgram(program);
 
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
 }
 
 _integrateFrame() {
@@ -195,11 +201,21 @@ _integrateFrame() {
     gl.uniform1i(uniforms.uOcclusionSamples, 4);
     gl.bindTexture(gl.TEXTURE_2D, this._occlusionSamples);
 
-    const mvpit = this.calculateMVPInverseTranspose();
-    gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, mvpit.m);
     // TODO: bias occlusion samples for "directional" light
     gl.uniform1ui(uniforms.uOcclusionSamplesCount, this.samples);
     gl.uniform1f(uniforms.uExtinction, this.extinction);
+
+    // TODO: get model matrix from volume
+    const modelMatrix = mat4.fromTranslation(mat4.create(), [-0.5, -0.5, -0.5]);
+    const viewMatrix = this._camera.transform.inverseGlobalMatrix;
+    const projectionMatrix = this._camera.getComponent(PerspectiveCamera).projectionMatrix;
+
+    const matrix = mat4.create();
+    mat4.multiply(matrix, modelMatrix, matrix);
+    mat4.multiply(matrix, viewMatrix, matrix);
+    mat4.multiply(matrix, projectionMatrix, matrix);
+    mat4.invert(matrix, matrix);
+    gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, matrix);
 
     const sliceDistance = (this._maxDepth - this._minDepth) / this.slices;
     gl.uniform1f(uniforms.uSliceDistance, sliceDistance);
@@ -216,18 +232,18 @@ _integrateFrame() {
         gl.uniform1i(uniforms.uOcclusion, 1);
         gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[1]);
 
+        const projectionMatrix = this._camera.getComponent(PerspectiveCamera).projectionMatrix;
+        const correction = [1, 1, -this._depth];
+        vec3.transformMat4(correction, correction, projectionMatrix);
         const occlusionExtent = sliceDistance * Math.tan(this.aperture * Math.PI / 180);
-        const correction = new Vector(1, 1, -this._depth, 1);
-        this.projectionMatrix.transform(correction);
-        correction.homogenize();
-        correction.x *= occlusionExtent;
-        correction.y *= occlusionExtent;
+        correction[0] *= occlusionExtent;
+        correction[1] *= occlusionExtent;
 
-        gl.uniform2f(uniforms.uOcclusionScale, correction.x, correction.y);
-        gl.uniform1f(uniforms.uDepth, correction.z);
+        gl.uniform2f(uniforms.uOcclusionScale, correction[0], correction[1]);
+        gl.uniform1f(uniforms.uDepth, correction[2]);
 
         this._accumulationBuffer.use();
-        gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
         this._accumulationBuffer.swap();
 
         this._depth += sliceDistance;
@@ -248,19 +264,19 @@ _renderFrame() {
 
     gl.uniform1i(uniforms.uAccumulator, 0);
 
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
 }
 
 _getFrameBufferSpec() {
     const gl = this._gl;
     return [{
-        width          : this._bufferSize,
-        height         : this._bufferSize,
-        min            : gl.NEAREST,
-        mag            : gl.NEAREST,
-        format         : gl.RGBA,
-        internalFormat : gl.RGBA32F,
-        type           : gl.FLOAT,
+        width   : this._resolution,
+        height  : this._resolution,
+        min     : gl.NEAREST,
+        mag     : gl.NEAREST,
+        format  : gl.RGBA,
+        iformat : gl.RGBA32F,
+        type    : gl.FLOAT,
     }];
 }
 
@@ -268,23 +284,23 @@ _getAccumulationBufferSpec() {
     const gl = this._gl;
 
     const colorBuffer = {
-        width          : this._bufferSize,
-        height         : this._bufferSize,
-        min            : gl.NEAREST,
-        mag            : gl.NEAREST,
-        format         : gl.RGBA,
-        internalFormat : gl.RGBA32F,
-        type           : gl.FLOAT,
+        width   : this._resolution,
+        height  : this._resolution,
+        min     : gl.NEAREST,
+        mag     : gl.NEAREST,
+        format  : gl.RGBA,
+        iformat : gl.RGBA32F,
+        type    : gl.FLOAT,
     };
 
     const occlusionBuffer = {
-        width          : this._bufferSize,
-        height         : this._bufferSize,
-        min            : gl.LINEAR,
-        mag            : gl.LINEAR,
-        format         : gl.RED,
-        internalFormat : gl.R32F,
-        type           : gl.FLOAT,
+        width   : this._resolution,
+        height  : this._resolution,
+        min     : gl.LINEAR,
+        mag     : gl.LINEAR,
+        format  : gl.RED,
+        iformat : gl.R32F,
+        type    : gl.FLOAT,
     };
 
     return [

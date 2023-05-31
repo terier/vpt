@@ -7,104 +7,146 @@ static createShader(gl, source, type) {
     const status = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
     if (!status) {
         const log = gl.getShaderInfoLog(shader);
-        throw new Error('Cannot compile shader\nInfo log:\n' + log);
+        const typestring = {
+            [gl.VERTEX_SHADER]: 'vertex',
+            [gl.FRAGMENT_SHADER]: 'fragment',
+        }[type];
+        throw new Error(`Cannot compile ${typestring} shader:\n${log}`);
     }
     return shader;
 }
 
 static createProgram(gl, shaders) {
     const program = gl.createProgram();
-    for (let shader of shaders) {
+    for (const shader of shaders) {
         gl.attachShader(program, shader);
     }
     gl.linkProgram(program);
     const status = gl.getProgramParameter(program, gl.LINK_STATUS);
     if (!status) {
         const log = gl.getProgramInfoLog(program);
-        throw new Error('Cannot link program\nInfo log:\n' + log);
+        throw new Error(`Cannot link program:\n${log}`);
     }
 
-    let attributes = {};
+    const attributes = {};
     const activeAttributes = gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES);
     for (let i = 0; i < activeAttributes; i++) {
-        const info = gl.getActiveAttrib(program, i);
-        attributes[info.name] = gl.getAttribLocation(program, info.name);
+        const { name } = gl.getActiveAttrib(program, i);
+        attributes[name] = gl.getAttribLocation(program, name);
     }
 
-    let uniforms = {};
+    function addToObject(object, path, value) {
+        const partRegex = /\.?(\w+)(\[(\d+)\])?/g;
+        const matches = [...path.matchAll(partRegex)];
+        const lastMatch = matches.pop();
+        let currentObject = uniforms;
+        for (const [, part,, indexstr] of matches) {
+            if (indexstr) {
+                const index = Number(indexstr);
+                currentObject[part] ??= [];
+                currentObject = currentObject[part];
+                currentObject[index] ??= {};
+                currentObject = currentObject[index];
+            } else {
+                currentObject[part] ??= {};
+                currentObject = currentObject[part];
+            }
+        }
+        const [, part,, indexstr] = lastMatch;
+        if (indexstr) {
+            const index = Number(indexstr);
+            currentObject[part] ??= [];
+            currentObject = currentObject[part];
+            currentObject[index] = value;
+        } else {
+            currentObject[part] = value;
+        }
+    }
+
+    const uniforms = {};
     const activeUniforms = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
     for (let i = 0; i < activeUniforms; i++) {
-        const info = gl.getActiveUniform(program, i);
-        uniforms[info.name] = gl.getUniformLocation(program, info.name);
+        const { name, size } = gl.getActiveUniform(program, i);
+        const isArray = name.endsWith('[0]');
+        if (isArray) {
+            const arrayName = name.substring(0, name.length - 3);
+            for (let k = 0; k < size; k++) {
+                const elementName = `${arrayName}[${k}]`;
+                addToObject(uniforms, elementName, gl.getUniformLocation(program, elementName));
+            }
+        } else {
+            addToObject(uniforms, name, gl.getUniformLocation(program, name));
+        }
     }
 
     return { program, attributes, uniforms };
 }
 
 static buildPrograms(gl, shaders, mixins) {
-    let cooked = {};
-    Object.keys(shaders).forEach(function(name) {
+    const cooked = {};
+    for (const name in shaders) {
         cooked[name] = {};
         const types = shaders[name];
-        Object.keys(types).forEach(function(type) {
-            cooked[name][type] = types[type].replace(/@(\S+)/g, function(_, path) {
+        for (const type in types) {
+            cooked[name][type] = types[type].replace(/@(\S+)/g, (_, path) => {
                 let struct = mixins;
                 for (const part of path.split('/')) {
                     struct = struct[part];
                 }
                 return struct;
             });
-        });
-    });
+        }
+    }
 
-    let programs = {};
-    Object.keys(cooked).forEach(function(name) {
+    const programs = {};
+    for (const name in cooked) {
         try {
             const program = cooked[name];
-            if (program.vertex && program.fragment) {
-                programs[name] = WebGL.createProgram(gl, [
-                    WebGL.createShader(gl, program.vertex, gl.VERTEX_SHADER),
-                    WebGL.createShader(gl, program.fragment, gl.FRAGMENT_SHADER)
-                ]);
-            } else if (program.compute) {
-                programs[name] = WebGL.createProgram(gl, [
-                    WebGL.createShader(gl, program.compute, gl.COMPUTE_SHADER)
-                ]);
-            }
+            programs[name] = WebGL.createProgram(gl, [
+                WebGL.createShader(gl, program.vertex, gl.VERTEX_SHADER),
+                WebGL.createShader(gl, program.fragment, gl.FRAGMENT_SHADER),
+            ]);
         } catch (e) {
-            throw new Error('Error compiling ' + name + '\n' + e);
+            e.message = `Error compiling and building ${name}:\n${e.message}`;
+            throw e;
         }
-    });
+    }
 
     return programs;
 }
 
-static createTexture(gl, options) {
-    const target = options.target || gl.TEXTURE_2D;
-    const internalFormat = options.internalFormat || gl.RGBA;
-    const format = options.format || gl.RGBA;
-    const type = options.type || gl.UNSIGNED_BYTE;
-    const texture = options.texture || gl.createTexture();
-
-    if (options.unit != null) {
-        gl.activeTexture(gl.TEXTURE0 + options.unit);
+static createTexture(gl, {
+    texture = gl.createTexture(),
+    unit,
+    target  = gl.TEXTURE_2D,
+    level   = 0,
+    iformat = gl.RGBA,
+    format  = gl.RGBA,
+    type    = gl.UNSIGNED_BYTE,
+    image, data, width, height,
+    wrapS, wrapT, wrapR,
+    min, mag, mip,
+}) {
+    if (unit != null) {
+        gl.activeTexture(gl.TEXTURE0 + unit);
     }
+
     gl.bindTexture(target, texture);
-    if (options.image) {
-        gl.texImage2D(target, 0, internalFormat, format, type, options.image);
+    if (image) {
+        gl.texImage2D(target, level, iformat, format, type, image);
     } else { // if options.data == null, just allocate
         if (target === gl.TEXTURE_3D) {
-            gl.texImage3D(target, 0, internalFormat, options.width, options.height, options.depth, 0, format, type, options.data);
+            gl.texImage3D(target, level, iformat, width, height, depth, 0, format, type, data);
         } else {
-            gl.texImage2D(target, 0, internalFormat, options.width, options.height, 0, format, type, options.data);
+            gl.texImage2D(target, level, iformat, width, height, 0, format, type, data);
         }
     }
-    if (options.wrapS) { gl.texParameteri(target, gl.TEXTURE_WRAP_S, options.wrapS); }
-    if (options.wrapT) { gl.texParameteri(target, gl.TEXTURE_WRAP_T, options.wrapT); }
-    if (options.wrapR) { gl.texParameteri(target, gl.TEXTURE_WRAP_R, options.wrapR); }
-    if (options.min) { gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, options.min); }
-    if (options.mag) { gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, options.mag); }
-    if (options.mip) { gl.generateMipmap(target); }
+    if (wrapS) { gl.texParameteri(target, gl.TEXTURE_WRAP_S, wrapS); }
+    if (wrapT) { gl.texParameteri(target, gl.TEXTURE_WRAP_T, wrapT); }
+    if (wrapR) { gl.texParameteri(target, gl.TEXTURE_WRAP_R, wrapR); }
+    if (min) { gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, min); }
+    if (mag) { gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, mag); }
+    if (mip) { gl.generateMipmap(target); }
 
     return texture;
 }
@@ -135,33 +177,47 @@ static createFramebuffer(gl, attachments) {
 
     const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
     if (status !== gl.FRAMEBUFFER_COMPLETE) {
-        throw new Error('Cannot create framebuffer: ' + status);
+        throw new Error(`Cannot create framebuffer: ${status}`);
     }
 
     return framebuffer;
 }
 
-static createBuffer(gl, options) {
-    const target = options.target || gl.ARRAY_BUFFER;
-    const hint = options.hint || gl.STATIC_DRAW;
-    const buffer = options.buffer || gl.createBuffer();
-
+static createBuffer(gl, {
+    buffer = gl.createBuffer(),
+    target = gl.ARRAY_BUFFER,
+    hint = gl.STATIC_DRAW,
+    data,
+}) {
     gl.bindBuffer(target, buffer);
-    gl.bufferData(target, options.data, hint);
+    gl.bufferData(target, data, hint);
 
     return buffer;
 }
 
-static createUnitQuad(gl) {
-    return WebGL.createBuffer(gl, {
-        data: new Float32Array([0, 0, 1, 0, 1, 1, 0, 1])
-    });
+static createSampler(gl, {
+    sampler = gl.createSampler(),
+    wrapS, wrapT, wrapR,
+    min, mag,
+}) {
+    if (wrapS) { gl.samplerParameteri(sampler, gl.TEXTURE_WRAP_S, wrapS); }
+    if (wrapT) { gl.samplerParameteri(sampler, gl.TEXTURE_WRAP_T, wrapT); }
+    if (wrapR) { gl.samplerParameteri(sampler, gl.TEXTURE_WRAP_R, wrapR); }
+    if (min) { gl.samplerParameteri(sampler, gl.TEXTURE_MIN_FILTER, min); }
+    if (mag) { gl.samplerParameteri(sampler, gl.TEXTURE_MAG_FILTER, mag); }
+
+    return sampler;
 }
 
-static createClipQuad(gl) {
-    return WebGL.createBuffer(gl, {
-        data: new Float32Array([-1, -1, 1, -1, 1, 1, -1, 1])
-    });
+static configureAttribute(gl, {
+    location, count, type,
+    normalize = false,
+    stride = 0, offset = 0,
+    divisor = 0,
+}) {
+    gl.enableVertexAttribArray(location);
+    gl.vertexAttribPointer(location, count, type, normalize, stride, offset);
+    gl.vertexAttribDivisor(location, divisor);
 }
 
 }

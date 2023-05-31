@@ -1,5 +1,6 @@
 // #part /glsl/mixins/random/distribution/sphere
 
+// Marsaglia (1972)
 vec3 random_sphere(inout uint state) {
     vec2 disk = random_disk(state);
     float norm = dot(disk, disk);

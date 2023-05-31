@@ -15,6 +15,8 @@ import { DialogConstructor } from './dialogs/DialogConstructor.js';
 import { RenderingContext } from './RenderingContext.js';
 import { ConductorVolume } from './ConductorVolume.js';
 
+import { PerspectiveCamera } from './PerspectiveCamera.js';
+
 export class Application {
 
 constructor() {
@@ -28,7 +30,7 @@ constructor() {
     this.binds = DOMUtils.bind(document.body);
 
     this.renderingContext = new RenderingContext();
-    this.binds.container.appendChild(this.renderingContext.getCanvas());
+    this.binds.container.appendChild(this.renderingContext.canvas);
 
     document.body.addEventListener('dragover', e => e.preventDefault());
     document.body.addEventListener('drop', this._handleFileDrop);
@@ -86,7 +88,7 @@ constructor() {
             this.renderingContextDialog.object);
     this.renderingContextDialog.addEventListener('resolution', e => {
         const resolution = this.renderingContextDialog.resolution;
-        this.renderingContext.setResolution(resolution);
+        this.renderingContext.resolution = resolution;
     });
     this.renderingContextDialog.addEventListener('transformation', e => {
         const t = this.renderingContextDialog.translation;
@@ -101,14 +103,15 @@ constructor() {
         this.renderingContext.setFilter(filter);
     });
     this.renderingContextDialog.addEventListener('fullscreen', e => {
-        this.renderingContext.getCanvas().classList.toggle('fullscreen',
+        this.renderingContext.canvas.classList.toggle('fullscreen',
             this.renderingContextDialog.fullscreen);
     });
 
     new ResizeObserver(entries => {
         const size = entries[0].contentBoxSize[0];
-        this.renderingContext._camera.resize(size.inlineSize, size.blockSize);
-    }).observe(this.renderingContext.getCanvas());
+        const camera = this.renderingContext.camera.getComponent(PerspectiveCamera);
+        camera.aspect = size.inlineSize / size.blockSize;
+    }).observe(this.renderingContext.canvas);
 
     this.renderingContext.addEventListener('progress', e => {
         this.volumeLoadDialog.binds.loadProgress.value = e.detail;
@@ -236,7 +239,7 @@ _handleRendererChange() {
 
     const which = this.mainDialog.getSelectedRenderer();
     this.renderingContext.chooseRenderer(which);
-    const renderer = this.renderingContext.getRenderer();
+    const renderer = this.renderingContext.renderer;
     const object = DialogConstructor.construct(renderer.properties);
     const binds = DOMUtils.bind(object);
     this.rendererDialog = object;
@@ -260,7 +263,7 @@ _handleToneMapperChange() {
 
     const which = this.mainDialog.getSelectedToneMapper();
     this.renderingContext.chooseToneMapper(which);
-    const toneMapper = this.renderingContext.getToneMapper();
+    const toneMapper = this.renderingContext.toneMapper;
     const object = DialogConstructor.construct(toneMapper.properties);
     const binds = DOMUtils.bind(object);
     this.toneMapperDialog = object;
@@ -313,7 +316,7 @@ _handleEnvmapLoad(e) {
     image.crossOrigin = 'anonymous';
     image.addEventListener('load', () => {
         this.renderingContext.setEnvironmentMap(image);
-        this.renderingContext.getRenderer().reset();
+        this.renderingContext.renderer.reset();
     });
 
     if (options.type === 'file') {
