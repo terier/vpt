@@ -1,6 +1,4 @@
-import { Matrix } from '../math/Matrix.js';
-import { Vector } from '../math/Vector.js';
-import { Quaternion } from '../math/Quaternion.js';
+import { vec3, mat4, quat } from '../../lib/gl-matrix-module.js';
 
 export class CircleFocusAnimator {
 
@@ -8,9 +6,9 @@ constructor(node, options) {
     this.node = node;
 
     Object.assign(this, {
-        focus: new Vector(),
-        displacement: new Vector(0, 0, 1),
-        up: new Vector(0, 1, 0),
+        focus: [0, 0, 0],
+        displacement: [0, 0, 1],
+        up: [0, 1, 0],
         coneAngle: 0.2,
         phase: 0,
         frequency: 1,
@@ -18,40 +16,30 @@ constructor(node, options) {
 }
 
 update(t) {
-    const pointOnCone = this.displacement.clone();
-    const axis = this.up.clone().normalize();
-    new Matrix().fromAxisAngle(
-        axis.x,
-        axis.y,
-        axis.z,
-        this.coneAngle / 2)
-    .transform(pointOnCone);
+    // TODO fix this after introduction of gl-matrix
+    const rotateCone = mat4.fromRotation(mat4.create(), this.coneAngle / 2, this.up);
+    const pointOnCone = vec3.transformMat4(vec3.create(), this.displacement, rotateCone);
 
-    const displacementNormalized = this.displacement.clone().normalize();
+    const displacementNormalized = vec3.normalize(vec3.create(), this.displacement);
     const angle = (this.frequency * t + this.phase) * 2 * Math.PI;
-    new Matrix().fromAxisAngle(
-        displacementNormalized.x,
-        displacementNormalized.y,
-        displacementNormalized.z,
-        angle)
-    .transform(pointOnCone);
+    const rotateDisplacement = mat4.fromRotation(mat4.create(), displacementNormalized, angle);
+    vec3.transformMat4(pointOnCone, pointOnCone, rotateDisplacement);
 
-    const newPosition = new Vector().add(this.focus, pointOnCone);
-    const newZ = pointOnCone.clone().normalize();
-    const newX = new Vector().cross(newZ, this.up).neg().normalize();
-    const newY = new Vector().cross(newX, newZ).neg().normalize();
+    const newPosition = vec3.add(vec3.create(), this.focus, pointOnCone);
+    const newZ = vec3.normalize(pointOnCone, pointOnCone);
+    const newX = vec3.normalize(vec3.create(), vec3.negate(vec3.create(), vec3.cross(vec3.create(), newZ, this.up)));
+    const newY = vec3.normalize(vec3.create(), vec3.negate(vec3.create(), vec3.cross(vec3.create(), newX, newZ)));
 
-    const newRotationMatrix = new Matrix([
-        newX.x, newY.x, newZ.x, 0,
-        newX.y, newY.y, newZ.y, 0,
-        newX.z, newY.z, newZ.z, 0,
-             0,      0,      0, 1,
-    ]);
-    const newRotation = newRotationMatrix.toQuaternion(new Quaternion());
+    const newRotationMatrix = mat4.fromValues(
+        ...newX, 0,
+        ...newY, 0,
+        ...newZ, 0,
+        0, 0, 0, 1,
+    );
+    const newRotation = mat4.getRotation(quat.create(), newRotationMatrix);
 
-    this.node.position = newPosition;
-    this.node.rotation = newRotation;
-    this.node.isDirty = true;
+    this.node.transform.localPosition = newPosition;
+    this.node.transform.localRotation = newRotation;
 }
 
 }

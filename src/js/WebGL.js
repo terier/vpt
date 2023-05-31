@@ -123,7 +123,8 @@ static createTexture(gl, {
     iformat = gl.RGBA,
     format  = gl.RGBA,
     type    = gl.UNSIGNED_BYTE,
-    image, data, width, height,
+    image, data,
+    width, height, depth,
     wrapS, wrapT, wrapR,
     min, mag, mip,
 }) {

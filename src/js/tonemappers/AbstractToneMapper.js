@@ -18,17 +18,12 @@ constructor(gl, texture, options = {}) {
     this._texture = texture;
 
     this._rebuildBuffers();
-
-    this._clipQuadProgram = WebGL.buildPrograms(gl, {
-        quad: SHADERS.quad
-    }, MIXINS).quad;
 }
 
 destroy() {
     const gl = this._gl;
 
     this._renderBuffer.destroy();
-    gl.deleteProgram(this._clipQuadProgram.program);
 }
 
 render() {

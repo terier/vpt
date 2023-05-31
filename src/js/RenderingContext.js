@@ -34,6 +34,7 @@ constructor(options = {}) {
     this.initGL();
 
     this.resolution = options.resolution ?? 1024;
+    this.setResolution(this.resolution);
     this.filter = options.filter ?? 'linear';
 
     this.camera = new Node();
@@ -47,15 +48,15 @@ constructor(options = {}) {
     });
 
     //this.cameraAnimator = new CircleAnimator(this.camera, {
-    //    center: new Vector(0, 0, 3),
-    //    direction: new Vector(0, 0, 1),
+    //    center: [0, 0, 3],
+    //    direction: [0, 0, 1],
     //    radius: 0.03,
     //    frequency: 1,
     //});
     //this.cameraAnimator = new CircleFocusAnimator(this.camera, {
-    //    focus: new Vector(0, 0, 0),
-    //    displacement: new Vector(0, -3, 0),
-    //    up: new Vector(0, 0, 1),
+    //    focus: [0, 0, 0],
+    //    displacement: [0, -3, 0],
+    //    up: [0, 0, 1],
     //    coneAngle: 0.1,
     //    phase: 0,
     //    frequency: 1,
@@ -63,11 +64,9 @@ constructor(options = {}) {
     this.cameraAnimator = new OrbitCameraAnimator(this.camera, this.canvas);
 
     this.volume = new Volume(this.gl);
-    this.scale = new Vector(1, 1, 1);
-    this.translation = new Vector(0, 0, 0);
-    this.rotation = new Vector(0, 0, 0);
-    this.isTransformationDirty = true;
-    this.updateMvpInverseMatrix();
+    this.scale = [1, 1, 1];
+    this.translation = [0, 0, 0];
+    this.rotation = [0, 0, 0];
 }
 
 // ============================ WEBGL SUBSYSTEM ============================ //
@@ -186,7 +185,6 @@ chooseRenderer(renderer) {
     if (this.toneMapper) {
         this.toneMapper.setTexture(this.renderer.getTexture());
     }
-    this.isTransformationDirty = true;
 }
 
 chooseToneMapper(toneMapper) {
@@ -232,59 +230,11 @@ render() {
     gl.drawArrays(gl.TRIANGLES, 0, 3);
 }
 
-getScale() {
-    return this.scale;
-}
-
-setScale(x, y, z) {
-    this.scale.set(x, y, z);
-    this.isTransformationDirty = true;
-}
-
-getScaleMatrix() {
-    return new Matrix().fromScale(
-        this.scale.x, this.scale.y, this.scale.z);
-}
-
-getTranslation() {
-    return this.translation;
-}
-
-setTranslation(x, y, z) {
-    this.translation.set(x, y, z);
-    this.isTransformationDirty = true;
-}
-
-getTranslationMatrix() {
-    return new Matrix().fromTranslation(
-        this.translation.x, this.translation.y, this.translation.z);
-}
-
-getRotation() {
-    return this.rotation;
-}
-
-setRotation(x, y, z) {
-    this.rotation.set(x, y, z);
-    this.isTransformationDirty = true;
-}
-
-getRotationMatrix() {
-    const volumeRotationX = new Matrix().fromRotationX(this.rotation.x);
-    const volumeRotationY = new Matrix().fromRotationY(this.rotation.y);
-    const volumeRotationZ = new Matrix().fromRotationZ(this.rotation.z);
-    const volumeRotation = new Matrix();
-    volumeRotation.multiply(volumeRotation, volumeRotationX);
-    volumeRotation.multiply(volumeRotation, volumeRotationY);
-    volumeRotation.multiply(volumeRotation, volumeRotationZ);
-    return volumeRotation;
-}
-
 getResolution() {
     return this.resolution;
 }
 
-set resolution(resolution) {
+setResolution(resolution) {
     this.resolution = resolution;
     this.canvas.width = resolution;
     this.canvas.height = resolution;

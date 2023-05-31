@@ -63,7 +63,6 @@ constructor(gl, reader) {
         predicates: [],
     }];
 
-    this.clipQuad = WebGL.createClipQuad(gl);
     this.programs = WebGL.buildPrograms(gl, {
         updateMask: SHADERS.updateMask,
         smoothMask: SHADERS.smoothMask,
@@ -277,11 +276,6 @@ updateInstanceMaskValues() {
 updateMask() {
     const gl = this.gl;
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.clipQuad);
-
-    gl.enableVertexAttribArray(0);
-    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
 
     const { program, uniforms } = this.programs.updateMask;
@@ -301,18 +295,13 @@ updateMask() {
     for (let layer = 0; layer < depth; layer++) {
         gl.framebufferTextureLayer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, this.mask, 0, layer);
         gl.uniform1f(uniforms.uDepth, (layer + 0.5) / depth);
-        gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
     }
 }
 
 // Smooths the mask volume with a simple box filter.
 smoothMask() {
     const gl = this.gl;
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.clipQuad);
-
-    gl.enableVertexAttribArray(0);
-    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
 
@@ -329,7 +318,7 @@ smoothMask() {
     for (let layer = 0; layer < depth; layer++) {
         gl.framebufferTextureLayer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, this.maskSwap, 0, layer);
         gl.uniform1f(uniforms.uDepth, (layer + 0.5) / depth);
-        gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
     }
 
     [ this.mask, this.maskSwap ] = [ this.maskSwap, this.mask ];
@@ -374,13 +363,9 @@ updateTransferFunction() {
     gl.uniform4fv(uniforms.uBackgroundColor, [0, 0, 0, 0]); // TODO: allow changing the background color
     gl.uniform2f(uniforms.uInterpolationRange, 0.1, 0.9); // This can remain fixed for now
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.clipQuad);
-    gl.enableVertexAttribArray(0);
-    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.maskTransferFunctionFramebuffer);
     gl.viewport(0, 0, 256, 256); // TODO: get actual TF size
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
 }
 
 getTransferFunction() {

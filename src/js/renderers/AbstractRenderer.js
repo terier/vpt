@@ -38,10 +38,6 @@ constructor(gl, volume, camera, environmentTexture, options = {}) {
         min     : gl.LINEAR,
         mag     : gl.LINEAR,
     });
-
-    this._clipQuadProgram = WebGL.buildPrograms(gl, {
-        quad: SHADERS.quad
-    }, MIXINS).quad;
 }
 
 destroy() {
@@ -50,7 +46,6 @@ destroy() {
     this._accumulationBuffer.destroy();
     this._renderBuffer.destroy();
     gl.deleteTexture(this._transferFunction);
-    gl.deleteProgram(this._clipQuadProgram.program);
 }
 
 render() {

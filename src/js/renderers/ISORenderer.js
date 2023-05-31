@@ -38,10 +38,10 @@ constructor(gl, volume, camera, environmentTexture, options = {}) {
             value: [ 2, -3, -5 ],
         },
         {
-            name: 'transferFunction',
-            label: 'Transfer function',
-            type: 'transfer-function',
-            value: new Uint8Array(256),
+            name: 'color',
+            label: 'Diffuse color',
+            type: 'color-chooser',
+            value: '#ffffff',
         },
         {
             name: 'transferFunction',

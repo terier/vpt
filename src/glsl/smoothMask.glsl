@@ -2,12 +2,18 @@
 
 #version 300 es
 
-layout (location = 0) in vec2 aPosition;
-out vec2 vFragmentPosition;
+const vec2 vertices[] = vec2[](
+    vec2(-1, -1),
+    vec2( 3, -1),
+    vec2(-1,  3)
+);
+
+out vec2 vPosition;
 
 void main() {
-    gl_Position = vec4(aPosition, 0, 1);
-    vFragmentPosition = aPosition * 0.5 + 0.5;
+    vec2 position = vertices[gl_VertexID];
+    vPosition = position * 0.5 + 0.5;
+    gl_Position = vec4(position, 0, 1);
 }
 
 // #part /glsl/shaders/smoothMask/fragment
@@ -20,13 +26,13 @@ precision highp sampler3D;
 uniform sampler3D uMaskTexture;
 uniform float uDepth;
 
-in vec2 vFragmentPosition;
+in vec2 vPosition;
 out vec2 oMaskValue;
 
 #define NUM_OFFSETS 27
 
 void main() {
-    vec3 voxelPosition = vec3(vFragmentPosition, uDepth);
+    vec3 voxelPosition = vec3(vPosition, uDepth);
     vec2 maskValue = vec2(0);
 
     const vec3 offsets[NUM_OFFSETS] = vec3[NUM_OFFSETS](

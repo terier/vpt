@@ -16,6 +16,8 @@ constructor(options = {}) {
     this.shadow.appendChild(template.content.cloneNode(true));
     this.binds = DOMUtils.bind(this.shadow);
 
+    this.value = this.getAttribute('value');
+
     this.binds.color.style.backgroundColor = this.binds.input.value /* + alpha */;
     this.binds.input.addEventListener('input', this.inputListener);
     this.binds.input.addEventListener('change', this.inputListener);
