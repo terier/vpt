@@ -19,7 +19,6 @@ constructor() {
     this._handleToneMapperChange = this._handleToneMapperChange.bind(this);
     this._handleRecordAnimation = this._handleRecordAnimation.bind(this);
 
-    document.body.appendChild(this.binds.sidebar);
     this.binds.rendererSelect.addEventListener('change', this._handleRendererChange);
     this.binds.toneMapperSelect.addEventListener('change', this._handleToneMapperChange);
 

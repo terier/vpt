@@ -42,3 +42,16 @@ input {
 .invisible {
     display: none !important;
 }
+
+.main-container {
+    display: flex;
+    height: 100vh;
+}
+
+.flex-none {
+    flex: none;
+}
+
+.flex-auto {
+    flex: auto;
+}
