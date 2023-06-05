@@ -28,12 +28,13 @@ constructor() {
     this.binds = DOMUtils.bind(document.body);
 
     this.renderingContext = new RenderingContext();
-    this.binds.container.appendChild(this.renderingContext.canvas);
+    this.binds.canvasContainer.appendChild(this.renderingContext.canvas);
 
     document.body.addEventListener('dragover', e => e.preventDefault());
     document.body.addEventListener('drop', this._handleFileDrop);
 
     this.mainDialog = new MainDialog();
+    this.binds.sidebarContainer.appendChild(this.mainDialog.object);
 
     this.volumeLoadDialog = new VolumeLoadDialog();
     this.mainDialog.getVolumeLoadContainer().appendChild(this.volumeLoadDialog.object);
