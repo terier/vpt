@@ -88,9 +88,9 @@ _handlePointerMove(e) {
     }
 
     if (this._isTranslating) {
-        const moveX = -dx * this.translationSpeed * this._focus;
-        const moveY =  dy * this.translationSpeed * this._focus;
-        this._move(moveX, moveY, 0);
+        const moveX = -dx * this.translationSpeed * this._focusDistance;
+        const moveY =  dy * this.translationSpeed * this._focusDistance;
+        this._move([moveX, moveY, 0]);
     }
 }
 

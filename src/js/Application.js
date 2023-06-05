@@ -40,7 +40,7 @@ constructor() {
     this.groupDialog = new GroupDialog();
     this.mainDialog.binds.groups.appendChild(this.groupDialog.object);
     this.groupDialog.addEventListener('groupchange', e => {
-        const volume = this.renderingContext._volume;
+        const volume = this.renderingContext.volume;
         if (!(volume instanceof ConductorVolume)) return;
         volume.groups = this.groupDialog.getGroupData();
         volume.updateInstanceGroupAssignments();
@@ -48,19 +48,19 @@ constructor() {
         volume.updateMask();
         volume.smoothMask();
         volume.updateTransferFunction();
-        this.renderingContext.getRenderer().setTransferFunction(volume.getTransferFunction());
-        this.renderingContext.getRenderer().reset();
+        this.renderingContext.renderer.setTransferFunction(volume.getTransferFunction());
+        this.renderingContext.renderer.reset();
     });
     this.groupDialog.addEventListener('colorchange', e => {
-        const volume = this.renderingContext._volume;
+        const volume = this.renderingContext.volume;
         if (!(volume instanceof ConductorVolume)) return;
         volume.groups = this.groupDialog.getGroupData();
         volume.updateTransferFunction();
-        this.renderingContext.getRenderer().setTransferFunction(volume.getTransferFunction());
-        this.renderingContext.getRenderer().reset();
+        this.renderingContext.renderer.setTransferFunction(volume.getTransferFunction());
+        this.renderingContext.renderer.reset();
     });
     this.groupDialog.addEventListener('densitychange', e => {
-        const volume = this.renderingContext._volume;
+        const volume = this.renderingContext.volume;
         if (!(volume instanceof ConductorVolume)) return;
         volume.groups = this.groupDialog.getGroupData();
         volume.updateInstanceGroupAssignments();
@@ -68,8 +68,8 @@ constructor() {
         volume.updateMask();
         volume.smoothMask();
         volume.updateTransferFunction();
-        this.renderingContext.getRenderer().setTransferFunction(volume.getTransferFunction());
-        this.renderingContext.getRenderer().reset();
+        this.renderingContext.renderer.setTransferFunction(volume.getTransferFunction());
+        this.renderingContext.renderer.reset();
     });
     this.renderingContext.addEventListener('attributechange', e => {
         this.groupDialog.attributes = e.detail;
@@ -130,9 +130,9 @@ constructor() {
     this.mainDialog.addEventListener('generateTests', e => this.generateTests());
 
     this.mainDialog.binds.runrun.addEventListener('click', async e => {
-        const volume = this.renderingContext._volume;
-        const renderer = this.renderingContext._renderer;
-        const gl = this.renderingContext._gl;
+        const volume = this.renderingContext.volume;
+        const renderer = this.renderingContext.renderer;
+        const gl = this.renderingContext.gl;
 
         const ext = gl.getExtension('EXT_disjoint_timer_query_webgl2');
         const elapsedPrecision = gl.getQuery(ext.TIME_ELAPSED_EXT, ext.QUERY_COUNTER_BITS_EXT);
@@ -330,11 +330,12 @@ _handleEnvmapLoad(e) {
     }
 }
 
+// TODO fix, this probably does not work after switch to gl-matrix
 serializeView() {
-    const c = this.renderingContext._camera;
-    const mt = this.renderingContext._translation;
-    const mr = this.renderingContext._rotation;
-    const ms = this.renderingContext._scale;
+    const c = this.renderingContext.camera;
+    const mt = this.renderingContext.translation;
+    const mr = this.renderingContext.rotation;
+    const ms = this.renderingContext.scale;
     const cp = c.position;
     const cr = c.rotation;
 
@@ -356,6 +357,7 @@ serializeView() {
     });
 }
 
+// TODO fix, this probably does not work after switch to gl-matrix
 deserializeView(v) {
     v = JSON.parse(v);
 
@@ -375,7 +377,7 @@ deserializeView(v) {
     this.renderingContext.setRotation(...v.model.rotation);
     this.renderingContext.setScale(...v.model.scale);
 
-    this.renderingContext._renderer.reset();
+    this.renderingContext.renderer.reset();
 }
 
 randomizeCamera() {
@@ -385,7 +387,7 @@ randomizeCamera() {
 }
 
 samplePoint() {
-    return this.renderingContext.getRenderer().samplePoint();
+    return this.renderingContext.renderer.samplePoint();
 }
 
 async generateTests() {
@@ -409,7 +411,7 @@ async generateTests() {
 
         // setup renderer
         this.renderingContext.chooseRenderer(test.renderer.type);
-        const renderer = this.renderingContext.getRenderer();
+        const renderer = this.renderingContext.renderer;
         for (const setting in test.renderer.settings) {
             renderer[setting] = test.renderer.settings[setting];
         }
@@ -448,7 +450,7 @@ async generateTests() {
 
         // setup conductor groups or transfer function
         if (test.fileType === 'conductor') {
-            const volume = this.renderingContext._volume;
+            const volume = this.renderingContext.volume;
             volume.groups = test.groups;
             volume.updateInstanceGroupAssignments();
             volume.updateInstanceMaskValues();
@@ -484,9 +486,9 @@ async generateTests() {
 }
 
 async testAll() {
-    const volume = this.renderingContext._volume;
-    const renderer = this.renderingContext._renderer;
-    const gl = this.renderingContext._gl;
+    const volume = this.renderingContext.volume;
+    const renderer = this.renderingContext.renderer;
+    const gl = this.renderingContext.gl;
 
     const ext = gl.getExtension('EXT_disjoint_timer_query_webgl2');
 
@@ -542,9 +544,9 @@ async testAll() {
 }
 
 async testUpdateInstanceGroupAssignments() {
-    const volume = this.renderingContext._volume;
-    const renderer = this.renderingContext._renderer;
-    const gl = this.renderingContext._gl;
+    const volume = this.renderingContext.volume;
+    const renderer = this.renderingContext.renderer;
+    const gl = this.renderingContext.gl;
 
     const ext = gl.getExtension('EXT_disjoint_timer_query_webgl2');
 
@@ -595,9 +597,9 @@ async testUpdateInstanceGroupAssignments() {
 }
 
 async testUpdateInstanceMaskValues() {
-    const volume = this.renderingContext._volume;
-    const renderer = this.renderingContext._renderer;
-    const gl = this.renderingContext._gl;
+    const volume = this.renderingContext.volume;
+    const renderer = this.renderingContext.renderer;
+    const gl = this.renderingContext.gl;
 
     const ext = gl.getExtension('EXT_disjoint_timer_query_webgl2');
 
@@ -648,9 +650,9 @@ async testUpdateInstanceMaskValues() {
 }
 
 async testUpdateMask() {
-    const volume = this.renderingContext._volume;
-    const renderer = this.renderingContext._renderer;
-    const gl = this.renderingContext._gl;
+    const volume = this.renderingContext.volume;
+    const renderer = this.renderingContext.renderer;
+    const gl = this.renderingContext.gl;
 
     const ext = gl.getExtension('EXT_disjoint_timer_query_webgl2');
 
@@ -701,9 +703,9 @@ async testUpdateMask() {
 }
 
 async testSmoothMask() {
-    const volume = this.renderingContext._volume;
-    const renderer = this.renderingContext._renderer;
-    const gl = this.renderingContext._gl;
+    const volume = this.renderingContext.volume;
+    const renderer = this.renderingContext.renderer;
+    const gl = this.renderingContext.gl;
 
     const ext = gl.getExtension('EXT_disjoint_timer_query_webgl2');
 
@@ -754,9 +756,9 @@ async testSmoothMask() {
 }
 
 async testUpdateTransferFunction() {
-    const volume = this.renderingContext._volume;
-    const renderer = this.renderingContext._renderer;
-    const gl = this.renderingContext._gl;
+    const volume = this.renderingContext.volume;
+    const renderer = this.renderingContext.renderer;
+    const gl = this.renderingContext.gl;
 
     const ext = gl.getExtension('EXT_disjoint_timer_query_webgl2');
 
@@ -807,9 +809,9 @@ async testUpdateTransferFunction() {
 }
 
 async testSetTransferFunction() {
-    const volume = this.renderingContext._volume;
-    const renderer = this.renderingContext._renderer;
-    const gl = this.renderingContext._gl;
+    const volume = this.renderingContext.volume;
+    const renderer = this.renderingContext.renderer;
+    const gl = this.renderingContext.gl;
 
     const ext = gl.getExtension('EXT_disjoint_timer_query_webgl2');
 

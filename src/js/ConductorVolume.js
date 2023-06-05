@@ -18,8 +18,6 @@ constructor(gl, reader) {
 
     this.dataVolume = new Volume(gl, reader);
     this.idVolume = new Volume(gl, reader);
-    this.mask = null;
-    this.maskSwap = null;
     this.framebuffer = null;
 
     this.maskTransferFunction = WebGL.createTexture(gl, {
@@ -121,7 +119,7 @@ async load() {
 
         width, height, depth,
 
-        internalFormat: gl.RG8,
+        iformat: gl.RG8,
         format: gl.RG,
         type: gl.UNSIGNED_BYTE,
 
@@ -139,7 +137,7 @@ async load() {
 
         width, height, depth,
 
-        internalFormat: gl.RG8,
+        iformat: gl.RG8,
         format: gl.RG,
         type: gl.UNSIGNED_BYTE,
 
@@ -152,7 +150,7 @@ async load() {
     });
 
     this.instanceMaskValues = WebGL.createTexture(gl, {
-        internalFormat: gl.RG8,
+        iformat: gl.RG8,
         format: gl.RG,
         type: gl.UNSIGNED_BYTE,
 
@@ -260,7 +258,7 @@ updateInstanceMaskValues() {
     WebGL.createTexture(gl, {
         texture: this.instanceMaskValues,
 
-        internalFormat: gl.RG8,
+        iformat: gl.RG8,
         format: gl.RG,
         type: gl.UNSIGNED_BYTE,
 

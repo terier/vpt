@@ -150,7 +150,7 @@ async setVolume(reader) {
             detail: [...this.volume.attributes]
         }));
     }
-    this.volume.setFilter(this._filter);
+    this.volume.setFilter(this.filter);
     if (this.renderer) {
         this.renderer.setVolume(this.volume);
     }

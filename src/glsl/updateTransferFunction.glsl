@@ -12,7 +12,7 @@ out vec2 vPosition;
 
 void main() {
     vec2 position = vertices[gl_VertexID];
-    vPosition = position * 0.5 + 0.5;
+    vPosition = position; // this is intentional
     gl_Position = vec4(position, 0, 1);
 }
 

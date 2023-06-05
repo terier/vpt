@@ -34,7 +34,7 @@ async readMetadata() {
                     ]
                 },
                 format: 6403,
-                internalFormat: 33321,
+                iformat: 33321,
                 type: 5121,
                 placements: []
             }
