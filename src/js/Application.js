@@ -89,7 +89,7 @@ constructor() {
             this.renderingContextDialog.object);
     this.renderingContextDialog.addEventListener('resolution', e => {
         const resolution = this.renderingContextDialog.resolution;
-        this.renderingContext.resolution = resolution;
+        this.renderingContext.setResolution(resolution);
     });
     this.renderingContextDialog.addEventListener('transformation', e => {
         const t = this.renderingContextDialog.translation;
