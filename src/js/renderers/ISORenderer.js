@@ -3,7 +3,6 @@ import { quat, vec3, mat4 } from '../../lib/gl-matrix-module.js';
 import { WebGL } from '../WebGL.js';
 import { AbstractRenderer } from './AbstractRenderer.js';
 import { CommonUtils } from '../utils/CommonUtils.js';
-import { PerspectiveCamera } from '../PerspectiveCamera.js';
 
 const [ SHADERS, MIXINS ] = await Promise.all([
     'shaders.json',
@@ -105,17 +104,7 @@ _generateFrame() {
     gl.uniform1f(uniforms.uOffset, Math.random());
     gl.uniform1f(uniforms.uIsovalue, this.isovalue);
 
-    // TODO: get model matrix from volume
-    const modelMatrix = mat4.fromTranslation(mat4.create(), [-0.5, -0.5, -0.5]);
-    const viewMatrix = this._camera.transform.inverseGlobalMatrix;
-    const projectionMatrix = this._camera.getComponent(PerspectiveCamera).projectionMatrix;
-
-    const matrix = mat4.create();
-    mat4.multiply(matrix, modelMatrix, matrix);
-    mat4.multiply(matrix, viewMatrix, matrix);
-    mat4.multiply(matrix, projectionMatrix, matrix);
-    mat4.invert(matrix, matrix);
-    gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, matrix);
+    gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, this.getMVPInverseMatrix());
 
     gl.drawArrays(gl.TRIANGLES, 0, 3);
 }
@@ -156,9 +145,8 @@ _renderFrame() {
     gl.uniform1i(uniforms.uTransferFunction, 2);
 
     // Light direction is defined in view space, so transform it to model space.
-    // TODO: get model matrix from volume
-    const modelMatrix = mat4.fromTranslation(mat4.create(), [-0.5, -0.5, -0.5]);
-    const viewMatrix = this._camera.transform.inverseGlobalMatrix;
+    const modelMatrix = this.getModelMatrix();
+    const viewMatrix = this.getViewMatrix();
     const matrix = mat4.create();
     mat4.multiply(matrix, modelMatrix, matrix);
     mat4.multiply(matrix, viewMatrix, matrix);

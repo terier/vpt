@@ -1,5 +1,7 @@
 import { DOMUtils } from '../../utils/DOMUtils.js';
 
+import { quat } from '../../../lib/gl-matrix-module.js';
+
 const template = document.createElement('template');
 template.innerHTML = await fetch(new URL('./RenderingContextDialog.html', import.meta.url))
     .then(response => response.text());
@@ -39,6 +41,14 @@ get rotation() {
 
 get scale() {
     return this.binds.scale.value;
+}
+
+get transform() {
+    return new Transform({
+        translation: this.translation,
+        rotation: quat.fromEuler(quat.create(), ...this.rotation),
+        scale: this.scale,
+    });
 }
 
 get filter() {

@@ -25,7 +25,7 @@ update(t) {
     const rotateDisplacement = mat4.fromRotation(mat4.create(), displacementNormalized, angle);
     vec3.transformMat4(pointOnCone, pointOnCone, rotateDisplacement);
 
-    const newPosition = vec3.add(vec3.create(), this.focus, pointOnCone);
+    const newTranslation = vec3.add(vec3.create(), this.focus, pointOnCone);
     const newZ = vec3.normalize(pointOnCone, pointOnCone);
     const newX = vec3.normalize(vec3.create(), vec3.negate(vec3.create(), vec3.cross(vec3.create(), newZ, this.up)));
     const newY = vec3.normalize(vec3.create(), vec3.negate(vec3.create(), vec3.cross(vec3.create(), newX, newZ)));
@@ -38,8 +38,8 @@ update(t) {
     );
     const newRotation = mat4.getRotation(quat.create(), newRotationMatrix);
 
-    this.node.transform.localPosition = newPosition;
-    this.node.transform.localRotation = newRotation;
+    this.node.transform.translation = newTranslation;
+    this.node.transform.rotation = newRotation;
 }
 
 }

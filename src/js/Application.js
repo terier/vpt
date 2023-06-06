@@ -17,6 +17,8 @@ import { ConductorVolume } from './ConductorVolume.js';
 
 import { PerspectiveCamera } from './PerspectiveCamera.js';
 
+import { quat } from '../lib/gl-matrix-module.js';
+
 export class Application {
 
 constructor() {
@@ -92,12 +94,11 @@ constructor() {
         this.renderingContext.setResolution(resolution);
     });
     this.renderingContextDialog.addEventListener('transformation', e => {
-        const t = this.renderingContextDialog.translation;
-        const r = this.renderingContextDialog.rotation;
-        const s = this.renderingContextDialog.scale;
-        this.renderingContext.setTranslation(...t);
-        this.renderingContext.setRotation(...r);
-        this.renderingContext.setScale(...s);
+        const transform = this.renderingContext.volume.transform;
+        transform.localTranslation = this.renderingContextDialog.translation;
+        transform.localRotation = quat.fromEuler(quat.create(), ...this.renderingContextDialog.rotation);
+        transform.localScale = this.renderingContextDialog.scale;
+        this.renderingContext.renderer.reset();
     });
     this.renderingContextDialog.addEventListener('filter', e => {
         const filter = this.renderingContextDialog.filter;

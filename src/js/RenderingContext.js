@@ -38,14 +38,8 @@ constructor(options = {}) {
     this.filter = options.filter ?? 'linear';
 
     this.camera = new Node();
-    this.camera.transform.localTranslation = [0, 0, 2];
+    this.camera.transform.translation = [0, 0, 2];
     this.camera.components.push(new PerspectiveCamera(this.camera));
-
-    this.camera.transform.addEventListener('change', e => {
-        if (this.renderer) {
-            this.renderer.reset();
-        }
-    });
 
     //this.cameraAnimator = new CircleAnimator(this.camera, {
     //    center: [0, 0, 3],
@@ -63,10 +57,13 @@ constructor(options = {}) {
     //});
     this.cameraAnimator = new OrbitCameraAnimator(this.camera, this.canvas);
 
+    this.cameraAnimator.addEventListener('change', e => {
+        if (this.renderer) {
+            this.renderer.reset();
+        }
+    });
+
     this.volume = new Volume(this.gl);
-    this.scale = [1, 1, 1];
-    this.translation = [0, 0, 0];
-    this.rotation = [0, 0, 0];
 }
 
 // ============================ WEBGL SUBSYSTEM ============================ //

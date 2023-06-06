@@ -1,9 +1,11 @@
 import { quat, vec3, mat4 } from '../../lib/gl-matrix-module.js';
 import { Ticker } from '../Ticker.js';
 
-export class OrbitCameraAnimator {
+export class OrbitCameraAnimator extends EventTarget {
 
 constructor(camera, domElement, options = {}) {
+    super();
+
     this._update = this._update.bind(this);
     this._handlePointerDown = this._handlePointerDown.bind(this);
     this._handlePointerUp = this._handlePointerUp.bind(this);
@@ -23,7 +25,7 @@ constructor(camera, domElement, options = {}) {
     this._domElement = domElement;
 
     this._focus = [0, 0, 0];
-    this._focusDistance = vec3.distance(this._focus, this._camera.transform.globalTranslation);
+    this._focusDistance = vec3.distance(this._focus, this._camera.transform.translation);
 
     this._yaw = 0;
     this._pitch = 0;
@@ -126,8 +128,10 @@ _updateCamera() {
     const translation = vec3.transformQuat(vec3.create(),
         [0, 0, this._focusDistance], rotation);
 
-    transform.localRotation = rotation;
-    transform.localTranslation = vec3.add(vec3.create(), this._focus, translation);
+    transform.rotation = rotation;
+    transform.translation = vec3.add(vec3.create(), this._focus, translation);
+
+    this.dispatchEvent(new Event('change'));
 }
 
 _rotateAroundFocus(dx, dy) {

@@ -1,4 +1,5 @@
 import { WebGL } from './WebGL.js';
+import { Transform } from './Transform.js';
 
 export class Volume extends EventTarget {
 
@@ -12,6 +13,8 @@ constructor(gl, reader, options = {}) {
     this.ready = false;
     this.texture = null;
     this.modality = null;
+
+    this.transform = new Transform();
 }
 
 destroy() {

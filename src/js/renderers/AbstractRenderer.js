@@ -5,6 +5,8 @@ import { WebGL } from '../WebGL.js';
 import { SingleBuffer } from '../SingleBuffer.js';
 import { DoubleBuffer } from '../DoubleBuffer.js';
 
+import { PerspectiveCamera } from '../PerspectiveCamera.js';
+
 const [ SHADERS, MIXINS ] = await Promise.all([
     'shaders.json',
     'mixins.json',
@@ -104,6 +106,35 @@ setResolution(resolution) {
 
 getTexture() {
     return this._renderBuffer.getAttachments().color[0];
+}
+
+getModelMatrix() {
+    const modelMatrix = mat4.create();
+    mat4.rotateX(modelMatrix, modelMatrix, -Math.PI / 2);
+    mat4.translate(modelMatrix, modelMatrix, [-0.5, -0.5, -0.5]);
+    mat4.multiply(modelMatrix, this._volume.transform.matrix, modelMatrix);
+    return modelMatrix;
+}
+
+getViewMatrix() {
+    return mat4.invert(mat4.create(), this._camera.transform.matrix);
+}
+
+getProjectionMatrix() {
+    return this._camera.getComponent(PerspectiveCamera).projectionMatrix;
+}
+
+getMVPMatrix() {
+    const matrix = mat4.create();
+    mat4.multiply(matrix, this.getModelMatrix(), matrix);
+    mat4.multiply(matrix, this.getViewMatrix(), matrix);
+    mat4.multiply(matrix, this.getProjectionMatrix(), matrix);
+    return matrix;
+}
+
+getMVPInverseMatrix() {
+    const matrix = this.getMVPMatrix();
+    return mat4.invert(matrix, matrix);
 }
 
 _resetFrame() {

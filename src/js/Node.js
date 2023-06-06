@@ -7,7 +7,7 @@ constructor(options = {}) {
     this.parent = null;
 
     this.components = [
-        new Transform({ node: this, ...options }),
+        new Transform({ ...options }),
     ];
 }
 
