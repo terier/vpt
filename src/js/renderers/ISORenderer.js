@@ -11,8 +11,8 @@ const [ SHADERS, MIXINS ] = await Promise.all([
 
 export class ISORenderer extends AbstractRenderer {
 
-constructor(gl, volume, camera, environmentTexture, options = {}) {
-    super(gl, volume, camera, environmentTexture, options);
+constructor(gl, volume, volumeTransform, camera, environmentTexture, options = {}) {
+    super(gl, volume, volumeTransform, camera, environmentTexture, options);
 
     this.registerProperties([
         {

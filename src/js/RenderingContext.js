@@ -2,6 +2,7 @@ import { WebGL } from './WebGL.js';
 import { Ticker } from './Ticker.js';
 
 import { Node } from './Node.js';
+import { Transform } from './Transform.js';
 import { PerspectiveCamera } from './PerspectiveCamera.js';
 import { Volume } from './Volume.js';
 import { ConductorVolume } from './ConductorVolume.js';
@@ -64,6 +65,7 @@ constructor(options = {}) {
     });
 
     this.volume = new Volume(this.gl);
+    this.volumeTransform = new Transform(); // TODO: This should be the job of the Node
 }
 
 // ============================ WEBGL SUBSYSTEM ============================ //
@@ -175,7 +177,7 @@ chooseRenderer(renderer) {
         this.renderer.destroy();
     }
     const rendererClass = RendererFactory(renderer);
-    this.renderer = new rendererClass(this.gl, this.volume, this.camera, this.environmentTexture, {
+    this.renderer = new rendererClass(this.gl, this.volume, this.volumeTransform, this.camera, this.environmentTexture, {
         resolution: this.resolution,
     });
     this.renderer.reset();

@@ -94,7 +94,7 @@ constructor() {
         this.renderingContext.setResolution(resolution);
     });
     this.renderingContextDialog.addEventListener('transformation', e => {
-        const transform = this.renderingContext.volume.transform;
+        const transform = this.renderingContext.volumeTransform;
         transform.localTranslation = this.renderingContextDialog.translation;
         transform.localRotation = quat.fromEuler(quat.create(), ...this.renderingContextDialog.rotation);
         transform.localScale = this.renderingContextDialog.scale;
@@ -435,9 +435,10 @@ async generateTests() {
 
         // setup model
         const { translation, rotation, scale } = test;
-        this.renderingContext.setTranslation(...translation);
-        this.renderingContext.setRotation(...rotation);
-        this.renderingContext.setScale(...scale);
+        const transform = this.renderingContext.volumeTransform;
+        transform.localTranslation = translation;
+        transform.localRotation = quat.fromEuler(quat.create(), ...rotation);
+        transform.localScale = scale;
 
         // setup input data (skip if the same data)
         if (test.fileName !== currentFileName) {

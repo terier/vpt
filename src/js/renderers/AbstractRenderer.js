@@ -14,13 +14,14 @@ const [ SHADERS, MIXINS ] = await Promise.all([
 
 export class AbstractRenderer extends PropertyBag {
 
-constructor(gl, volume, camera, environmentTexture, options = {}) {
+constructor(gl, volume, volumeTransform, camera, environmentTexture, options = {}) {
     super();
 
     this._resolution = options.resolution ?? 512;
 
     this._gl = gl;
     this._volume = volume;
+    this._volumeTransform = volumeTransform;
     this._camera = camera;
     this._environmentTexture = environmentTexture;
 
@@ -112,7 +113,7 @@ getModelMatrix() {
     const modelMatrix = mat4.create();
     mat4.rotateX(modelMatrix, modelMatrix, -Math.PI / 2);
     mat4.translate(modelMatrix, modelMatrix, [-0.5, -0.5, -0.5]);
-    mat4.multiply(modelMatrix, this._volume.transform.matrix, modelMatrix);
+    mat4.multiply(modelMatrix, this._volumeTransform.matrix, modelMatrix);
     return modelMatrix;
 }
 
