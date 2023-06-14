@@ -3,25 +3,41 @@
 const fs = require('fs');
 
 const fileNames = [
-    'mitos.bvp',
-    'fibers.bvp',
-    'shards.bvp',
-    'manix.bvp',
+    'mitos.bvp.saf',
+    'fibers.bvp.saf',
+    'shards.bvp.saf',
+    'manix.bvp.saf',
 ];
 
-const rotations = new Array(10).fill(0).map(_ => [
+/*const rotations = new Array(10).fill(0).map(_ => [
     Math.acos(Math.random() * 2 - 1),
     Math.random() * Math.PI * 2,
     0,
-]);
+]);*/
+
+const rotations = [];
+for (let i = 0; i < 5; i++) {
+    rotations.push([
+        Math.PI / 8,
+        (i / 5) * Math.PI * 2,
+        0,
+    ]);
+}
+for (let i = 0; i < 5; i++) {
+    rotations.push([
+        -Math.PI / 8,
+        ((i + 0.5) / 5) * Math.PI * 2,
+        0,
+    ]);
+}
 
 const renderers = [
-    {
+    /*{
         type: 'mip',
         settings: {
             steps: 1024,
         },
-    },
+    },*/
     {
         type: 'iso',
         settings: {
@@ -30,13 +46,13 @@ const renderers = [
             light: [2, -3, -5],
         },
     },
-    {
+    /*{
         type: 'eam',
         settings: {
             extinction: 256,
             slices: 1024,
         },
-    },
+    },*/
     {
         type: 'dos',
         settings: {
@@ -82,12 +98,14 @@ const cameras = [
     {
         near: 1,
         far: 5,
-        zoomFactor: 0.00025,
+        fovy: 60 * Math.PI / 180,
+        distance: 2,
     },
     {
         near: 1,
         far: 5,
-        zoomFactor: 0.0004,
+        fovy: 60 * Math.PI / 180,
+        distance: 3,
     },
 ];
 
@@ -176,30 +194,30 @@ const tests = cartesian(
     rotation,
     renderer,
 ]) => {
-    const camera = fileName === 'fibers.bvp' ? cameras[1] : cameras[0];
+    const camera = fileName === 'fibers.bvp.saf' ? cameras[1] : cameras[0];
     const tonemapper = renderer.type === 'depth' ? tonemappers[1] : tonemappers[0];
     const groupsCopy = JSON.parse(JSON.stringify(groups));
     for (const group of groupsCopy) {
         group.density = {
-            'mitos.bvp'  : 1,
-            'fibers.bvp' : 0.2,
-            'shards.bvp' : 0.1,
-            'manix.bvp'  : 1,
+            'mitos.bvp.saf'  : 1,
+            'fibers.bvp.saf' : 0.2,
+            'shards.bvp.saf' : 0.1,
+            'manix.bvp.saf'  : 1,
         }[fileName];
     }
     return {
         fileName,
-        fileType: fileName === 'manix.bvp' ? 'normal' : 'conductor',
+        fileType: fileName === 'manix.bvp.saf' ? 'normal' : 'conductor',
         translation: [0, 0, 0],
         rotation,
-        scale: fileName === 'fibers.bvp' ? [1, 1, 2] : [1, 1, 1],
+        scale: fileName === 'fibers.bvp.saf' ? [1, 1, 2] : [1, 1, 1],
         renderer,
         tonemapper,
         camera,
         frameTime: renderer.type === 'mcm' ? 2 : 0.1,
         resolution: 1024,
-        groups: fileName !== 'manix.bvp' ? groupsCopy : [],
-        transferFunction: fileName === 'manix.bvp' ? transferFunction : [],
+        groups: fileName !== 'manix.bvp.saf' ? groupsCopy : [],
+        transferFunction: fileName === 'manix.bvp.saf' ? transferFunction : [],
     }
 });
 
