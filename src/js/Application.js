@@ -95,9 +95,9 @@ constructor() {
     });
     this.renderingContextDialog.addEventListener('transformation', e => {
         const transform = this.renderingContext.volumeTransform;
-        transform.localTranslation = this.renderingContextDialog.translation;
-        transform.localRotation = quat.fromEuler(quat.create(), ...this.renderingContextDialog.rotation);
-        transform.localScale = this.renderingContextDialog.scale;
+        transform.translation = this.renderingContextDialog.translation;
+        transform.rotation = quat.fromEuler(quat.create(), ...this.renderingContextDialog.rotation);
+        transform.scale = this.renderingContextDialog.scale;
         this.renderingContext.renderer.reset();
     });
     this.renderingContextDialog.addEventListener('filter', e => {
@@ -385,7 +385,10 @@ deserializeView(v) {
 randomizeCamera() {
     const x = Math.acos(Math.random() * 2 - 1);
     const y = Math.random() * Math.PI * 2;
-    this.renderingContext.setRotation(x, y, 0);
+    const q = quat.create();
+    quat.rotateX(q, q, x);
+    quat.rotateY(q, q, y);
+    this.renderingContext.volumeTransform.rotation = q;
 }
 
 samplePoint() {
@@ -435,10 +438,14 @@ async generateTests() {
 
         // setup model
         const { translation, rotation, scale } = test;
+        const q = quat.create();
+        quat.rotateX(q, q, rotation[0]);
+        quat.rotateY(q, q, rotation[1]);
+        quat.rotateZ(q, q, rotation[2]);
         const transform = this.renderingContext.volumeTransform;
-        transform.localTranslation = translation;
-        transform.localRotation = quat.fromEuler(quat.create(), ...rotation);
-        transform.localScale = scale;
+        transform.translation = translation;
+        transform.rotation = q;
+        transform.scale = scale;
 
         // setup input data (skip if the same data)
         if (test.fileName !== currentFileName) {
