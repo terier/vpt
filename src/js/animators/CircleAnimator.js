@@ -1,8 +1,10 @@
 import { quat, vec3, mat4 } from '../../lib/gl-matrix-module.js';
 
-export class CircleAnimator {
+export class CircleAnimator extends EventTarget {
 
 constructor(node, options = {}) {
+    super();
+
     this.node = node;
 
     Object.assign(this, {

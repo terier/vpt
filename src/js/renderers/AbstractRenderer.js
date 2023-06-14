@@ -122,7 +122,7 @@ getViewMatrix() {
 }
 
 getProjectionMatrix() {
-    return this._camera.getComponent(PerspectiveCamera).projectionMatrix;
+    return this._camera.getComponentOfType(PerspectiveCamera).projectionMatrix;
 }
 
 getMVPMatrix() {

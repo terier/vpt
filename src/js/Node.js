@@ -40,12 +40,12 @@ traverse(before, after) {
     }
 }
 
-getComponent(type) {
+getComponentOfType(type) {
     return this.components.find(component => component instanceof type);
 }
 
 get transform() {
-    return this.getComponent(Transform);
+    return this.getComponentOfType(Transform);
 }
 
 }

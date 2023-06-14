@@ -17,7 +17,7 @@ import { ConductorVolume } from './ConductorVolume.js';
 
 import { PerspectiveCamera } from './PerspectiveCamera.js';
 
-import { quat } from '../lib/gl-matrix-module.js';
+import { vec3, quat } from '../lib/gl-matrix-module.js';
 
 export class Application {
 
@@ -111,7 +111,7 @@ constructor() {
 
     new ResizeObserver(entries => {
         const size = entries[0].contentBoxSize[0];
-        const camera = this.renderingContext.camera.getComponent(PerspectiveCamera);
+        const camera = this.renderingContext.camera.getComponentOfType(PerspectiveCamera);
         camera.aspect = size.inlineSize / size.blockSize;
     }).observe(this.renderingContext.canvas);
 
@@ -423,18 +423,20 @@ async generateTests() {
 
         // setup tonemapper
         this.renderingContext.chooseToneMapper(test.tonemapper.type);
-        const tonemapper = this.renderingContext.getToneMapper();
+        const tonemapper = this.renderingContext.toneMapper;
         for (const setting in test.tonemapper.settings) {
             tonemapper[setting] = test.tonemapper.settings[setting];
         }
 
         // setup camera
-        const camera = this.renderingContext.getCamera();
+        const camera = this.renderingContext.camera;
+        const perspectiveCamera = camera.getComponentOfType(PerspectiveCamera);
         for (const setting in test.camera) {
-            camera[setting] = test.camera[setting];
+            perspectiveCamera[setting] = test.camera[setting];
         }
-        camera.resize(test.resolution, test.resolution);
-        camera.updateMatrices();
+        perspectiveCamera.aspect = 1;
+        const displacement = this.renderingContext.cameraAnimator.displacement;
+        vec3.scale(displacement, displacement, test.camera.distance / vec3.length(displacement));
 
         // setup model
         const { translation, rotation, scale } = test;

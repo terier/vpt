@@ -1,8 +1,10 @@
 import { vec3, mat4, quat } from '../../lib/gl-matrix-module.js';
 
-export class CircleFocusAnimator {
+export class CircleFocusAnimator extends EventTarget {
 
 constructor(node, options) {
+    super();
+
     this.node = node;
 
     Object.assign(this, {
@@ -16,27 +18,22 @@ constructor(node, options) {
 }
 
 update(t) {
-    // TODO fix this after introduction of gl-matrix
-    const rotateCone = mat4.fromRotation(mat4.create(), this.coneAngle / 2, this.up);
-    const pointOnCone = vec3.transformMat4(vec3.create(), this.displacement, rotateCone);
-
-    const displacementNormalized = vec3.normalize(vec3.create(), this.displacement);
     const angle = (this.frequency * t + this.phase) * 2 * Math.PI;
-    const rotateDisplacement = mat4.fromRotation(mat4.create(), displacementNormalized, angle);
-    vec3.transformMat4(pointOnCone, pointOnCone, rotateDisplacement);
+    const rotation = quat.setAxisAngle(quat.create(), [0, 0, 1], angle);
+
+    const displacementLength = vec3.length(this.displacement);
+    const displacementNormalized = vec3.normalize(vec3.create(), this.displacement);
+    const pointOnCone = [Math.tan(this.coneAngle / 2), 0, 1];
+    vec3.scale(pointOnCone, pointOnCone, displacementLength);
+
+    const alignment = quat.rotationTo(quat.create(), [0, 0, 1], displacementNormalized);
+    vec3.transformQuat(pointOnCone, pointOnCone, rotation);
+    vec3.transformQuat(pointOnCone, pointOnCone, alignment);
+
+    const targetTo = mat4.targetTo(mat4.create(), pointOnCone, [0, 0, 0], this.up);
+    const newRotation = mat4.getRotation(quat.create(), targetTo);
 
     const newTranslation = vec3.add(vec3.create(), this.focus, pointOnCone);
-    const newZ = vec3.normalize(pointOnCone, pointOnCone);
-    const newX = vec3.normalize(vec3.create(), vec3.negate(vec3.create(), vec3.cross(vec3.create(), newZ, this.up)));
-    const newY = vec3.normalize(vec3.create(), vec3.negate(vec3.create(), vec3.cross(vec3.create(), newX, newZ)));
-
-    const newRotationMatrix = mat4.fromValues(
-        ...newX, 0,
-        ...newY, 0,
-        ...newZ, 0,
-        0, 0, 0, 1,
-    );
-    const newRotation = mat4.getRotation(quat.create(), newRotationMatrix);
 
     this.node.transform.translation = newTranslation;
     this.node.transform.rotation = newRotation;
