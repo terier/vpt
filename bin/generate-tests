@@ -57,16 +57,17 @@ const renderers = [
         type: 'dos',
         settings: {
             extinction: 256,
-            slices: 1024,
-            steps: 1024,
-            aperture: 50,
+            slices: 2048,
+            steps: 2048,
+            aperture: 60,
+            samples: 16,
         },
     },
     {
         type: 'mcm',
         settings: {
             extinction: 256,
-            anisotropy: -0.8,
+            anisotropy: -0.5,
             steps: 128,
         },
     },
@@ -98,13 +99,13 @@ const cameras = [
     {
         near: 1,
         far: 5,
-        fovy: 60 * Math.PI / 180,
+        fovy: 45 * Math.PI / 180,
         distance: 2,
     },
     {
         near: 1,
         far: 5,
-        fovy: 60 * Math.PI / 180,
+        fovy: 45 * Math.PI / 180,
         distance: 3,
     },
 ];
@@ -205,16 +206,17 @@ const tests = cartesian(
             'manix.bvp.saf'  : 1,
         }[fileName];
     }
+    renderer.gradientStep = fileName === 'manix.bvp.saf' ? 0.001 : 0.005;
     return {
         fileName,
         fileType: fileName === 'manix.bvp.saf' ? 'normal' : 'conductor',
         translation: [0, 0, 0],
         rotation,
-        scale: fileName === 'fibers.bvp.saf' ? [1, 1, 2] : [1, 1, 1],
+        scale: fileName === 'fibers.bvp.saf' ? [1, 2, 1] : [1, 1, 1],
         renderer,
         tonemapper,
         camera,
-        frameTime: renderer.type === 'mcm' ? 2 : 0.1,
+        frameTime: renderer.type === 'mcm' ? 0.5 : 0.1,
         resolution: 1024,
         groups: fileName !== 'manix.bvp.saf' ? groupsCopy : [],
         transferFunction: fileName === 'manix.bvp.saf' ? transferFunction : [],
