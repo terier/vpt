@@ -31,6 +31,16 @@ constructor(gl, volume, volumeTransform, camera, environmentTexture, options = {
             max: 1,
         },
         {
+            name: 'gradientStep',
+            label: 'Gradient step',
+            type: 'slider',
+            logarithmic: true,
+            value: 0.005,
+            min: 0.0001,
+            max: 0.01,
+            step: 0.00001,
+        },
+        {
             name: 'light',
             label: 'Light direction',
             type: 'vector-spinner',
@@ -156,7 +166,7 @@ _renderFrame() {
     vec3.normalize(light, light);
     gl.uniform3fv(uniforms.uLight, light);
     gl.uniform3fv(uniforms.uDiffuse, CommonUtils.hex2rgb(this.color));
-    gl.uniform1f(uniforms.uGradientStep, 0.005);
+    gl.uniform1f(uniforms.uGradientStep, this.gradientStep);
 
     gl.drawArrays(gl.TRIANGLES, 0, 3);
 }
