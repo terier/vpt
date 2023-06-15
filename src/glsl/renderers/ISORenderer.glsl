@@ -177,12 +177,87 @@ vec3 gradient(vec3 pos, float h) {
     return (positive - negative) / (2.0 * h);
 }
 
+#define SOBEL_SAMPLES 27
+const vec3 sobel_offsets[SOBEL_SAMPLES] = vec3[SOBEL_SAMPLES](
+    vec3(-1, -1, -1),
+    vec3( 0, -1, -1),
+    vec3( 1, -1, -1),
+    vec3(-1,  0, -1),
+    vec3( 0,  0, -1),
+    vec3( 1,  0, -1),
+    vec3(-1,  1, -1),
+    vec3( 0,  1, -1),
+    vec3( 1,  1, -1),
+
+    vec3(-1, -1,  0),
+    vec3( 0, -1,  0),
+    vec3( 1, -1,  0),
+    vec3(-1,  0,  0),
+    vec3( 0,  0,  0),
+    vec3( 1,  0,  0),
+    vec3(-1,  1,  0),
+    vec3( 0,  1,  0),
+    vec3( 1,  1,  0),
+
+    vec3(-1, -1,  1),
+    vec3( 0, -1,  1),
+    vec3( 1, -1,  1),
+    vec3(-1,  0,  1),
+    vec3( 0,  0,  1),
+    vec3( 1,  0,  1),
+    vec3(-1,  1,  1),
+    vec3( 0,  1,  1),
+    vec3( 1,  1,  1)
+);
+
+const vec3 sobel_kernel[SOBEL_SAMPLES] = vec3[SOBEL_SAMPLES](
+    vec3(-1, -1, -1),
+    vec3( 0, -2, -2),
+    vec3( 1, -1, -1),
+    vec3(-2,  0, -2),
+    vec3( 0,  0, -4),
+    vec3( 2,  0, -2),
+    vec3(-1,  1, -1),
+    vec3( 0,  2, -2),
+    vec3( 1,  1, -1),
+
+    vec3(-2, -2,  0),
+    vec3( 0, -4,  0),
+    vec3( 2, -2,  0),
+    vec3(-4,  0,  0),
+    vec3( 0,  0,  0),
+    vec3( 4,  0,  0),
+    vec3(-2,  2,  0),
+    vec3( 0,  4,  0),
+    vec3( 2,  2,  0),
+
+    vec3(-1, -1,  1),
+    vec3( 0, -2,  2),
+    vec3( 1, -1,  1),
+    vec3(-2,  0,  2),
+    vec3( 0,  0,  4),
+    vec3( 2,  0,  2),
+    vec3(-1,  1,  1),
+    vec3( 0,  2,  2),
+    vec3( 1,  1,  1)
+);
+
+vec3 sobel(vec3 pos, float h) {
+    vec3 sobel = vec3(0);
+    for (int i = 0; i < SOBEL_SAMPLES; i++) {
+        vec3 samplePosition = pos + sobel_offsets[i] * h;
+        float volumeSample = sampleVolumeColor(samplePosition).a;
+        sobel += vec3(volumeSample) * sobel_kernel[i];
+    }
+    return sobel;
+}
+
 void main() {
     vec4 closest = texture(uClosest, vPosition);
 
     if (closest.w > 0.0) {
         vec3 pos = closest.xyz;
-        vec3 normal = normalize(gradient(pos, uGradientStep));
+        vec3 normal = normalize(sobel(pos, uGradientStep));
         float lambert = max(dot(normal, uLight), 0.0);
         vec3 material = sampleVolumeColor(pos).rgb;
         oColor = vec4(uDiffuse * material * lambert, 1);
