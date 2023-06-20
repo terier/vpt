@@ -6,6 +6,7 @@ import { MCSRenderer } from './MCSRenderer.js';
 import { MCMRenderer } from './MCMRenderer.js';
 import { DOSRenderer } from './DOSRenderer.js';
 import { DepthRenderer } from './DepthRenderer.js';
+import { PositionRenderer } from './PositionRenderer.js';
 
 export function RendererFactory(which) {
     switch (which) {
@@ -17,6 +18,7 @@ export function RendererFactory(which) {
         case 'mcm': return MCMRenderer;
         case 'dos': return DOSRenderer;
         case 'depth': return DepthRenderer;
+        case 'position': return PositionRenderer;
 
         default: throw new Error('No suitable class');
     }
