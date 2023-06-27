@@ -1,6 +1,7 @@
 import { WebGL } from './WebGL.js';
 import { Volume } from './Volume.js';
 import { CommonUtils } from './utils/CommonUtils.js';
+import * as Random from './Random.js';
 
 const [ SHADERS, MIXINS ] = await Promise.all([
     'shaders.json',
@@ -181,14 +182,18 @@ parseAttributes(attributes) {
     const header = lines[0];
     const instances = lines.slice(1).map(line => line.map(entry => Number(entry)));
     const zip = rows => rows[0].map((_, i) => rows.map(row => row[i]));
+
+    const seed = Random.cyrb128(text);
+    const random = Random.xoshiro128ss(...seed);
+
     this.attributes = [...header, 'random'];
     this.instances = instances.map(attributes => ({
         group: 1,
         opacity: 1,
-        random: Math.random(),
+        random: random(),
         attributes: {
             ...Object.fromEntries(zip([header, attributes])),
-            random: Math.random(),
+            random: random(),
         },
     }));
     console.log(`Instances: ${this.instances.length - 1}`);
