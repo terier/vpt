@@ -67,6 +67,11 @@
                               "selected": true,
                               "value": "fld",
                               "label": "Flux-Limited Diffusion"
+                            },
+                            {
+                              "selected": true,
+                              "value": "fdm",
+                              "label": "Flux-Limited Diffusion (Multigrid)"
                             }
                           ]
                         }
