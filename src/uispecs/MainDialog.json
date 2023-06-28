@@ -70,8 +70,8 @@
                             },
                             {
                               "selected": true,
-                              "value": "fdm",
-                              "label": "Flux-Limited Diffusion (Multigrid)"
+                              "value": "fdo",
+                              "label": "Flux-Limited Diffusion (Original)"
                             }
                           ]
                         }

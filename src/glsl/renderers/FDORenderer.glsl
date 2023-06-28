@@ -1,4 +1,4 @@
-// #part /glsl/shaders/renderers/FDM/generate/vertex
+// #part /glsl/shaders/renderers/FDO/generate/vertex
 
 #version 300 es
 
@@ -11,7 +11,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #part /glsl/shaders/renderers/FDM/generate/fragment
+// #part /glsl/shaders/renderers/FDO/generate/fragment
 
 #version 300 es
 precision highp float;
@@ -69,7 +69,7 @@ void main() {
     oEmission = transmittance;
 }
 
-// #part /glsl/shaders/renderers/FDM/integrate/vertex
+// #part /glsl/shaders/renderers/FDO/integrate/vertex
 
 #version 300 es
 
@@ -82,7 +82,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #part /glsl/shaders/renderers/FDM/integrate/fragment
+// #part /glsl/shaders/renderers/FDO/integrate/fragment
 
 #version 300 es
 #define SOBEL_SAMPLES 27
@@ -303,7 +303,7 @@ void main() {
     oFluence = vec2(new_fluence, D);
 }
 
-// #part /glsl/shaders/renderers/FDM/render/vertex
+// #part /glsl/shaders/renderers/FDO/render/vertex
 
 #version 300 es
 
@@ -323,7 +323,7 @@ void main() {
     gl_Position = vec4(aPosition, 0, 1);
 }
 
-// #part /glsl/shaders/renderers/FDM/render/fragment
+// #part /glsl/shaders/renderers/FDO/render/fragment
 
 #version 300 es
 
@@ -448,7 +448,7 @@ void main() {
     }
 }
 
-// #part /glsl/shaders/renderers/FDM/reset/vertex
+// #part /glsl/shaders/renderers/FDO/reset/vertex
 
 #version 300 es
 
@@ -460,7 +460,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #part /glsl/shaders/renderers/FDM/reset/fragment
+// #part /glsl/shaders/renderers/FDO/reset/fragment
 
 #version 300 es
 precision highp float;
@@ -497,7 +497,7 @@ void main() {
     oFluence = vec2(fluence, diff_coeff);
 }
 
-// #part /glsl/shaders/renderers/FDM/computeResidual/vertex
+// #part /glsl/shaders/renderers/FDO/computeResidual/vertex
 
 #version 300 es
 
@@ -509,7 +509,7 @@ void main() {
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
-// #part /glsl/shaders/renderers/FDM/computeResidual/fragment
+// #part /glsl/shaders/renderers/FDO/computeResidual/fragment
 
 #version 300 es
 precision highp float;

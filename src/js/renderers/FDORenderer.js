@@ -9,7 +9,7 @@ const [ SHADERS, MIXINS ] = await Promise.all([
     'mixins.json',
 ].map(url => fetch(url).then(response => response.json())));
 
-export class FDMRenderer extends AbstractRenderer {
+export class FDORenderer extends AbstractRenderer {
     constructor(gl, volume, environmentTexture, options) {
         super(gl, volume, environmentTexture, options);
 
@@ -171,7 +171,7 @@ export class FDMRenderer extends AbstractRenderer {
             }
         });
 
-        this._programs = WebGL.buildPrograms(gl, SHADERS.renderers.FDM, MIXINS);
+        this._programs = WebGL.buildPrograms(gl, SHADERS.renderers.FDO, MIXINS);
         this.red = 1;
     }
 
