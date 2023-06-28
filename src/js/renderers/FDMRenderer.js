@@ -61,7 +61,7 @@ export class FDMRenderer extends AbstractRenderer {
             {
                 name: 'voxelSize',
                 label: 'Voxel Size',
-                type: 'slider',
+                type: 'spinner',
                 value: 1,
                 min: 0.1,
                 max: 2
@@ -133,6 +133,12 @@ export class FDMRenderer extends AbstractRenderer {
                 ]
             },
             {
+                name: 'residual_rms',
+                label: 'Residual (RMS)',
+                type: 'spinner',
+                value: 0,
+            },
+            {
                 name: 'transferFunction',
                 label: 'Transfer function',
                 type: 'transfer-function',
@@ -169,17 +175,35 @@ export class FDMRenderer extends AbstractRenderer {
         this.red = 1;
     }
 
+    setResidualUIElement() {
+        let fields = document.querySelectorAll(".instantiate .field")
+        for (const element of fields) {
+            let found = false;
+            let labels = element.querySelectorAll("label")
+            for (const label of labels) {
+                if (label.innerText === "Residual (RMS)")
+                    found = true;
+            }
+            if (found)
+                this.residualHTMLObject = element.querySelectorAll(".container > .spinner > input")[0];
+        }
+        console.log(this.residualHTMLObject)
+    }
+
     destroy() {
         const gl = this._gl;
         Object.keys(this._programs).forEach(programName => {
             gl.deleteProgram(this._programs[programName].program);
         });
+        this.destroyRCBuffer();
         super.destroy();
     }
 
     setVolume(volume) {
         this._volume = volume;
         this._initialize3DBuffers();
+
+        this.setResidualUIElement();
     }
 
     _initialize3DBuffers() {
@@ -192,6 +216,7 @@ export class FDMRenderer extends AbstractRenderer {
         this.setLightVolumeDimensions();
         this.setFrameBuffer();
         this.setAccumulationBuffer();
+        this.setRCBuffer();
         this.resetVolume();
     }
 
@@ -220,6 +245,18 @@ export class FDMRenderer extends AbstractRenderer {
         }
         this._accumulationBuffer = new DoubleBuffer3D(this._gl, this._getAccumulationBufferSpec());
         // console.log(this._accumulationBuffer)
+        // console.log(this._accumulationBuffer)
+    }
+
+    setRCBuffer() {
+        this.destroyRCBuffer();
+        this._rcBuffer = new SingleBuffer(this._gl, this._getRCBufferSpec());
+    }
+
+    destroyRCBuffer() {
+        if (this._rcBuffer) {
+            this._rcBuffer.destroy();
+        }
     }
 
     _rebuildBuffers() {
@@ -278,8 +315,8 @@ export class FDMRenderer extends AbstractRenderer {
         gl.useProgram(program);
         const dimensions = this._lightVolumeDimensions;
 
-        // gl.bindTexture(gl.TEXTURE_3D, this._frameBuffer.getAttachments().color[0]);
-        // gl.generateMipmap(gl.TEXTURE_3D);
+        gl.bindTexture(gl.TEXTURE_3D, this._frameBuffer.getAttachments().color[0]);
+        gl.generateMipmap(gl.TEXTURE_3D);
 
         for (let i = 0; i < this._lightVolumeDimensions.depth; i++) {
             this._accumulationBuffer.use(i);
@@ -305,7 +342,8 @@ export class FDMRenderer extends AbstractRenderer {
             gl.uniform3i(uniforms.uSize, dimensions.width, dimensions.height, dimensions.depth);
 
             gl.drawBuffers([
-                gl.COLOR_ATTACHMENT0
+                gl.COLOR_ATTACHMENT0,
+                gl.COLOR_ATTACHMENT1
             ]);
 
             gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
@@ -346,21 +384,61 @@ export class FDMRenderer extends AbstractRenderer {
     _generateFrame() {
     }
 
+    _computeResidual() {
+        const gl = this._gl;
+
+        const { program, uniforms } = this._programs.computeResidual;
+        gl.useProgram(program);
+        const dimensions = this._lightVolumeDimensions;
+
+        this._rcBuffer.use();
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_3D, this._frameBuffer.getAttachments().color[0]);
+
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[1]);
+
+        gl.uniform1i(uniforms.uEmission, 0);
+        gl.uniform1i(uniforms.uResidual, 1);
+
+        gl.uniform3i(uniforms.uSize, dimensions.width, dimensions.height, dimensions.depth);
+
+        gl.drawBuffers([
+            gl.COLOR_ATTACHMENT0
+        ]);
+
+        gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+
+        let pixels = new Float32Array(2); // be careful - allocate memory only once
+        gl.readPixels(0, 0, 1, 1, gl.RG, gl.FLOAT, pixels);
+        this.residualHTMLObject.value = pixels[1];
+
+        // console.log("Residual ", pixels[0], " | ", pixels[1])
+        if (pixels[1] < 10e-6 * pixels[0]) {
+            this.done = true;
+            console.log("DONE")
+        }
+    }
+
     _integrateFrame() {
         const gl = this._gl;
+
+        if (this.done) {
+            return;
+        }
 
         const {program, uniforms} = this._programs.integrate;
         gl.useProgram(program);
         const dimensions = this._lightVolumeDimensions;
-
-        gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[0]);
-        gl.generateMipmap(gl.TEXTURE_3D);
 
         for (let i = 0; i < this._lightVolumeDimensions.depth; i++) {
             this._accumulationBuffer.use(i);
 
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[0]);
+            gl.activeTexture(gl.TEXTURE4);
+            gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[1]);
 
             gl.activeTexture(gl.TEXTURE1);
             gl.bindTexture(gl.TEXTURE_3D, this._frameBuffer.getAttachments().color[0]);
@@ -374,6 +452,7 @@ export class FDMRenderer extends AbstractRenderer {
             gl.uniform1i(uniforms.uEmission, 1);
             gl.uniform1i(uniforms.uVolume, 2);
             gl.uniform1i(uniforms.uTransferFunction, 3);
+            gl.uniform1i(uniforms.uResidual, 4);
 
             // gl.uniform1f(uniforms.uAbsorptionCoefficient, this.absorptionCoefficient);
             // gl.uniform1f(uniforms.uScatteringCoefficient, this.scatteringCoefficient);
@@ -395,7 +474,8 @@ export class FDMRenderer extends AbstractRenderer {
             gl.uniform3i(uniforms.uSize, dimensions.width, dimensions.height, dimensions.depth);
 
             gl.drawBuffers([
-                gl.COLOR_ATTACHMENT0
+                gl.COLOR_ATTACHMENT0,
+                gl.COLOR_ATTACHMENT1
             ]);
 
             gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
@@ -405,6 +485,10 @@ export class FDMRenderer extends AbstractRenderer {
             this.red = 0;
         } else {
             this.red = 1;
+            gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[1]);
+            gl.generateMipmap(gl.TEXTURE_3D);
+
+            this._computeResidual();
         }
     }
 
@@ -417,9 +501,6 @@ export class FDMRenderer extends AbstractRenderer {
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[0]);
 
-        // debug
-        // gl.bindTexture(gl.TEXTURE_3D, this._frameBuffer.getAttachments().color[0]);
-        //
         gl.activeTexture(gl.TEXTURE1);
         gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
         gl.activeTexture(gl.TEXTURE2);
@@ -439,7 +520,7 @@ export class FDMRenderer extends AbstractRenderer {
         gl.uniform1f(uniforms.uOffset, Math.random());
 
         gl.uniform1ui(uniforms.uView, volumeView);
-        
+
         const mvpit = this.calculateMVPInverseTranspose();
         gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, mvpit.m);
 
@@ -454,10 +535,9 @@ export class FDMRenderer extends AbstractRenderer {
             width: this.volumeDimensions.width,
             height: this.volumeDimensions.height,
             depth: this.volumeDimensions.depth,
-            min: gl.LINEAR,
+            // min: gl.LINEAR,
+            min: gl.LINEAR_MIPMAP_NEAREST,
             mag: gl.LINEAR,
-            // min            : gl.LINEAR_MIPMAP_LINEAR,
-            // mag            : gl.LINEAR,
             format: gl.RED,
             internalFormat: gl.R32F,
             // format         : gl.RGBA,
@@ -496,9 +576,48 @@ export class FDMRenderer extends AbstractRenderer {
             storage: true
         };
 
+        let residualBufferSpec = {
+            target: gl.TEXTURE_3D,
+            width: this.volumeDimensions.width,
+            height: this.volumeDimensions.height,
+            depth: this.volumeDimensions.depth,
+            // min: gl.LINEAR,
+            min: gl.LINEAR_MIPMAP_NEAREST,
+            mag: gl.LINEAR,
+            format         : gl.RED,
+            internalFormat : gl.R32F,
+            type: gl.FLOAT,
+            wrapS: gl.CLAMP_TO_EDGE,
+            wrapT: gl.CLAMP_TO_EDGE,
+            wrapR: gl.CLAMP_TO_EDGE,
+            // storage: true
+        };
+
         return [
             fluenceBufferSpec,
+            residualBufferSpec
         ];
     }
 
+    _getRCBufferSpec() {
+        const gl = this._gl;
+
+        let rcBufferSpec = {
+            target: gl.TEXTURE_2D,
+            width: 1,
+            height: 1,
+            min: gl.NEAREST,
+            mag: gl.NEAREST,
+            format         : gl.RG,
+            internalFormat : gl.RG32F,
+            type: gl.FLOAT,
+            wrapS: gl.CLAMP_TO_EDGE,
+            wrapT: gl.CLAMP_TO_EDGE,
+            storage: true
+        };
+
+        return [
+            rcBufferSpec,
+        ];
+    }
 }

@@ -153,6 +153,7 @@ vec3( 1,  1,  1)
 );
 
 uniform highp sampler3D uFluenceAndDiffCoeff;
+uniform highp sampler3D uResidual;
 uniform highp sampler3D uEmission;
 uniform mediump sampler3D uVolume;
 uniform mediump sampler2D uTransferFunction;
@@ -175,8 +176,8 @@ uniform float uMinExtinction;
 
 in vec2 vPosition;
 
-//layout (location = 0) out vec4 oFluence;
 layout (location = 0) out vec2 oFluence;
+layout (location = 1) out float oResidual;
 
 float flux_sum(float R) {
     return 1.0 / (3.0 + R);
@@ -210,8 +211,6 @@ float flux_levermore_pomraning(float R) {
 //}
 
 void main() {
-//    vec2 mappedPosition = vPosition * 0.5 + 0.5;
-//    vec3 position = vec3(mappedPosition, uLayerRelative);
     ivec3 position = ivec3(gl_FragCoord.x, gl_FragCoord.y, uLayer);
     ivec3 texSize = textureSize(uFluenceAndDiffCoeff, 0);
 
@@ -234,11 +233,13 @@ void main() {
     if (position.x <= 0 || position.y <= 0 || position.z <= 0 ||
     position.x >= texSize.x - 1 || position.y >= texSize.y - 1 || position.z >= texSize.z - 1) {
         oFluence = fluenceAndDiffCoeff.rg;
+        oResidual = 0.;
         return;
     }
 
     int texelConsecutiveNumber = position.x + position.y + position.z;
     if ((uRed == 1u && texelConsecutiveNumber % 2 == 0) && (uRed == 0u && texelConsecutiveNumber % 2 == 1)) {
+        oResidual = texelFetch(uResidual, position, 0).r;
         oFluence = fluenceAndDiffCoeff.rg;
         return;
     }
@@ -246,11 +247,6 @@ void main() {
     vec2 volumeSample = texelFetch(uVolume, position, 0).rg;
     vec4 colorSample = texture(uTransferFunction, volumeSample);
     float extinction = uExtinction * colorSample.a;
-//    float albedo = uAlbedo;
-//    float absorption = colorSample.a * uAbsorptionCoefficient;
-//    float extinction = absorption + uScatteringCoefficient;
-//    float albedo = uScatteringCoefficient / extinction;
-//    extinction = max(extinction, 10e-3 / max_dimension);
 
     vec4 left      = texelFetch(uFluenceAndDiffCoeff, position + ivec3(-1,  0,  0), 0);
     vec4 right     = texelFetch(uFluenceAndDiffCoeff, position + ivec3( 1,  0,  0), 0);
@@ -302,10 +298,8 @@ void main() {
     new_fluence = uSOR * new_fluence + (1.0 - uSOR) * fluence;
     new_fluence = clamp(new_fluence, 0.0, 1.0);
 
-//    float residual = (numerator - new_fluence * denominator) / voxelSizeSq;
-    float residual = 0.0;
-
-//    oFluence = vec4(new_fluence, D, residual * residual, 0);
+    float residual = (numerator - new_fluence * denominator) / voxelSizeSq;
+    oResidual = residual * residual;
     oFluence = vec2(new_fluence, D);
 }
 
@@ -401,8 +395,8 @@ void main() {
             vec3 position = mix(from, to, t);
             // scattering coeff = colorSample.rgb * uExtinction
             vec4 colorSample = sampleVolumeColor(position);
-            float emission = texture(uEmission, position).r;
-            float fluence = texture(uFluence, position).r;
+            float emission = textureLod(uEmission, position, 0.).r;
+            float fluence = textureLod(uFluence, position, 0.).r;
 //            vec3 factor = vec3(0.0);
 //            switch (uView) {
 //                case 1u:
@@ -474,8 +468,6 @@ precision highp float;
 uniform highp sampler3D uEmission;
 
 in vec2 vPosition;
-uniform mat4 uMvpInverseMatrix;
-uniform vec2 uInverseResolution;
 
 uniform vec3 uStep;
 uniform uvec3 uSize;
@@ -485,19 +477,63 @@ uniform float uLayer;
 
 uniform vec3 uLight;
 
-layout (location = 0) out vec4 oFluence;
-
+layout (location = 0) out vec2 oFluence;
+layout (location = 1) out float oResidual;
 void main() {
     vec3 position = vec3(vPosition, uLayer);
+
 //    float max_dimension = float(max(max(uSize[0], uSize[1]), uSize[2]));
 //    float mipmapLevel = log2(max_dimension) + 1.0;
 //    float RMS_j = sqrt(textureLod(uEmission, position, mipmapLevel).g);
 
 //    float fluence = uEpsilon * RMS_j * uVoxelSize;
+
     float fluence = uEpsilon * uVoxelSize;
     float diff_coeff = uEpsilon * uVoxelSize;
 
     float source = 1.0;
 
-    oFluence = vec4(fluence, diff_coeff, 100, 0);
+    oResidual = 1.;
+    oFluence = vec2(fluence, diff_coeff);
+}
+
+// #part /glsl/shaders/renderers/FDM/computeResidual/vertex
+
+#version 300 es
+
+layout (location = 0) in vec2 aPosition;
+out vec2 vPosition;
+
+void main() {
+    vPosition = (aPosition + 1.0) * 0.5;
+    gl_Position = vec4(aPosition, 0.0, 1.0);
+}
+
+// #part /glsl/shaders/renderers/FDM/computeResidual/fragment
+
+#version 300 es
+precision highp float;
+
+uniform highp sampler3D uEmission;
+uniform highp sampler3D uResidual;
+
+in vec2 vPosition;
+
+uniform ivec3 uSize;
+
+layout (location = 0) out vec2 oRC;
+
+void main() {
+    ivec3 position = ivec3(0);
+
+    int max_dimension = max(max(uSize[0], uSize[1]), uSize[2]);
+    // int mipmapLevel = 0;
+    int mipmapLevel = int(log2(float(max_dimension)));
+    //ivec3 ts = textureSize(uResidual, int(mipmapLevel));
+    float RMS_j = sqrt(texelFetch(uEmission, position, mipmapLevel).r);
+    float RMS_R = sqrt(texelFetch(uResidual, position, mipmapLevel).r);
+
+    ivec3 ts = textureSize(uEmission, 0);
+
+    oRC = vec2(RMS_j, RMS_R);
 }
