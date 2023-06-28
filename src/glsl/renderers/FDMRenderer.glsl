@@ -157,6 +157,7 @@ uniform highp sampler3D uResidual;
 uniform highp sampler3D uEmission;
 uniform mediump sampler3D uVolume;
 uniform mediump sampler2D uTransferFunction;
+uniform mediump sampler3D uF;
 
 uniform vec3 uStep;
 uniform ivec3 uSize;
@@ -177,7 +178,6 @@ uniform float uMinExtinction;
 in vec2 vPosition;
 
 layout (location = 0) out vec2 oFluence;
-layout (location = 1) out float oResidual;
 
 float flux_sum(float R) {
     return 1.0 / (3.0 + R);
@@ -214,16 +214,6 @@ void main() {
     ivec3 position = ivec3(gl_FragCoord.x, gl_FragCoord.y, uLayer);
     ivec3 texSize = textureSize(uFluenceAndDiffCoeff, 0);
 
-//    float max_dimension = float(max(max(uSize[0], uSize[1]), uSize[2]));
-//    int mipmapLevel = int(log2(max_dimension) + 1.0);
-//    float RMS_j = sqrt(texelFetch(uEmission, position, mipmapLevel).g);
-//    float RMS_R = sqrt(texelFetch(uFluenceAndDiffCoeff, position, mipmapLevel).b);
-//
-//    if (RMS_R < 10e-6 * RMS_j) {
-//        return;
-//    }
-
-
     vec4 fluenceAndDiffCoeff = texelFetch(uFluenceAndDiffCoeff, position, 0);
     float fluence = fluenceAndDiffCoeff.r;
     float diffCoeff = fluenceAndDiffCoeff.g;
@@ -233,13 +223,11 @@ void main() {
     if (position.x <= 0 || position.y <= 0 || position.z <= 0 ||
     position.x >= texSize.x - 1 || position.y >= texSize.y - 1 || position.z >= texSize.z - 1) {
         oFluence = fluenceAndDiffCoeff.rg;
-        oResidual = 0.;
         return;
     }
 
     int texelConsecutiveNumber = position.x + position.y + position.z;
     if ((uRed == 1u && texelConsecutiveNumber % 2 == 0) && (uRed == 0u && texelConsecutiveNumber % 2 == 1)) {
-        oResidual = texelFetch(uResidual, position, 0).r;
         oFluence = fluenceAndDiffCoeff.rg;
         return;
     }
@@ -298,8 +286,6 @@ void main() {
     new_fluence = uSOR * new_fluence + (1.0 - uSOR) * fluence;
     new_fluence = clamp(new_fluence, 0.0, 1.0);
 
-    float residual = (numerator - new_fluence * denominator) / voxelSizeSq;
-    oResidual = residual * residual;
     oFluence = vec2(new_fluence, D);
 }
 
@@ -478,7 +464,6 @@ uniform float uLayer;
 uniform vec3 uLight;
 
 layout (location = 0) out vec2 oFluence;
-layout (location = 1) out float oResidual;
 void main() {
     vec3 position = vec3(vPosition, uLayer);
 
@@ -493,7 +478,6 @@ void main() {
 
     float source = 1.0;
 
-    oResidual = 1.;
     oFluence = vec2(fluence, diff_coeff);
 }
 
@@ -514,26 +498,115 @@ void main() {
 #version 300 es
 precision highp float;
 
-uniform highp sampler3D uEmission;
+uniform highp sampler3D uFluenceAndDiffCoeff;
+uniform highp sampler3D uF;
+
+in vec2 vPosition;
+
+uniform uint uLayer;
+uniform ivec3 uSize;
+
+layout (location = 0) out float oRC;
+
+void main() {
+    ivec3 position = ivec3(gl_FragCoord.x, gl_FragCoord.y, uLayer);
+    float h = 1.;
+
+    if (position.x <= 0 || position.y <= 0 || position.z <= 0 ||
+    position.x >= uSize.x - 1 || position.y >= uSize.y - 1 || position.z >= uSize.z - 1) {
+        oRC = 0.;
+        return;
+    }
+
+    vec4 c         = texelFetch(uFluenceAndDiffCoeff, position, 0);
+    vec4 f         = texelFetch(uF, position, 0);
+    vec4 left      = texelFetch(uFluenceAndDiffCoeff, position + ivec3(-1,  0,  0), 0);
+    vec4 right     = texelFetch(uFluenceAndDiffCoeff, position + ivec3( 1,  0,  0), 0);
+    vec4 down      = texelFetch(uFluenceAndDiffCoeff, position + ivec3( 0, -1,  0), 0);
+    vec4 up        = texelFetch(uFluenceAndDiffCoeff, position + ivec3( 0,  1,  0), 0);
+    vec4 back      = texelFetch(uFluenceAndDiffCoeff, position + ivec3( 0,  0, -1), 0);
+    vec4 forward   = texelFetch(uFluenceAndDiffCoeff, position + ivec3( 0,  0,  1), 0);
+
+    oRC = f.r - (left.r + right.r + down.r + up.r + back.r + forward.r - 6. * c.r) / (h*h);
+}
+
+// #part /glsl/shaders/renderers/FDM/restrict/vertex
+
+#version 300 es
+
+layout (location = 0) in vec2 aPosition;
+out vec2 vPosition;
+
+void main() {
+    vPosition = (aPosition + 1.0) * 0.5;
+    gl_Position = vec4(aPosition, 0.0, 1.0);
+}
+
+// #part /glsl/shaders/renderers/FDM/restrict/fragment
+
+#version 300 es
+precision highp float;
+
 uniform highp sampler3D uResidual;
 
 in vec2 vPosition;
 
+uniform uint uLayer;
+uniform float uLayerRelative;
 uniform ivec3 uSize;
 
-layout (location = 0) out vec2 oRC;
+layout (location = 0) out float oCoaseResidual;
 
 void main() {
-    ivec3 position = ivec3(0);
+    vec3 position = vec3(vPosition.x, vPosition.y, uLayerRelative);
+    ivec3 exactPosition = ivec3(gl_FragCoord.x, gl_FragCoord.y, uLayer);
 
-    int max_dimension = max(max(uSize[0], uSize[1]), uSize[2]);
-    // int mipmapLevel = 0;
-    int mipmapLevel = int(log2(float(max_dimension)));
-    //ivec3 ts = textureSize(uResidual, int(mipmapLevel));
-    float RMS_j = sqrt(texelFetch(uEmission, position, mipmapLevel).r);
-    float RMS_R = sqrt(texelFetch(uResidual, position, mipmapLevel).r);
+    if (exactPosition.x <= 0 || exactPosition.y <= 0 || exactPosition.z <= 0 ||
+    exactPosition.x >= uSize.x - 1 || exactPosition.y >= uSize.y - 1 || exactPosition.z >= uSize.z - 1) {
+        oCoaseResidual = 0.;
+        return;
+    }
+    oCoaseResidual = texture(uResidual, position).r;
+}
 
-    ivec3 ts = textureSize(uEmission, 0);
+// #part /glsl/shaders/renderers/FDM/correction/vertex
 
-    oRC = vec2(RMS_j, RMS_R);
+#version 300 es
+
+layout (location = 0) in vec2 aPosition;
+out vec2 vPosition;
+
+void main() {
+    vPosition = (aPosition + 1.0) * 0.5;
+    gl_Position = vec4(aPosition, 0.0, 1.0);
+}
+
+// #part /glsl/shaders/renderers/FDM/correction/fragment
+
+#version 300 es
+precision highp float;
+
+uniform highp sampler3D uFluenceAndDiffCoeff;
+uniform highp sampler3D uCorrection;
+
+in vec2 vPosition;
+
+uniform float uLayerRelative;
+uniform vec3 uStep;
+
+layout (location = 0) out vec2 oFluenceAndDiffCoeff;
+
+void main() {
+    vec3 position = vec3(vPosition.x, vPosition.y, uLayerRelative);
+
+    if (position.x < uStep.x || position.y < uStep.y || position.z < uStep.z ||
+    position.x >= 1. - uStep.x || position.y >= 1. - uStep.y || position.z >= 1. - uStep.z) {
+        oFluenceAndDiffCoeff = vec2(0);
+        return;
+    }
+
+    vec4 fluenceAndDiffCoeff = texture(uFluenceAndDiffCoeff, position);
+    vec4 correction = texture(uCorrection, position);
+
+    oFluenceAndDiffCoeff = fluenceAndDiffCoeff.rg + correction.rg;
 }

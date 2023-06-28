@@ -12,12 +12,23 @@ constructor(options) {
         label: ''
     }, options);
 
+    this._handleClick = this._handleClick.bind(this);
+
     this._binds.input.value = this.label;
+    this._element.addEventListener('click', this._handleClick);
 }
 
 setEnabled(enabled) {
     this._binds.input.disabled = !enabled;
     super.setEnabled(enabled);
+}
+
+getValue() {
+    return true;
+}
+
+_handleClick() {
+    this.trigger('change');
 }
 
 }
