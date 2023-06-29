@@ -153,7 +153,6 @@ vec3( 1,  1,  1)
 );
 
 uniform highp sampler3D uFluenceAndDiffCoeff;
-uniform highp sampler3D uResidual;
 uniform highp sampler3D uEmission;
 uniform mediump sampler3D uVolume;
 uniform mediump sampler2D uTransferFunction;
@@ -177,7 +176,6 @@ uniform float uMinExtinction;
 in vec2 vPosition;
 
 layout (location = 0) out vec2 oFluence;
-layout (location = 1) out float oResidual;
 
 float flux_sum(float R) {
     return 1.0 / (3.0 + R);
@@ -233,13 +231,11 @@ void main() {
     if (position.x <= 0 || position.y <= 0 || position.z <= 0 ||
     position.x >= texSize.x - 1 || position.y >= texSize.y - 1 || position.z >= texSize.z - 1) {
         oFluence = fluenceAndDiffCoeff.rg;
-        oResidual = 0.;
         return;
     }
 
     int texelConsecutiveNumber = position.x + position.y + position.z;
     if ((uRed == 1u && texelConsecutiveNumber % 2 == 0) && (uRed == 0u && texelConsecutiveNumber % 2 == 1)) {
-        oResidual = texelFetch(uResidual, position, 0).r;
         oFluence = fluenceAndDiffCoeff.rg;
         return;
     }
@@ -298,8 +294,6 @@ void main() {
     new_fluence = uSOR * new_fluence + (1.0 - uSOR) * fluence;
     new_fluence = clamp(new_fluence, 0.0, 1.0);
 
-    float residual = (numerator - new_fluence * denominator) / voxelSizeSq;
-    oResidual = residual * residual;
     oFluence = vec2(new_fluence, D);
 }
 
@@ -470,7 +464,7 @@ uniform highp sampler3D uEmission;
 in vec2 vPosition;
 
 uniform vec3 uStep;
-uniform uvec3 uSize;
+uniform ivec3 uSize;
 uniform float uEpsilon;
 uniform float uVoxelSize;
 uniform float uLayer;
@@ -478,22 +472,18 @@ uniform float uLayer;
 uniform vec3 uLight;
 
 layout (location = 0) out vec2 oFluence;
-layout (location = 1) out float oResidual;
 void main() {
     vec3 position = vec3(vPosition, uLayer);
 
-//    float max_dimension = float(max(max(uSize[0], uSize[1]), uSize[2]));
-//    float mipmapLevel = log2(max_dimension) + 1.0;
-//    float RMS_j = sqrt(textureLod(uEmission, position, mipmapLevel).g);
+    float max_dimension = float(max(max(uSize[0], uSize[1]), uSize[2]));
+    float mipmapLevel = log2(max_dimension);
+    float RMS_j = sqrt(textureLod(uEmission, position, mipmapLevel).r);
 
-//    float fluence = uEpsilon * RMS_j * uVoxelSize;
+    float fluence = uEpsilon * RMS_j * uVoxelSize;
 
-    float fluence = uEpsilon * uVoxelSize;
+    // float fluence = uEpsilon * uVoxelSize;
     float diff_coeff = uEpsilon * uVoxelSize;
 
-    float source = 1.0;
-
-    oResidual = 1.;
     oFluence = vec2(fluence, diff_coeff);
 }
 
@@ -514,26 +504,62 @@ void main() {
 #version 300 es
 precision highp float;
 
+uniform highp sampler3D uFluenceAndDiffCoeff;
 uniform highp sampler3D uEmission;
-uniform highp sampler3D uResidual;
+uniform mediump sampler3D uVolume;
+uniform mediump sampler2D uTransferFunction;
+
+uniform uint uLayer;
+uniform float uExtinction;
+uniform float uAlbedo;
+uniform float uVoxelSize;
 
 in vec2 vPosition;
 
-uniform ivec3 uSize;
-
-layout (location = 0) out vec2 oRC;
+layout (location = 0) out float oResidual;
 
 void main() {
-    ivec3 position = ivec3(0);
+    ivec3 position = ivec3(gl_FragCoord.x, gl_FragCoord.y, uLayer);
+    ivec3 texSize = textureSize(uFluenceAndDiffCoeff, 0);
 
-    int max_dimension = max(max(uSize[0], uSize[1]), uSize[2]);
-    // int mipmapLevel = 0;
-    int mipmapLevel = int(log2(float(max_dimension)));
-    //ivec3 ts = textureSize(uResidual, int(mipmapLevel));
-    float RMS_j = sqrt(texelFetch(uEmission, position, mipmapLevel).r);
-    float RMS_R = sqrt(texelFetch(uResidual, position, mipmapLevel).r);
+    vec4 fluenceAndDiffCoeff = texelFetch(uFluenceAndDiffCoeff, position, 0);
+    float fluence = fluenceAndDiffCoeff.r;
+    float diffCoeff = fluenceAndDiffCoeff.g;
+    float emission = texelFetch(uEmission, position, 0).r;
 
-    ivec3 ts = textureSize(uEmission, 0);
 
-    oRC = vec2(RMS_j, RMS_R);
+    if (position.x <= 0 || position.y <= 0 || position.z <= 0 ||
+    position.x >= texSize.x - 1 || position.y >= texSize.y - 1 || position.z >= texSize.z - 1) {
+        oResidual = 0.;
+        return;
+    }
+
+    vec2 volumeSample = texelFetch(uVolume, position, 0).rg;
+    vec4 colorSample = texture(uTransferFunction, volumeSample);
+    float extinction = uExtinction * colorSample.a;
+
+    vec4 left      = texelFetch(uFluenceAndDiffCoeff, position + ivec3(-1,  0,  0), 0);
+    vec4 right     = texelFetch(uFluenceAndDiffCoeff, position + ivec3( 1,  0,  0), 0);
+    vec4 down      = texelFetch(uFluenceAndDiffCoeff, position + ivec3( 0, -1,  0), 0);
+    vec4 up        = texelFetch(uFluenceAndDiffCoeff, position + ivec3( 0,  1,  0), 0);
+    vec4 back      = texelFetch(uFluenceAndDiffCoeff, position + ivec3( 0,  0, -1), 0);
+    vec4 forward   = texelFetch(uFluenceAndDiffCoeff, position + ivec3( 0,  0,  1), 0);
+
+    float DpsLeft =     (left[1] +      diffCoeff) / 2.0;
+    float DpsRight =    (right[1] +     diffCoeff) / 2.0;
+    float DpsDown =     (down[1] +      diffCoeff) / 2.0;
+    float DpsUp =       (up[1] +        diffCoeff) / 2.0;
+    float DpsBack =     (back[1] +      diffCoeff) / 2.0;
+    float DpsForward =  (forward[1] +   diffCoeff) / 2.0;
+
+    float voxelSizeSq = uVoxelSize * uVoxelSize;
+
+    float sum_numerator = DpsLeft * left[0] + DpsRight * right[0] + DpsDown * down[0] +
+    DpsUp * up[0] + DpsBack * back[0] + DpsForward * forward[0];
+    float sum_denominator = DpsLeft + DpsRight + DpsDown + DpsUp + DpsBack + DpsForward;
+    float numerator = emission * voxelSizeSq + sum_numerator;
+    float denominator = (1.0 - uAlbedo) * extinction * voxelSizeSq + sum_denominator;
+
+    float residual = (numerator - fluence * denominator) / voxelSizeSq;
+    oResidual = residual * residual;
 }

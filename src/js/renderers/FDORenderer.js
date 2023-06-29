@@ -216,6 +216,7 @@ export class FDORenderer extends AbstractRenderer {
         this.setLightVolumeDimensions();
         this.setFrameBuffer();
         this.setAccumulationBuffer();
+        this.setResidualBuffer();
         this.setRCBuffer();
         this.resetVolume();
     }
@@ -248,11 +249,22 @@ export class FDORenderer extends AbstractRenderer {
         // console.log(this._accumulationBuffer)
     }
 
+    setResidualBuffer() {
+        this.destroyResidualBuffer();
+        this._residualBuffer = new SingleBuffer3D(this._gl, this._getResidualBufferSpec());
+    }
+
+    destroyResidualBuffer() {
+        if (this._residualBuffer) {
+            this._residualBuffer.destroy();
+        }
+    }
+
     setRCBuffer() {
+        this.destroyRCBuffer();
+
         const gl = this._gl
-        // this.destroyRCBuffer();
-        // this._rcBuffer = new SingleBuffer(this._gl, this._getRCBufferSpec());
-        gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[1]);
+        gl.bindTexture(gl.TEXTURE_3D, this._residualBuffer.getAttachments().color[0]);
         gl.generateMipmap(gl.TEXTURE_3D);
 
         const max_dimension = Math.max(
@@ -262,7 +274,7 @@ export class FDORenderer extends AbstractRenderer {
 
         this._rcBuffer = gl.createFramebuffer();
         gl.bindFramebuffer(gl.FRAMEBUFFER, this._rcBuffer);
-        gl.framebufferTextureLayer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, this._accumulationBuffer.getAttachments().color[1], mipmapLevel, 0);
+        gl.framebufferTextureLayer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, this._residualBuffer.getAttachments().color[0], mipmapLevel, 0);
         const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
         if (status !== gl.FRAMEBUFFER_COMPLETE) {
             throw new Error('Cannot create framebuffer: ' + status);
@@ -403,30 +415,50 @@ export class FDORenderer extends AbstractRenderer {
 
     _computeResidual() {
         const gl = this._gl;
-        //
-        // const { program, uniforms } = this._programs.computeResidual;
-        // gl.useProgram(program);
-        // const dimensions = this._lightVolumeDimensions;
-        //
-        // this._rcBuffer.use();
-        //
-        // gl.activeTexture(gl.TEXTURE0);
-        // gl.bindTexture(gl.TEXTURE_3D, this._frameBuffer.getAttachments().color[0]);
-        //
-        // gl.activeTexture(gl.TEXTURE1);
-        // gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[1]);
-        //
-        // gl.uniform1i(uniforms.uEmission, 0);
-        // gl.uniform1i(uniforms.uResidual, 1);
-        //
-        // gl.uniform3i(uniforms.uSize, dimensions.width, dimensions.height, dimensions.depth);
-        //
-        // gl.drawBuffers([
-        //     gl.COLOR_ATTACHMENT0
-        // ]);
-        //
-        // gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-        //
+
+        const { program, uniforms } = this._programs.computeResidual;
+        gl.useProgram(program);
+
+        for (let i = 0; i < this._lightVolumeDimensions.depth; i++) {
+            this._residualBuffer.use(i);
+
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[0]);
+
+            gl.activeTexture(gl.TEXTURE1);
+            gl.bindTexture(gl.TEXTURE_3D, this._frameBuffer.getAttachments().color[0]);
+
+            gl.activeTexture(gl.TEXTURE2);
+            gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
+            gl.activeTexture(gl.TEXTURE3);
+            gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
+
+            gl.uniform1i(uniforms.uFluence, 0);
+            gl.uniform1i(uniforms.uEmission, 1);
+            gl.uniform1i(uniforms.uVolume, 2);
+            gl.uniform1i(uniforms.uTransferFunction, 3);
+
+            gl.uniform1ui(uniforms.uLayer, i);
+            gl.uniform1f(uniforms.uExtinction, this.extinction);
+            gl.uniform1f(uniforms.uAlbedo, this.albedo);
+            gl.uniform1f(uniforms.uVoxelSize, this.voxelSize);
+
+            gl.drawBuffers([
+                gl.COLOR_ATTACHMENT0
+            ]);
+
+            gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+        }
+
+        this._computeResidualRMS();
+    }
+
+    _computeResidualRMS() {
+        const gl = this._gl;
+
+        gl.bindTexture(gl.TEXTURE_3D, this._residualBuffer.getAttachments().color[0]);
+        gl.generateMipmap(gl.TEXTURE_3D);
+
         gl.bindFramebuffer(gl.FRAMEBUFFER, this._rcBuffer);
         gl.viewport(0, 0, this._width, this._height);
 
@@ -434,12 +466,6 @@ export class FDORenderer extends AbstractRenderer {
         gl.readPixels(0, 0, 1, 1, gl.RED, gl.FLOAT, pixels);
         pixels[0] = Math.sqrt(pixels[0]);
         this.residualHTMLObject.value = pixels[0];
-
-        // console.log("Residual ", pixels[0], " | ", pixels[1])
-        if (pixels[1] < 10e-6 * pixels[0]) {
-            this.done = true;
-            console.log("DONE")
-        }
     }
 
     _integrateFrame() {
@@ -458,8 +484,6 @@ export class FDORenderer extends AbstractRenderer {
 
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[0]);
-            gl.activeTexture(gl.TEXTURE4);
-            gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[1]);
 
             gl.activeTexture(gl.TEXTURE1);
             gl.bindTexture(gl.TEXTURE_3D, this._frameBuffer.getAttachments().color[0]);
@@ -473,7 +497,6 @@ export class FDORenderer extends AbstractRenderer {
             gl.uniform1i(uniforms.uEmission, 1);
             gl.uniform1i(uniforms.uVolume, 2);
             gl.uniform1i(uniforms.uTransferFunction, 3);
-            gl.uniform1i(uniforms.uResidual, 4);
 
             // gl.uniform1f(uniforms.uAbsorptionCoefficient, this.absorptionCoefficient);
             // gl.uniform1f(uniforms.uScatteringCoefficient, this.scatteringCoefficient);
@@ -506,8 +529,6 @@ export class FDORenderer extends AbstractRenderer {
             this.red = 0;
         } else {
             this.red = 1;
-            gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[1]);
-            gl.generateMipmap(gl.TEXTURE_3D);
 
             this._computeResidual();
         }
@@ -597,6 +618,14 @@ export class FDORenderer extends AbstractRenderer {
             storage: true
         };
 
+        return [
+            fluenceBufferSpec,
+        ];
+    }
+
+    _getResidualBufferSpec() {
+        const gl = this._gl;
+
         let residualBufferSpec = {
             target: gl.TEXTURE_3D,
             width: this.volumeDimensions.width,
@@ -611,34 +640,10 @@ export class FDORenderer extends AbstractRenderer {
             wrapS: gl.CLAMP_TO_EDGE,
             wrapT: gl.CLAMP_TO_EDGE,
             wrapR: gl.CLAMP_TO_EDGE,
-            // storage: true
         };
 
         return [
-            fluenceBufferSpec,
-            residualBufferSpec
-        ];
-    }
-
-    _getRCBufferSpec() {
-        const gl = this._gl;
-
-        let rcBufferSpec = {
-            target: gl.TEXTURE_2D,
-            width: 1,
-            height: 1,
-            min: gl.NEAREST,
-            mag: gl.NEAREST,
-            format         : gl.RG,
-            internalFormat : gl.RG32F,
-            type: gl.FLOAT,
-            wrapS: gl.CLAMP_TO_EDGE,
-            wrapT: gl.CLAMP_TO_EDGE,
-            storage: true
-        };
-
-        return [
-            rcBufferSpec,
+            residualBufferSpec,
         ];
     }
 }
