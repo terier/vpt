@@ -110,7 +110,7 @@ export class FDORenderer extends AbstractRenderer {
             {
                 name: 'volume_view',
                 label: 'View',
-                value: 3,
+                value: 2,
                 type: "dropdown",
                 options: [
                     {
@@ -123,12 +123,12 @@ export class FDORenderer extends AbstractRenderer {
                     },
                     {
                         value: 2,
-                        label: "Fluence"
+                        label: "Fluence",
+                        selected: true
                     },
                     {
                         value: 3,
                         label: "Result",
-                        selected: true
                     }
                 ]
             },
@@ -249,13 +249,30 @@ export class FDORenderer extends AbstractRenderer {
     }
 
     setRCBuffer() {
-        this.destroyRCBuffer();
-        this._rcBuffer = new SingleBuffer(this._gl, this._getRCBufferSpec());
+        const gl = this._gl
+        // this.destroyRCBuffer();
+        // this._rcBuffer = new SingleBuffer(this._gl, this._getRCBufferSpec());
+        gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[1]);
+        gl.generateMipmap(gl.TEXTURE_3D);
+
+        const max_dimension = Math.max(
+            this._lightVolumeDimensions.width, this._lightVolumeDimensions.height, this._lightVolumeDimensions.depth);
+
+        const mipmapLevel = Math.floor(Math.log2(max_dimension));
+
+        this._rcBuffer = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this._rcBuffer);
+        gl.framebufferTextureLayer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, this._accumulationBuffer.getAttachments().color[1], mipmapLevel, 0);
+        const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+        if (status !== gl.FRAMEBUFFER_COMPLETE) {
+            throw new Error('Cannot create framebuffer: ' + status);
+        }
     }
 
     destroyRCBuffer() {
+        const gl = this._gl;
         if (this._rcBuffer) {
-            this._rcBuffer.destroy();
+            gl.deleteFramebuffer(this._rcBuffer);
         }
     }
 
@@ -386,33 +403,37 @@ export class FDORenderer extends AbstractRenderer {
 
     _computeResidual() {
         const gl = this._gl;
+        //
+        // const { program, uniforms } = this._programs.computeResidual;
+        // gl.useProgram(program);
+        // const dimensions = this._lightVolumeDimensions;
+        //
+        // this._rcBuffer.use();
+        //
+        // gl.activeTexture(gl.TEXTURE0);
+        // gl.bindTexture(gl.TEXTURE_3D, this._frameBuffer.getAttachments().color[0]);
+        //
+        // gl.activeTexture(gl.TEXTURE1);
+        // gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[1]);
+        //
+        // gl.uniform1i(uniforms.uEmission, 0);
+        // gl.uniform1i(uniforms.uResidual, 1);
+        //
+        // gl.uniform3i(uniforms.uSize, dimensions.width, dimensions.height, dimensions.depth);
+        //
+        // gl.drawBuffers([
+        //     gl.COLOR_ATTACHMENT0
+        // ]);
+        //
+        // gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+        //
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this._rcBuffer);
+        gl.viewport(0, 0, this._width, this._height);
 
-        const { program, uniforms } = this._programs.computeResidual;
-        gl.useProgram(program);
-        const dimensions = this._lightVolumeDimensions;
-
-        this._rcBuffer.use();
-
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_3D, this._frameBuffer.getAttachments().color[0]);
-
-        gl.activeTexture(gl.TEXTURE1);
-        gl.bindTexture(gl.TEXTURE_3D, this._accumulationBuffer.getAttachments().color[1]);
-
-        gl.uniform1i(uniforms.uEmission, 0);
-        gl.uniform1i(uniforms.uResidual, 1);
-
-        gl.uniform3i(uniforms.uSize, dimensions.width, dimensions.height, dimensions.depth);
-
-        gl.drawBuffers([
-            gl.COLOR_ATTACHMENT0
-        ]);
-
-        gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-
-        let pixels = new Float32Array(2); // be careful - allocate memory only once
-        gl.readPixels(0, 0, 1, 1, gl.RG, gl.FLOAT, pixels);
-        this.residualHTMLObject.value = pixels[1];
+        let pixels = new Float32Array(1);
+        gl.readPixels(0, 0, 1, 1, gl.RED, gl.FLOAT, pixels);
+        pixels[0] = Math.sqrt(pixels[0]);
+        this.residualHTMLObject.value = pixels[0];
 
         // console.log("Residual ", pixels[0], " | ", pixels[1])
         if (pixels[1] < 10e-6 * pixels[0]) {
@@ -582,7 +603,7 @@ export class FDORenderer extends AbstractRenderer {
             height: this.volumeDimensions.height,
             depth: this.volumeDimensions.depth,
             // min: gl.LINEAR,
-            min: gl.LINEAR_MIPMAP_NEAREST,
+            min: gl.LINEAR,
             mag: gl.LINEAR,
             format         : gl.RED,
             internalFormat : gl.R32F,
