@@ -212,6 +212,9 @@ void main() {
     ivec3 position = ivec3(gl_FragCoord.x, gl_FragCoord.y, uLayer);
     ivec3 texSize = textureSize(uFluenceAndDiffCoeff, 0);
 
+    float voxelSize = uVoxelSize;
+    // float voxelSize = 1. / float(texSize.x);
+
 //    float max_dimension = float(max(max(uSize[0], uSize[1]), uSize[2]));
 //    int mipmapLevel = int(log2(max_dimension) + 1.0);
 //    float RMS_j = sqrt(texelFetch(uEmission, position, mipmapLevel).g);
@@ -256,7 +259,7 @@ void main() {
         up[0] - down[0],
         forward[0] - back[0]
     );
-    gradient = gradient / (2.0 * uVoxelSize);
+    gradient = gradient / (2.0 * voxelSize);
 
 //    float R = max(length(gradient), uEpsilon * RMS_j) / max(extinction * fluence, uEpsilon * RMS_j);
     float R = max(length(gradient), uEpsilon) / max(extinction * fluence, uEpsilon);
@@ -282,7 +285,7 @@ void main() {
     float DpsBack =     (back[1] +      D) / 2.0;
     float DpsForward =  (forward[1] +   D) / 2.0;
 
-    float voxelSizeSq = uVoxelSize * uVoxelSize;
+    float voxelSizeSq = voxelSize * voxelSize;
 
     float sum_numerator = DpsLeft * left[0] + DpsRight * right[0] + DpsDown * down[0] +
     DpsUp * up[0] + DpsBack * back[0] + DpsForward * forward[0];
@@ -475,14 +478,17 @@ layout (location = 0) out vec2 oFluence;
 void main() {
     vec3 position = vec3(vPosition, uLayer);
 
+    float voxelSize = uVoxelSize;
+    // float voxelSize = 1. / float(uSize.x);
+
     float max_dimension = float(max(max(uSize[0], uSize[1]), uSize[2]));
     float mipmapLevel = log2(max_dimension);
     float RMS_j = sqrt(textureLod(uEmission, position, mipmapLevel).r);
 
-    float fluence = uEpsilon * RMS_j * uVoxelSize;
+    float fluence = uEpsilon * RMS_j * voxelSize;
 
-    // float fluence = uEpsilon * uVoxelSize;
-    float diff_coeff = uEpsilon * uVoxelSize;
+    // float fluence = uEpsilon * voxelSize;
+    float diff_coeff = uEpsilon * voxelSize;
 
     oFluence = vec2(fluence, diff_coeff);
 }
@@ -522,6 +528,9 @@ void main() {
     ivec3 position = ivec3(gl_FragCoord.x, gl_FragCoord.y, uLayer);
     ivec3 texSize = textureSize(uFluenceAndDiffCoeff, 0);
 
+    float voxelSize = uVoxelSize;
+    // float voxelSize = 1. / float(texSize.x);
+
     vec4 fluenceAndDiffCoeff = texelFetch(uFluenceAndDiffCoeff, position, 0);
     float fluence = fluenceAndDiffCoeff.r;
     float diffCoeff = fluenceAndDiffCoeff.g;
@@ -552,7 +561,7 @@ void main() {
     float DpsBack =     (back[1] +      diffCoeff) / 2.0;
     float DpsForward =  (forward[1] +   diffCoeff) / 2.0;
 
-    float voxelSizeSq = uVoxelSize * uVoxelSize;
+    float voxelSizeSq = voxelSize * voxelSize;
 
     float sum_numerator = DpsLeft * left[0] + DpsRight * right[0] + DpsDown * down[0] +
     DpsUp * up[0] + DpsBack * back[0] + DpsForward * forward[0];
