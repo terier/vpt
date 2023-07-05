@@ -149,9 +149,37 @@ export class FDMRenderer extends AbstractRenderer {
                     },
                     {
                         value: 3,
+                        label: "Residual",
+                    },
+                    {
+                        value: 4,
                         label: "Result",
                     }
                 ]
+            },
+            {
+                name: 'cutplaneX',
+                label: 'CutPlane (x)',
+                type: 'slider',
+                value: 0,
+                min: 0,
+                max: 1
+            },
+            {
+                name: 'cutplaneY',
+                label: 'CutPlane (y)',
+                type: 'slider',
+                value: 0,
+                min: 0,
+                max: 1
+            },
+            {
+                name: 'cutplaneZ',
+                label: 'CutPlane (z)',
+                type: 'slider',
+                value: 0,
+                min: 0,
+                max: 1
             },
             {
                 name: 'residual_rms',
@@ -172,6 +200,13 @@ export class FDMRenderer extends AbstractRenderer {
                 type: "button",
             },
             {
+                name: 'renderLevel',
+                label: 'Render Level',
+                type: 'spinner',
+                value: 0,
+                min: 0
+            },
+            {
                 name: 'transferFunction',
                 label: 'Transfer function',
                 type: 'transfer-function',
@@ -188,6 +223,13 @@ export class FDMRenderer extends AbstractRenderer {
 
             if (name === 'nextButton') {
                 this.step = true;
+            }
+
+            if (name === 'renderLevel' && this.grids) {
+                if (this.grids && this.renderLevel > this.grids.length - 1) {
+                    this.renderLevel = this.grids.length - 1;
+                    console.log("Number of grid levels:", this.renderLevel);
+                }
             }
 
             if ([
@@ -211,8 +253,8 @@ export class FDMRenderer extends AbstractRenderer {
         this._programs = WebGL.buildPrograms(gl, SHADERS.renderers.FDM, MIXINS);
         this.red = 1;
 
-        this.nSmooth = 1;
-        this.nSolve = 2;
+        this.nSmooth = 25;
+        this.nSolve = 25;
         this.minGridSize = 2;
 
         this.step = false;
@@ -271,8 +313,13 @@ export class FDMRenderer extends AbstractRenderer {
                 new DoubleBuffer3D(this._gl, this._getAccumulationBufferSpec(
                 gridDimensions.width, gridDimensions.height, gridDimensions.depth));
 
-            let f = new SingleBuffer3D(this._gl, this._getResidualBufferSpec(
-                gridDimensions.width, gridDimensions.height, gridDimensions.depth));
+            // let f = new SingleBuffer3D(this._gl, this._getResidualBufferSpec(
+            //     gridDimensions.width, gridDimensions.height, gridDimensions.depth));
+            let f = gridDimensions.width === this.volumeDimensions.width ?
+                this._frameBuffer :
+                new SingleBuffer3D(this._gl, this._getResidualBufferSpec(
+                    gridDimensions.width, gridDimensions.height, gridDimensions.depth));
+
             let tmp = new SingleBuffer3D(this._gl, this._getResidualBufferSpec(
                 gridDimensions.width, gridDimensions.height, gridDimensions.depth));
             let grid = new Grid(accumulationBuffer, f, tmp, structuredClone(gridDimensions));
@@ -460,11 +507,11 @@ export class FDMRenderer extends AbstractRenderer {
 
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_3D, accumulator.getAttachments().color[0]);
-            gl.activeTexture(gl.TEXTURE4);
-            gl.bindTexture(gl.TEXTURE_3D, f.getAttachments().color[0]);
+            // gl.activeTexture(gl.TEXTURE4);
+            // gl.bindTexture(gl.TEXTURE_3D, f.getAttachments().color[0]);
 
             gl.activeTexture(gl.TEXTURE1);
-            gl.bindTexture(gl.TEXTURE_3D, this._frameBuffer.getAttachments().color[0]);
+            gl.bindTexture(gl.TEXTURE_3D, f.getAttachments().color[0]);
 
             gl.activeTexture(gl.TEXTURE2);
             gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
@@ -475,7 +522,7 @@ export class FDMRenderer extends AbstractRenderer {
             gl.uniform1i(uniforms.uEmission, 1);
             gl.uniform1i(uniforms.uVolume, 2);
             gl.uniform1i(uniforms.uTransferFunction, 3);
-            gl.uniform1i(uniforms.uF, 4);
+            // gl.uniform1i(uniforms.uF, 4);
 
             // gl.uniform1f(uniforms.uAbsorptionCoefficient, this.absorptionCoefficient);
             // gl.uniform1f(uniforms.uScatteringCoefficient, this.scatteringCoefficient);
@@ -521,16 +568,38 @@ export class FDMRenderer extends AbstractRenderer {
         for (let i = 0; i < dimensions.depth; i++) {
             temp.use(i);
 
+            // gl.activeTexture(gl.TEXTURE0);
+            // gl.bindTexture(gl.TEXTURE_3D, accumulator.getAttachments().color[0]);
+            //
+            // gl.activeTexture(gl.TEXTURE1);
+            // gl.bindTexture(gl.TEXTURE_3D, f.getAttachments().color[0]);
+            //
+            // gl.uniform1i(uniforms.uFluence, 0);
+            // gl.uniform1i(uniforms.uF, 1);
+            //
+            // gl.uniform1ui(uniforms.uLayer, i);
+            // gl.uniform3i(uniforms.uSize, dimensions.width, dimensions.height, dimensions.depth);
+
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_3D, accumulator.getAttachments().color[0]);
 
             gl.activeTexture(gl.TEXTURE1);
             gl.bindTexture(gl.TEXTURE_3D, f.getAttachments().color[0]);
 
+            gl.activeTexture(gl.TEXTURE2);
+            gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
+            gl.activeTexture(gl.TEXTURE3);
+            gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
+
             gl.uniform1i(uniforms.uFluence, 0);
-            gl.uniform1i(uniforms.uF, 1);
+            gl.uniform1i(uniforms.uEmission, 1);
+            gl.uniform1i(uniforms.uVolume, 2);
+            gl.uniform1i(uniforms.uTransferFunction, 3);
 
             gl.uniform1ui(uniforms.uLayer, i);
+            gl.uniform1f(uniforms.uExtinction, this.extinction);
+            gl.uniform1f(uniforms.uAlbedo, this.albedo);
+            gl.uniform1f(uniforms.uVoxelSize, this.voxelSize);
             gl.uniform3i(uniforms.uSize, dimensions.width, dimensions.height, dimensions.depth);
 
             gl.drawBuffers([
@@ -639,7 +708,7 @@ export class FDMRenderer extends AbstractRenderer {
         gl.useProgram(program);
 
         // const texture = this._accumulationBuffer.getAttachments().color[0];
-        const texture = this.grids[1].accumulator.getAttachments().color[0];
+        const texture = this.grids[this.renderLevel].accumulator.getAttachments().color[0];
 
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_3D, texture);
@@ -652,15 +721,21 @@ export class FDMRenderer extends AbstractRenderer {
         gl.activeTexture(gl.TEXTURE3);
         gl.bindTexture(gl.TEXTURE_3D, this._frameBuffer.getAttachments().color[0]);
 
+        gl.activeTexture(gl.TEXTURE4);
+        gl.bindTexture(gl.TEXTURE_3D, this.grids[this.renderLevel].f.getAttachments().color[0]);
+
         gl.uniform1i(uniforms.uFluence, 0);
         gl.uniform1i(uniforms.uVolume, 1);
         gl.uniform1i(uniforms.uTransferFunction, 2);
         gl.uniform1i(uniforms.uEmission, 3);
+        gl.uniform1i(uniforms.uResidual, 4);
 
         gl.uniform1f(uniforms.uStepSize, 1 / this.slices);
         gl.uniform1f(uniforms.uExtinction, this.extinction);
         gl.uniform1f(uniforms.uAlbedo, this.albedo);
         gl.uniform1f(uniforms.uOffset, Math.random());
+
+        gl.uniform3f(uniforms.uCutplane, this.cutplaneX, this.cutplaneY, this.cutplaneZ);
 
         gl.uniform1ui(uniforms.uView, volumeView);
 

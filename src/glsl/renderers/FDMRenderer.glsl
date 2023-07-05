@@ -157,7 +157,7 @@ uniform highp sampler3D uResidual;
 uniform highp sampler3D uEmission;
 uniform mediump sampler3D uVolume;
 uniform mediump sampler2D uTransferFunction;
-uniform mediump sampler3D uF;
+// uniform mediump sampler3D uF;
 
 uniform vec3 uStep;
 uniform ivec3 uSize;
@@ -322,11 +322,13 @@ uniform highp sampler3D uFluence;
 uniform mediump sampler3D uVolume;
 uniform mediump sampler2D uTransferFunction;
 uniform highp sampler3D uEmission;
+uniform highp sampler3D uResidual;
 
 uniform float uStepSize;
 uniform float uOffset;
 uniform float uExtinction;
 uniform float uAlbedo;
+uniform vec3 uCutplane;
 uniform uint uView;
 
 in vec3 vRayFrom;
@@ -379,6 +381,7 @@ void main() {
 
         while (t < 1.0 && accumulator.a < 0.99) {
             vec3 position = mix(from, to, t);
+
             // scattering coeff = colorSample.rgb * uExtinction
             vec4 colorSample = sampleVolumeColor(position);
             float emission = textureLod(uEmission, position, 0.).r;
@@ -409,18 +412,27 @@ void main() {
                 factor = fluence;
                 break;
                 case 3u:
+                factor = textureLod(uResidual, position, 0.).r;
+                break;
+                case 4u:
                 float scattering_coeff = colorSample.a * uAlbedo;
                 factor = (emission + scattering_coeff * fluence); // / (4.0 * PI);
                 break;
             }
 
-            colorSample.a *= rayStepLength * uExtinction;
-            colorSample.rgb *= colorSample.a * factor;
+            if (position.x > uCutplane.x && position.y > uCutplane.y && position.z > uCutplane.z) {
+                colorSample.a *= rayStepLength * uExtinction;
+                colorSample.rgb *= colorSample.a * factor;
+                accumulator += (1.0 - accumulator.a) * colorSample;
+            }
+
+//            colorSample.a *= rayStepLength * uExtinction;
+//            colorSample.rgb *= colorSample.a * factor;
 
             // debug
 //            vec4 colorSample = vec4(vec3(fluence), 1);
 
-            accumulator += (1.0 - accumulator.a) * colorSample;
+
             t += uStepSize;
         }
 
@@ -499,27 +511,59 @@ void main() {
 precision highp float;
 
 uniform highp sampler3D uFluenceAndDiffCoeff;
-uniform highp sampler3D uF;
+uniform highp sampler3D uEmission;
+uniform mediump sampler3D uVolume;
+uniform mediump sampler2D uTransferFunction;
 
 in vec2 vPosition;
 
 uniform uint uLayer;
 uniform ivec3 uSize;
+uniform float uExtinction;
+uniform float uAlbedo;
+uniform float uVoxelSize;
 
-layout (location = 0) out float oRC;
+layout (location = 0) out float oResidual;
 
 void main() {
+//    ivec3 position = ivec3(gl_FragCoord.x, gl_FragCoord.y, uLayer);
+//    float h = 1.;
+//
+//    if (position.x <= 0 || position.y <= 0 || position.z <= 0 ||
+//    position.x >= uSize.x - 1 || position.y >= uSize.y - 1 || position.z >= uSize.z - 1) {
+//        oRC = 0.;
+//        return;
+//    }
+//
+//    vec4 c         = texelFetch(uFluenceAndDiffCoeff, position, 0);
+//    vec4 f         = texelFetch(uF, position, 0);
+//    vec4 left      = texelFetch(uFluenceAndDiffCoeff, position + ivec3(-1,  0,  0), 0);
+//    vec4 right     = texelFetch(uFluenceAndDiffCoeff, position + ivec3( 1,  0,  0), 0);
+//    vec4 down      = texelFetch(uFluenceAndDiffCoeff, position + ivec3( 0, -1,  0), 0);
+//    vec4 up        = texelFetch(uFluenceAndDiffCoeff, position + ivec3( 0,  1,  0), 0);
+//    vec4 back      = texelFetch(uFluenceAndDiffCoeff, position + ivec3( 0,  0, -1), 0);
+//    vec4 forward   = texelFetch(uFluenceAndDiffCoeff, position + ivec3( 0,  0,  1), 0);
+//
+//    oResidual = f.r - (left.r + right.r + down.r + up.r + back.r + forward.r - 6. * c.r) / (h*h);
+
     ivec3 position = ivec3(gl_FragCoord.x, gl_FragCoord.y, uLayer);
-    float h = 1.;
+
+    vec4 fluenceAndDiffCoeff = texelFetch(uFluenceAndDiffCoeff, position, 0);
+    float fluence = fluenceAndDiffCoeff.r;
+    float diffCoeff = fluenceAndDiffCoeff.g;
+    float emission = texelFetch(uEmission, position, 0).r;
+
 
     if (position.x <= 0 || position.y <= 0 || position.z <= 0 ||
     position.x >= uSize.x - 1 || position.y >= uSize.y - 1 || position.z >= uSize.z - 1) {
-        oRC = 0.;
+        oResidual = 0.;
         return;
     }
 
-    vec4 c         = texelFetch(uFluenceAndDiffCoeff, position, 0);
-    vec4 f         = texelFetch(uF, position, 0);
+    vec2 volumeSample = texelFetch(uVolume, position, 0).rg;
+    vec4 colorSample = texture(uTransferFunction, volumeSample);
+    float extinction = uExtinction * colorSample.a;
+
     vec4 left      = texelFetch(uFluenceAndDiffCoeff, position + ivec3(-1,  0,  0), 0);
     vec4 right     = texelFetch(uFluenceAndDiffCoeff, position + ivec3( 1,  0,  0), 0);
     vec4 down      = texelFetch(uFluenceAndDiffCoeff, position + ivec3( 0, -1,  0), 0);
@@ -527,7 +571,23 @@ void main() {
     vec4 back      = texelFetch(uFluenceAndDiffCoeff, position + ivec3( 0,  0, -1), 0);
     vec4 forward   = texelFetch(uFluenceAndDiffCoeff, position + ivec3( 0,  0,  1), 0);
 
-    oRC = f.r - (left.r + right.r + down.r + up.r + back.r + forward.r - 6. * c.r) / (h*h);
+    float DpsLeft =     (left[1] +      diffCoeff) / 2.0;
+    float DpsRight =    (right[1] +     diffCoeff) / 2.0;
+    float DpsDown =     (down[1] +      diffCoeff) / 2.0;
+    float DpsUp =       (up[1] +        diffCoeff) / 2.0;
+    float DpsBack =     (back[1] +      diffCoeff) / 2.0;
+    float DpsForward =  (forward[1] +   diffCoeff) / 2.0;
+
+    float voxelSizeSq = uVoxelSize * uVoxelSize;
+
+    float sum_numerator = DpsLeft * left[0] + DpsRight * right[0] + DpsDown * down[0] +
+    DpsUp * up[0] + DpsBack * back[0] + DpsForward * forward[0];
+    float sum_denominator = DpsLeft + DpsRight + DpsDown + DpsUp + DpsBack + DpsForward;
+    float numerator = emission * voxelSizeSq + sum_numerator;
+    float denominator = (1.0 - uAlbedo) * extinction * voxelSizeSq + sum_denominator;
+
+    float residual = (numerator - fluence * denominator) / voxelSizeSq;
+    oResidual = residual * residual;
 }
 
 // #part /glsl/shaders/renderers/FDM/restrict/vertex
