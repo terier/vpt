@@ -182,6 +182,12 @@ export class FDMRenderer extends AbstractRenderer {
                 max: 1
             },
             {
+                name: 'residueDisplay',
+                label: 'Residual+',
+                type: 'spinner',
+                value: 0,
+            },
+            {
                 name: 'residual_rms',
                 label: 'Residual (RMS)',
                 type: 'spinner',
@@ -412,6 +418,7 @@ export class FDMRenderer extends AbstractRenderer {
         this._resetEmissionField();
         // this._initializeGrids();
         if (this.grids) {
+            // this._resetFluence(this.grids[0].accumulator, this.grids[0].size);
             for (const grid of this.grids) {
                 this._resetFluence(grid.accumulator, grid.size)
             }
@@ -491,7 +498,7 @@ export class FDMRenderer extends AbstractRenderer {
 
     _generateFrame() {
     }
-    _smoothing(accumulator, f, dimensions) {
+    _smoothing(accumulator, f, dimensions, top = 0) {
         const gl = this._gl;
 
         if (this.done) {
@@ -539,6 +546,7 @@ export class FDMRenderer extends AbstractRenderer {
             gl.uniform1ui(uniforms.uFluxLimiter, this.fluxLimiter);
             gl.uniform1f(uniforms.uMinExtinction, this.minExtinction);
 
+            gl.uniform1ui(uniforms.uTop, top);
 
             gl.uniform3f(uniforms.uStep, 1 / dimensions.width, 1 / dimensions.height, 1 / dimensions.depth);
             gl.uniform3i(uniforms.uSize, dimensions.width, dimensions.height, dimensions.depth);
@@ -559,7 +567,7 @@ export class FDMRenderer extends AbstractRenderer {
         accumulator.swap();
     }
 
-    _residual(temp, accumulator, f, dimensions) {
+    _residual(temp, accumulator, f, dimensions, top = 0) {
         const gl = this._gl;
 
         const { program, uniforms } = this._programs.computeResidual;
@@ -601,6 +609,8 @@ export class FDMRenderer extends AbstractRenderer {
             gl.uniform1f(uniforms.uAlbedo, this.albedo);
             gl.uniform1f(uniforms.uVoxelSize, this.voxelSize);
             gl.uniform3i(uniforms.uSize, dimensions.width, dimensions.height, dimensions.depth);
+
+            gl.uniform1ui(uniforms.uTop, top);
 
             gl.drawBuffers([
                 gl.COLOR_ATTACHMENT0
@@ -666,16 +676,18 @@ export class FDMRenderer extends AbstractRenderer {
     }
 
     _vCycle(depth) {
+        this.red = 1;
+        let top = depth === 0 ? 1 : 0;
         const fineGrid = this.grids[depth];
         const coarseGrid = this.grids[depth + 1];
 
         // Pre-smoothing
         for (let i = 0; i < this.nSmooth * 2; ++i) {
-            this._smoothing(fineGrid.accumulator, fineGrid.f, fineGrid.size);
+            this._smoothing(fineGrid.accumulator, fineGrid.f, fineGrid.size, top);
         }
 
         // Residual
-        this._residual(fineGrid.temp, fineGrid.accumulator, fineGrid.f, fineGrid.size);
+        this._residual(fineGrid.temp, fineGrid.accumulator, fineGrid.f, fineGrid.size, top);
 
         // Restriction
         this._restriction(fineGrid.temp, coarseGrid.f, coarseGrid.size);
@@ -697,7 +709,7 @@ export class FDMRenderer extends AbstractRenderer {
         // Post-smoothing
         for (let i = 0; i < this.nSmooth * 2; ++i) {
             // Need to reverse local read and write variables
-            this._smoothing(fineGrid.accumulator, fineGrid.f, fineGrid.size);
+            this._smoothing(fineGrid.accumulator, fineGrid.f, fineGrid.size, top);
         }
     }
 
@@ -722,7 +734,7 @@ export class FDMRenderer extends AbstractRenderer {
         gl.bindTexture(gl.TEXTURE_3D, this._frameBuffer.getAttachments().color[0]);
 
         gl.activeTexture(gl.TEXTURE4);
-        gl.bindTexture(gl.TEXTURE_3D, this.grids[this.renderLevel].f.getAttachments().color[0]);
+        gl.bindTexture(gl.TEXTURE_3D, this.grids[this.renderLevel].temp.getAttachments().color[0]);
 
         gl.uniform1i(uniforms.uFluence, 0);
         gl.uniform1i(uniforms.uVolume, 1);
@@ -738,6 +750,8 @@ export class FDMRenderer extends AbstractRenderer {
         gl.uniform3f(uniforms.uCutplane, this.cutplaneX, this.cutplaneY, this.cutplaneZ);
 
         gl.uniform1ui(uniforms.uView, volumeView);
+
+        gl.uniform1f(uniforms.uResidueDisplay, this.residueDisplay);
 
         const mvpit = this.calculateMVPInverseTranspose();
         gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, mvpit.m);

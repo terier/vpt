@@ -174,6 +174,7 @@ uniform uint uRed;
 uniform float uEpsilon;
 uniform uint uFluxLimiter;
 uniform float uMinExtinction;
+uniform uint uTop;
 
 in vec2 vPosition;
 
@@ -219,6 +220,8 @@ void main() {
     float diffCoeff = fluenceAndDiffCoeff.g;
     float emission = texelFetch(uEmission, position, 0).r;
 
+    // float voxelSize = uVoxelSize;
+    float voxelSize = 1. / float(texSize.x);
 
     if (position.x <= 0 || position.y <= 0 || position.z <= 0 ||
     position.x >= texSize.x - 1 || position.y >= texSize.y - 1 || position.z >= texSize.z - 1) {
@@ -248,7 +251,7 @@ void main() {
         up[0] - down[0],
         forward[0] - back[0]
     );
-    gradient = gradient / (2.0 * uVoxelSize);
+    gradient = gradient / (2.0 * voxelSize);
 
 //    float R = max(length(gradient), uEpsilon * RMS_j) / max(extinction * fluence, uEpsilon * RMS_j);
     float R = max(length(gradient), uEpsilon) / max(extinction * fluence, uEpsilon);
@@ -274,13 +277,21 @@ void main() {
     float DpsBack =     (back[1] +      D) / 2.0;
     float DpsForward =  (forward[1] +   D) / 2.0;
 
-    float voxelSizeSq = uVoxelSize * uVoxelSize;
+    float voxelSizeSq = voxelSize * voxelSize;
 
     float sum_numerator = DpsLeft * left[0] + DpsRight * right[0] + DpsDown * down[0] +
     DpsUp * up[0] + DpsBack * back[0] + DpsForward * forward[0];
     float sum_denominator = DpsLeft + DpsRight + DpsDown + DpsUp + DpsBack + DpsForward;
-    float numerator = emission * voxelSizeSq + sum_numerator;
-    float denominator = (1.0 - uAlbedo) * extinction * voxelSizeSq + sum_denominator;
+    float numerator;
+    float denominator;
+    if (uTop == 1u) {
+        numerator = emission * voxelSizeSq + sum_numerator;
+        denominator = (1.0 - uAlbedo) * extinction * voxelSizeSq + sum_denominator;
+    }
+    else {
+        numerator = sum_numerator - emission * voxelSizeSq;
+        denominator = sum_denominator;
+    }
 
     float new_fluence = numerator / denominator;
     new_fluence = uSOR * new_fluence + (1.0 - uSOR) * fluence;
@@ -330,6 +341,8 @@ uniform float uExtinction;
 uniform float uAlbedo;
 uniform vec3 uCutplane;
 uniform uint uView;
+
+uniform float uResidueDisplay;
 
 in vec3 vRayFrom;
 in vec3 vRayTo;
@@ -401,28 +414,32 @@ void main() {
 //            }
 
             float factor = 0.0;
+            colorSample.a *= rayStepLength * uExtinction;
+
             switch (uView) {
                 case 0u:
                 factor = 1.0;
                 break;
                 case 1u:
                 factor = emission;
+                colorSample.rgb *= colorSample.a * factor;
                 break;
                 case 2u:
                 factor = fluence;
+                colorSample.rgb = vec3(factor);
                 break;
                 case 3u:
-                factor = textureLod(uResidual, position, 0.).r;
+                factor = textureLod(uResidual, position, 0.).r + uResidueDisplay;
+                colorSample.rgb = vec3(factor);
                 break;
                 case 4u:
                 float scattering_coeff = colorSample.a * uAlbedo;
                 factor = (emission + scattering_coeff * fluence); // / (4.0 * PI);
+                colorSample.rgb *= colorSample.a * factor;
                 break;
             }
 
             if (position.x > uCutplane.x && position.y > uCutplane.y && position.z > uCutplane.z) {
-                colorSample.a *= rayStepLength * uExtinction;
-                colorSample.rgb *= colorSample.a * factor;
                 accumulator += (1.0 - accumulator.a) * colorSample;
             }
 
@@ -468,7 +485,7 @@ uniform highp sampler3D uEmission;
 in vec2 vPosition;
 
 uniform vec3 uStep;
-uniform uvec3 uSize;
+uniform ivec3 uSize;
 uniform float uEpsilon;
 uniform float uVoxelSize;
 uniform float uLayer;
@@ -485,8 +502,11 @@ void main() {
 
 //    float fluence = uEpsilon * RMS_j * uVoxelSize;
 
-    float fluence = uEpsilon * uVoxelSize;
-    float diff_coeff = uEpsilon * uVoxelSize;
+    // float voxelSize = uVoxelSize;
+    float voxelSize = 1. / float(uSize.x);
+
+    float fluence = uEpsilon * voxelSize;
+    float diff_coeff = uEpsilon * voxelSize;
 
     float source = 1.0;
 
@@ -523,6 +543,8 @@ uniform float uExtinction;
 uniform float uAlbedo;
 uniform float uVoxelSize;
 
+uniform uint uTop;
+
 layout (location = 0) out float oResidual;
 
 void main() {
@@ -547,6 +569,9 @@ void main() {
 //    oResidual = f.r - (left.r + right.r + down.r + up.r + back.r + forward.r - 6. * c.r) / (h*h);
 
     ivec3 position = ivec3(gl_FragCoord.x, gl_FragCoord.y, uLayer);
+
+    // float voxelSize = uVoxelSize;
+    float voxelSize = 1. / float(uSize.x);
 
     vec4 fluenceAndDiffCoeff = texelFetch(uFluenceAndDiffCoeff, position, 0);
     float fluence = fluenceAndDiffCoeff.r;
@@ -578,16 +603,22 @@ void main() {
     float DpsBack =     (back[1] +      diffCoeff) / 2.0;
     float DpsForward =  (forward[1] +   diffCoeff) / 2.0;
 
-    float voxelSizeSq = uVoxelSize * uVoxelSize;
+    float voxelSizeSq = voxelSize * voxelSize;
 
     float sum_numerator = DpsLeft * left[0] + DpsRight * right[0] + DpsDown * down[0] +
     DpsUp * up[0] + DpsBack * back[0] + DpsForward * forward[0];
     float sum_denominator = DpsLeft + DpsRight + DpsDown + DpsUp + DpsBack + DpsForward;
-    float numerator = emission * voxelSizeSq + sum_numerator;
-    float denominator = (1.0 - uAlbedo) * extinction * voxelSizeSq + sum_denominator;
 
-    float residual = (numerator - fluence * denominator) / voxelSizeSq;
-    oResidual = residual * residual;
+    float residual;
+    if (uTop == 1u) {
+        residual = ((1.0 - uAlbedo) * extinction * fluence - emission) - ((sum_numerator - fluence * sum_denominator) / voxelSizeSq);
+        // residual = ((sum_numerator - fluence * sum_denominator) / voxelSizeSq) - ((1.0 - uAlbedo) * extinction * fluence - emission);
+    }
+    else {
+        residual = emission - ((sum_numerator - fluence * sum_denominator) / voxelSizeSq);
+    }
+
+    oResidual = residual;
 }
 
 // #part /glsl/shaders/renderers/FDM/restrict/vertex
