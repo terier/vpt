@@ -10,10 +10,11 @@ const [ SHADERS, MIXINS ] = await Promise.all([
 ].map(url => fetch(url).then(response => response.json())));
 
 class Grid {
-    constructor(accumulator, f, temp, size) {
+    constructor(accumulator, f, temp, residual, size) {
         this.accumulator = accumulator;
         this.f = f;
         this.temp = temp;
+        this.residual = residual;
         this.size = size;
     }
 
@@ -153,6 +154,10 @@ export class FDMRenderer extends AbstractRenderer {
                     },
                     {
                         value: 4,
+                        label: "Error",
+                    },
+                    {
+                        value: 5,
                         label: "Result",
                     }
                 ]
@@ -259,9 +264,9 @@ export class FDMRenderer extends AbstractRenderer {
         this._programs = WebGL.buildPrograms(gl, SHADERS.renderers.FDM, MIXINS);
         this.red = 1;
 
-        this.nSmooth = 25;
-        this.nSolve = 25;
-        this.minGridSize = 2;
+        this.nSmooth = 2;
+        this.nSolve = 2;
+        this.minGridSize = 5;
 
         this.step = false;
     }
@@ -326,9 +331,14 @@ export class FDMRenderer extends AbstractRenderer {
                 new SingleBuffer3D(this._gl, this._getResidualBufferSpec(
                     gridDimensions.width, gridDimensions.height, gridDimensions.depth));
 
-            let tmp = new SingleBuffer3D(this._gl, this._getResidualBufferSpec(
+            let tmp = null;
+            if (gridDimensions.width !== this.volumeDimensions.width)
+                tmp = new SingleBuffer3D(this._gl, this._getResidualBufferSpec(
+                    gridDimensions.width, gridDimensions.height, gridDimensions.depth));
+
+            let residual = new SingleBuffer3D(this._gl, this._getResidualBufferSpec(
                 gridDimensions.width, gridDimensions.height, gridDimensions.depth));
-            let grid = new Grid(accumulationBuffer, f, tmp, structuredClone(gridDimensions));
+            let grid = new Grid(accumulationBuffer, f, tmp, residual, structuredClone(gridDimensions));
 
             this.grids.push(grid);
 
@@ -567,14 +577,14 @@ export class FDMRenderer extends AbstractRenderer {
         accumulator.swap();
     }
 
-    _residual(temp, accumulator, f, dimensions, top = 0) {
+    _residual(residual, accumulator, f, dimensions, top = 0) {
         const gl = this._gl;
 
         const { program, uniforms } = this._programs.computeResidual;
         gl.useProgram(program);
 
         for (let i = 0; i < dimensions.depth; i++) {
-            temp.use(i);
+            residual.use(i);
 
             // gl.activeTexture(gl.TEXTURE0);
             // gl.bindTexture(gl.TEXTURE_3D, accumulator.getAttachments().color[0]);
@@ -620,7 +630,7 @@ export class FDMRenderer extends AbstractRenderer {
         }
     }
 
-    _restriction(temp, fCoarse, dimensions) {
+    _restriction(residual, fCoarse, dimensions) {
         const gl = this._gl;
 
         const { program, uniforms } = this._programs.restrict;
@@ -630,7 +640,7 @@ export class FDMRenderer extends AbstractRenderer {
             fCoarse.use(i);
 
             gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_3D, temp.getAttachments().color[0]);
+            gl.bindTexture(gl.TEXTURE_3D, residual.getAttachments().color[0]);
 
             gl.uniform1i(uniforms.uTmp, 0);
 
@@ -674,6 +684,65 @@ export class FDMRenderer extends AbstractRenderer {
             gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
         }
     }
+    _augmentF(f, residual, accumulationUp, dimensions) {
+        const gl = this._gl;
+
+        const { program, uniforms } = this._programs.augmentF;
+        gl.useProgram(program);
+
+        for (let i = 0; i < dimensions.depth; i++) {
+            f.use(i);
+
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_3D, accumulationUp.getAttachments().color[0]);
+
+            gl.activeTexture(gl.TEXTURE1);
+            gl.bindTexture(gl.TEXTURE_3D, residual.getAttachments().color[0]);
+
+            gl.uniform1i(uniforms.uFluenceAndDiffCoeff, 0);
+            gl.uniform1i(uniforms.uResidual, 1);
+
+            gl.uniform1f(uniforms.uLayerRelative, (i + 0.5) / dimensions.depth);
+            gl.uniform3f(uniforms.uStep, 1 / dimensions.width, 1 / dimensions.height, 1 / dimensions.depth);
+            gl.uniform3i(uniforms.uSize, dimensions.width, dimensions.height, dimensions.depth);
+            gl.uniform1f(uniforms.uVoxelSize, this.voxelSize);
+
+            gl.drawBuffers([
+                gl.COLOR_ATTACHMENT0
+            ]);
+
+            gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+        }
+    }
+
+    _computeError(error, solution, solutionUp, dimensions) {
+        const gl = this._gl;
+
+        const { program, uniforms } = this._programs.computeError;
+        gl.useProgram(program);
+
+        for (let i = 0; i < dimensions.depth; i++) {
+            error.use(i);
+
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_3D, solution.getAttachments().color[0]);
+
+            gl.activeTexture(gl.TEXTURE1);
+            gl.bindTexture(gl.TEXTURE_3D, solutionUp.getAttachments().color[0]);
+
+            gl.uniform1i(uniforms.uSolution, 0);
+            gl.uniform1i(uniforms.uSolutionUp, 1);
+
+            gl.uniform1f(uniforms.uLayerRelative, (i + 0.5) / dimensions.depth);
+            gl.uniform3f(uniforms.uStep, 1 / dimensions.width, 1 / dimensions.height, 1 / dimensions.depth);
+
+            gl.drawBuffers([
+                gl.COLOR_ATTACHMENT0
+            ]);
+
+            gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+        }
+    }
 
     _vCycle(depth) {
         this.red = 1;
@@ -687,10 +756,13 @@ export class FDMRenderer extends AbstractRenderer {
         }
 
         // Residual
-        this._residual(fineGrid.temp, fineGrid.accumulator, fineGrid.f, fineGrid.size, top);
+        this._residual(fineGrid.residual, fineGrid.accumulator, fineGrid.f, fineGrid.size, top);
 
         // Restriction
-        this._restriction(fineGrid.temp, coarseGrid.f, coarseGrid.size);
+        this._restriction(fineGrid.residual, coarseGrid.temp, coarseGrid.size);
+
+        // Compute coarse F (FAS)
+        this._augmentF(coarseGrid.f, fineGrid.accumulator, coarseGrid.temp, coarseGrid.size);
 
         // Recursion or direct solver
         if (depth + 2 >= this.grids.length) {
@@ -701,8 +773,11 @@ export class FDMRenderer extends AbstractRenderer {
             this._vCycle(depth + 1);
         }
 
+        // Compute coarse grid error (FAS)
+        this._computeError(coarseGrid.temp, coarseGrid.accumulator, fineGrid.accumulator, coarseGrid.size);
+
         // Prolongation and correction
-        this._correction(fineGrid.accumulator, coarseGrid.accumulator, fineGrid.size);
+        this._correction(fineGrid.accumulator, coarseGrid.temp, fineGrid.size);
 
         fineGrid.accumulator.swap();
 
@@ -734,13 +809,20 @@ export class FDMRenderer extends AbstractRenderer {
         gl.bindTexture(gl.TEXTURE_3D, this._frameBuffer.getAttachments().color[0]);
 
         gl.activeTexture(gl.TEXTURE4);
-        gl.bindTexture(gl.TEXTURE_3D, this.grids[this.renderLevel].temp.getAttachments().color[0]);
+        gl.bindTexture(gl.TEXTURE_3D, this.grids[this.renderLevel].residual.getAttachments().color[0]);
+
+        if (this.renderLevel > 0) {
+            gl.activeTexture(gl.TEXTURE5);
+            gl.bindTexture(gl.TEXTURE_3D, this.grids[this.renderLevel].temp.getAttachments().color[0]);
+        }
+
 
         gl.uniform1i(uniforms.uFluence, 0);
         gl.uniform1i(uniforms.uVolume, 1);
         gl.uniform1i(uniforms.uTransferFunction, 2);
         gl.uniform1i(uniforms.uEmission, 3);
         gl.uniform1i(uniforms.uResidual, 4);
+        gl.uniform1i(uniforms.uError, 5);
 
         gl.uniform1f(uniforms.uStepSize, 1 / this.slices);
         gl.uniform1f(uniforms.uExtinction, this.extinction);
@@ -750,8 +832,6 @@ export class FDMRenderer extends AbstractRenderer {
         gl.uniform3f(uniforms.uCutplane, this.cutplaneX, this.cutplaneY, this.cutplaneZ);
 
         gl.uniform1ui(uniforms.uView, volumeView);
-
-        gl.uniform1f(uniforms.uResidueDisplay, this.residueDisplay);
 
         const mvpit = this.calculateMVPInverseTranspose();
         gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, mvpit.m);
