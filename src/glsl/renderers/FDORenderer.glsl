@@ -175,7 +175,7 @@ uniform float uMinExtinction;
 
 in vec2 vPosition;
 
-layout (location = 0) out vec2 oFluence;
+layout (location = 0) out vec4 oFluence;
 
 float flux_sum(float R) {
     return 1.0 / (3.0 + R);
@@ -233,13 +233,13 @@ void main() {
 
     if (position.x <= 0 || position.y <= 0 || position.z <= 0 ||
     position.x >= texSize.x - 1 || position.y >= texSize.y - 1 || position.z >= texSize.z - 1) {
-        oFluence = fluenceAndDiffCoeff.rg;
+        oFluence = fluenceAndDiffCoeff.rgba;
         return;
     }
 
     int texelConsecutiveNumber = position.x + position.y + position.z;
-    if ((uRed == 1u && texelConsecutiveNumber % 2 == 0) && (uRed == 0u && texelConsecutiveNumber % 2 == 1)) {
-        oFluence = fluenceAndDiffCoeff.rg;
+    if ((uRed == 1u && texelConsecutiveNumber % 2 == 0) || (uRed == 0u && texelConsecutiveNumber % 2 == 1)) {
+        oFluence = fluenceAndDiffCoeff.rgba;
         return;
     }
 
@@ -291,13 +291,13 @@ void main() {
     DpsUp * up[0] + DpsBack * back[0] + DpsForward * forward[0];
     float sum_denominator = DpsLeft + DpsRight + DpsDown + DpsUp + DpsBack + DpsForward;
     float numerator = emission * voxelSizeSq + sum_numerator;
-    float denominator = (1.0 - uAlbedo) * extinction * voxelSizeSq + sum_denominator;
+    float denominator = (1.0 - uAlbedo) * max(extinction, uMinExtinction) * voxelSizeSq + sum_denominator;
 
     float new_fluence = numerator / denominator;
     new_fluence = uSOR * new_fluence + (1.0 - uSOR) * fluence;
-    new_fluence = clamp(new_fluence, 0.0, 1.0);
+    // new_fluence = clamp(new_fluence, 0.0, 10000000.0);
 
-    oFluence = vec2(new_fluence, D);
+    oFluence = vec4(new_fluence, D, sum_numerator, sum_denominator);
 }
 
 // #part /glsl/shaders/renderers/FDO/render/vertex
@@ -333,12 +333,15 @@ uniform highp sampler3D uFluence;
 uniform mediump sampler3D uVolume;
 uniform mediump sampler2D uTransferFunction;
 uniform highp sampler3D uEmission;
+uniform highp sampler3D uResidual;
 
 uniform float uStepSize;
 uniform float uOffset;
 uniform float uExtinction;
 uniform float uAlbedo;
 uniform uint uView;
+
+uniform vec3 uCutplane;
 
 in vec3 vRayFrom;
 in vec3 vRayTo;
@@ -378,8 +381,8 @@ void main() {
 //    return;
 
     if (tbounds.x >= tbounds.y) {
-        oColor = vec4(0, 0, 0, 1);
-//        oColor = vec4(1, 1, 1, 1);
+       //  oColor = vec4(0, 0, 0, 1);
+        oColor = vec4(1, 1, 1, 1);
     } else {
         vec3 from = mix(vRayFrom, vRayTo, tbounds.x);
         vec3 to = mix(vRayFrom, vRayTo, tbounds.y);
@@ -393,7 +396,8 @@ void main() {
             // scattering coeff = colorSample.rgb * uExtinction
             vec4 colorSample = sampleVolumeColor(position);
             float emission = textureLod(uEmission, position, 0.).r;
-            float fluence = textureLod(uFluence, position, 0.).r;
+            vec4 fluenceAndDiff = textureLod(uFluence, position, 0.);
+            float fluence = fluenceAndDiff.r;
 //            vec3 factor = vec3(0.0);
 //            switch (uView) {
 //                case 1u:
@@ -409,29 +413,67 @@ void main() {
 //            }
 
             float factor = 0.0;
+            colorSample.a *= rayStepLength * uExtinction;
+
             switch (uView) {
                 case 0u:
                 factor = 1.0;
+                colorSample.rgb *= colorSample.a * factor;
                 break;
                 case 1u:
                 factor = emission;
+                colorSample.rgb *= colorSample.a * factor;
                 break;
                 case 2u:
                 factor = fluence;
+                if (isnan(factor) || isinf(factor)) {
+                    colorSample.rgb = vec3(1,0,0) * rayStepLength * uExtinction;
+                }
+                else {
+                    colorSample.rgb = vec3(factor) * rayStepLength * uExtinction;
+                }
                 break;
                 case 3u:
-                float scattering_coeff = colorSample.a * uAlbedo;
+                factor = fluenceAndDiff.g;
+                if (isnan(factor) || isinf(factor)) {
+                    colorSample.rgb = vec3(1,0,0) * rayStepLength * uExtinction;
+                }
+                else {
+                    colorSample.rgb = vec3(factor) * rayStepLength * uExtinction;
+                }
+                break;
+                case 4u:
+                float residual = textureLod(uResidual, position, 0.).r;
+                factor = residual;
+                if (isnan(factor) || isinf(factor)) {
+                    colorSample.rgb = vec3(1,0,0) * rayStepLength * uExtinction;
+                }
+                else {
+                    colorSample.rgb = vec3(factor) * rayStepLength * uExtinction;
+                }
+                break;
+                case 5u:
+                factor = fluenceAndDiff.b / 1000.;
+                colorSample.rgb = vec3(factor) * rayStepLength * uExtinction;
+                break;
+                case 6u:
+                factor = fluenceAndDiff.a / 1000.;
+                colorSample.rgb = vec3(factor) * rayStepLength * uExtinction;
+                break;
+                case 7u:
+                float scattering_coeff = rayStepLength * uExtinction * uAlbedo;
                 factor = (emission + scattering_coeff * fluence); // / (4.0 * PI);
+                colorSample.rgb *= colorSample.a * factor;
                 break;
             }
 
-            colorSample.a *= rayStepLength * uExtinction;
-            colorSample.rgb *= colorSample.a * factor;
 
             // debug
 //            vec4 colorSample = vec4(vec3(fluence), 1);
+            if (position.x > uCutplane.x && position.y > uCutplane.y && position.z > uCutplane.z) {
+                accumulator += (1.0 - accumulator.a) * colorSample;
+            }
 
-            accumulator += (1.0 - accumulator.a) * colorSample;
             t += uStepSize;
         }
 
@@ -490,7 +532,7 @@ void main() {
     // float fluence = uEpsilon * voxelSize;
     float diff_coeff = uEpsilon * voxelSize;
 
-    oFluence = vec2(fluence, diff_coeff);
+    oFluence = vec2(0, 0);
 }
 
 // #part /glsl/shaders/renderers/FDO/computeResidual/vertex
@@ -519,6 +561,7 @@ uniform uint uLayer;
 uniform float uExtinction;
 uniform float uAlbedo;
 uniform float uVoxelSize;
+uniform float uMinExtinction;
 
 in vec2 vPosition;
 
@@ -567,7 +610,7 @@ void main() {
     DpsUp * up[0] + DpsBack * back[0] + DpsForward * forward[0];
     float sum_denominator = DpsLeft + DpsRight + DpsDown + DpsUp + DpsBack + DpsForward;
     float numerator = emission * voxelSizeSq + sum_numerator;
-    float denominator = (1.0 - uAlbedo) * extinction * voxelSizeSq + sum_denominator;
+    float denominator = (1.0 - uAlbedo) * max(extinction, uMinExtinction) * voxelSizeSq + sum_denominator;
 
     float residual = (numerator - fluence * denominator) / voxelSizeSq;
     oResidual = residual * residual;

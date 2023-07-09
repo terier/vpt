@@ -22,10 +22,17 @@ export class FDORenderer extends AbstractRenderer {
                 min: 0,
             },
             {
+                name: 'extinctionFLD',
+                label: 'Extinction (FLD)',
+                type: 'spinner',
+                value: 100,
+                min: 0,
+            },
+            {
                 name: 'albedo',
                 label: 'Albedo',
                 type: 'spinner',
-                value: 1,
+                value: 0.9,
                 min: 0,
                 max: 1
             },
@@ -62,9 +69,7 @@ export class FDORenderer extends AbstractRenderer {
                 name: 'voxelSize',
                 label: 'Voxel Size',
                 type: 'spinner',
-                value: 1,
-                min: 0.1,
-                max: 2
+                value: 0.05
             },
             {
                 name: 'epsilon',
@@ -110,7 +115,7 @@ export class FDORenderer extends AbstractRenderer {
             {
                 name: 'volume_view',
                 label: 'View',
-                value: 2,
+                value: 3,
                 type: "dropdown",
                 options: [
                     {
@@ -124,19 +129,71 @@ export class FDORenderer extends AbstractRenderer {
                     {
                         value: 2,
                         label: "Fluence",
-                        selected: true
                     },
                     {
                         value: 3,
+                        label: "Flux",
+                        selected: true
+                    },
+                    {
+                        value: 4,
+                        label: "Residual",
+                    },
+                    {
+                        value: 5,
+                        label: "sum_numerator",
+                    },
+                    {
+                        value: 6,
+                        label: "sum_denominator",
+                    },
+                    {
+                        value: 7,
                         label: "Result",
                     }
                 ]
+            },
+            {
+                name: 'cutplaneX',
+                label: 'CutPlane (x)',
+                type: 'slider',
+                value: 0,
+                min: 0,
+                max: 1
+            },
+            {
+                name: 'cutplaneY',
+                label: 'CutPlane (y)',
+                type: 'slider',
+                value: 0,
+                min: 0,
+                max: 1
+            },
+            {
+                name: 'cutplaneZ',
+                label: 'CutPlane (z)',
+                type: 'slider',
+                value: 0,
+                min: 0,
+                max: 1
             },
             {
                 name: 'residual_rms',
                 label: 'Residual (RMS)',
                 type: 'spinner',
                 value: 0,
+            },
+            {
+                name: 'step_by_step_enabled',
+                label: 'Step-by-step',
+                type: "checkbox",
+                value: true,
+                checked: true,
+            },
+            {
+                name: 'nextButton',
+                label: 'Next Step',
+                type: "button",
             },
             {
                 name: 'transferFunction',
@@ -153,8 +210,12 @@ export class FDORenderer extends AbstractRenderer {
                 this.setTransferFunction(this.transferFunction);
             }
 
+            if (name === 'nextButton') {
+                this.step = true;
+            }
+
             if ([
-                'extinction',
+                'extinctionFLD',
                 'light',
                 'voxelSize',
                 'lightVolumeRatio',
@@ -306,9 +367,13 @@ export class FDORenderer extends AbstractRenderer {
         this._frameBuffer.use();
         this._generateFrame();
 
-        this._accumulationBuffer.use();
-        this._integrateFrame();
-        this._accumulationBuffer.swap();
+        if (!this.step_by_step_enabled || this.step) {
+            this._accumulationBuffer.use();
+            this._integrateFrame();
+            this._accumulationBuffer.swap();
+            this.step = false;
+        }
+
 
         this._renderBuffer.use();
         this._renderFrame(this._transferFunction, this.volume_view);
@@ -439,9 +504,11 @@ export class FDORenderer extends AbstractRenderer {
             gl.uniform1i(uniforms.uTransferFunction, 3);
 
             gl.uniform1ui(uniforms.uLayer, i);
-            gl.uniform1f(uniforms.uExtinction, this.extinction);
+            gl.uniform1f(uniforms.uExtinction, this.extinctionFLD);
             gl.uniform1f(uniforms.uAlbedo, this.albedo);
             gl.uniform1f(uniforms.uVoxelSize, this.voxelSize);
+            gl.uniform1f(uniforms.uMinExtinction, this.minExtinction);
+
 
             gl.drawBuffers([
                 gl.COLOR_ATTACHMENT0
@@ -500,7 +567,7 @@ export class FDORenderer extends AbstractRenderer {
 
             // gl.uniform1f(uniforms.uAbsorptionCoefficient, this.absorptionCoefficient);
             // gl.uniform1f(uniforms.uScatteringCoefficient, this.scatteringCoefficient);
-            gl.uniform1f(uniforms.uExtinction, this.extinction);
+            gl.uniform1f(uniforms.uExtinction, this.extinctionFLD);
             gl.uniform1f(uniforms.uAlbedo, this.albedo);
             gl.uniform1ui(uniforms.uLayer, i);
             gl.uniform1f(uniforms.uLayerRelative, (i + 0.5) / this._lightVolumeDimensions.depth);
@@ -551,10 +618,14 @@ export class FDORenderer extends AbstractRenderer {
         gl.activeTexture(gl.TEXTURE3);
         gl.bindTexture(gl.TEXTURE_3D, this._frameBuffer.getAttachments().color[0]);
 
+        gl.activeTexture(gl.TEXTURE4);
+        gl.bindTexture(gl.TEXTURE_3D, this._residualBuffer.getAttachments().color[0]);
+
         gl.uniform1i(uniforms.uFluence, 0);
         gl.uniform1i(uniforms.uVolume, 1);
         gl.uniform1i(uniforms.uTransferFunction, 2);
         gl.uniform1i(uniforms.uEmission, 3);
+        gl.uniform1i(uniforms.uResidual, 4);
 
         gl.uniform1f(uniforms.uStepSize, 1 / this.slices);
         gl.uniform1f(uniforms.uExtinction, this.extinction);
@@ -562,6 +633,8 @@ export class FDORenderer extends AbstractRenderer {
         gl.uniform1f(uniforms.uOffset, Math.random());
 
         gl.uniform1ui(uniforms.uView, volumeView);
+
+        gl.uniform3f(uniforms.uCutplane, this.cutplaneX, this.cutplaneY, this.cutplaneZ);
 
         const mvpit = this.calculateMVPInverseTranspose();
         gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, mvpit.m);
@@ -607,10 +680,10 @@ export class FDORenderer extends AbstractRenderer {
             mag: gl.LINEAR,
             // format         : gl.RED,
             // internalFormat : gl.R32F,
-            format: gl.RG,
-            internalFormat: gl.RG32F,
-            // format         : gl.RGBA,
-            // internalFormat : gl.RGBA32F,
+            // format: gl.RG,
+            // internalFormat: gl.RG32F,
+            format         : gl.RGBA,
+            internalFormat : gl.RGBA32F,
             type: gl.FLOAT,
             wrapS: gl.CLAMP_TO_EDGE,
             wrapT: gl.CLAMP_TO_EDGE,
