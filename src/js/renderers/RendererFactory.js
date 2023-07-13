@@ -5,6 +5,7 @@ import { MCSRenderer } from './MCSRenderer.js';
 import { MCMRenderer } from './MCMRenderer.js';
 import { DOSRenderer } from './DOSRenderer.js';
 import { FLDRenderer } from './FLDRenderer.js';
+import { DIFRenderer } from './DIFRenderer.js';
 import { FDORenderer } from './FDORenderer.js';
 import { FDMRenderer } from './FDMRenderer.js';
 
@@ -17,6 +18,7 @@ export function RendererFactory(which) {
         case 'mcm': return MCMRenderer;
         case 'dos': return DOSRenderer;
         case 'fld': return FLDRenderer;
+        case 'dif': return DIFRenderer;
         case 'fdo': return FDORenderer;
         case 'fdm': return FDMRenderer;
 

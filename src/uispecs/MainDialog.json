@@ -69,6 +69,10 @@
                             },
                             {
                               "selected": true,
+                              "value": "dif",
+                              "label": "Flux-unlimited Diffusion"
+                            },
+                            {
                               "value": "fdo",
                               "label": "Flux-Limited Diffusion (Original)"
                             },

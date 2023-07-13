@@ -9,7 +9,7 @@ const [ SHADERS, MIXINS ] = await Promise.all([
     'mixins.json',
 ].map(url => fetch(url).then(response => response.json())));
 
-export class FDORenderer extends AbstractRenderer {
+export class DIFRenderer extends AbstractRenderer {
     constructor(gl, volume, environmentTexture, options) {
         super(gl, volume, environmentTexture, options);
 
@@ -83,39 +83,14 @@ export class FDORenderer extends AbstractRenderer {
                 name: 'minExtinction',
                 label: 'Min. Extinction',
                 type: 'spinner',
-                value: 10e-6,
+                value: 10e-5,
                 min: 0,
                 max: 1
             },
             {
-                name: 'fluxLimiter',
-                label: 'Flux Limiter',
-                type: "dropdown",
-                value: 2,
-                options: [
-                    {
-                        value: 0,
-                        label: "Sum"
-                    },
-                    {
-                        value: 1,
-                        label: "Max"
-                    },
-                    {
-                        value: 2,
-                        label: "Kershaw",
-                        selected: true
-                    },
-                    {
-                        value: 3,
-                        label: "Levermore–Pomraning"
-                    }
-                ]
-            },
-            {
                 name: 'volume_view',
                 label: 'View',
-                value: 3,
+                value: 2,
                 type: "dropdown",
                 options: [
                     {
@@ -129,11 +104,11 @@ export class FDORenderer extends AbstractRenderer {
                     {
                         value: 2,
                         label: "Fluence",
+                        selected: true
                     },
                     {
                         value: 3,
-                        label: "Flux",
-                        selected: true
+                        label: "Diff. Coefficient",
                     },
                     {
                         value: 4,
@@ -141,14 +116,6 @@ export class FDORenderer extends AbstractRenderer {
                     },
                     {
                         value: 5,
-                        label: "sum_numerator",
-                    },
-                    {
-                        value: 6,
-                        label: "sum_denominator",
-                    },
-                    {
-                        value: 7,
                         label: "Result",
                     }
                 ]
@@ -232,7 +199,7 @@ export class FDORenderer extends AbstractRenderer {
             }
         });
 
-        this._programs = WebGL.buildPrograms(gl, SHADERS.renderers.FDO, MIXINS);
+        this._programs = WebGL.buildPrograms(gl, SHADERS.renderers.DIF, MIXINS);
         this.red = 1;
     }
 
@@ -413,9 +380,9 @@ export class FDORenderer extends AbstractRenderer {
 
         for (let i = 0; i < this._lightVolumeDimensions.depth; i++) {
             this._accumulationBuffer.use(i);
+
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_3D, this._frameBuffer.getAttachments().color[0]);
-
             gl.activeTexture(gl.TEXTURE1);
             gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
             gl.activeTexture(gl.TEXTURE2);
@@ -428,6 +395,9 @@ export class FDORenderer extends AbstractRenderer {
 
             gl.uniform1f(uniforms.uVoxelSize, this.voxelSize);
             gl.uniform1f(uniforms.uEpsilon, this.epsilon);
+
+            gl.uniform1f(uniforms.uExtinction, this.extinctionFLD);
+            gl.uniform1f(uniforms.uMinExtinction, this.minExtinction);
 
             gl.uniform3f(uniforms.uLight, this.light.x, this.light.y, this.light.z);
 
