@@ -69,7 +69,7 @@ export class FDORenderer extends AbstractRenderer {
                 name: 'voxelSize',
                 label: 'Voxel Size',
                 type: 'spinner',
-                value: 0.05
+                value: 1
             },
             {
                 name: 'epsilon',
@@ -465,6 +465,8 @@ export class FDORenderer extends AbstractRenderer {
             gl.uniform1f(uniforms.uStepSize, 1 / this.slices);
             gl.uniform1f(uniforms.uExtinction, this.extinction);
             gl.uniform3f(uniforms.uLight, this.light.x, this.light.y, this.light.z);
+
+            gl.uniform1f(uniforms.uAlbedo, this.albedo);
 
             gl.drawBuffers([
                 gl.COLOR_ATTACHMENT0
