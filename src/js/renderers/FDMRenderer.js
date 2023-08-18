@@ -10,12 +10,14 @@ const [ SHADERS, MIXINS ] = await Promise.all([
 ].map(url => fetch(url).then(response => response.json())));
 
 class Grid {
-    constructor(accumulator, f, temp, residual, size) {
+    constructor(accumulator, f, temp, residual, size, depth) {
         this.accumulator = accumulator;
         this.f = f;
         this.temp = temp;
         this.residual = residual;
         this.size = size;
+        this.depth = depth;
+        this.done = false;
     }
 
     destroy() {
@@ -47,7 +49,7 @@ export class FDMRenderer extends AbstractRenderer {
                 name: 'albedo',
                 label: 'Albedo',
                 type: 'spinner',
-                value: 1,
+                value: 0.9,
                 min: 0,
                 max: 1
             },
@@ -85,8 +87,6 @@ export class FDMRenderer extends AbstractRenderer {
                 label: 'Voxel Size',
                 type: 'spinner',
                 value: 1,
-                min: 0.1,
-                max: 2
             },
             {
                 name: 'epsilon',
@@ -100,9 +100,30 @@ export class FDMRenderer extends AbstractRenderer {
                 name: 'minExtinction',
                 label: 'Min. Extinction',
                 type: 'spinner',
-                value: 10e-5,
+                value: 10e-6,
                 min: 0,
                 max: 1
+            },
+            {
+                name: 'nSmooth',
+                label: 'Smooth Steps',
+                type: 'spinner',
+                value: 2,
+                min: 0,
+            },
+            {
+                name: 'nSolve',
+                label: 'Final Solve Steps',
+                type: 'spinner',
+                value: 2,
+                min: 0,
+            },
+            {
+                name: 'minGridSize',
+                label: 'Min. Grid Size',
+                type: 'spinner',
+                value: 5,
+                min: 1,
             },
             {
                 name: 'fluxLimiter',
@@ -253,6 +274,10 @@ export class FDMRenderer extends AbstractRenderer {
                 'epsilon',
                 'minExtinction',
                 'fluxLimiter',
+                'nSmooth',
+                'nSolve',
+                'minGridSize',
+                'fluxLimiter',
                 'transferFunction'
                 // 'scatteringCoefficient',
                 // 'absorptionCoefficient'
@@ -263,10 +288,6 @@ export class FDMRenderer extends AbstractRenderer {
 
         this._programs = WebGL.buildPrograms(gl, SHADERS.renderers.FDM, MIXINS);
         this.red = 1;
-
-        this.nSmooth = 2;
-        this.nSolve = 2;
-        this.minGridSize = 5;
 
         this.step = false;
     }
@@ -316,29 +337,33 @@ export class FDMRenderer extends AbstractRenderer {
             height: this.volumeDimensions.height,
             depth: this.volumeDimensions.depth
         };
+
+        let gridDepth = 0;
+
         while(gridDimensions.width >= this.minGridSize
         && gridDimensions.height >= this.minGridSize
         && gridDimensions.depth >= this.minGridSize) {
-            let accumulationBuffer = gridDimensions.width === this.volumeDimensions.width ?
+            let accumulationBuffer = gridDepth === 0 ?
                 this._accumulationBuffer :
                 new DoubleBuffer3D(this._gl, this._getAccumulationBufferSpec(
                 gridDimensions.width, gridDimensions.height, gridDimensions.depth));
 
             // let f = new SingleBuffer3D(this._gl, this._getResidualBufferSpec(
             //     gridDimensions.width, gridDimensions.height, gridDimensions.depth));
-            let f = gridDimensions.width === this.volumeDimensions.width ?
+            let f = gridDepth === 0 ?
                 this._frameBuffer :
                 new SingleBuffer3D(this._gl, this._getResidualBufferSpec(
                     gridDimensions.width, gridDimensions.height, gridDimensions.depth));
 
             let tmp = null;
-            if (gridDimensions.width !== this.volumeDimensions.width)
+            if (gridDepth !== 0)
                 tmp = new SingleBuffer3D(this._gl, this._getResidualBufferSpec(
                     gridDimensions.width, gridDimensions.height, gridDimensions.depth));
 
             let residual = new SingleBuffer3D(this._gl, this._getResidualBufferSpec(
                 gridDimensions.width, gridDimensions.height, gridDimensions.depth));
-            let grid = new Grid(accumulationBuffer, f, tmp, residual, structuredClone(gridDimensions));
+            let grid = new Grid(accumulationBuffer, f, tmp, residual, structuredClone(gridDimensions), gridDepth);
+            gridDepth += 1;
 
             this.grids.push(grid);
 
@@ -398,7 +423,7 @@ export class FDMRenderer extends AbstractRenderer {
 
         if (!this.step_by_step_enabled || this.step) {
             this._vCycle(0);
-            this._accumulationBuffer.swap();
+            // this._accumulationBuffer.swap();
             this.step = false;
         }
 
@@ -430,12 +455,12 @@ export class FDMRenderer extends AbstractRenderer {
         if (this.grids) {
             // this._resetFluence(this.grids[0].accumulator, this.grids[0].size);
             for (const grid of this.grids) {
-                this._resetFluence(grid.accumulator, grid.size)
+                this._resetFluence(grid.accumulator, grid.size, grid.depth)
             }
         }
     }
 
-    _resetFluence(accumulator, dimensions) {
+    _resetFluence(accumulator, dimensions, depth = 0) {
         const gl = this._gl;
 
         const {program, uniforms} = this._programs.reset;
@@ -459,7 +484,7 @@ export class FDMRenderer extends AbstractRenderer {
             gl.uniform1i(uniforms.uTransferFunction, 2);
             gl.uniform1f(uniforms.uLayer, (i + 0.5) / dimensions.depth);
 
-            gl.uniform1f(uniforms.uVoxelSize, this.voxelSize);
+            gl.uniform1f(uniforms.uVoxelSize, this.voxelSize * Math.pow(2, depth));
             gl.uniform1f(uniforms.uEpsilon, this.epsilon);
 
             gl.uniform3f(uniforms.uLight, this.light.x, this.light.y, this.light.z);
@@ -508,7 +533,7 @@ export class FDMRenderer extends AbstractRenderer {
 
     _generateFrame() {
     }
-    _smoothing(accumulator, f, dimensions, top = 0) {
+    _smoothing(accumulator, f, dimensions, depth = 0) {
         const gl = this._gl;
 
         if (this.done) {
@@ -524,9 +549,6 @@ export class FDMRenderer extends AbstractRenderer {
 
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_3D, accumulator.getAttachments().color[0]);
-            // gl.activeTexture(gl.TEXTURE4);
-            // gl.bindTexture(gl.TEXTURE_3D, f.getAttachments().color[0]);
-
             gl.activeTexture(gl.TEXTURE1);
             gl.bindTexture(gl.TEXTURE_3D, f.getAttachments().color[0]);
 
@@ -535,7 +557,7 @@ export class FDMRenderer extends AbstractRenderer {
             gl.activeTexture(gl.TEXTURE3);
             gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
 
-            gl.uniform1i(uniforms.uFluence, 0);
+            gl.uniform1i(uniforms.uFluenceAndDiffCoeff, 0);
             gl.uniform1i(uniforms.uEmission, 1);
             gl.uniform1i(uniforms.uVolume, 2);
             gl.uniform1i(uniforms.uTransferFunction, 3);
@@ -550,13 +572,13 @@ export class FDMRenderer extends AbstractRenderer {
             gl.uniform1f(uniforms.uSOR, this.SOR);
             gl.uniform1ui(uniforms.uRed, this.red);
 
-            gl.uniform1f(uniforms.uVoxelSize, this.voxelSize);
+            gl.uniform1f(uniforms.uVoxelSize, this.voxelSize * Math.pow(2, depth));
             gl.uniform1f(uniforms.uEpsilon, this.epsilon);
 
             gl.uniform1ui(uniforms.uFluxLimiter, this.fluxLimiter);
             gl.uniform1f(uniforms.uMinExtinction, this.minExtinction);
 
-            gl.uniform1ui(uniforms.uTop, top);
+            gl.uniform1ui(uniforms.uTop, 1);
 
             gl.uniform3f(uniforms.uStep, 1 / dimensions.width, 1 / dimensions.height, 1 / dimensions.depth);
             gl.uniform3i(uniforms.uSize, dimensions.width, dimensions.height, dimensions.depth);
@@ -577,7 +599,7 @@ export class FDMRenderer extends AbstractRenderer {
         accumulator.swap();
     }
 
-    _residual(residual, accumulator, f, dimensions, top = 0) {
+    _residual(residual, accumulator, f, dimensions, depth = 0) {
         const gl = this._gl;
 
         const { program, uniforms } = this._programs.computeResidual;
@@ -617,10 +639,11 @@ export class FDMRenderer extends AbstractRenderer {
             gl.uniform1ui(uniforms.uLayer, i);
             gl.uniform1f(uniforms.uExtinction, this.extinction);
             gl.uniform1f(uniforms.uAlbedo, this.albedo);
-            gl.uniform1f(uniforms.uVoxelSize, this.voxelSize);
+            gl.uniform1f(uniforms.uVoxelSize, this.voxelSize * Math.pow(2, depth));
             gl.uniform3i(uniforms.uSize, dimensions.width, dimensions.height, dimensions.depth);
+            gl.uniform1f(uniforms.uMinExtinction, this.minExtinction);
 
-            gl.uniform1ui(uniforms.uTop, top);
+            gl.uniform1ui(uniforms.uTop, 1);
 
             gl.drawBuffers([
                 gl.COLOR_ATTACHMENT0
@@ -684,7 +707,8 @@ export class FDMRenderer extends AbstractRenderer {
             gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
         }
     }
-    _augmentF(f, residual, accumulationUp, dimensions) {
+
+    _augmentF(f, residual, accumulationUp, dimensions, depth = 0) {
         const gl = this._gl;
 
         const { program, uniforms } = this._programs.augmentF;
@@ -699,13 +723,24 @@ export class FDMRenderer extends AbstractRenderer {
             gl.activeTexture(gl.TEXTURE1);
             gl.bindTexture(gl.TEXTURE_3D, residual.getAttachments().color[0]);
 
+            gl.activeTexture(gl.TEXTURE2);
+            gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
+            gl.activeTexture(gl.TEXTURE3);
+            gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
+
             gl.uniform1i(uniforms.uFluenceAndDiffCoeff, 0);
             gl.uniform1i(uniforms.uResidual, 1);
+            gl.uniform1i(uniforms.uVolume, 2);
+            gl.uniform1i(uniforms.uTransferFunction, 3);
 
             gl.uniform1f(uniforms.uLayerRelative, (i + 0.5) / dimensions.depth);
             gl.uniform3f(uniforms.uStep, 1 / dimensions.width, 1 / dimensions.height, 1 / dimensions.depth);
             gl.uniform3i(uniforms.uSize, dimensions.width, dimensions.height, dimensions.depth);
-            gl.uniform1f(uniforms.uVoxelSize, this.voxelSize);
+            gl.uniform1f(uniforms.uVoxelSize, this.voxelSize * Math.pow(2, depth));
+
+            gl.uniform1f(uniforms.uExtinction, this.extinction);
+            gl.uniform1f(uniforms.uAlbedo, this.albedo);
+            gl.uniform1f(uniforms.uMinExtinction, this.minExtinction);
 
             gl.drawBuffers([
                 gl.COLOR_ATTACHMENT0
@@ -746,28 +781,27 @@ export class FDMRenderer extends AbstractRenderer {
 
     _vCycle(depth) {
         this.red = 1;
-        let top = depth === 0 ? 1 : 0;
         const fineGrid = this.grids[depth];
         const coarseGrid = this.grids[depth + 1];
 
         // Pre-smoothing
         for (let i = 0; i < this.nSmooth * 2; ++i) {
-            this._smoothing(fineGrid.accumulator, fineGrid.f, fineGrid.size, top);
+            this._smoothing(fineGrid.accumulator, fineGrid.f, fineGrid.size, depth);
         }
 
         // Residual
-        this._residual(fineGrid.residual, fineGrid.accumulator, fineGrid.f, fineGrid.size, top);
+        this._residual(fineGrid.residual, fineGrid.accumulator, fineGrid.f, fineGrid.size, depth);
 
         // Restriction
         this._restriction(fineGrid.residual, coarseGrid.temp, coarseGrid.size);
 
         // Compute coarse F (FAS)
-        this._augmentF(coarseGrid.f, fineGrid.accumulator, coarseGrid.temp, coarseGrid.size);
+        this._augmentF(coarseGrid.f, fineGrid.accumulator, coarseGrid.temp, coarseGrid.size, depth + 1);
 
         // Recursion or direct solver
         if (depth + 2 >= this.grids.length) {
             for (let i = 0; i < this.nSolve * 2; ++i) {
-                this._smoothing(coarseGrid.accumulator, coarseGrid.f, coarseGrid.size);
+                this._smoothing(coarseGrid.accumulator, coarseGrid.f, coarseGrid.size, depth + 1);
             }
         } else {
             this._vCycle(depth + 1);
@@ -784,7 +818,14 @@ export class FDMRenderer extends AbstractRenderer {
         // Post-smoothing
         for (let i = 0; i < this.nSmooth * 2; ++i) {
             // Need to reverse local read and write variables
-            this._smoothing(fineGrid.accumulator, fineGrid.f, fineGrid.size, top);
+            this._smoothing(fineGrid.accumulator, fineGrid.f, fineGrid.size, depth);
+        }
+
+        if (depth === 0) {
+            this.grids.forEach((element) => element.done = false);
+        }
+        else {
+            this.grids[depth].done = true;
         }
     }
 
@@ -806,7 +847,7 @@ export class FDMRenderer extends AbstractRenderer {
         gl.bindTexture(gl.TEXTURE_2D, transferFunction);
 
         gl.activeTexture(gl.TEXTURE3);
-        gl.bindTexture(gl.TEXTURE_3D, this._frameBuffer.getAttachments().color[0]);
+        gl.bindTexture(gl.TEXTURE_3D, this.grids[this.renderLevel].f.getAttachments().color[0]);
 
         gl.activeTexture(gl.TEXTURE4);
         gl.bindTexture(gl.TEXTURE_3D, this.grids[this.renderLevel].residual.getAttachments().color[0]);
