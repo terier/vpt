@@ -67,7 +67,9 @@ void main() {
     }
 
 //    oEmission = vec2(transmittance, transmittance * transmittance);
-    oEmission = transmittance;
+
+    float extinction = sampleVolumeColor(from).a * uExtinction;
+    oEmission = transmittance * extinction * uAlbedo;
 }
 
 // #part /glsl/shaders/renderers/FDO/integrate/vertex
@@ -184,7 +186,7 @@ void main() {
     float extinction = uExtinction * colorSample.a;
     extinction = max(extinction, uMinExtinction);
 
-    float emission = texelFetch(uEmission, position, 0).r * extinction * uAlbedo;
+    float emission = texelFetch(uEmission, position, 0).r;
 
     vec4 left      = texelFetch(uFluenceAndDiffCoeff, position + ivec3(-1,  0,  0), 0);
     vec4 right     = texelFetch(uFluenceAndDiffCoeff, position + ivec3( 1,  0,  0), 0);
@@ -402,8 +404,8 @@ void main() {
                 case 7u:
                 float scattering_coeff = uAlbedo;
 //                factor = emission + (emission * colorSample.a * uExtinction * uAlbedo + scattering_coeff * fluence) / (4.0 * PI);
-                factor =  scattering_coeff * (emission + fluence);
-                colorSample.rgb *= colorSample.a * factor;
+                factor =  scattering_coeff * fluence;
+                colorSample.rgb *= colorSample.a * factor + rayStepLength * emission;
                 break;
             }
 
@@ -528,7 +530,7 @@ void main() {
     vec4 colorSample = texture(uTransferFunction, volumeSample);
     float extinction = uExtinction * colorSample.a;
     extinction = max(extinction, uMinExtinction);
-    float emission = texelFetch(uEmission, position, 0).r * extinction * uAlbedo;
+    float emission = texelFetch(uEmission, position, 0).r;
 
     vec4 left      = texelFetch(uFluenceAndDiffCoeff, position + ivec3(-1,  0,  0), 0);
     vec4 right     = texelFetch(uFluenceAndDiffCoeff, position + ivec3( 1,  0,  0), 0);

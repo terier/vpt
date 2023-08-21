@@ -32,7 +32,7 @@ export class FDORenderer extends AbstractRenderer {
                 name: 'albedo',
                 label: 'Albedo',
                 type: 'spinner',
-                value: 0.9,
+                value: 0.6,
                 min: 0,
                 max: 1
             },
@@ -499,7 +499,7 @@ export class FDORenderer extends AbstractRenderer {
             gl.activeTexture(gl.TEXTURE3);
             gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
 
-            gl.uniform1i(uniforms.uFluence, 0);
+            gl.uniform1i(uniforms.uFluenceAndDiffCoeff, 0);
             gl.uniform1i(uniforms.uEmission, 1);
             gl.uniform1i(uniforms.uVolume, 2);
             gl.uniform1i(uniforms.uTransferFunction, 3);
@@ -561,7 +561,7 @@ export class FDORenderer extends AbstractRenderer {
             gl.activeTexture(gl.TEXTURE3);
             gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
 
-            gl.uniform1i(uniforms.uFluence, 0);
+            gl.uniform1i(uniforms.uFluenceAndDiffCoeff, 0);
             gl.uniform1i(uniforms.uEmission, 1);
             gl.uniform1i(uniforms.uVolume, 2);
             gl.uniform1i(uniforms.uTransferFunction, 3);
