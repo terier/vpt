@@ -17,7 +17,7 @@ class Grid {
         this.residual = residual;
         this.size = size;
         this.depth = depth;
-        this.done = false;
+        this.phase = 0;
     }
 
     destroy() {
@@ -220,6 +220,18 @@ export class FDMRenderer extends AbstractRenderer {
                 value: 0,
             },
             {
+                name: 'cycle_by_cycle_enabled',
+                label: 'Cycle-by-cycle',
+                type: "checkbox",
+                value: false,
+                checked: false,
+            },
+            {
+                name: 'nextButton',
+                label: 'Next Cycle',
+                type: "button",
+            },
+            {
                 name: 'step_by_step_enabled',
                 label: 'Step-by-step',
                 type: "checkbox",
@@ -227,7 +239,7 @@ export class FDMRenderer extends AbstractRenderer {
                 checked: true,
             },
             {
-                name: 'nextButton',
+                name: 'nextStepButton',
                 label: 'Next Step',
                 type: "button",
             },
@@ -254,7 +266,11 @@ export class FDMRenderer extends AbstractRenderer {
             }
 
             if (name === 'nextButton') {
-                this.step = true;
+                this.doCycle = true;
+            }
+
+            if (name === 'nextStepButton') {
+                this.doStep = true;
             }
 
             if (name === 'renderLevel' && this.grids) {
@@ -289,7 +305,8 @@ export class FDMRenderer extends AbstractRenderer {
         this._programs = WebGL.buildPrograms(gl, SHADERS.renderers.FDM, MIXINS);
         this.red = 1;
 
-        this.step = false;
+        this.doCycle = false;
+        this.doStep = false;
     }
 
     destroy() {
@@ -421,10 +438,10 @@ export class FDMRenderer extends AbstractRenderer {
         this._frameBuffer.use();
         this._generateFrame();
 
-        if (!this.step_by_step_enabled || this.step) {
+        if (!this.cycle_by_cycle_enabled || this.doCycle) {
             this._vCycle(0);
             // this._accumulationBuffer.swap();
-            this.step = false;
+            this.doCycle = false;
         }
 
         this._renderBuffer.use();
@@ -456,6 +473,7 @@ export class FDMRenderer extends AbstractRenderer {
             // this._resetFluence(this.grids[0].accumulator, this.grids[0].size);
             for (const grid of this.grids) {
                 this._resetFluence(grid.accumulator, grid.size, grid.depth)
+                grid.phase = 0;
             }
         }
     }
@@ -631,7 +649,7 @@ export class FDMRenderer extends AbstractRenderer {
             gl.activeTexture(gl.TEXTURE3);
             gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
 
-            gl.uniform1i(uniforms.uFluence, 0);
+            gl.uniform1i(uniforms.uFluenceAndDiffCoeff, 0);
             gl.uniform1i(uniforms.uEmission, 1);
             gl.uniform1i(uniforms.uVolume, 2);
             gl.uniform1i(uniforms.uTransferFunction, 3);
@@ -694,7 +712,7 @@ export class FDMRenderer extends AbstractRenderer {
             gl.activeTexture(gl.TEXTURE1);
             gl.bindTexture(gl.TEXTURE_3D, accumulatorCoarse.getAttachments().color[0]);
 
-            gl.uniform1i(uniforms.uFluence, 0);
+            gl.uniform1i(uniforms.uFluenceAndDiffCoeff, 0);
             gl.uniform1i(uniforms.uCorrection, 1);
 
             gl.uniform1f(uniforms.uLayerRelative, (i + 0.5) / dimensions.depth);
@@ -784,48 +802,66 @@ export class FDMRenderer extends AbstractRenderer {
         const fineGrid = this.grids[depth];
         const coarseGrid = this.grids[depth + 1];
 
-        // Pre-smoothing
-        for (let i = 0; i < this.nSmooth * 2; ++i) {
-            this._smoothing(fineGrid.accumulator, fineGrid.f, fineGrid.size, depth);
-        }
-
-        // Residual
-        this._residual(fineGrid.residual, fineGrid.accumulator, fineGrid.f, fineGrid.size, depth);
-
-        // Restriction
-        this._restriction(fineGrid.residual, coarseGrid.temp, coarseGrid.size);
-
-        // Compute coarse F (FAS)
-        this._augmentF(coarseGrid.f, fineGrid.accumulator, coarseGrid.temp, coarseGrid.size, depth + 1);
-
-        // Recursion or direct solver
-        if (depth + 2 >= this.grids.length) {
-            for (let i = 0; i < this.nSolve * 2; ++i) {
-                this._smoothing(coarseGrid.accumulator, coarseGrid.f, coarseGrid.size, depth + 1);
+        if (this.grids[depth].phase === 0) {
+            if (this.step_by_step_enabled) {
+                console.log(`Computing depth ${depth}.`)
             }
-        } else {
-            this._vCycle(depth + 1);
+
+            // Pre-smoothing
+            for (let i = 0; i < this.nSmooth * 2; ++i) {
+                this._smoothing(fineGrid.accumulator, fineGrid.f, fineGrid.size, depth);
+            }
+
+            // Residual
+            this._residual(fineGrid.residual, fineGrid.accumulator, fineGrid.f, fineGrid.size, depth);
+
+            // Restriction
+            this._restriction(fineGrid.residual, coarseGrid.temp, coarseGrid.size);
+
+            // Compute coarse F (FAS)
+            this._augmentF(coarseGrid.f, coarseGrid.temp, fineGrid.accumulator, coarseGrid.size, depth + 1);
+
+            // Recursion or direct solver
+            if (depth + 2 >= this.grids.length) {
+                for (let i = 0; i < this.nSolve * 2; ++i) {
+                    this._smoothing(coarseGrid.accumulator, coarseGrid.f, coarseGrid.size, depth + 1);
+                }
+            } else {
+                this._vCycle(depth + 1);
+            }
+
+            this.grids[depth].phase = 1
+        }
+        else if (depth + 2 < this.grids.length) {
+            this._vCycle(depth + 1)
         }
 
-        // Compute coarse grid error (FAS)
-        this._computeError(coarseGrid.temp, coarseGrid.accumulator, fineGrid.accumulator, coarseGrid.size);
+        if (this.grids[depth].phase === 1) {
+            if (this.step_by_step_enabled) {
+                if (!this.doStep)
+                    return;
+                console.log(`Applying corrections on depth ${depth}.`)
+            }
+            this.doStep = false;
 
-        // Prolongation and correction
-        this._correction(fineGrid.accumulator, coarseGrid.temp, fineGrid.size);
+            // Compute coarse grid error (FAS)
+            this._computeError(coarseGrid.temp, coarseGrid.accumulator, fineGrid.accumulator, coarseGrid.size);
 
-        fineGrid.accumulator.swap();
+            // Prolongation and correction
+            this._correction(fineGrid.accumulator, coarseGrid.temp, fineGrid.size);
 
-        // Post-smoothing
-        for (let i = 0; i < this.nSmooth * 2; ++i) {
-            // Need to reverse local read and write variables
-            this._smoothing(fineGrid.accumulator, fineGrid.f, fineGrid.size, depth);
-        }
+            fineGrid.accumulator.swap();
 
-        if (depth === 0) {
-            this.grids.forEach((element) => element.done = false);
-        }
-        else {
-            this.grids[depth].done = true;
+            // Post-smoothing
+            for (let i = 0; i < this.nSmooth * 2; ++i) {
+                // Need to reverse local read and write variables
+                this._smoothing(fineGrid.accumulator, fineGrid.f, fineGrid.size, depth);
+            }
+            this.grids[depth].phase = 2
+
+            if (depth === 0) {
+                this.grids.forEach((element) => element.phase = 0);
+            }
         }
     }
 

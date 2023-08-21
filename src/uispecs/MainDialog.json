@@ -68,7 +68,6 @@
                               "label": "Flux-Limited Diffusion"
                             },
                             {
-                              "selected": true,
                               "value": "dif",
                               "label": "Flux-unlimited Diffusion"
                             },
@@ -77,6 +76,7 @@
                               "label": "Flux-Limited Diffusion (Original)"
                             },
                             {
+                              "selected": true,
                               "value": "fdm",
                               "label": "Flux-Limited Diffusion (Multigrid)"
                             }

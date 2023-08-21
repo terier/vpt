@@ -158,7 +158,7 @@ void main() {
         return;
     }
 
-    vec2 volumeSample = texelFetch(uVolume, position, 0).rg;
+    vec2 volumeSample = texture(uVolume, vec3(position) / vec3(uSize)).rg;
     //vec2 volumeSample = texture(uVolume, vec3(vPosition, uLayerRelative)).rg;
     vec4 colorSample = texture(uTransferFunction, volumeSample);
     float extinction = uExtinction * colorSample.a;
@@ -349,11 +349,17 @@ void main() {
                 break;
                 case 1u:
                 factor = emission;
-                colorSample.rgb *= colorSample.a * factor;
+                if (factor >= 0.)
+                colorSample.rgb *= colorSample.a * vec3(factor, 0 , 0);
+                else
+                colorSample.rgb *= colorSample.a * vec3(0, -factor , 0);
                 break;
                 case 2u:
                 factor = fluence;
-                colorSample.rgb = vec3(factor) * rayStepLength * uExtinction;
+                if (factor >= 0.)
+                colorSample.rgb = vec3(factor, 0 , 0) * rayStepLength * uExtinction;
+                else
+                colorSample.rgb = vec3(0, -factor , 0) * rayStepLength * uExtinction;
                 break;
                 case 3u:
                 factor = textureLod(uResidual, position, 0.).r;
@@ -522,7 +528,7 @@ void main() {
         return;
     }
 
-    vec2 volumeSample = texelFetch(uVolume, position, 0).rg;
+    vec2 volumeSample = texture(uVolume, vec3(position) / vec3(uSize)).rg;
     // vec2 volumeSample = texture(uVolume, vec3(position) / vec3(uSize)).rg;
     vec4 colorSample = texture(uTransferFunction, volumeSample);
     float extinction = uExtinction * colorSample.a;
@@ -765,5 +771,5 @@ void main() {
     vec4 solution = texture(uSolution, position);
     vec4 solutionUp = texture(uSolutionUp, position);
 
-    oError = solution.r + solutionUp.r;
+    oError = solution.r - solutionUp.r;
 }
