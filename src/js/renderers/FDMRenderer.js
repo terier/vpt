@@ -49,7 +49,7 @@ export class FDMRenderer extends AbstractRenderer {
                 name: 'albedo',
                 label: 'Albedo',
                 type: 'spinner',
-                value: 0.9,
+                value: 0.6,
                 min: 0,
                 max: 1
             },
@@ -108,21 +108,23 @@ export class FDMRenderer extends AbstractRenderer {
                 name: 'nSmooth',
                 label: 'Smooth Steps',
                 type: 'spinner',
-                value: 2,
+                // value: 50,
+                value: 1,
                 min: 0,
             },
             {
                 name: 'nSolve',
                 label: 'Final Solve Steps',
                 type: 'spinner',
-                value: 2,
+                // value: 50,
+                value: 20,
                 min: 0,
             },
             {
                 name: 'minGridSize',
                 label: 'Min. Grid Size',
                 type: 'spinner',
-                value: 5,
+                value: 20,
                 min: 1,
             },
             {
@@ -171,14 +173,18 @@ export class FDMRenderer extends AbstractRenderer {
                     },
                     {
                         value: 3,
-                        label: "Residual",
+                        label: "Flux",
                     },
                     {
                         value: 4,
-                        label: "Error",
+                        label: "Residual",
                     },
                     {
                         value: 5,
+                        label: "Error",
+                    },
+                    {
+                        value: 6,
                         label: "Result",
                     }
                 ]
@@ -225,6 +231,8 @@ export class FDMRenderer extends AbstractRenderer {
                 type: "checkbox",
                 value: false,
                 checked: false,
+                // value: true,
+                // checked: true,
             },
             {
                 name: 'nextButton',
@@ -235,6 +243,8 @@ export class FDMRenderer extends AbstractRenderer {
                 name: 'step_by_step_enabled',
                 label: 'Step-by-step',
                 type: "checkbox",
+                // value: false,
+                // checked: false,
                 value: true,
                 checked: true,
             },
@@ -315,6 +325,7 @@ export class FDMRenderer extends AbstractRenderer {
             gl.deleteProgram(this._programs[programName].program);
         });
         this._destroyGrids();
+        this.destroyRCBuffer();
         super.destroy();
     }
 
@@ -334,6 +345,7 @@ export class FDMRenderer extends AbstractRenderer {
         this.setFrameBuffer();
         this.setAccumulationBuffer();
         this._initializeGrids();
+        this.setRCBuffer();
         this.resetVolume();
     }
 
@@ -418,6 +430,34 @@ export class FDMRenderer extends AbstractRenderer {
             this._lightVolumeDimensions.width, this._lightVolumeDimensions.height, this._lightVolumeDimensions.depth));
         // console.log(this._accumulationBuffer)
         // console.log(this._accumulationBuffer)
+    }
+
+    setRCBuffer() {
+        this.destroyRCBuffer();
+
+        const gl = this._gl
+        gl.bindTexture(gl.TEXTURE_3D, this.grids[0].residual.getAttachments().color[0]);
+        gl.generateMipmap(gl.TEXTURE_3D);
+
+        const max_dimension = Math.max(
+            this._lightVolumeDimensions.width, this._lightVolumeDimensions.height, this._lightVolumeDimensions.depth);
+
+        const mipmapLevel = Math.floor(Math.log2(max_dimension));
+
+        this._rcBuffer = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this._rcBuffer);
+        gl.framebufferTextureLayer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, this.grids[0].residual.getAttachments().color[0], mipmapLevel, 0);
+        const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+        if (status !== gl.FRAMEBUFFER_COMPLETE) {
+            throw new Error('Cannot create framebuffer: ' + status);
+        }
+    }
+
+    destroyRCBuffer() {
+        const gl = this._gl;
+        if (this._rcBuffer) {
+            gl.deleteFramebuffer(this._rcBuffer);
+        }
     }
 
     _rebuildBuffers() {
@@ -539,6 +579,7 @@ export class FDMRenderer extends AbstractRenderer {
             gl.uniform1f(uniforms.uLayer, (i + 0.5) / this._lightVolumeDimensions.depth);
             gl.uniform1f(uniforms.uStepSize, 1 / this.slices);
             gl.uniform1f(uniforms.uExtinction, this.extinction);
+            gl.uniform1f(uniforms.uAlbedo, this.albedo);
             gl.uniform3f(uniforms.uLight, this.light.x, this.light.y, this.light.z);
 
             gl.drawBuffers([
@@ -661,6 +702,8 @@ export class FDMRenderer extends AbstractRenderer {
             gl.uniform3i(uniforms.uSize, dimensions.width, dimensions.height, dimensions.depth);
             gl.uniform1f(uniforms.uMinExtinction, this.minExtinction);
 
+            gl.uniform1f(uniforms.uLayerRelative, (i + 0.5) / dimensions.depth);
+
             gl.uniform1ui(uniforms.uTop, 1);
 
             gl.drawBuffers([
@@ -669,6 +712,24 @@ export class FDMRenderer extends AbstractRenderer {
 
             gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
         }
+
+        // this._computeResidualRMS(residual);
+    }
+
+    _computeResidualRMS(residual) {
+        const gl = this._gl;
+
+        gl.bindTexture(gl.TEXTURE_3D, residual.getAttachments().color[0]);
+        gl.generateMipmap(gl.TEXTURE_3D);
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this._rcBuffer);
+        gl.viewport(0, 0, this._width, this._height);
+
+        let pixels = new Float32Array(1);
+        gl.readPixels(0, 0, 1, 1, gl.RED, gl.FLOAT, pixels);
+        pixels[0] = Math.sqrt(pixels[0]);
+        console.log(pixels[0])
+        // this.residualHTMLObject.value = pixels[0];
     }
 
     _restriction(residual, fCoarse, dimensions) {
@@ -683,7 +744,7 @@ export class FDMRenderer extends AbstractRenderer {
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_3D, residual.getAttachments().color[0]);
 
-            gl.uniform1i(uniforms.uTmp, 0);
+            gl.uniform1i(uniforms.uResidual, 0);
 
             gl.uniform1ui(uniforms.uLayer, i);
             gl.uniform1f(uniforms.uLayerRelative, (i + 0.5) / dimensions.depth);
@@ -798,7 +859,6 @@ export class FDMRenderer extends AbstractRenderer {
     }
 
     _vCycle(depth) {
-        this.red = 1;
         const fineGrid = this.grids[depth];
         const coarseGrid = this.grids[depth + 1];
 
@@ -815,11 +875,15 @@ export class FDMRenderer extends AbstractRenderer {
             // Residual
             this._residual(fineGrid.residual, fineGrid.accumulator, fineGrid.f, fineGrid.size, depth);
 
+            this.grids[depth].phase = 0;
+            return;
+
             // Restriction
-            this._restriction(fineGrid.residual, coarseGrid.temp, coarseGrid.size);
+            this._restriction(fineGrid.residual, coarseGrid.f, coarseGrid.size);
 
             // Compute coarse F (FAS)
-            this._augmentF(coarseGrid.f, coarseGrid.temp, fineGrid.accumulator, coarseGrid.size, depth + 1);
+            // this._restriction(fineGrid.residual, coarseGrid.temp, coarseGrid.size);
+            // this._augmentF(coarseGrid.f, coarseGrid.temp, fineGrid.accumulator, coarseGrid.size, depth + 1);
 
             // Recursion or direct solver
             if (depth + 2 >= this.grids.length) {
@@ -845,10 +909,11 @@ export class FDMRenderer extends AbstractRenderer {
             this.doStep = false;
 
             // Compute coarse grid error (FAS)
-            this._computeError(coarseGrid.temp, coarseGrid.accumulator, fineGrid.accumulator, coarseGrid.size);
+            // this._computeError(coarseGrid.temp, coarseGrid.accumulator, fineGrid.accumulator, coarseGrid.size);
+            // this._correction(fineGrid.accumulator, coarseGrid.temp, fineGrid.size);
 
             // Prolongation and correction
-            this._correction(fineGrid.accumulator, coarseGrid.temp, fineGrid.size);
+            this._correction(fineGrid.accumulator, coarseGrid.accumulator, fineGrid.size);
 
             fineGrid.accumulator.swap();
 
@@ -860,7 +925,14 @@ export class FDMRenderer extends AbstractRenderer {
             this.grids[depth].phase = 2
 
             if (depth === 0) {
-                this.grids.forEach((element) => element.phase = 0);
+                if (this.step_by_step_enabled) {
+                    console.log(`Resetting grid.`)
+                }
+                this.grids.forEach((grid) => {
+                    grid.phase = 0;
+                    if (grid.depth !== 0)
+                        this._resetFluence(grid.accumulator, grid.size, grid.depth);
+                });
             }
         }
     }

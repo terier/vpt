@@ -464,9 +464,8 @@ export class FDORenderer extends AbstractRenderer {
             gl.uniform1f(uniforms.uLayer, (i + 0.5) / this._lightVolumeDimensions.depth);
             gl.uniform1f(uniforms.uStepSize, 1 / this.slices);
             gl.uniform1f(uniforms.uExtinction, this.extinction);
-            gl.uniform3f(uniforms.uLight, this.light.x, this.light.y, this.light.z);
-
             gl.uniform1f(uniforms.uAlbedo, this.albedo);
+            gl.uniform3f(uniforms.uLight, this.light.x, this.light.y, this.light.z);
 
             gl.drawBuffers([
                 gl.COLOR_ATTACHMENT0

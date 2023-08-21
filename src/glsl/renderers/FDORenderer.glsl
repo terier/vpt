@@ -387,9 +387,9 @@ void main() {
                 float residual = textureLod(uResidual, position, 0.).r;
                 factor = residual;
                 if (isnan(factor) || isinf(factor))
-                    colorSample.rgb = vec3(0,0,1) * rayStepLength * uExtinction;
+                    colorSample.rgb = vec3(0,0,1);
                 else if (factor >= 0.)
-                    colorSample.rgb = vec3(factor, 0 , factor) * rayStepLength * uExtinction;
+                    colorSample.rgb = vec3(factor, 0 , 0) * rayStepLength * uExtinction;
                 else
                     colorSample.rgb = vec3(0, -factor , 0) * rayStepLength * uExtinction;
                 break;

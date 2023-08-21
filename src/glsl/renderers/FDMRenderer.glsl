@@ -22,6 +22,7 @@ uniform mediump sampler2D uTransferFunction;
 uniform float uLayer;
 uniform float uStepSize;
 uniform float uExtinction;
+uniform float uAlbedo;
 uniform vec3 uLight;
 
 in vec2 vPosition;
@@ -66,7 +67,8 @@ void main() {
     }
 
 //    oEmission = vec2(transmittance, transmittance * transmittance);
-    oEmission = transmittance;
+    float extinction = sampleVolumeColor(from).a * uExtinction;
+    oEmission = transmittance * extinction * uAlbedo;
 }
 
 // #part /glsl/shaders/renderers/FDM/integrate/vertex
@@ -137,6 +139,7 @@ float flux_levermore_pomraning(float R) {
 
 void main() {
     ivec3 position = ivec3(gl_FragCoord.x, gl_FragCoord.y, uLayer);
+    vec3 relPosition = vec3(vPosition.x, vPosition.y, uLayerRelative);
     ivec3 texSize = textureSize(uFluenceAndDiffCoeff, 0);
 
     vec4 fluenceAndDiffCoeff = texelFetch(uFluenceAndDiffCoeff, position, 0);
@@ -158,13 +161,13 @@ void main() {
         return;
     }
 
-    vec2 volumeSample = texture(uVolume, vec3(position) / vec3(uSize)).rg;
+    vec2 volumeSample = texture(uVolume, relPosition).rg;
     //vec2 volumeSample = texture(uVolume, vec3(vPosition, uLayerRelative)).rg;
     vec4 colorSample = texture(uTransferFunction, volumeSample);
     float extinction = uExtinction * colorSample.a;
     extinction = max(extinction, uMinExtinction);
 
-    float emission = texelFetch(uEmission, position, 0).r * extinction * uAlbedo;
+    float emission = texelFetch(uEmission, position, 0).r;
 
     vec4 left      = texelFetch(uFluenceAndDiffCoeff, position + ivec3(-1,  0,  0), 0);
     vec4 right     = texelFetch(uFluenceAndDiffCoeff, position + ivec3( 1,  0,  0), 0);
@@ -256,12 +259,12 @@ precision highp float;
 #define PI 3.14159265358
 #define M_2PI 6.28318530718
 
-uniform mediump sampler3D uFluence;
+uniform highp sampler3D uFluence;
 uniform mediump sampler3D uVolume;
 uniform mediump sampler2D uTransferFunction;
-uniform mediump sampler3D uEmission;
-uniform mediump sampler3D uResidual;
-uniform mediump sampler3D uError;
+uniform highp sampler3D uEmission;
+uniform highp sampler3D uResidual;
+uniform highp sampler3D uError;
 
 uniform float uStepSize;
 uniform float uOffset;
@@ -308,7 +311,7 @@ void main() {
 //    return;
 
     if (tbounds.x >= tbounds.y) {
-        oColor = vec4(0, 0, 0, 1);
+        oColor = vec4(1, 1, 1, 1);
 //        oColor = vec4(1, 1, 1, 1);
     } else {
         vec3 from = mix(vRayFrom, vRayTo, tbounds.x);
@@ -324,7 +327,8 @@ void main() {
             // scattering coeff = colorSample.rgb * uExtinction
             vec4 colorSample = sampleVolumeColor(position);
             float emission = textureLod(uEmission, position, 0.).r;
-            float fluence = textureLod(uFluence, position, 0.).r;
+            vec4 fluenceAndDiff = textureLod(uFluence, position, 0.);
+            float fluence = fluenceAndDiff.r;
 //            vec3 factor = vec3(0.0);
 //            switch (uView) {
 //                case 1u:
@@ -349,10 +353,16 @@ void main() {
                 break;
                 case 1u:
                 factor = emission;
-                if (factor >= 0.)
-                colorSample.rgb *= colorSample.a * vec3(factor, 0 , 0);
+//                if (factor >= 0.)
+//                colorSample.rgb = colorSample.a * vec3(factor, 0 , 0);
+//                else
+//                colorSample.rgb = colorSample.a * vec3(0, -factor , 0);
+                if (isnan(factor) || isinf(factor))
+                colorSample.rgb = vec3(0,0,1);
+                else if (factor >= 0.)
+                colorSample.rgb = vec3(factor, 0 , 0) * rayStepLength * uExtinction;
                 else
-                colorSample.rgb *= colorSample.a * vec3(0, -factor , 0);
+                colorSample.rgb = vec3(0, -factor , 0) * rayStepLength * uExtinction;
                 break;
                 case 2u:
                 factor = fluence;
@@ -362,23 +372,34 @@ void main() {
                 colorSample.rgb = vec3(0, -factor , 0) * rayStepLength * uExtinction;
                 break;
                 case 3u:
+                factor = fluenceAndDiff.g;
+                if (isnan(factor) || isinf(factor)) {
+                    colorSample.rgb = vec3(1,0,0) * rayStepLength * uExtinction;
+                }
+                else {
+                    colorSample.rgb = vec3(factor) * rayStepLength * uExtinction;
+                }
+                break;
+                case 4u:
                 factor = textureLod(uResidual, position, 0.).r;
-                if (factor >= 0.)
+                if (isnan(factor) || isinf(factor))
+                    colorSample.rgb = vec3(0,0,1);
+                else if (factor >= 0.)
                     colorSample.rgb = vec3(factor, 0 , 0) * rayStepLength * uExtinction;
                 else
                     colorSample.rgb = vec3(0, -factor , 0) * rayStepLength * uExtinction;
                 break;
-                case 4u:
+                case 5u:
                 factor = textureLod(uError, position, 0.).r;
                 if (factor >= 0.)
                 colorSample.rgb = vec3(factor, 0 , 0) * rayStepLength * uExtinction;
                 else
                 colorSample.rgb = vec3(0, -factor , 0) * rayStepLength * uExtinction;
                 break;
-                case 5u:
+                case 6u:
                 float scattering_coeff = uAlbedo;
-                factor = scattering_coeff * (emission + fluence);
-                colorSample.rgb *= colorSample.a * factor;
+                factor = scattering_coeff * fluence;
+                colorSample.rgb *= colorSample.a * factor + rayStepLength * emission;
                 break;
             }
 
@@ -486,6 +507,7 @@ uniform float uExtinction;
 uniform float uAlbedo;
 uniform float uVoxelSize;
 uniform float uMinExtinction;
+uniform float uLayerRelative;
 
 uniform uint uTop;
 
@@ -513,6 +535,7 @@ void main() {
 //    oResidual = f.r - (left.r + right.r + down.r + up.r + back.r + forward.r - 6. * c.r) / (h*h);
 
     ivec3 position = ivec3(gl_FragCoord.x, gl_FragCoord.y, uLayer);
+    vec3 relPosition = vec3(vPosition.x, vPosition.y, uLayerRelative);
 
     float voxelSize = uVoxelSize;
     // float voxelSize = 1. / float(uSize.x);
@@ -528,13 +551,14 @@ void main() {
         return;
     }
 
-    vec2 volumeSample = texture(uVolume, vec3(position) / vec3(uSize)).rg;
+    // vec2 volumeSample = texture(uVolume, relPosition).rg;
     // vec2 volumeSample = texture(uVolume, vec3(position) / vec3(uSize)).rg;
+    vec2 volumeSample = texelFetch(uVolume, position, 0).rg;
     vec4 colorSample = texture(uTransferFunction, volumeSample);
     float extinction = uExtinction * colorSample.a;
     extinction = max(extinction, uMinExtinction);
 
-    float emission = texelFetch(uEmission, position, 0).r * extinction * uAlbedo;
+    float emission = texelFetch(uEmission, position, 0).r;
 
     vec4 left      = texelFetch(uFluenceAndDiffCoeff, position + ivec3(-1,  0,  0), 0);
     vec4 right     = texelFetch(uFluenceAndDiffCoeff, position + ivec3( 1,  0,  0), 0);
@@ -648,7 +672,9 @@ void main() {
     vec4 fluenceAndDiffCoeff = texture(uFluenceAndDiffCoeff, position);
     vec4 correction = texture(uCorrection, position);
 
-    oFluenceAndDiffCoeff = fluenceAndDiffCoeff.rg + correction.rg;
+//    oFluenceAndDiffCoeff.g = fluenceAndDiffCoeff.g;
+//    oFluenceAndDiffCoeff.r = fluenceAndDiffCoeff.r + correction.r;
+    oFluenceAndDiffCoeff.rg = fluenceAndDiffCoeff.rg + correction.rg;
 }
 
 // #part /glsl/shaders/renderers/FDM/augmentF/vertex
