@@ -385,9 +385,9 @@ export class FDMRenderer extends AbstractRenderer {
                     gridDimensions.width, gridDimensions.height, gridDimensions.depth));
 
             let tmp = null;
-            if (gridDepth !== 0)
-                tmp = new SingleBuffer3D(this._gl, this._getTmpBufferSpec(
-                    gridDimensions.width, gridDimensions.height, gridDimensions.depth));
+            // if (gridDepth !== 0)
+            //     tmp = new SingleBuffer3D(this._gl, this._getTmpBufferSpec(
+            //         gridDimensions.width, gridDimensions.height, gridDimensions.depth));
 
             let residual = new SingleBuffer3D(this._gl, this._getResidualBufferSpec(
                 gridDimensions.width, gridDimensions.height, gridDimensions.depth));
@@ -960,10 +960,10 @@ export class FDMRenderer extends AbstractRenderer {
         gl.activeTexture(gl.TEXTURE4);
         gl.bindTexture(gl.TEXTURE_3D, this.grids[this.renderLevel].residual.getAttachments().color[0]);
 
-        if (this.renderLevel > 0) {
-            gl.activeTexture(gl.TEXTURE5);
-            gl.bindTexture(gl.TEXTURE_3D, this.grids[this.renderLevel].temp.getAttachments().color[0]);
-        }
+        // if (this.renderLevel > 0) {
+        //     gl.activeTexture(gl.TEXTURE5);
+        //     gl.bindTexture(gl.TEXTURE_3D, this.grids[this.renderLevel].temp.getAttachments().color[0]);
+        // }
 
 
         gl.uniform1i(uniforms.uFluence, 0);
