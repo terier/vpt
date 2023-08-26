@@ -13,26 +13,18 @@ constructor(gl, volume, environmentTexture, options) {
 
     this.registerProperties([
         {
-            name: 'extinction',
-            label: 'Extinction',
+            name: 'extinctionScale',
+            label: 'Extinction Scale:',
             type: 'spinner',
             value: 1,
             min: 0,
         },
         {
-            name: 'albedo',
-            label: 'Albedo',
+            name: 'scatteringBias',
+            label: 'Scattering Bias:',
             type: 'slider',
             value: 1,
             min: 0,
-            max: 1,
-        },
-        {
-            name: 'anisotropy',
-            label: 'Anisotropy',
-            type: 'slider',
-            value: 0,
-            min: -1,
             max: 1,
         },
         {
@@ -44,7 +36,7 @@ constructor(gl, volume, environmentTexture, options) {
             max: 1,
         },
         {
-            name: 'bounces',
+            name: 'maxBounces',
             label: 'Max bounces',
             type: 'spinner',
             value: 8,
@@ -56,6 +48,19 @@ constructor(gl, volume, environmentTexture, options) {
             type: 'spinner',
             value: 8,
             min: 0,
+        },
+        {
+            name: 'directionalLightEnabled',
+            label: 'Directional light',
+            type: 'checkbox',
+            checked: false,
+            value: false
+        },
+        {
+            name: 'lightDirection',
+            label: 'Light direction:',
+            type: 'vector',
+            value: { x: 1, y: 0, z: 0},
         },
         {
             name: 'transferFunction',
@@ -73,12 +78,13 @@ constructor(gl, volume, environmentTexture, options) {
         }
 
         if ([
-            'extinction',
-            'albedo',
-            'anisotropy',
+            'extinctionScale',
+            'scatteringBias',
             'ratio',
-            'bounces',
+            'maxBounces',
             'transferFunction',
+            'directionalLightEnabled',
+            'lightDirection'
         ].includes(name)) {
             this.reset();
         }
@@ -144,9 +150,9 @@ _integrateFrame() {
     gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
 
     gl.uniform1i(uniforms.uPosition, 0);
-    gl.uniform1i(uniforms.uDirection, 1);
-    gl.uniform1i(uniforms.uTransmittance, 2);
-    gl.uniform1i(uniforms.uRadiance, 3);
+    gl.uniform1i(uniforms.uDirectionAndBounces, 1);
+    gl.uniform1i(uniforms.uWeight, 2);
+    gl.uniform1i(uniforms.uRadianceAndSamples, 3);
 
     gl.uniform1i(uniforms.uVolume, 4);
     gl.uniform1i(uniforms.uEnvironment, 5);
@@ -158,12 +164,14 @@ _integrateFrame() {
     gl.uniform1f(uniforms.uRandSeed, Math.random());
     gl.uniform1f(uniforms.uBlur, 0);
 
-    gl.uniform1f(uniforms.uAbsorptionCoefficient, (1 - this.albedo) * this.extinction);
-    gl.uniform1f(uniforms.uScatteringCoefficient, this.albedo * this.extinction);
-    gl.uniform1f(uniforms.uScatteringBias, this.anisotropy);
-    gl.uniform1f(uniforms.uMajorant, this.extinction * this.ratio);
-    gl.uniform1ui(uniforms.uMaxBounces, this.bounces);
+    gl.uniform1f(uniforms.uExtinctionScale, this.extinctionScale);
+    gl.uniform1f(uniforms.uScatteringBias, this.scatteringBias);
+    gl.uniform1f(uniforms.uMajorant, this.ratio * this.extinctionScale);
+    gl.uniform1ui(uniforms.uMaxBounces, this.maxBounces);
     gl.uniform1ui(uniforms.uSteps, this.steps);
+
+    gl.uniform4f(uniforms.uLight, this.lightDirection.x, this.lightDirection.y, this.lightDirection.z,
+        this.directionalLightEnabled ? 1 : 0);
 
     gl.drawBuffers([
         gl.COLOR_ATTACHMENT0,
@@ -215,7 +223,7 @@ _getAccumulationBufferSpec() {
         type           : gl.FLOAT,
     };
 
-    const directionBufferSpec = {
+    const directionAnsBouncesBufferSpec = {
         width          : this._bufferSize,
         height         : this._bufferSize,
         min            : gl.NEAREST,
@@ -235,7 +243,7 @@ _getAccumulationBufferSpec() {
         type           : gl.FLOAT,
     };
 
-    const radianceBufferSpec = {
+    const radianceAndSamplesBufferSpec = {
         width          : this._bufferSize,
         height         : this._bufferSize,
         min            : gl.NEAREST,
@@ -247,9 +255,9 @@ _getAccumulationBufferSpec() {
 
     return [
         positionBufferSpec,
-        directionBufferSpec,
+        directionAnsBouncesBufferSpec,
         transmittanceBufferSpec,
-        radianceBufferSpec,
+        radianceAndSamplesBufferSpec,
     ];
 }
 
