@@ -160,6 +160,196 @@
                 }
               ]
             },
+            "Evaluation": {
+              "type": "panel",
+              "children": [
+                {
+                  "type": "accordion",
+                  "label": "MVP",
+                  "children": [
+                    {
+                      "type": "field",
+                      "label": "Set MVP:",
+                      "children": [
+                        {
+                          "type": "textbox",
+                          "bind": "setMVP",
+                          "value": ""
+                        }
+                      ]
+                    },
+                    {
+                      "type": "field",
+                      "children": [
+                        {
+                          "type": "button",
+                          "bind": "getMVP",
+                          "label": "Print MVP"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "accordion",
+                  "label": "Iteration Testing",
+                  "children": [
+                    {
+                      "type": "field",
+                      "label": "Total Iterations:",
+                      "children": [
+                        {
+                          "type": "spinner",
+                          "bind": "totalIterations",
+                          "value": 100,
+                          "min": 0
+                        }
+                      ]
+                    },
+                    {
+                      "type": "field",
+                      "label": "Intervals:",
+                      "children": [
+                        {
+                          "type": "spinner",
+                          "bind": "intervals",
+                          "value": 100,
+                          "min": 0
+                        }
+                      ]
+                    },
+                    {
+                      "type": "field",
+                      "label": "Save As:",
+                      "children": [
+                        {
+                          "type": "textbox",
+                          "bind": "saveAs",
+                          "value": "FDO"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "field",
+                      "children": [
+                        {
+                          "type": "button",
+                          "bind": "startIterationTesting",
+                          "label": "Start Iteration Testing"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "accordion",
+                  "label": "Start Sequence",
+                  "children": [
+                    {
+                      "type": "field",
+                      "label": "Testing Time:",
+                      "children": [
+                        {
+                          "type": "spinner",
+                          "bind": "sequenceTestingTime",
+                          "value": 30,
+                          "min": 0
+                        }
+                      ]
+                    },
+                    {
+                      "type": "field",
+                      "label": "Intervals:",
+                      "children": [
+                        {
+                          "type": "spinner",
+                          "bind": "sequenceIntervals",
+                          "value": 1000,
+                          "min": 0
+                        }
+                      ]
+                    },
+                    {
+                      "type": "field",
+                      "label": "Save As:",
+                      "children": [
+                        {
+                          "type": "textbox",
+                          "bind": "sequenceSaveAs",
+                          "value": "FDO"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "field",
+                      "label": "Starting Scale:",
+                      "children": [
+                        {
+                          "type": "vector",
+                          "bind": "sequenceStartingScale",
+                          "value": { "x": 1, "y": 1, "z": 1 }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "field",
+                      "label": "Starting Rotation:",
+                      "children": [
+                        {
+                          "type": "vector",
+                          "bind": "sequenceStartingRotation",
+                          "value": { "x": 0, "y": 0, "z": 0 }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "field",
+                      "label": "Starting Translation:",
+                      "children": [
+                        {
+                          "type": "vector",
+                          "bind": "sequenceStartingTranslation",
+                          "value": { "x": 0, "y": 0, "z": 0 }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "field",
+                      "label": "Start Camera Zoom:",
+                      "children": [
+                        {
+                          "type": "spinner",
+                          "bind": "sequenceStartCameraZoom",
+                          "value": 0,
+                          "min": 0
+                        }
+                      ]
+                    },
+                    {
+                      "type": "field",
+                      "label": "Sequence:",
+                      "children": [
+                        {
+                          "type": "textbox",
+                          "bind": "sequenceSequence",
+                          "value": ""
+                        }
+                      ]
+                    },
+                    {
+                      "type": "field",
+                      "children": [
+                        {
+                          "type": "button",
+                          "bind": "startSequenceTesting",
+                          "label": "Start Sequence Testing"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
             "About": {
               "type": "panel",
               "bind": "about"

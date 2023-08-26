@@ -11,6 +11,10 @@ import { Volume } from './Volume.js';
 import { RendererFactory } from './renderers/RendererFactory.js';
 import { ToneMapperFactory } from './tonemappers/ToneMapperFactory.js';
 
+import {DIFRenderer} from "./renderers/DIFRenderer.js";
+import {FDORenderer} from "./renderers/FDORenderer.js";
+import {FDMRenderer} from "./renderers/FDMRenderer.js";
+
 const [ SHADERS, MIXINS ] = await Promise.all([
     'shaders.json',
     'mixins.json',
@@ -49,6 +53,8 @@ constructor(options) {
     this._volume = new Volume(this._gl);
     this._scale = new Vector(1, 1, 1);
     this._translation = new Vector(0, 0, 0);
+    this._rotation = new Vector(0, 0, 0);
+
     this._isTransformationDirty = true;
     this._updateMvpInverseMatrix();
 }
@@ -232,6 +238,7 @@ _render() {
         return;
     }
 
+    this.rotate();
     this._updateMvpInverseMatrix();
 
     this._renderer.render();
@@ -253,6 +260,22 @@ _render() {
     gl.disableVertexAttribArray(aPosition);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.bindTexture(gl.TEXTURE_2D, null);
+
+    if (this.testing) {
+        const currentTime = new Date().getTime();
+        this._elapsedTime += currentTime - this._previousTime;
+        this._previousTime = currentTime;
+        this.testingTimeSave()
+    }
+    if (this.testingIterations) {
+        this.elapsedIterations += 1;
+        console.log(this.testingTotalIterations)
+        console.log(this.testingIterationInterval);
+        console.log(this.testingTotalElapsedIterations)
+        console.log(this.testingIterations = true)
+        console.log("-----------------")
+        this.testingIterationsSave()
+    }
 }
 
 getScale() {
@@ -300,4 +323,149 @@ stopRendering() {
     Ticker.remove(this._render);
 }
 
+testingProtocalSave(saveAs, saveTime) {
+    if (saveAs.length < 1)
+        return
+    const gl = this._gl;
+    let link = document.createElement('a');
+    link.download = saveAs + "_" + saveTime + ".png";
+    link.href = gl.canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+    link.click();
 }
+
+startTimeTesting(testingTime= 100, intervals= 100, saveAs = "MCC") {
+    // [0.4595949351787567, 0.017016194760799408, -0.002319802064448595, 1.8643269150686592e-9, 0.0008531888015568256, 0.009490122087299824, 0.37735629081726074, 2.2245090214312313e-9, -1.7914464473724365, 23.797161102294922, -2.561542272567749, -4.89999532699585, 1.85416579246521, -21.197429656982422, 2.650918960571289, 5.0999956130981445]
+    this._elapsedTime = 0
+    this.testingTime = testingTime * 1000;
+    this.testingIntervalTime = this.testingTime/intervals;
+    this.testingTotalTime = 0;
+    this.testing = true;
+    this._previousTime = new Date().getTime();
+    this.saveAs = saveAs;
+    this._renderer.reset();
+    if (typeof this._renderer._resetPhotons === "function") {
+        this._renderer._resetPhotons();
+    }
+}
+
+testingTimeSave() {
+    if (this.testing && this.testingTotalTime <= this.testingTime && this._elapsedTime >= this.testingIntervalTime) {
+        // console.log("saving")
+        let lastTime = this._elapsedTime;
+        this.testingTotalTime += lastTime;
+        // this._elapsedTime = lastTime - this.testingIntervalTime;
+        this._elapsedTime = 0
+        this.testingProtocalSave(this.saveAs, this.testingTotalTime)
+    }
+    else if (this.testingTotalTime > this.testingTime) {
+        this.testing = false;
+        console.log("Testing finished!")
+    }
+}
+
+startIterationTesting(totalIterations= 100, intervals = 100,  saveAs = "MCC") {
+    // [0.4595949351787567, 0.017016194760799408, -0.002319802064448595, 1.8643269150686592e-9, 0.0008531888015568256, 0.009490122087299824, 0.37735629081726074, 2.2245090214312313e-9, -1.7914464473724365, 23.797161102294922, -2.561542272567749, -4.89999532699585, 1.85416579246521, -21.197429656982422, 2.650918960571289, 5.0999956130981445]
+    console.log(`Starting Iteration Testing.\nIterations: ${totalIterations}$\nIntervals: ${intervals}$\nSaving as: ${saveAs}$`)
+    this.elapsedIterations = 0;
+    this.testingTotalIterations = totalIterations;
+    this.testingIterationInterval = totalIterations/intervals;
+    this.testingTotalElapsedIterations = 0;
+    this.testingIterations = true;
+    this.saveAsIterations = saveAs;
+    this._renderer.reset();
+    if (typeof this._renderer._resetPhotons === "function") {
+        this._renderer._resetPhotons();
+    }
+    if (this._renderer instanceof FDMRenderer || this._renderer instanceof FDORenderer || this._renderer instanceof DIFRenderer) {
+        this._renderer._resetFrame();
+    }
+}
+
+testingIterationsSave() {
+    if (this.testingIterations &&
+        this.testingTotalElapsedIterations < this.testingTotalIterations &&
+        this.elapsedIterations >= this.testingIterationInterval) {
+
+        this.testingTotalElapsedIterations += this.elapsedIterations;
+        this.elapsedIterations = 0
+        this.testingProtocalSave(this.saveAsIterations, this.testingTotalElapsedIterations)
+    }
+    else if (this.testingTotalElapsedIterations >= this.testingTotalIterations) {
+        this.testingIterations = false;
+        console.log("Testing finished!")
+    }
+}
+
+startSequence(testingTime= 30, intervals= 1000, saveAs,
+              startingScale=[1, 1, 1], startingRotation=[0, 0, 0],
+              startingTranslation=[0, 0, 0], startCameraZoom=0, sequence) {
+    this.setScale(...startingScale);
+    this.setRotation(...startingRotation);
+    this.setTranslation(...startingTranslation);
+    this._camera.zoomFactor = startCameraZoom;
+    this._camera.resize(this._canvas.width, this._canvas.height);
+    this._camera.position = new Vector(0, 0, 1.5);
+    this._camera.rotation = new Quaternion();
+    // this.sequence = [[0, 60, 0, 4000, 1, 30000], [80, -55, 0, 4000, 1, 30000]];
+    this.sequence = sequence;
+
+    this._camera.isDirty = true;
+    this._isTransformationDirty = true;
+    this._updateMvpInverseMatrix();
+    if (this.sequence.length > 0) {
+        this.startRotate(...this.sequence[0]);
+        this.sequence.shift();
+    }
+    if (testingTime > 0)
+        this.startTimeTesting(testingTime, intervals, saveAs);
+}
+
+startRotate(dx, dy, dz, duration, step, delay= 0) {
+    this.targetRotation = new Vector(dx * Math.PI / 180, dy * Math.PI / 180, dz * Math.PI / 180);
+
+    this.rotationTimer = new Date();
+    this.rotationDuration = duration;
+    this.rotationRemaining = duration;
+    this.rotationStep = step;
+    this.delay = delay;
+
+    this.isRotating = true;
+}
+
+setRotation(x, y, z) {
+    this._rotation.set(x * Math.PI / 180, y * Math.PI / 180, z * Math.PI / 180);
+    this._isTransformationDirty = true;
+}
+
+rotate() {
+    if (!this.isRotating)
+        return
+    const currentTime = new Date()
+    const timeDiff = currentTime - this.rotationTimer;
+
+    if (this.delay > 0) {
+        this.delay -= timeDiff
+        this.rotationTimer = currentTime
+        return
+    }
+
+    if (timeDiff > this.rotationStep) {
+        this.rotationRemaining -= timeDiff
+        const completion = timeDiff / this.rotationDuration
+        this._rotation.x += this.targetRotation.x * completion
+        this._rotation.y += this.targetRotation.y * completion
+        this._rotation.z += this.targetRotation.z * completion
+        this.rotationTimer = currentTime
+        this._isTransformationDirty = true;
+        if (this.rotationRemaining <= 0) {
+            this.isRotating = false
+            if (this.sequence.length > 0) {
+                this.startRotate(...this.sequence[0])
+                this.sequence.shift()
+            }
+        }
+    }
+}
+
+}
+

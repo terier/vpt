@@ -38,6 +38,9 @@ constructor(gl, volume, environmentTexture, options) {
     this.viewMatrix = new Matrix();
     this.projectionMatrix = new Matrix();
 
+    this.staticMVPEnabled = false;
+    this.staticMVP = new Matrix();
+
     this._clipQuad = WebGL.createClipQuad(gl);
     this._clipQuadProgram = WebGL.buildPrograms(gl, {
         quad: SHADERS.quad
@@ -127,6 +130,9 @@ setResolution(resolution) {
 }
 
 calculateMVPInverseTranspose() {
+    if (this.staticMVPEnabled) {
+        return this.staticMVP;
+    }
     const mvpit = new Matrix();
     mvpit.multiply(this.viewMatrix, this.modelMatrix);
     mvpit.multiply(this.projectionMatrix, mvpit);

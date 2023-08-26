@@ -13,6 +13,8 @@ import { EnvmapLoadDialog } from './dialogs/EnvmapLoadDialog.js';
 import { RenderingContext } from './RenderingContext.js';
 import { RenderingContextDialog } from './dialogs/RenderingContextDialog.js';
 
+import { Matrix } from './math/Matrix.js';
+
 export class Application {
 
 constructor() {
@@ -21,6 +23,10 @@ constructor() {
     this._handleToneMapperChange = this._handleToneMapperChange.bind(this);
     this._handleVolumeLoad = this._handleVolumeLoad.bind(this);
     this._handleEnvmapLoad = this._handleEnvmapLoad.bind(this);
+
+    this._handleGetMVP = this._handleGetMVP.bind(this);
+    this._handleSetMVP = this._handleSetMVP.bind(this);
+    this._handleStartIterationTesting = this._handleStartIterationTesting.bind(this);
 
     this._binds = DOMUtils.bind(document.body);
 
@@ -69,6 +75,10 @@ constructor() {
     this._mainDialog.addEventListener('tonemapperchange', this._handleToneMapperChange);
     this._handleRendererChange();
     this._handleToneMapperChange();
+
+    this._mainDialog.addEventListener('getMVP', this._handleGetMVP);
+    this._mainDialog.addEventListener('setMVP', this._handleSetMVP);
+    this._mainDialog.addEventListener('startIterationTesting', this._handleStartIterationTesting);
 }
 
 _handleFileDrop(e) {
@@ -221,6 +231,42 @@ _handleEnvmapLoad(e) {
     } else if (options.type === 'url') {
         image.src = options.url;
     }
+}
+
+_handleGetMVP() {
+    const rc = this._renderingContext;
+    const renderer = rc._renderer;
+    if (renderer) {
+        console.log("MVP:");
+        console.log(Array.from(renderer.calculateMVPInverseTranspose().m));
+    }
+}
+_handleSetMVP() {
+    let mvpString = this._mainDialog.getSetMVP();
+    mvpString = mvpString.replace("[", "").replace("]", "");
+    let components = mvpString.split(',');
+    const mvpArray = [];
+    for (const component of components) {
+        let cmp = component.trim();
+        let nmb = parseFloat(cmp);
+        mvpArray.push(nmb);
+    }
+    console.log(mvpArray)
+
+    const rc = this._renderingContext;
+    const renderer = rc._renderer;
+    if (renderer) {
+        renderer.staticMVP = new Matrix(mvpArray);
+        renderer.staticMVPEnabled = true;
+        renderer.reset();
+    }
+}
+
+_handleStartIterationTesting() {
+    const properties = this._mainDialog.getIterationTestingProperties();
+    if (!properties)
+        return;
+    this._renderingContext.startIterationTesting(properties.iterations, properties.intervals, properties.saveAs);
 }
 
 }
