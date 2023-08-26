@@ -108,8 +108,8 @@ export class FDMRenderer extends AbstractRenderer {
                 name: 'nSmooth',
                 label: 'Smooth Steps',
                 type: 'spinner',
-                // value: 50,
-                value: 1,
+                value: 50,
+                // value: 1,
                 min: 0,
             },
             {
@@ -386,7 +386,7 @@ export class FDMRenderer extends AbstractRenderer {
 
             let tmp = null;
             if (gridDepth !== 0)
-                tmp = new SingleBuffer3D(this._gl, this._getResidualBufferSpec(
+                tmp = new SingleBuffer3D(this._gl, this._getTmpBufferSpec(
                     gridDimensions.width, gridDimensions.height, gridDimensions.depth));
 
             let residual = new SingleBuffer3D(this._gl, this._getResidualBufferSpec(
@@ -501,9 +501,7 @@ export class FDMRenderer extends AbstractRenderer {
         gl.enableVertexAttribArray(0); // position always bound to attribute 0
         gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
 
-        this._accumulationBuffer.use();
         this._resetFrame();
-        this._accumulationBuffer.swap();
     }
 
     _resetFrame() {
@@ -556,6 +554,8 @@ export class FDMRenderer extends AbstractRenderer {
 
             gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
         }
+
+        accumulator.swap();
     }
 
     _resetEmissionField() {
@@ -875,8 +875,8 @@ export class FDMRenderer extends AbstractRenderer {
             // Residual
             this._residual(fineGrid.residual, fineGrid.accumulator, fineGrid.f, fineGrid.size, depth);
 
-            this.grids[depth].phase = 0;
-            return;
+            // this.grids[depth].phase = 0;
+            // return;
 
             // Restriction
             this._restriction(fineGrid.residual, coarseGrid.f, coarseGrid.size);
@@ -884,6 +884,7 @@ export class FDMRenderer extends AbstractRenderer {
             // Compute coarse F (FAS)
             // this._restriction(fineGrid.residual, coarseGrid.temp, coarseGrid.size);
             // this._augmentF(coarseGrid.f, coarseGrid.temp, fineGrid.accumulator, coarseGrid.size, depth + 1);
+            // this._augmentF(coarseGrid.f, fineGrid.f, fineGrid.accumulator, coarseGrid.size, depth + 1); // USE F Directy
 
             // Recursion or direct solver
             if (depth + 2 >= this.grids.length) {
@@ -919,7 +920,6 @@ export class FDMRenderer extends AbstractRenderer {
 
             // Post-smoothing
             for (let i = 0; i < this.nSmooth * 2; ++i) {
-                // Need to reverse local read and write variables
                 this._smoothing(fineGrid.accumulator, fineGrid.f, fineGrid.size, depth);
             }
             this.grids[depth].phase = 2
@@ -1056,6 +1056,29 @@ export class FDMRenderer extends AbstractRenderer {
 
         return [
             residualBufferSpec
+        ];
+    }
+
+    _getTmpBufferSpec(width, height, depth) {
+        const gl = this._gl;
+
+        let tmpBufferSpec = {
+            target: gl.TEXTURE_3D,
+            width: width,
+            height: height,
+            depth: depth,
+            min: gl.LINEAR,
+            mag: gl.LINEAR,
+            format         : gl.RG,
+            internalFormat : gl.RG32F,
+            type: gl.FLOAT,
+            wrapS: gl.CLAMP_TO_EDGE,
+            wrapT: gl.CLAMP_TO_EDGE,
+            wrapR: gl.CLAMP_TO_EDGE,
+        };
+
+        return [
+            tmpBufferSpec
         ];
     }
 

@@ -696,6 +696,7 @@ precision highp float;
 
 uniform highp sampler3D uFluenceAndDiffCoeff;
 uniform highp sampler3D uResidual;
+uniform highp sampler3D uEmission;
 uniform mediump sampler3D uVolume;
 uniform mediump sampler2D uTransferFunction;
 
@@ -755,7 +756,9 @@ void main() {
     vec4 residual = texture(uResidual, position);
 
 //    oF = ((sum_numerator - fluence * sum_denominator) / voxelSizeSq) + residual.r;
-    oF = ((sum_numerator - fluence * sum_denominator) / voxelSizeSq) - (1. - uAlbedo) * extinction * fluence + residual.r;
+//    oF = ((sum_numerator - fluence * sum_denominator) / voxelSizeSq) - (1. - uAlbedo) * extinction * fluence + residual.r;
+    oF = -((sum_numerator - fluence * sum_denominator) / voxelSizeSq) + (1. - uAlbedo) * extinction * fluence + residual.r;
+    // oF = residual.r;
 }
 
 // #part /glsl/shaders/renderers/FDM/computeError/vertex
@@ -783,19 +786,19 @@ in vec2 vPosition;
 uniform float uLayerRelative;
 uniform vec3 uStep;
 
-layout (location = 0) out float oError;
+layout (location = 0) out vec2 oError;
 
 void main() {
     vec3 position = vec3(vPosition.x, vPosition.y, uLayerRelative);
 
     if (position.x < uStep.x || position.y < uStep.y || position.z < uStep.z ||
     position.x >= 1. - uStep.x || position.y >= 1. - uStep.y || position.z >= 1. - uStep.z) {
-        oError = 0.;
+        oError = vec2(0);
         return;
     }
 
     vec4 solution = texture(uSolution, position);
     vec4 solutionUp = texture(uSolutionUp, position);
 
-    oError = solution.r - solutionUp.r;
+    oError = solution.rg - solutionUp.rg;
 }
