@@ -42,35 +42,34 @@ static createProgram(gl, shaders) {
 }
 
 static buildPrograms(gl, shaders, mixins) {
-    let cooked = {};
-    Object.keys(shaders).forEach(function(name) {
+    const cooked = {};
+    for (const name in shaders) {
         cooked[name] = {};
         const types = shaders[name];
-        Object.keys(types).forEach(function(type) {
-            cooked[name][type] = types[type].replace(/@([a-zA-Z0-9]+)/g, function(_, mixin) {
-                return mixins[mixin];
+        for (const type in types) {
+            cooked[name][type] = types[type].replace(/@(\S+)/g, (_, path) => {
+                let struct = mixins;
+                for (const part of path.split('/')) {
+                    struct = struct[part];
+                }
+                return struct;
             });
-        });
-    });
+        }
+    }
 
-    let programs = {};
-    Object.keys(cooked).forEach(function(name) {
+    const programs = {};
+    for (const name in cooked) {
         try {
             const program = cooked[name];
-            if (program.vertex && program.fragment) {
-                programs[name] = WebGL.createProgram(gl, [
-                    WebGL.createShader(gl, program.vertex, gl.VERTEX_SHADER),
-                    WebGL.createShader(gl, program.fragment, gl.FRAGMENT_SHADER)
-                ]);
-            } else if (program.compute) {
-                programs[name] = WebGL.createProgram(gl, [
-                    WebGL.createShader(gl, program.compute, gl.COMPUTE_SHADER)
-                ]);
-            }
+            programs[name] = WebGL.createProgram(gl, [
+                WebGL.createShader(gl, program.vertex, gl.VERTEX_SHADER),
+                WebGL.createShader(gl, program.fragment, gl.FRAGMENT_SHADER),
+            ]);
         } catch (e) {
-            throw new Error('Error compiling ' + name + '\n' + e);
+            e.message = `Error compiling and building ${name}:\n${e.message}`;
+            throw e;
         }
-    });
+    }
 
     return programs;
 }

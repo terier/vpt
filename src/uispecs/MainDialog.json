@@ -60,6 +60,7 @@
                               "label": "Single scattering"
                             },
                             {
+                              "selected": true,
                               "value": "mcm",
                               "label": "Multiple scattering"
                             },
@@ -76,7 +77,6 @@
                               "label": "Flux-Limited Diffusion (Original)"
                             },
                             {
-                              "selected": true,
                               "value": "fdm",
                               "label": "Flux-Limited Diffusion (Multigrid)"
                             }
