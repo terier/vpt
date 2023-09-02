@@ -16,7 +16,7 @@ constructor(gl, volume, environmentTexture, options) {
             name: 'extinction',
             label: 'Extinction:',
             type: 'spinner',
-            value: 1,
+            value: 100,
             min: 0,
         },
         {
@@ -31,14 +31,14 @@ constructor(gl, volume, environmentTexture, options) {
             name: 'bounces',
             label: 'Max bounces',
             type: 'spinner',
-            value: 8,
+            value: 20,
             min: 0,
         },
         {
             name: 'steps',
             label: 'Steps',
             type: 'spinner',
-            value: 8,
+            value: 80,
             min: 0,
         },
         {

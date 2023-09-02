@@ -61,6 +61,7 @@ layout (location = 3) out vec4 oRadiance;
 @random/distribution/disk
 @random/distribution/sphere
 @random/distribution/exponential
+@random/distribution/exponentialBounded
 
 @newUnprojectRand
 
@@ -130,6 +131,8 @@ void main() {
 
     uint state = hash(uvec3(floatBitsToUint(mappedPosition.x), floatBitsToUint(mappedPosition.y), floatBitsToUint(uRandSeed)));
     for (uint i = 0u; i < uSteps; i++) {
+//        vec2 tbounds = max(intersectCube(photon.position, photon.direction), 0.0);
+//        float dist = random_exponential_bounded(state, uExtinction, tbounds.y);
         float dist = random_exponential(state, uExtinction);
         photon.position += dist * photon.direction;
 
@@ -159,10 +162,17 @@ void main() {
             photon.radiance += (radiance - photon.radiance) / float(photon.samples);
             resetPhoton(state, photon);
         } else if (fortuneWheel < PAbsorption + PScattering) {
-            // scattering
-            photon.transmittance *= volumeSample.rgb;
-            photon.direction = sampleHenyeyGreenstein(state, uAnisotropy, photon.direction);
             photon.bounces++;
+            photon.transmittance *= volumeSample.rgb;
+            // scattering
+            if (uLight.w < 0.5 || photon.bounces < uMaxBounces) {
+                photon.direction = sampleHenyeyGreenstein(state, uAnisotropy, photon.direction);
+            }
+            else {
+                vec3 outDirection = -normalize(uLight.xyz);
+                photon.transmittance *= HenyeyGreensteinPhaseFunction(uAnisotropy, photon.direction, outDirection);
+                photon.direction = outDirection;
+            }
         } else {
             // null collision
         }

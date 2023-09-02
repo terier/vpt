@@ -133,8 +133,9 @@ float coth(float x) {
 }
 
 float flux_levermore_pomraning(float R) {
-    float inv_R = 1.0 / R;
-    return inv_R * (coth(R) - inv_R);
+//    float inv_R = 1.0 / R;
+//    return inv_R * (coth(R) - inv_R);
+    return (2+R) / (6 + 3 * R + R * R);
 }
 
 //vec3 sobel(vec3 pos, float h) {
