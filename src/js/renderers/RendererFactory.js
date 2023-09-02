@@ -8,6 +8,7 @@ import { FLDRenderer } from './FLDRenderer.js';
 import { DIFRenderer } from './DIFRenderer.js';
 import { FDORenderer } from './FDORenderer.js';
 import { FDMRenderer } from './FDMRenderer.js';
+import { MCDRenderer } from './MCDRenderer.js';
 
 export function RendererFactory(which) {
     switch (which) {
@@ -21,6 +22,7 @@ export function RendererFactory(which) {
         case 'dif': return DIFRenderer;
         case 'fdo': return FDORenderer;
         case 'fdm': return FDMRenderer;
+        case 'mcd': return MCDRenderer;
 
         default: throw new Error('No suitable class');
     }

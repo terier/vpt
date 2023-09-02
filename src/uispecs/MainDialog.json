@@ -60,9 +60,13 @@
                               "label": "Single scattering"
                             },
                             {
-                              "selected": true,
                               "value": "mcm",
                               "label": "Multiple scattering"
+                            },
+                            {
+                              "selected": true,
+                              "value": "mcd",
+                              "label": "Multiple scattering (Direct)"
                             },
                             {
                               "value": "fld",
