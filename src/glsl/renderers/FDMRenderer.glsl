@@ -52,21 +52,36 @@ void main() {
     vec3 to = mix(from, vRayTo, tbounds.y);
 //    vec3 to = tbounds.y * from;
     float rayStepLength = distance(from, to) * uStepSize;
+
+
+
     float t = 0.0;
 
-    while (t < 1.0 && transmittance > 0.0) {
+//    while (t < 1.0 && transmittance > 0.0) {
+//        vec3 position = mix(from, to, t);
+//        float extinction = sampleVolumeColor(position).a * rayStepLength * uExtinction;
+//        transmittance -= extinction;
+////        emission *= exp(-absorption);
+//        t += uStepSize;
+//    }
+//    if (transmittance < 0.0) {
+//        transmittance = 0.0;
+//    }
+
+    float t = 0.0;
+
+    while (t < 1.0) {
         vec3 position = mix(from, to, t);
-        float extinction = sampleVolumeColor(position).a * rayStepLength * uExtinction;
-        transmittance -= extinction;
-//        emission *= exp(-absorption);
+        vec4 colorSample = sampleVolumeColor(position);
+        colorSample.a *= rayStepLength * uExtinction;
+        transmittance = (1. - colorSample.a) * transmittance;
         t += uStepSize;
     }
 
-    if (transmittance < 0.0) {
-        transmittance = 0.0;
-    }
 
-//    oEmission = vec2(transmittance, transmittance * transmittance);
+
+//    oEmission = transmittance;
+
     float extinction = sampleVolumeColor(from).a * uExtinction;
     oEmission = transmittance * extinction * uAlbedo;
 }
@@ -133,8 +148,9 @@ float coth(float x) {
 }
 
 float flux_levermore_pomraning(float R) {
-    float inv_R = 1.0 / R;
-    return inv_R * (coth(R) - inv_R);
+//    float inv_R = 1.0 / R;
+//    return inv_R * (coth(R) - inv_R);
+    return (2.+R) / (6. + 3. * R + R * R);
 }
 
 void main() {
@@ -421,8 +437,8 @@ void main() {
             accumulator.rgb /= accumulator.a;
         }
 
-        oColor = vec4(accumulator.rgb, 1);
-//        oColor = mix(vec4(1), vec4(accumulator.rgb, 1), accumulator.a);
+        // oColor = vec4(accumulator.rgb, 1);
+        oColor = mix(vec4(1), vec4(accumulator.rgb, 1), accumulator.a);
 //        oColor = mix(vec4(0), vec4(accumulator.rgb, 1), accumulator.a);
     }
 }

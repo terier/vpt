@@ -26,6 +26,7 @@ constructor() {
 
     this._handleGetMVP = this._handleGetMVP.bind(this);
     this._handleSetMVP = this._handleSetMVP.bind(this);
+    this._handleStartTimeTesting = this._handleStartTimeTesting.bind(this);
     this._handleStartIterationTesting = this._handleStartIterationTesting.bind(this);
 
     this._binds = DOMUtils.bind(document.body);
@@ -78,6 +79,7 @@ constructor() {
 
     this._mainDialog.addEventListener('getMVP', this._handleGetMVP);
     this._mainDialog.addEventListener('setMVP', this._handleSetMVP);
+    this._mainDialog.addEventListener('startTimeTesting', this._handleStartTimeTesting)
     this._mainDialog.addEventListener('startIterationTesting', this._handleStartIterationTesting);
 }
 
@@ -260,6 +262,14 @@ _handleSetMVP() {
         renderer.staticMVPEnabled = true;
         renderer.reset();
     }
+}
+
+// Testing
+_handleStartTimeTesting() {
+    const properties = this._mainDialog.getTimeTestingProperties();
+    if (!properties)
+        return;
+    this._renderingContext.startTimeTesting(properties.totalTime, properties.timeIntervals, properties.timeSaveAs);
 }
 
 _handleStartIterationTesting() {

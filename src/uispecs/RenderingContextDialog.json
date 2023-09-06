@@ -21,7 +21,7 @@
           "bind": "resolution",
           "min": 1,
           "max": 4096,
-          "value": 512
+          "value": 1024
         }
       ]
     },

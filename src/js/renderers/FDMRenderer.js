@@ -64,7 +64,7 @@ export class FDMRenderer extends AbstractRenderer {
                 name: 'light',
                 label: 'Light direction',
                 type: 'vector',
-                value: {x: 1, y: 0, z: 0},
+                value: {x: 1, y: 1, z: 1},
             },
             {
                 name: 'SOR',
@@ -131,7 +131,7 @@ export class FDMRenderer extends AbstractRenderer {
                 name: 'fluxLimiter',
                 label: 'Flux Limiter',
                 type: "dropdown",
-                value: 2,
+                value: 3,
                 options: [
                     {
                         value: 0,
@@ -144,18 +144,18 @@ export class FDMRenderer extends AbstractRenderer {
                     {
                         value: 2,
                         label: "Kershaw",
-                        selected: true
                     },
                     {
                         value: 3,
-                        label: "Levermore–Pomraning"
+                        label: "Levermore–Pomraning",
+                        selected: true
                     }
                 ]
             },
             {
                 name: 'volume_view',
                 label: 'View',
-                value: 2,
+                value: 6,
                 type: "dropdown",
                 options: [
                     {
@@ -169,7 +169,6 @@ export class FDMRenderer extends AbstractRenderer {
                     {
                         value: 2,
                         label: "Fluence",
-                        selected: true
                     },
                     {
                         value: 3,
@@ -186,6 +185,7 @@ export class FDMRenderer extends AbstractRenderer {
                     {
                         value: 6,
                         label: "Result",
+                        selected: true
                     }
                 ]
             },
@@ -243,10 +243,10 @@ export class FDMRenderer extends AbstractRenderer {
                 name: 'step_by_step_enabled',
                 label: 'Step-by-step',
                 type: "checkbox",
-                // value: false,
-                // checked: false,
-                value: true,
-                checked: true,
+                value: false,
+                checked: false,
+                // value: true,
+                // checked: true,
             },
             {
                 name: 'nextStepButton',
@@ -345,7 +345,7 @@ export class FDMRenderer extends AbstractRenderer {
         this.setFrameBuffer();
         this.setAccumulationBuffer();
         this._initializeGrids();
-        this.setRCBuffer();
+        // this.setRCBuffer();
         this.resetVolume();
     }
 
@@ -523,7 +523,7 @@ export class FDMRenderer extends AbstractRenderer {
         gl.useProgram(program);
 
         gl.bindTexture(gl.TEXTURE_3D, this._frameBuffer.getAttachments().color[0]);
-        gl.generateMipmap(gl.TEXTURE_3D);
+        // gl.generateMipmap(gl.TEXTURE_3D);
 
         for (let i = 0; i < dimensions.depth; i++) {
             accumulator.use(i);
@@ -996,8 +996,8 @@ export class FDMRenderer extends AbstractRenderer {
             width: this.volumeDimensions.width,
             height: this.volumeDimensions.height,
             depth: this.volumeDimensions.depth,
-            // min: gl.LINEAR,
-            min: gl.LINEAR_MIPMAP_NEAREST,
+            min: gl.LINEAR,
+            // min: gl.LINEAR_MIPMAP_NEAREST,
             mag: gl.LINEAR,
             format: gl.RED,
             internalFormat: gl.R32F,

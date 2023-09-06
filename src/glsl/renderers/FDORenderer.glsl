@@ -14,6 +14,8 @@ void main() {
 // #part /glsl/shaders/renderers/FDO/generate/fragment
 
 #version 300 es
+#define PI 3.14159265358
+
 precision highp float;
 
 uniform mediump sampler3D uVolume;
@@ -52,24 +54,46 @@ void main() {
     vec3 to = mix(from, vRayTo, tbounds.y);
 //    vec3 to = tbounds.y * from;
     float rayStepLength = distance(from, to) * uStepSize;
+
+
     float t = 0.0;
 
-    while (t < 1.0 && transmittance > 0.0) {
+//
+//    while (t < 1.0 && transmittance > 0.0) {
+//        vec3 position = mix(from, to, t);
+//        float extinction = sampleVolumeColor(position).a * rayStepLength * uExtinction;
+//        transmittance -= extinction;
+//        t += uStepSize;
+//    }
+//
+//    if (transmittance < 0.0) {
+//        transmittance = 0.0;
+//    }
+
+//
+//    while (t < 1.0) {
+//        vec3 position = mix(from, to, t);
+//        vec4 colorSample = sampleVolumeColor(position);
+//        colorSample.a *= rayStepLength * uExtinction;
+//        transmittance = (1. - colorSample.a) * transmittance;
+//        t += uStepSize;
+//    }
+
+    while (t < 1.0) {
         vec3 position = mix(from, to, t);
-        float extinction = sampleVolumeColor(position).a * rayStepLength * uExtinction;
-        transmittance -= extinction;
-//        emission *= exp(-absorption);
+        vec4 colorSample = sampleVolumeColor(position);
+        colorSample.a *= rayStepLength * uExtinction;
+//        transmittance *= exp(-colorSample.a);
+        transmittance *= 1. - colorSample.a;
         t += uStepSize;
     }
+//    oEmission = transmittance;
 
-    if (transmittance < 0.0) {
-        transmittance = 0.0;
-    }
-
-//    oEmission = vec2(transmittance, transmittance * transmittance);
 
     float extinction = sampleVolumeColor(from).a * uExtinction;
+//    oEmission = transmittance * extinction * uAlbedo * (1. / (4. * PI)) * sqrt(4. * PI);
     oEmission = transmittance * extinction * uAlbedo;
+//    oEmission = transmittance;
 }
 
 // #part /glsl/shaders/renderers/FDO/integrate/vertex
@@ -135,7 +159,7 @@ float coth(float x) {
 float flux_levermore_pomraning(float R) {
 //    float inv_R = 1.0 / R;
 //    return inv_R * (coth(R) - inv_R);
-    return (2+R) / (6 + 3 * R + R * R);
+    return (2.+R) / (6. + 3. * R + R * R);
 }
 
 //vec3 sobel(vec3 pos, float h) {
@@ -275,7 +299,7 @@ uniform highp sampler3D uFluence;
 uniform mediump sampler3D uVolume;
 uniform mediump sampler2D uTransferFunction;
 uniform highp sampler3D uEmission;
-uniform highp sampler3D uResidual;
+//uniform highp sampler3D uResidual;
 
 uniform float uStepSize;
 uniform float uOffset;
@@ -363,11 +387,13 @@ void main() {
                 colorSample.rgb *= colorSample.a * factor;
                 break;
                 case 1u:
-                factor = emission;
-                colorSample.rgb *= colorSample.a * factor;
+                  factor = emission;
+//                  colorSample.rgb *= vec3(factor) * colorSample.a;
+                   colorSample.rgb *= (vec3(factor) / uAlbedo) * rayStepLength;
+//                colorSample.rgb *= (vec3(factor)) * colorSample.a / (4. * PI);
                 break;
                 case 2u:
-                factor = fluence;
+                factor = fluence / (4. * PI);
                 if (isnan(factor) || isinf(factor))
                     colorSample.rgb = vec3(0,0,1) * rayStepLength * uExtinction;
                 else if (factor >= 0.)
@@ -378,14 +404,15 @@ void main() {
                 case 3u:
                 factor = fluenceAndDiff.g;
                 if (isnan(factor) || isinf(factor)) {
-                    colorSample.rgb = vec3(1,0,0) * rayStepLength * uExtinction;
+                    colorSample.rgb = vec3(1,0,0) * rayStepLength * uExtinction * colorSample.a;
                 }
                 else {
-                    colorSample.rgb = vec3(factor) * rayStepLength * uExtinction;
+                    colorSample.rgb = vec3(factor) * rayStepLength * uExtinction * colorSample.a;
                 }
                 break;
                 case 4u:
-                float residual = textureLod(uResidual, position, 0.).r;
+//                float residual = textureLod(uResidual, position, 0.).r;
+                float residual = 0.;
                 factor = residual;
                 if (isnan(factor) || isinf(factor))
                     colorSample.rgb = vec3(0,0,1);
@@ -403,10 +430,13 @@ void main() {
                 colorSample.rgb = vec3(factor) * rayStepLength * uExtinction;
                 break;
                 case 7u:
-                float scattering_coeff = uAlbedo;
 //                factor = emission + (emission * colorSample.a * uExtinction * uAlbedo + scattering_coeff * fluence) / (4.0 * PI);
-                factor =  scattering_coeff * fluence;
-                colorSample.rgb *= colorSample.a * factor + rayStepLength * emission;
+
+                  colorSample.rgb *= colorSample.a * uAlbedo * fluence + rayStepLength * emission;
+
+//                float scattering_coeff = uAlbedo * uExtinction * colorSample.a;
+//                factor =  (scattering_coeff * fluence + emission) / (4.0 * PI);
+//                colorSample.rgb *= colorSample.a * factor;
                 break;
             }
 
@@ -424,8 +454,8 @@ void main() {
             accumulator.rgb /= accumulator.a;
         }
 
-        oColor = vec4(accumulator.rgb, 1);
-//        oColor = mix(vec4(1), vec4(accumulator.rgb, 1), accumulator.a);
+//        oColor = vec4(accumulator.rgb, 1);
+        oColor = mix(vec4(1), vec4(accumulator.rgb, 1), accumulator.a);
 //        oColor = mix(vec4(0), vec4(accumulator.rgb, 1), accumulator.a);
     }
 }

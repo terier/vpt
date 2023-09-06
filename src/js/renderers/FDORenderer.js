@@ -47,7 +47,7 @@ export class FDORenderer extends AbstractRenderer {
                 name: 'light',
                 label: 'Light direction',
                 type: 'vector',
-                value: {x: 1, y: 0, z: 0},
+                value: {x: 1, y: 1, z: 1},
             },
             {
                 name: 'SOR',
@@ -91,7 +91,7 @@ export class FDORenderer extends AbstractRenderer {
                 name: 'fluxLimiter',
                 label: 'Flux Limiter',
                 type: "dropdown",
-                value: 2,
+                value: 3,
                 options: [
                     {
                         value: 0,
@@ -104,18 +104,18 @@ export class FDORenderer extends AbstractRenderer {
                     {
                         value: 2,
                         label: "Kershaw",
-                        selected: true
                     },
                     {
                         value: 3,
-                        label: "Levermore–Pomraning"
+                        label: "Levermore–Pomraning",
+                        selected: true
                     }
                 ]
             },
             {
                 name: 'volume_view',
                 label: 'View',
-                value: 3,
+                value: 7,
                 type: "dropdown",
                 options: [
                     {
@@ -133,7 +133,6 @@ export class FDORenderer extends AbstractRenderer {
                     {
                         value: 3,
                         label: "Flux",
-                        selected: true
                     },
                     {
                         value: 4,
@@ -150,6 +149,7 @@ export class FDORenderer extends AbstractRenderer {
                     {
                         value: 7,
                         label: "Result",
+                        selected: true
                     }
                 ]
             },
@@ -187,8 +187,10 @@ export class FDORenderer extends AbstractRenderer {
                 name: 'step_by_step_enabled',
                 label: 'Step-by-step',
                 type: "checkbox",
-                value: true,
-                checked: true,
+                value: false,
+                checked: false,
+                // value: true,
+                // checked: true,
             },
             {
                 name: 'nextButton',
@@ -275,9 +277,10 @@ export class FDORenderer extends AbstractRenderer {
         console.log(this)
         this.volumeDimensions = this._volume.modalities[0].dimensions;
         this.setLightVolumeDimensions();
+
         this.setFrameBuffer();
         this.setAccumulationBuffer();
-        this.setResidualBuffer();
+        // this.setResidualBuffer();
         this.setRCBuffer();
         this.resetVolume();
     }
@@ -322,6 +325,10 @@ export class FDORenderer extends AbstractRenderer {
     }
 
     setRCBuffer() {
+        if (!this._residualBuffer) {
+            return;
+        }
+
         this.destroyRCBuffer();
 
         const gl = this._gl
@@ -409,7 +416,7 @@ export class FDORenderer extends AbstractRenderer {
         const dimensions = this._lightVolumeDimensions;
 
         gl.bindTexture(gl.TEXTURE_3D, this._frameBuffer.getAttachments().color[0]);
-        gl.generateMipmap(gl.TEXTURE_3D);
+        // gl.generateMipmap(gl.TEXTURE_3D);
 
         for (let i = 0; i < this._lightVolumeDimensions.depth; i++) {
             this._accumulationBuffer.use(i);
@@ -463,7 +470,7 @@ export class FDORenderer extends AbstractRenderer {
 
             gl.uniform1f(uniforms.uLayer, (i + 0.5) / this._lightVolumeDimensions.depth);
             gl.uniform1f(uniforms.uStepSize, 1 / this.slices);
-            gl.uniform1f(uniforms.uExtinction, this.extinction);
+            gl.uniform1f(uniforms.uExtinction, this.extinctionFLD);
             gl.uniform1f(uniforms.uAlbedo, this.albedo);
             gl.uniform3f(uniforms.uLight, this.light.x, this.light.y, this.light.z);
 
@@ -479,6 +486,9 @@ export class FDORenderer extends AbstractRenderer {
     }
 
     _computeResidual() {
+        if (!this._residualBuffer)
+            return;
+
         const gl = this._gl;
 
         const { program, uniforms } = this._programs.computeResidual;
@@ -618,14 +628,16 @@ export class FDORenderer extends AbstractRenderer {
         gl.activeTexture(gl.TEXTURE3);
         gl.bindTexture(gl.TEXTURE_3D, this._frameBuffer.getAttachments().color[0]);
 
-        gl.activeTexture(gl.TEXTURE4);
-        gl.bindTexture(gl.TEXTURE_3D, this._residualBuffer.getAttachments().color[0]);
-
         gl.uniform1i(uniforms.uFluence, 0);
         gl.uniform1i(uniforms.uVolume, 1);
         gl.uniform1i(uniforms.uTransferFunction, 2);
         gl.uniform1i(uniforms.uEmission, 3);
-        gl.uniform1i(uniforms.uResidual, 4);
+
+        if (this._residualBuffer) {
+            gl.activeTexture(gl.TEXTURE4);
+            gl.bindTexture(gl.TEXTURE_3D, this._residualBuffer.getAttachments().color[0]);
+            gl.uniform1i(uniforms.uResidual, 4);
+        }
 
         gl.uniform1f(uniforms.uStepSize, 1 / this.slices);
         gl.uniform1f(uniforms.uExtinction, this.extinction);
@@ -650,8 +662,8 @@ export class FDORenderer extends AbstractRenderer {
             width: this.volumeDimensions.width,
             height: this.volumeDimensions.height,
             depth: this.volumeDimensions.depth,
-            // min: gl.LINEAR,
-            min: gl.LINEAR_MIPMAP_NEAREST,
+            // min: gl.LINEAR_MIPMAP_NEAREST,
+            min: gl.LINEAR,
             mag: gl.LINEAR,
             format: gl.RED,
             internalFormat: gl.R32F,
@@ -688,7 +700,6 @@ export class FDORenderer extends AbstractRenderer {
             wrapS: gl.CLAMP_TO_EDGE,
             wrapT: gl.CLAMP_TO_EDGE,
             wrapR: gl.CLAMP_TO_EDGE,
-            storage: true
         };
 
         return [

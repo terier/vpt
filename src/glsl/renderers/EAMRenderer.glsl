@@ -50,20 +50,46 @@ void main() {
         vec3 to = mix(vRayFrom, vRayTo, tbounds.y);
         float rayStepLength = distance(from, to) * uStepSize;
 
-        float t = 0.0;
-        vec4 accumulator = vec4(0);
+//        float t = 0.0;
+//        vec4 accumulator = vec4(0);
 
-        while (t < 1.0 && accumulator.a < 0.99) {
+//        while (t < 1.0 && accumulator.a < 0.99) {
+//            vec3 position = mix(from, to, t);
+//            vec4 colorSample = sampleVolumeColor(position);
+//            colorSample.a *= rayStepLength * uExtinction;
+//            colorSample.rgb *= colorSample.a;
+//            accumulator += (1.0 - accumulator.a) * colorSample;
+//            t += uStepSize;
+//        }
+//
+//        if (accumulator.a > 1.0) {
+//            accumulator.rgb /= accumulator.a;
+//        }
+
+//        float t = 0.0;
+//        float prodT = 1.;
+//        vec3 accumulator = vec3(0);
+//
+//        while (t < 1.0 && prodT > 0.01) {
+//            vec3 position = mix(from, to, t);
+//            vec4 colorSample = sampleVolumeColor(position);
+//            colorSample.rgb *= colorSample.a;
+//            accumulator += prodT * colorSample.rgb;
+//            prodT *= exp(-rayStepLength * uExtinction * colorSample.a);
+//            t += uStepSize;
+//        }
+
+        float t = 0.0;
+        vec3 accumulator = vec3(0);
+        float prodT = 1.;
+
+        while (t < 1.0 && prodT > 0.01) {
             vec3 position = mix(from, to, t);
             vec4 colorSample = sampleVolumeColor(position);
             colorSample.a *= rayStepLength * uExtinction;
-            colorSample.rgb *= colorSample.a;
-            accumulator += (1.0 - accumulator.a) * colorSample;
+            accumulator += prodT * colorSample.a * colorSample.rgb;
+            prodT = (1. - colorSample.a) * prodT;
             t += uStepSize;
-        }
-
-        if (accumulator.a > 1.0) {
-            accumulator.rgb /= accumulator.a;
         }
 
         oColor = vec4(accumulator.rgb, 1);

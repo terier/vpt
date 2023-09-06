@@ -30,7 +30,7 @@ constructor(options) {
     this._webglcontextrestoredHandler = this._webglcontextrestoredHandler.bind(this);
 
     Object.assign(this, {
-        _resolution : 512,
+        _resolution : 1024,
         _filter     : 'linear'
     }, options);
 
@@ -268,11 +268,16 @@ _render() {
         this.testingTimeSave()
     }
     if (this.testingIterations) {
+        const currentTime = new Date().getTime();
+        this._elapsedTime += currentTime - this._previousTime;
+        this._previousTime = currentTime;
+
         this.elapsedIterations += 1;
+
         console.log(this.testingTotalIterations)
         console.log(this.testingIterationInterval);
         console.log(this.testingTotalElapsedIterations)
-        console.log(this.testingIterations = true)
+        console.log(this._elapsedTime)
         console.log("-----------------")
         this.testingIterationsSave()
     }
@@ -346,6 +351,10 @@ startTimeTesting(testingTime= 100, intervals= 100, saveAs = "MCC") {
     if (typeof this._renderer._resetPhotons === "function") {
         this._renderer._resetPhotons();
     }
+    if (this._renderer instanceof FDMRenderer || this._renderer instanceof FDORenderer || this._renderer instanceof DIFRenderer) {
+        this._renderer.resetVolume();
+        console.log("Resetting Frame")
+    }
 }
 
 testingTimeSave() {
@@ -372,12 +381,16 @@ startIterationTesting(totalIterations= 100, intervals = 100,  saveAs = "MCC") {
     this.testingTotalElapsedIterations = 0;
     this.testingIterations = true;
     this.saveAsIterations = saveAs;
+    this._elapsedTime = 0;
+    this.testingTotalTime = 0;
+    this._previousTime = new Date().getTime();
     this._renderer.reset();
     if (typeof this._renderer._resetPhotons === "function") {
         this._renderer._resetPhotons();
     }
     if (this._renderer instanceof FDMRenderer || this._renderer instanceof FDORenderer || this._renderer instanceof DIFRenderer) {
-        this._renderer._resetFrame();
+        this._renderer.resetVolume();
+        console.log("Resetting Frame")
     }
 }
 
@@ -387,8 +400,15 @@ testingIterationsSave() {
         this.elapsedIterations >= this.testingIterationInterval) {
 
         this.testingTotalElapsedIterations += this.elapsedIterations;
-        this.elapsedIterations = 0
-        this.testingProtocalSave(this.saveAsIterations, this.testingTotalElapsedIterations)
+        this.elapsedIterations = 0;
+
+        let lastTime = this._elapsedTime;
+        this.testingTotalTime += lastTime;
+        this._elapsedTime = 0;
+
+        // let saveString = this.testingTotalTime + "_" + this.testingTotalElapsedIterations;
+        // this.testingProtocalSave(this.saveAsIterations, this.testingTotalElapsedIterations);
+        this.testingProtocalSave(this.saveAsIterations, this.testingTotalTime);
     }
     else if (this.testingTotalElapsedIterations >= this.testingTotalIterations) {
         this.testingIterations = false;

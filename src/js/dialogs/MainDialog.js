@@ -15,6 +15,7 @@ constructor(options) {
     this._handleToneMapperChange = this._handleToneMapperChange.bind(this);
     this._handleGetMVP = this._handleGetMVP.bind(this);
     this._handleSetMVP = this._handleSetMVP.bind(this);
+    this._handleTimeIterationTesting = this._handleTimeIterationTesting.bind(this);
     this._handleStartIterationTesting = this._handleStartIterationTesting.bind(this);
 
     this._binds.sidebar.appendTo(document.body);
@@ -23,6 +24,7 @@ constructor(options) {
 
     this._binds.getMVP.addEventListener('click', this._handleGetMVP);
     this._binds.setMVP.addEventListener('change', this._handleSetMVP);
+    this._binds.startTimeTesting.addEventListener('click', this._handleTimeIterationTesting)
     this._binds.startIterationTesting.addEventListener('click', this._handleStartIterationTesting);
 
     const about = DOMUtils.instantiate(aboutTemplate);
@@ -76,6 +78,18 @@ getSetMVP() {
 
 _handleSetMVP() {
     this.dispatchEvent(new Event('setMVP'));
+}
+
+getTimeTestingProperties() {
+    return {
+        "totalTime": this._binds.totalTime.getValue(),
+        "timeIntervals": this._binds.timeIntervals.getValue(),
+        "timeSaveAs": this._binds.timeSaveAs.getValue(),
+    }
+}
+
+_handleTimeIterationTesting() {
+    this.dispatchEvent(new Event('startTimeTesting'));
 }
 
 getIterationTestingProperties() {

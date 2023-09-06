@@ -64,7 +64,6 @@
                               "label": "Multiple scattering"
                             },
                             {
-                              "selected": true,
                               "value": "mcd",
                               "label": "Multiple scattering (Direct)"
                             },
@@ -77,6 +76,7 @@
                               "label": "Flux-unlimited Diffusion"
                             },
                             {
+                              "selected": true,
                               "value": "fdo",
                               "label": "Flux-Limited Diffusion (Original)"
                             },
@@ -189,6 +189,57 @@
                           "type": "button",
                           "bind": "getMVP",
                           "label": "Print MVP"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "accordion",
+                  "label": "Time Testing",
+                  "children": [
+                    {
+                      "type": "field",
+                      "label": "Total Time:",
+                      "children": [
+                        {
+                          "type": "spinner",
+                          "bind": "totalTime",
+                          "value": 100,
+                          "min": 0
+                        }
+                      ]
+                    },
+                    {
+                      "type": "field",
+                      "label": "Intervals:",
+                      "children": [
+                        {
+                          "type": "spinner",
+                          "bind": "timeIntervals",
+                          "value": 100,
+                          "min": 0
+                        }
+                      ]
+                    },
+                    {
+                      "type": "field",
+                      "label": "Save As:",
+                      "children": [
+                        {
+                          "type": "textbox",
+                          "bind": "timeSaveAs",
+                          "value": "FDO"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "field",
+                      "children": [
+                        {
+                          "type": "button",
+                          "bind": "startTimeTesting",
+                          "label": "Start Time Testing"
                         }
                       ]
                     }
