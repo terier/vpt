@@ -23,3 +23,21 @@ There's a working build with a few demo datasets available [here](http://lgm.fri
 
 This project is licensed under the **GNU General Public License, version 3**.
 See [LICENSE](LICENSE) for details.
+
+
+## Citation
+[Real-Time Interactive Platform-Agnostic Volumetric Path Tracing in WebGL 2.0](https://dl.acm.org/doi/10.1145/3208806.3208814)
+
+Bibtex:
+```
+@inproceedings{Lesar2018,
+    author = {Lesar, {\v{Z}}iga and Bohak, Ciril and Marolt, Matija},
+    title = {Real-Time Interactive Platform-Agnostic Volumetric Path Tracing in WebGL 2.0},
+    booktitle = {Proceedings of the 23rd International ACM Conference on 3D Web Technology},
+    year = {2018},
+    isbn = {9781450358002},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    doi = {10.1145/3208806.3208814},
+}
+```
