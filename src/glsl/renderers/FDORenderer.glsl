@@ -105,7 +105,7 @@ layout (location = 0) in vec2 aPosition;
 out vec2 vPosition;
 
 void main() {
-    vPosition = aPosition;
+    vPosition = (aPosition + 1.0) * 0.5;
     gl_Position = vec4(aPosition, 0.0, 1.0);
 }
 
@@ -174,6 +174,8 @@ float flux_levermore_pomraning(float R) {
 
 void main() {
     ivec3 position = ivec3(gl_FragCoord.x, gl_FragCoord.y, uLayer);
+    vec3 positionRel = vec3(vPosition, uLayerRelative);
+
     ivec3 texSize = textureSize(uFluenceAndDiffCoeff, 0);
 
     float voxelSize = uVoxelSize;
@@ -206,12 +208,15 @@ void main() {
         return;
     }
 
-    vec2 volumeSample = texelFetch(uVolume, position, 0).rg;
+//     vec2 volumeSample = texelFetch(uVolume, position, 0).rg;
+    vec2 volumeSample = texture(uVolume, positionRel).rg;
+
     vec4 colorSample = texture(uTransferFunction, volumeSample);
     float extinction = uExtinction * colorSample.a;
     extinction = max(extinction, uMinExtinction);
 
-    float emission = texelFetch(uEmission, position, 0).r;
+//    float emission = texelFetch(uEmission, position, 0).r;
+    float emission = texture(uEmission, positionRel).r;
 
     vec4 left      = texelFetch(uFluenceAndDiffCoeff, position + ivec3(-1,  0,  0), 0);
     vec4 right     = texelFetch(uFluenceAndDiffCoeff, position + ivec3( 1,  0,  0), 0);
@@ -389,7 +394,7 @@ void main() {
                 case 1u:
                   factor = emission;
 //                  colorSample.rgb *= vec3(factor) * colorSample.a;
-                   colorSample.rgb *= (vec3(factor) / uAlbedo) * rayStepLength;
+                   colorSample.rgb = (vec3(factor) / uAlbedo) * rayStepLength;
 //                colorSample.rgb *= (vec3(factor)) * colorSample.a / (4. * PI);
                 break;
                 case 2u:

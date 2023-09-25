@@ -68,8 +68,6 @@ void main() {
 //        transmittance = 0.0;
 //    }
 
-    float t = 0.0;
-
     while (t < 1.0) {
         vec3 position = mix(from, to, t);
         vec4 colorSample = sampleVolumeColor(position);
@@ -369,19 +367,20 @@ void main() {
                 break;
                 case 1u:
                 factor = emission;
+                colorSample.rgb *= (vec3(factor) / uAlbedo) * rayStepLength;
 //                if (factor >= 0.)
 //                colorSample.rgb = colorSample.a * vec3(factor, 0 , 0);
 //                else
 //                colorSample.rgb = colorSample.a * vec3(0, -factor , 0);
-                if (isnan(factor) || isinf(factor))
-                colorSample.rgb = vec3(0,0,1);
-                else if (factor >= 0.)
-                colorSample.rgb = vec3(factor, 0 , 0) * rayStepLength * uExtinction;
-                else
-                colorSample.rgb = vec3(0, -factor , 0) * rayStepLength * uExtinction;
+//                if (isnan(factor) || isinf(factor))
+//                colorSample.rgb = vec3(0,0,1);
+//                else if (factor >= 0.)
+//                colorSample.rgb = vec3(factor, 0 , 0) * rayStepLength * uExtinction;
+//                else
+//                colorSample.rgb = vec3(0, -factor , 0) * rayStepLength * uExtinction;
                 break;
                 case 2u:
-                factor = fluence;
+                factor = fluence / (4. * PI);
                 if (factor >= 0.)
                 colorSample.rgb = vec3(factor, 0 , 0) * rayStepLength * uExtinction;
                 else

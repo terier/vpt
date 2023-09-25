@@ -457,7 +457,7 @@ export class FDORenderer extends AbstractRenderer {
         const {program, uniforms} = this._programs.generate;
         gl.useProgram(program);
 
-        for (let i = 0; i < this._lightVolumeDimensions.depth; i++) {
+        for (let i = 0; i < this.volumeDimensions.depth; i++) {
             this._frameBuffer.use(i);
 
             gl.activeTexture(gl.TEXTURE0);
@@ -468,7 +468,7 @@ export class FDORenderer extends AbstractRenderer {
             gl.uniform1i(uniforms.uVolume, 0);
             gl.uniform1i(uniforms.uTransferFunction, 1);
 
-            gl.uniform1f(uniforms.uLayer, (i + 0.5) / this._lightVolumeDimensions.depth);
+            gl.uniform1f(uniforms.uLayer, (i + 0.5) / this.volumeDimensions.depth);
             gl.uniform1f(uniforms.uStepSize, 1 / this.slices);
             gl.uniform1f(uniforms.uExtinction, this.extinctionFLD);
             gl.uniform1f(uniforms.uAlbedo, this.albedo);
@@ -685,9 +685,9 @@ export class FDORenderer extends AbstractRenderer {
 
         let fluenceBufferSpec = {
             target: gl.TEXTURE_3D,
-            width: this.volumeDimensions.width,
-            height: this.volumeDimensions.height,
-            depth: this.volumeDimensions.depth,
+            width: this._lightVolumeDimensions.width,
+            height: this._lightVolumeDimensions.height,
+            depth: this._lightVolumeDimensions.depth,
             min: gl.LINEAR,
             mag: gl.LINEAR,
             // format         : gl.RED,

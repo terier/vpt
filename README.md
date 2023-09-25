@@ -1,12 +1,8 @@
-# [VPT: The Volumetric Path Tracing Framework](http://lgm.fri.uni-lj.si/portfolio-view/volumetric-path-tracing-framework/)
+# Illumination caching in volume rendering with diffusion
 
-VPT is a volumetric path tracing framework targeted towards interactive
-real-time data exploration. It works in both desktop and mobile environments.
-It is built on top of WebGL 2 with no external dependencies.
+This repository contains the implementation of the multigrid flux-limited diffusion renderer for volumetric data, designed as a part of titular master thesis at Faculty of Computer and Information Science in Ljubljana.
 
-![VPT](src/images/screenshot.jpg)
-
-Visit the [portfolio page](http://lgm.fri.uni-lj.si/portfolio-view/volumetric-path-tracing-framework/) for more information.
+![VPT](src/images/hand.png)
 
 ## Building and running
 
@@ -17,9 +13,7 @@ bin/packer
 bin/server-node
 ```
 
-There's a working build with a few demo datasets available [here](http://lgm.fri.uni-lj.si/~ziga).
-
 ## License
 
-This project is licensed under the **GNU General Public License, version 3**.
-See [LICENSE](LICENSE) for details.
+This project is licensed under the **Creative Commons License, version 4**.
+See [creativecommons.org](https://creativecommons.org) for more details.

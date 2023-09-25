@@ -21,15 +21,19 @@ class Grid {
     }
 
     destroy() {
-        if (this.accumulator) {
+        if (this.accumulator && this.depth > 0) {
             this.accumulator.destroy();
         }
-        if (this.f) {
+        if (this.f && this.depth > 0) {
             this.f.destroy();
+        }
+        if (this.residual) {
+            this.residual.destroy();
         }
         if (this.temp) {
             this.temp.destroy();
         }
+        this.phase = 0;
     }
 }
 
@@ -286,7 +290,7 @@ export class FDMRenderer extends AbstractRenderer {
             if (name === 'renderLevel' && this.grids) {
                 if (this.grids && this.renderLevel > this.grids.length - 1) {
                     this.renderLevel = this.grids.length - 1;
-                    console.log("Number of grid levels:", this.renderLevel);
+                    console.log("Number of grid levels:", this.renderLevel + 1);
                 }
             }
 
@@ -344,7 +348,6 @@ export class FDMRenderer extends AbstractRenderer {
         this.setLightVolumeDimensions();
         this.setFrameBuffer();
         this.setAccumulationBuffer();
-        this._initializeGrids();
         // this.setRCBuffer();
         this.resetVolume();
     }
@@ -362,9 +365,9 @@ export class FDMRenderer extends AbstractRenderer {
         this.grids = [];
 
         let gridDimensions = {
-            width: this.volumeDimensions.width,
-            height: this.volumeDimensions.height,
-            depth: this.volumeDimensions.depth
+            width: this._lightVolumeDimensions.width,
+            height: this._lightVolumeDimensions.height,
+            depth: this._lightVolumeDimensions.depth
         };
 
         let gridDepth = 0;
@@ -372,6 +375,7 @@ export class FDMRenderer extends AbstractRenderer {
         while(gridDimensions.width >= this.minGridSize
         && gridDimensions.height >= this.minGridSize
         && gridDimensions.depth >= this.minGridSize) {
+
             let accumulationBuffer = gridDepth === 0 ?
                 this._accumulationBuffer :
                 new DoubleBuffer3D(this._gl, this._getAccumulationBufferSpec(
@@ -500,7 +504,8 @@ export class FDMRenderer extends AbstractRenderer {
         gl.bindBuffer(gl.ARRAY_BUFFER, this._clipQuad);
         gl.enableVertexAttribArray(0); // position always bound to attribute 0
         gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-
+        this.setLightVolumeDimensions();
+        this._initializeGrids();
         this._resetFrame();
     }
 
@@ -565,7 +570,7 @@ export class FDMRenderer extends AbstractRenderer {
         const {program, uniforms} = this._programs.generate;
         gl.useProgram(program);
 
-        for (let i = 0; i < this._lightVolumeDimensions.depth; i++) {
+        for (let i = 0; i < this.volumeDimensions.depth; i++) {
             this._frameBuffer.use(i);
 
             gl.activeTexture(gl.TEXTURE0);
@@ -576,7 +581,7 @@ export class FDMRenderer extends AbstractRenderer {
             gl.uniform1i(uniforms.uVolume, 0);
             gl.uniform1i(uniforms.uTransferFunction, 1);
 
-            gl.uniform1f(uniforms.uLayer, (i + 0.5) / this._lightVolumeDimensions.depth);
+            gl.uniform1f(uniforms.uLayer, (i + 0.5) / this.volumeDimensions.depth);
             gl.uniform1f(uniforms.uStepSize, 1 / this.slices);
             gl.uniform1f(uniforms.uExtinction, this.extinction);
             gl.uniform1f(uniforms.uAlbedo, this.albedo);

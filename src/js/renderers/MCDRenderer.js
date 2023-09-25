@@ -47,14 +47,14 @@ constructor(gl, volume, environmentTexture, options) {
             name: 'bounces',
             label: 'Max bounces',
             type: 'spinner',
-            value: 20,
+            value: 100000,
             min: 0,
         },
         {
             name: 'steps',
             label: 'Steps',
             type: 'spinner',
-            value: 80,
+            value: 1,
             min: 0,
         },
         {
@@ -209,7 +209,6 @@ _integrateFrame() {
     gl.uniform1f(uniforms.uRandSeed, Math.random());
     gl.uniform1f(uniforms.uBlur, 0);
 
-    console.log(this.albedo)
     gl.uniform1f(uniforms.uAbsorptionCoefficient, this.extinction * (1 - this.albedo));
     gl.uniform1f(uniforms.uScatteringCoefficient, this.extinction * this.albedo);
     gl.uniform1f(uniforms.uScatteringBias, this.scatteringBias);
