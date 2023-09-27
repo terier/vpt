@@ -1,4 +1,4 @@
-# [VPT: The Volumetric Path Tracing Framework](http://lgm.fri.uni-lj.si/portfolio-view/volumetric-path-tracing-framework/)
+# [VPT: The Volumetric Path Tracing Framework](http://lgm.fri.uni-lj.si/research/volumetric-path-tracing-framework/)
 
 VPT is a volumetric path tracing framework targeted towards interactive
 real-time data exploration. It works in both desktop and mobile environments.
