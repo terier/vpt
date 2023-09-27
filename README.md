@@ -6,7 +6,7 @@ It is built on top of WebGL 2 with no external dependencies.
 
 ![VPT](src/images/screenshot.jpg)
 
-Visit the [portfolio page](http://lgm.fri.uni-lj.si/portfolio-view/volumetric-path-tracing-framework/) for more information.
+Visit the [portfolio page](http://lgm.fri.uni-lj.si/research/volumetric-path-tracing-framework/) for more information.
 
 ## Building and running
 
