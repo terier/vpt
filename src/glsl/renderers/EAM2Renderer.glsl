@@ -1,4 +1,4 @@
-// #part /glsl/shaders/renderers/EAM/generate/vertex
+// #part /glsl/shaders/renderers/EAM2/generate/vertex
 
 #version 300 es
 
@@ -22,7 +22,7 @@ void main() {
     gl_Position = vec4(position, 0, 1);
 }
 
-// #part /glsl/shaders/renderers/EAM/generate/fragment
+// #part /glsl/shaders/renderers/EAM2/generate/fragment
 
 #version 300 es
 precision mediump float;
@@ -64,25 +64,24 @@ void main() {
     float t = uStepSize * uOffset;
     vec4 accumulator = vec4(0);
 
-    while (t < 1.0 && accumulator.a < 0.99) {
+    while (t < 1.0) {
         vec3 position = mix(from, to, t);
         vec4 colorSample = sampleVolumeColor(position);
 
-        colorSample.a *= rayStepLength * uExtinction;
-        colorSample.rgb *= colorSample.a;
-        accumulator += (1.0 - accumulator.a) * colorSample;
+        float transmittance = exp(-accumulator.a);
+        float absorption = colorSample.a * uExtinction;
+        vec3 emission = colorSample.rgb * absorption;
+
+        accumulator.a += absorption * rayStepLength;
+        accumulator.rgb += transmittance * emission * rayStepLength;
 
         t += uStepSize;
     }
 
-    if (accumulator.a > 1.0) {
-        accumulator.rgb /= accumulator.a;
-    }
-
-    oColor = mix(vec4(1), vec4(accumulator.rgb, 1), accumulator.a);
+    oColor = mix(vec4(accumulator.rgb, 1), vec4(1), exp(-accumulator.a));
 }
 
-// #part /glsl/shaders/renderers/EAM/integrate/vertex
+// #part /glsl/shaders/renderers/EAM2/integrate/vertex
 
 #version 300 es
 
@@ -100,7 +99,7 @@ void main() {
     gl_Position = vec4(position, 0, 1);
 }
 
-// #part /glsl/shaders/renderers/EAM/integrate/fragment
+// #part /glsl/shaders/renderers/EAM2/integrate/fragment
 
 #version 300 es
 precision mediump float;
@@ -121,7 +120,7 @@ void main() {
     oColor = mix(accumulator, frame, uMix);
 }
 
-// #part /glsl/shaders/renderers/EAM/render/vertex
+// #part /glsl/shaders/renderers/EAM2/render/vertex
 
 #version 300 es
 
@@ -139,7 +138,7 @@ void main() {
     gl_Position = vec4(position, 0, 1);
 }
 
-// #part /glsl/shaders/renderers/EAM/render/fragment
+// #part /glsl/shaders/renderers/EAM2/render/fragment
 
 #version 300 es
 precision mediump float;
@@ -155,7 +154,7 @@ void main() {
     oColor = texture(uAccumulator, vPosition);
 }
 
-// #part /glsl/shaders/renderers/EAM/reset/vertex
+// #part /glsl/shaders/renderers/EAM2/reset/vertex
 
 #version 300 es
 
@@ -170,7 +169,7 @@ void main() {
     gl_Position = vec4(position, 0, 1);
 }
 
-// #part /glsl/shaders/renderers/EAM/reset/fragment
+// #part /glsl/shaders/renderers/EAM2/reset/fragment
 
 #version 300 es
 precision mediump float;
