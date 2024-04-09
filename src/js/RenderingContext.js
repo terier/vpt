@@ -48,15 +48,15 @@ constructor(options = {}) {
     //    radius: 0.03,
     //    frequency: 1,
     //});
-    this.cameraAnimator = new CircleFocusAnimator(this.camera, {
-        focus: [0, 0, 0],
-        displacement: [0, 0, -3],
-        up: [0, 1, 0],
-        coneAngle: 0.1,
-        phase: 0,
-        frequency: 1,
-    });
-    //this.cameraAnimator = new OrbitCameraAnimator(this.camera, this.canvas);
+    //this.cameraAnimator = new CircleFocusAnimator(this.camera, {
+    //    focus: [0, 0, 0],
+    //    displacement: [0, 0, -3],
+    //    up: [0, 1, 0],
+    //    coneAngle: 0.1,
+    //    phase: 0,
+    //    frequency: 1,
+    //});
+    this.cameraAnimator = new OrbitCameraAnimator(this.camera, this.canvas);
 
     this.cameraAnimator.addEventListener('change', e => {
         if (this.renderer) {

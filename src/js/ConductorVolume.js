@@ -221,8 +221,7 @@ updateInstanceGroupAssignments() {
             }
 
             if (match) {
-                // group k + 1, because group 0 is added later
-                instance.group = k + 1;
+                groupMatch = true;
 
                 // Opacity is an interpolation between 0 and 1,
                 // when instance.random is close to group density.
@@ -233,14 +232,26 @@ updateInstanceGroupAssignments() {
                 const edge0 = Math.pow(group.density, gamma);
                 const edge1 = group.density;
                 instance.opacity = CommonUtils.smoothstep(edge0, edge1, instance.random);
-                groupMatch = true;
+
+                // Mask value with attribute mapping
+                const angleMin = (k / (this.groups.length * 2)) * 2 * Math.PI;
+                const angleMax = ((k + 1) / (this.groups.length * 2)) * 2 * Math.PI;
+
+                const attributeMin = group.attributeMin;
+                const attributeMax = group.attributeMax;
+                const attributeValue = instance.attributes[group.attribute];
+                const attribute = CommonUtils.clamp(attributeValue, attributeMin, attributeMax);
+
+                const angle = CommonUtils.remap(attribute, attributeMin, attributeMax, angleMin, angleMax);
+                instance.maskValue = [Math.cos(angle) * instance.opacity, Math.sin(angle) * instance.opacity];
+
                 break;
             }
         }
 
         // if no groups match, hide the instance
         if (!groupMatch) {
-            instance.group = 0;
+            instance.maskValue = [0, 0];
         }
     }
 }
@@ -248,13 +259,9 @@ updateInstanceGroupAssignments() {
 // Writes the mask value of each instance into a texture that can
 // be used in the updateMask function to generate the mask volume.
 updateInstanceMaskValues() {
-    // array of mask values for each group, group 0 is the background
-    const maskValues = new Array(this.groups.length + 1).fill(0)
-        .map((_, k) => this.maskValue(k, this.groups.length + 1));
-
     // array of mask values for each instance, instance 0 is the background
-    const rawData = [{ group: 0, opacity: 0 }, ...this.instances]
-        .flatMap(instance => maskValues[instance.group].map(v => CommonUtils.lerp(v, 0.5, instance.opacity)))
+    const rawData = [{ maskValue: [0, 0] }, ...this.instances]
+        .flatMap(instance => instance.maskValue.map(x => x * 0.5 + 0.5))
         .map(x => Math.round(x * 255));
 
     const data = new Uint8Array(rawData);
@@ -341,7 +348,8 @@ maskValue(k, n) {
 // 2. renders the polar transfer function
 updateTransferFunction() {
     const rawData = this.groups
-        .flatMap(group => group.color)
+        .map(group => [group.colorStart, group.colorEnd])
+        .flat(Infinity)
         .map(x => Math.round(x * 255));
 
     const data = new Uint8Array(rawData);
@@ -351,7 +359,7 @@ updateTransferFunction() {
         unit: 0,
         texture: this.colorStrip,
 
-        width: this.groups.length,
+        width: this.groups.length * 2, // two colors per group
         height: 1,
 
         min: gl.LINEAR,

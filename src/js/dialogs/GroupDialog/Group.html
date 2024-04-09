@@ -11,12 +11,34 @@
         <input type="text" bind="name" value="New group">
     </ui-field>
     <ui-field>
-        <label slot="label">Color</label>
-        <ui-color-chooser bind="color"></ui-color-chooser>
+        <label slot="label">Color start</label>
+        <ui-color-chooser bind="colorStart" value="#ffffff"></ui-color-chooser>
     </ui-field>
     <ui-field>
-        <label slot="label">Opacity</label>
-        <ui-slider bind="alpha" value="1" min="0" max="1"></ui-slider>
+        <label slot="label">Opacity start</label>
+        <ui-slider bind="alphaStart" value="1" min="0" max="1"></ui-slider>
+    </ui-field>
+    <ui-field>
+        <label slot="label">Color end</label>
+        <ui-color-chooser bind="colorEnd" value="#ffffff"></ui-color-chooser>
+    </ui-field>
+    <ui-field>
+        <label slot="label">Opacity end</label>
+        <ui-slider bind="alphaEnd" value="1" min="0" max="1"></ui-slider>
+    </ui-field>
+    <ui-field>
+        <label slot="label">Attribute</label>
+        <select bind="attribute">
+            <option disabled selected hidden value>Select...</option>
+        </select>
+    </ui-field>
+    <ui-field>
+        <label slot="label">Attribute min</label>
+        <input type="number" class="predicate-value" bind="attributeMin" placeholder="value" value="0">
+    </ui-field>
+    <ui-field>
+        <label slot="label">Attribute max</label>
+        <input type="number" class="predicate-value" bind="attributeMax" placeholder="value" value="100">
     </ui-field>
     <ui-field>
         <label slot="label">Density</label>

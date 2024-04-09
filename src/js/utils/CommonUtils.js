@@ -78,4 +78,8 @@ static smootherstep(edge0, edge1, x) {
     return t * t * t * (t * (t * 6 - 15) + 10);
 }
 
+static remap(x, minA, maxA, minB, maxB) {
+    return minB + (x - minA) * (maxB - minB) / (maxA - minA);
+}
+
 }

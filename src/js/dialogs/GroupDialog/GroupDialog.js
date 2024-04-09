@@ -69,6 +69,14 @@ addGroup() {
         binds.accordion.classList.remove('highlight-dst');
     });
 
+    // attributes
+    for (const attribute of this.attributes) {
+        const option = document.createElement('option');
+        option.value = attribute;
+        option.textContent = attribute;
+        binds.attribute.appendChild(option);
+    }
+
     // delete
     binds.delete.addEventListener('click', e => {
         binds.accordion.remove();
@@ -81,12 +89,33 @@ addGroup() {
     });
 
     // color
-    binds.color.addEventListener('change', e => {
+    binds.colorStart.addEventListener('change', e => {
+        this.dispatchEvent(new Event('colorchange'));
+    });
+
+    binds.colorEnd.addEventListener('change', e => {
         this.dispatchEvent(new Event('colorchange'));
     });
 
     // alpha
-    binds.alpha.addEventListener('change', e => {
+    binds.alphaStart.addEventListener('change', e => {
+        this.dispatchEvent(new Event('colorchange'));
+    });
+
+    binds.alphaEnd.addEventListener('change', e => {
+        this.dispatchEvent(new Event('colorchange'));
+    });
+
+    // attribute coloring
+    binds.attribute.addEventListener('change', e => {
+        this.dispatchEvent(new Event('colorchange'));
+    });
+
+    binds.attributeMin.addEventListener('change', e => {
+        this.dispatchEvent(new Event('colorchange'));
+    });
+
+    binds.attributeMax.addEventListener('change', e => {
         this.dispatchEvent(new Event('colorchange'));
     });
 
@@ -185,9 +214,15 @@ getGroupData() {
     return [...this.binds.groups.children].map(accordion => {
         const binds = DOMUtils.bind(accordion);
 
+        console.log(binds);
+
         return {
             name: binds.name.value,
-            color: [...CommonUtils.hex2rgb(binds.color.value), binds.alpha.value],
+            colorStart: [...CommonUtils.hex2rgb(binds.colorStart.value), binds.alphaStart.value],
+            colorEnd: [...CommonUtils.hex2rgb(binds.colorEnd.value), binds.alphaEnd.value],
+            attribute: binds.attribute.value,
+            attributeMin: binds.attributeMin.value,
+            attributeMax: binds.attributeMax.value,
             density: binds.density.value,
             sharpness: binds.sharpness.value,
             predicates: [...binds.predicates.children].map(predicate => {
