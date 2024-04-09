@@ -112,12 +112,13 @@ _generateFrame() {
     gl.uniform1f(uniforms.uThreshold, this.threshold);
     gl.uniform1f(uniforms.uOffset, this.random ? Math.random() : 0);
 
-    // TODO: get model matrix from volume
-    const modelMatrix = mat4.fromTranslation(mat4.create(), [-0.5, -0.5, -0.5]);
+    const centerMatrix = mat4.fromTranslation(mat4.create(), [-0.5, -0.5, -0.5]);
+    const modelMatrix = this._volumeTransform.globalMatrix;
     const viewMatrix = this._camera.transform.inverseGlobalMatrix;
     const projectionMatrix = this._camera.getComponent(PerspectiveCamera).projectionMatrix;
 
     const matrix = mat4.create();
+    mat4.multiply(matrix, centerMatrix, matrix);
     mat4.multiply(matrix, modelMatrix, matrix);
     mat4.multiply(matrix, viewMatrix, matrix);
     mat4.multiply(matrix, projectionMatrix, matrix);

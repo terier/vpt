@@ -5,6 +5,8 @@ import { WebGL } from '../WebGL.js';
 import { SingleBuffer } from '../SingleBuffer.js';
 import { DoubleBuffer } from '../DoubleBuffer.js';
 
+import { Transform } from '../Transform.js';
+
 const [ SHADERS, MIXINS ] = await Promise.all([
     'shaders.json',
     'mixins.json',
@@ -21,6 +23,8 @@ constructor(gl, volume, camera, environmentTexture, options = {}) {
     this._volume = volume;
     this._camera = camera;
     this._environmentTexture = environmentTexture;
+
+    this._volumeTransform = options.transform ?? new Transform();
 
     this._rebuildBuffers();
 

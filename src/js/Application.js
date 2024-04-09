@@ -56,6 +56,9 @@ constructor() {
         const r = this.renderingContextDialog.rotation;
         const s = this.renderingContextDialog.scale;
         // TODO fix model transform
+        this.renderingContext.volumeTransform.localTranslation = t;
+        //this.renderingContext.volumeTransform.localRotation = r;
+        this.renderingContext.volumeTransform.localScale = s;
     });
     this.renderingContextDialog.addEventListener('filter', e => {
         const filter = this.renderingContextDialog.filter;

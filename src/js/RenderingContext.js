@@ -4,6 +4,7 @@ import { Ticker } from './Ticker.js';
 import { Node } from './Node.js';
 import { PerspectiveCamera } from './PerspectiveCamera.js';
 import { Volume } from './Volume.js';
+import { Transform } from './Transform.js';
 
 import { RendererFactory } from './renderers/RendererFactory.js';
 import { ToneMapperFactory } from './tonemappers/ToneMapperFactory.js';
@@ -53,6 +54,7 @@ constructor(options = {}) {
     this.cameraAnimator = new OrbitCameraAnimator(this.camera, this.canvas);
 
     this.volume = new Volume(this.gl);
+    this.volumeTransform = new Transform(new Node());
 }
 
 // ============================ WEBGL SUBSYSTEM ============================ //
@@ -155,6 +157,7 @@ chooseRenderer(renderer) {
     const rendererClass = RendererFactory(renderer);
     this.renderer = new rendererClass(this.gl, this.volume, this.camera, this.environmentTexture, {
         resolution: this.resolution,
+        transform: this.volumeTransform,
     });
     this.renderer.reset();
     if (this.toneMapper) {
