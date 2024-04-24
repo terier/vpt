@@ -1,51 +1,70 @@
-import { Transform } from './Transform.js';
-
 export class Node {
 
-constructor(options = {}) {
-    this.children = [];
-    this.parent = null;
-
-    this.components = [
-        new Transform({ node: this, ...options }),
-    ];
-}
-
-addChild(node) {
-    if (node.parent) {
-        node.parent.removeChild(node);
+    constructor() {
+        this.components = [];
+        this.children = [];
+        this.parent = null;
     }
 
-    this.children.push(node);
-    node.parent = this;
-}
+    addChild(node) {
+        node.parent?.removeChild(node);
+        this.children.push(node);
+        node.parent = this;
+    }
 
-removeChild(node) {
-    const index = this.children.indexOf(node);
-    if (index >= 0) {
-        this.children.splice(index, 1);
+    removeChild(node) {
+        this.children = this.children.filter(child => child !== node);
         node.parent = null;
     }
-}
 
-traverse(before, after) {
-    if (before) {
-        before(this);
+    remove() {
+        this.parent?.removeChild(this);
     }
-    for (const child of this.children) {
-        child.traverse(before, after);
-    }
-    if (after) {
-        after(this);
-    }
-}
 
-getComponent(type) {
-    return this.components.find(component => component instanceof type);
-}
+    traverse(before, after) {
+        before?.(this);
+        for (const child of this.children) {
+            child.traverse(before, after);
+        }
+        after?.(this);
+    }
 
-get transform() {
-    return this.getComponent(Transform);
-}
+    linearize() {
+        const array = [];
+        this.traverse(node => array.push(node));
+        return array;
+    }
+
+    filter(predicate) {
+        return this.linearize().filter(predicate);
+    }
+
+    find(predicate) {
+        return this.linearize().find(predicate);
+    }
+
+    map(transform) {
+        return this.linearize().map(transform);
+    }
+
+    addComponent(component) {
+        this.components.push(component);
+    }
+
+    removeComponent(component) {
+        this.components = this.components.filter(c => c !== component);
+    }
+
+    removeComponentsOfType(type) {
+        this.components = this.components.filter(component => !(component instanceof type));
+    }
+
+    getComponentOfType(type) {
+        return this.components.find(component => component instanceof type);
+    }
+
+    getComponentsOfType(type) {
+        return this.components.filter(component => component instanceof type);
+    }
 
 }

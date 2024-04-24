@@ -24,6 +24,11 @@ input {
     top: 0;
 }
 
+.stretch {
+    width: 100%;
+    height: 100%;
+}
+
 .fullscreen {
     width: 100vw;
     height: 100vh;

@@ -35,8 +35,15 @@ update(t) {
     mat4.multiply(composite, composite, scale);
 
     const position = [1, 0, 0];
-    this.node.transform.localTranslation = vec3.transformMat4(position, position, composite);
-    this.node.transform.localRotation = orientationQuat;
+
+    const finalTranslation = vec3.transformMat4(position, position, composite);
+    const finalRotation = orientationQuat;
+
+    const transform = this.node.getComponentOfType(Transform);
+    if (transform) {
+        transform.translation = finalTranslation;
+        transform.rotation = finalRotation;
+    }
 }
 
 }

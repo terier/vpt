@@ -3,12 +3,9 @@ import { mat4 } from '../../lib/gl-matrix-module.js';
 import { WebGL } from '../WebGL.js';
 import { AbstractRenderer } from './AbstractRenderer.js';
 
-import { PerspectiveCamera } from '../PerspectiveCamera.js';
+import { Volume } from '../Volume.js';
 
-const [ SHADERS, MIXINS ] = await Promise.all([
-    'shaders.json',
-    'mixins.json',
-].map(url => fetch(url).then(response => response.json())));
+import { SHADERS, MIXINS } from '../shaders.js';
 
 export class MCMRenderer extends AbstractRenderer {
 
@@ -92,16 +89,7 @@ _resetFrame() {
     gl.uniform1f(uniforms.uRandSeed, Math.random());
     gl.uniform1f(uniforms.uBlur, 0);
 
-    const centerMatrix = mat4.fromTranslation(mat4.create(), [-0.5, -0.5, -0.5]);
-    const modelMatrix = this._volumeTransform.globalMatrix;
-    const viewMatrix = this._camera.transform.inverseGlobalMatrix;
-    const projectionMatrix = this._camera.getComponent(PerspectiveCamera).projectionMatrix;
-
-    const matrix = mat4.create();
-    mat4.multiply(matrix, centerMatrix, matrix);
-    mat4.multiply(matrix, modelMatrix, matrix);
-    mat4.multiply(matrix, viewMatrix, matrix);
-    mat4.multiply(matrix, projectionMatrix, matrix);
+    const matrix = this.calculatePVMMatrix();
     mat4.invert(matrix, matrix);
     gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, matrix);
 
@@ -141,7 +129,7 @@ _integrateFrame() {
     gl.uniform1i(uniforms.uRadiance, 3);
 
     gl.activeTexture(gl.TEXTURE4);
-    gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
+    gl.bindTexture(gl.TEXTURE_3D, this._volume.getComponentOfType(Volume).getTexture());
     gl.uniform1i(uniforms.uVolume, 4);
 
     gl.activeTexture(gl.TEXTURE5);
@@ -161,16 +149,7 @@ _integrateFrame() {
     gl.uniform1ui(uniforms.uMaxBounces, this.bounces);
     gl.uniform1ui(uniforms.uSteps, this.steps);
 
-    const centerMatrix = mat4.fromTranslation(mat4.create(), [-0.5, -0.5, -0.5]);
-    const modelMatrix = this._volumeTransform.globalMatrix;
-    const viewMatrix = this._camera.transform.inverseGlobalMatrix;
-    const projectionMatrix = this._camera.getComponent(PerspectiveCamera).projectionMatrix;
-
-    const matrix = mat4.create();
-    mat4.multiply(matrix, centerMatrix, matrix);
-    mat4.multiply(matrix, modelMatrix, matrix);
-    mat4.multiply(matrix, viewMatrix, matrix);
-    mat4.multiply(matrix, projectionMatrix, matrix);
+    const matrix = this.calculatePVMMatrix();
     mat4.invert(matrix, matrix);
     gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, matrix);
 

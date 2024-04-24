@@ -7,10 +7,13 @@ import { DoubleBuffer } from '../DoubleBuffer.js';
 
 import { Transform } from '../Transform.js';
 
-const [ SHADERS, MIXINS ] = await Promise.all([
-    'shaders.json',
-    'mixins.json',
-].map(url => fetch(url).then(response => response.json())));
+import {
+    getGlobalModelMatrix,
+    getGlobalViewMatrix,
+    getProjectionMatrix,
+} from '../SceneUtils.js';
+
+import { SHADERS, MIXINS } from '../shaders.js';
 
 export class AbstractRenderer extends PropertyBag {
 
@@ -23,8 +26,6 @@ constructor(gl, volume, camera, environmentTexture, options = {}) {
     this._volume = volume;
     this._camera = camera;
     this._environmentTexture = environmentTexture;
-
-    this._volumeTransform = options.transform ?? new Transform();
 
     this._rebuildBuffers();
 
@@ -46,6 +47,23 @@ constructor(gl, volume, camera, environmentTexture, options = {}) {
     this._clipQuadProgram = WebGL.buildPrograms(gl, {
         quad: SHADERS.quad
     }, MIXINS).quad;
+
+    this.lastMatrix = mat4.create();
+}
+
+calculatePVMMatrix() {
+    const centerMatrix = mat4.fromTranslation(mat4.create(), [-0.5, -0.5, -0.5]);
+    const modelMatrix = getGlobalModelMatrix(this._volume);
+    const viewMatrix = getGlobalViewMatrix(this._camera);
+    const projectionMatrix = getProjectionMatrix(this._camera);
+
+    const matrix = mat4.create();
+    mat4.multiply(matrix, centerMatrix, matrix);
+    mat4.multiply(matrix, modelMatrix, matrix);
+    mat4.multiply(matrix, viewMatrix, matrix);
+    mat4.multiply(matrix, projectionMatrix, matrix);
+
+    return matrix;
 }
 
 destroy() {
@@ -58,6 +76,12 @@ destroy() {
 }
 
 render() {
+    const matrix = this.calculatePVMMatrix();
+    if (!mat4.equals(matrix, this.lastMatrix)) {
+        this.reset();
+        this.lastMatrix = matrix;
+    }
+
     this._frameBuffer.use();
     this._generateFrame();
 

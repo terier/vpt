@@ -1,3 +1,5 @@
+import { quat } from '../lib/gl-matrix-module.js';
+
 import { DOMUtils } from './utils/DOMUtils.js';
 
 import './ui/UI.js';
@@ -13,7 +15,8 @@ import { DialogConstructor } from './dialogs/DialogConstructor.js';
 
 import { RenderingContext } from './RenderingContext.js';
 
-import { PerspectiveCamera } from './PerspectiveCamera.js';
+import { Camera } from './Camera.js';
+import { Transform } from './Transform.js';
 
 export class Application {
 
@@ -55,23 +58,23 @@ constructor() {
         const t = this.renderingContextDialog.translation;
         const r = this.renderingContextDialog.rotation;
         const s = this.renderingContextDialog.scale;
-        // TODO fix model transform
-        this.renderingContext.volumeTransform.localTranslation = t;
-        //this.renderingContext.volumeTransform.localRotation = r;
-        this.renderingContext.volumeTransform.localScale = s;
+        const volumeTransform = this.renderingContext.volume.getComponentOfType(Transform);
+        volumeTransform.translation = t;
+        volumeTransform.rotation = quat.fromEuler(quat.create(), ...r);
+        volumeTransform.scale = s;
     });
     this.renderingContextDialog.addEventListener('filter', e => {
         const filter = this.renderingContextDialog.filter;
         this.renderingContext.setFilter(filter);
     });
     this.renderingContextDialog.addEventListener('fullscreen', e => {
-        this.renderingContext.canvas.classList.toggle('fullscreen',
+        this.renderingContext.canvas.classList.toggle('stretch',
             this.renderingContextDialog.fullscreen);
     });
 
     new ResizeObserver(entries => {
         const size = entries[0].contentBoxSize[0];
-        const camera = this.renderingContext.camera.getComponent(PerspectiveCamera);
+        const camera = this.renderingContext.camera.getComponentOfType(Camera);
         camera.aspect = size.inlineSize / size.blockSize;
     }).observe(this.renderingContext.canvas);
 
@@ -107,11 +110,9 @@ _handleFileDrop(e) {
     }
     this._handleVolumeLoad(new CustomEvent('load', {
         detail: {
-            type       : 'file',
-            file       : file,
-            filetype   : 'bvp',
-            dimensions : { x: 0, y: 0, z: 0 }, // doesn't matter
-            precision  : 8, // doesn't matter
+            type: 'file',
+            file: file,
+            filetype: 'bvp',
         }
     }));
 }
@@ -172,10 +173,10 @@ async _handleVolumeLoad(e) {
             const loaderClass = LoaderFactory('blob');
             const loader = new loaderClass(options.file);
             const reader = new readerClass(loader, {
-                width  : options.dimensions[0],
-                height : options.dimensions[1],
-                depth  : options.dimensions[2],
-                bits   : options.precision,
+                width  : options?.dimensions?.[0],
+                height : options?.dimensions?.[1],
+                depth  : options?.dimensions?.[2],
+                bits   : options?.precision,
             });
             this.renderingContext.stopRendering();
             await this.renderingContext.setVolume(reader);

@@ -2,7 +2,7 @@ import { WebGL } from './WebGL.js';
 import { Ticker } from './Ticker.js';
 
 import { Node } from './Node.js';
-import { PerspectiveCamera } from './PerspectiveCamera.js';
+import { Camera } from './Camera.js';
 import { Volume } from './Volume.js';
 import { Transform } from './Transform.js';
 
@@ -12,10 +12,7 @@ import { ToneMapperFactory } from './tonemappers/ToneMapperFactory.js';
 import { CircleAnimator } from './animators/CircleAnimator.js';
 import { OrbitCameraAnimator } from './animators/OrbitCameraAnimator.js';
 
-const [ SHADERS, MIXINS ] = await Promise.all([
-    'shaders.json',
-    'mixins.json',
-].map(url => fetch(url).then(response => response.json())));
+import { SHADERS, MIXINS } from './shaders.js';
 
 export class RenderingContext extends EventTarget {
 
@@ -36,14 +33,10 @@ constructor(options = {}) {
     this.filter = options.filter ?? 'linear';
 
     this.camera = new Node();
-    this.camera.transform.localTranslation = [0, 0, 2];
-    this.camera.components.push(new PerspectiveCamera(this.camera));
-
-    this.camera.transform.addEventListener('change', e => {
-        if (this.renderer) {
-            this.renderer.reset();
-        }
-    });
+    this.camera.addComponent(new Camera());
+    this.camera.addComponent(new Transform({
+        translation: [0, 0, 2],
+    }));
 
     //this.cameraAnimator = new CircleAnimator(this.camera, {
     //    center: [0, 0, 2],
@@ -53,8 +46,9 @@ constructor(options = {}) {
     //});
     this.cameraAnimator = new OrbitCameraAnimator(this.camera, this.canvas);
 
-    this.volume = new Volume(this.gl);
-    this.volumeTransform = new Transform(new Node());
+    this.volume = new Node();
+    this.volume.addComponent(new Volume(this.gl));
+    this.volume.addComponent(new Transform());
 }
 
 // ============================ WEBGL SUBSYSTEM ============================ //
@@ -118,19 +112,21 @@ webglcontextrestoredHandler(e) {
 resize(width, height) {
     this.canvas.width = width;
     this.canvas.height = height;
-    this.camera.getComponent(PerspectiveCamera).aspect = width / height;
+    this.camera.getComponentOfType(Camera).aspect = width / height;
 }
 
 async setVolume(reader) {
-    this.volume = new Volume(this.gl, reader);
-    this.volume.addEventListener('progress', e => {
+    this.volume.removeComponentsOfType(Volume);
+
+    const volumeComponent = new Volume(this.gl, reader);
+    volumeComponent.addEventListener('progress', e => {
         this.dispatchEvent(new CustomEvent('progress', { detail: e.detail }));
     });
-    await this.volume.load();
-    this.volume.setFilter(this.filter);
-    if (this.renderer) {
-        this.renderer.setVolume(this.volume);
-    }
+    await volumeComponent.load();
+    volumeComponent.setFilter(this.filter);
+
+    this.volume.addComponent(volumeComponent);
+    this.renderer?.reset();
 }
 
 setEnvironmentMap(image) {
@@ -142,34 +138,24 @@ setEnvironmentMap(image) {
 
 setFilter(filter) {
     this.filter = filter;
-    if (this.volume) {
-        this.volume.setFilter(filter);
-        if (this.renderer) {
-            this.renderer.reset();
-        }
-    }
+    const volumeComponent = this.volume.getComponentOfType(Volume);
+    volumeComponent?.setFilter(filter);
+    this.renderer?.reset();
 }
 
 chooseRenderer(renderer) {
-    if (this.renderer) {
-        this.renderer.destroy();
-    }
+    this.renderer?.destroy();
     const rendererClass = RendererFactory(renderer);
     this.renderer = new rendererClass(this.gl, this.volume, this.camera, this.environmentTexture, {
         resolution: this.resolution,
-        transform: this.volumeTransform,
     });
     this.renderer.reset();
-    if (this.toneMapper) {
-        this.toneMapper.setTexture(this.renderer.getTexture());
-    }
+    this.toneMapper?.setTexture(this.renderer.getTexture());
     this.isTransformationDirty = true;
 }
 
 chooseToneMapper(toneMapper) {
-    if (this.toneMapper) {
-        this.toneMapper.destroy();
-    }
+    this.toneMapper?.destroy();
     const gl = this.gl;
     let texture;
     if (this.renderer) {
@@ -262,13 +248,6 @@ async recordAnimationToImageSequence(options = {}) {
         return new Promise((resolve, reject) => setTimeout(resolve, millis));
     }
 
-    function pad(number, length) {
-        const string = String(number);
-        const remaining = length - string.length;
-        const padding = new Array(remaining).fill('0').join('');
-        return padding + string;
-    }
-
     const canvas = this.canvas;
     function getCanvasBlob() {
         return new Promise((resolve, reject) => {
@@ -287,7 +266,7 @@ async recordAnimationToImageSequence(options = {}) {
         await wait(frameTime * 1000);
         this.stopRendering();
 
-        const filename = `frame${pad(i, 4)}.png`;
+        const filename = `frame${String(i).padStart(4, '0')}.png`;
         const file = await directory.getFileHandle(filename, { create: true })
             .then(file => file.createWritable());
         const blob = await getCanvasBlob();
@@ -309,13 +288,6 @@ async recordAnimationToVideo(options = {}) {
 
     function wait(millis) {
         return new Promise((resolve, reject) => setTimeout(resolve, millis));
-    }
-
-    function pad(number, length) {
-        const string = String(number);
-        const remaining = length - string.length;
-        const padding = new Array(remaining).fill('0').join('');
-        return padding + string;
     }
 
     const canvasStream = this.canvas.captureStream(0);

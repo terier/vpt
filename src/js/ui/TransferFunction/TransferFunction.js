@@ -1,7 +1,7 @@
 import { DOMUtils } from '../../utils/DOMUtils.js';
 import { CommonUtils } from '../../utils/CommonUtils.js';
 import { WebGL } from '../../WebGL.js';
-import { Draggable } from '../../Draggable.js';
+import { Draggable } from './Draggable.js';
 
 const [ SHADERS, MIXINS ] = await Promise.all([
     'shaders.json',
@@ -72,16 +72,21 @@ constructor() {
     this.binds.alpha.addEventListener('change', this.changeListener);
 
     this.binds.load.addEventListener('click', e => {
-        CommonUtils.readTextFile(data => {
-            this.bumps = JSON.parse(data);
-            this.render();
-            this._rebuildHandles();
-            this.dispatchEvent(new Event('change'));
-        });
+        window.showOpenFilePicker()
+            .then(handle => handle.getFile())
+            .then(file => file.text())
+            .then(text => {
+                this.bumps = JSON.parse(reader.result);
+                this.render();
+                this._rebuildHandles();
+                this.dispatchEvent(new Event('change'));
+            });
     });
 
     this.binds.save.addEventListener('click', e => {
-        CommonUtils.downloadJSON(this.bumps, 'TransferFunction.json');
+        window.showSaveFilePicker()
+            .then(handle => handle.createWritable())
+            .then(stream => stream.write(JSON.stringify(this.bumps)));
     });
 }
 

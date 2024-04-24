@@ -3,12 +3,15 @@ import { quat, vec3, mat4 } from '../../lib/gl-matrix-module.js';
 import { WebGL } from '../WebGL.js';
 import { AbstractRenderer } from './AbstractRenderer.js';
 
-import { PerspectiveCamera } from '../PerspectiveCamera.js';
+import { Volume } from '../Volume.js';
 
-const [ SHADERS, MIXINS ] = await Promise.all([
-    'shaders.json',
-    'mixins.json',
-].map(url => fetch(url).then(response => response.json())));
+import {
+    getGlobalModelMatrix,
+    getGlobalViewMatrix,
+    getProjectionMatrix,
+} from '../SceneUtils.js';
+
+import { SHADERS, MIXINS } from '../shaders.js';
 
 export class DOSRenderer extends AbstractRenderer {
 
@@ -138,11 +141,9 @@ generateOcclusionSamples() {
 }
 
 calculateDepth() {
-
-    // TODO: get model matrix from volume
     const centerMatrix = mat4.fromTranslation(mat4.create(), [-0.5, -0.5, -0.5]);
-    const modelMatrix = this._volumeTransform.globalMatrix;
-    const viewMatrix = this._camera.transform.inverseGlobalMatrix;
+    const modelMatrix = getGlobalModelMatrix(this._volume);
+    const viewMatrix = getGlobalViewMatrix(this._camera);
 
     const matrix = mat4.create();
     mat4.multiply(matrix, centerMatrix, matrix);
@@ -194,7 +195,7 @@ _integrateFrame() {
 
     gl.activeTexture(gl.TEXTURE2);
     gl.uniform1i(uniforms.uVolume, 2);
-    gl.bindTexture(gl.TEXTURE_3D, this._volume.getTexture());
+    gl.bindTexture(gl.TEXTURE_3D, this._volume.getComponentOfType(Volume).getTexture());
 
     gl.activeTexture(gl.TEXTURE3);
     gl.uniform1i(uniforms.uTransferFunction, 3);
@@ -208,16 +209,7 @@ _integrateFrame() {
     gl.uniform1ui(uniforms.uOcclusionSamplesCount, this.samples);
     gl.uniform1f(uniforms.uExtinction, this.extinction);
 
-    const centerMatrix = mat4.fromTranslation(mat4.create(), [-0.5, -0.5, -0.5]);
-    const modelMatrix = this._volumeTransform.globalMatrix;
-    const viewMatrix = this._camera.transform.inverseGlobalMatrix;
-    const projectionMatrix = this._camera.getComponent(PerspectiveCamera).projectionMatrix;
-
-    const matrix = mat4.create();
-    mat4.multiply(matrix, centerMatrix, matrix);
-    mat4.multiply(matrix, modelMatrix, matrix);
-    mat4.multiply(matrix, viewMatrix, matrix);
-    mat4.multiply(matrix, projectionMatrix, matrix);
+    const matrix = this.calculatePVMMatrix();
     mat4.invert(matrix, matrix);
     gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, matrix);
 
@@ -236,7 +228,7 @@ _integrateFrame() {
         gl.uniform1i(uniforms.uOcclusion, 1);
         gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[1]);
 
-        const projectionMatrix = this._camera.getComponent(PerspectiveCamera).projectionMatrix;
+        const projectionMatrix = getProjectionMatrix(this._camera);
         const correction = [1, 1, -this._depth];
         vec3.transformMat4(correction, correction, projectionMatrix);
         const occlusionExtent = sliceDistance * Math.tan(this.aperture * Math.PI / 180);

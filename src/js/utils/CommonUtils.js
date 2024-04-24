@@ -1,32 +1,5 @@
 export class CommonUtils {
 
-static downloadJSON(json, filename) {
-    const str = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(json));
-    let a = document.createElement('a');
-    a.setAttribute('href', str);
-    a.setAttribute('download', filename);
-    a.click();
-    a = null;
-}
-
-static readTextFile(onLoad, onError) {
-    const input = document.createElement('input');
-    input.setAttribute('type', 'file');
-    input.addEventListener('change', function() {
-        const reader = new FileReader();
-        if (onLoad) {
-            reader.addEventListener('load', function() {
-                onLoad(reader.result);
-            });
-        }
-        if (onError) {
-            reader.addEventListener('error', onError);
-        }
-        reader.readAsText(input.files[0]);
-    });
-    input.click();
-}
-
 static bind(object, { prefix = '', suffix = 'Listener'} = {}) {
     const methods = Object.getOwnPropertyNames(object.constructor.prototype);
     for (const method of methods) {

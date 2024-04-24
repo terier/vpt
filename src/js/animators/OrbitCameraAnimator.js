@@ -1,5 +1,6 @@
 import { quat, vec3, mat4 } from '../../lib/gl-matrix-module.js';
 import { Ticker } from '../Ticker.js';
+import { Transform } from '../Transform.js';
 
 export class OrbitCameraAnimator {
 
@@ -23,7 +24,9 @@ constructor(camera, domElement, options = {}) {
     this._domElement = domElement;
 
     this._focus = [0, 0, 0];
-    this._focusDistance = vec3.distance(this._focus, this._camera.transform.globalTranslation);
+    // TODO global transform
+    const cameraTransform = this._camera.getComponentOfType(Transform);
+    this._focusDistance = vec3.distance(this._focus, cameraTransform.translation);
 
     this._yaw = 0;
     this._pitch = 0;
@@ -88,9 +91,9 @@ _handlePointerMove(e) {
     }
 
     if (this._isTranslating) {
-        const moveX = -dx * this.translationSpeed * this._focus;
-        const moveY =  dy * this.translationSpeed * this._focus;
-        this._move(moveX, moveY, 0);
+        const moveX = -dx * this.translationSpeed * this._focusDistance;
+        const moveY =  dy * this.translationSpeed * this._focusDistance;
+        this._move([moveX, moveY, 0]);
     }
 }
 
@@ -117,7 +120,7 @@ _handleKeyUp(e) {
 }
 
 _updateCamera() {
-    const transform = this._camera.transform;
+    const transform = this._camera.getComponentOfType(Transform);
 
     const rotation = quat.create();
     quat.rotateY(rotation, rotation, this._yaw);
@@ -126,8 +129,8 @@ _updateCamera() {
     const translation = vec3.transformQuat(vec3.create(),
         [0, 0, this._focusDistance], rotation);
 
-    transform.localRotation = rotation;
-    transform.localTranslation = vec3.add(vec3.create(), this._focus, translation);
+    transform.rotation = rotation;
+    transform.translation = vec3.add(vec3.create(), this._focus, translation);
 }
 
 _rotateAroundFocus(dx, dy) {
