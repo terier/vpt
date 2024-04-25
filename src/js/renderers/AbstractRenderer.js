@@ -17,10 +17,12 @@ import { SHADERS, MIXINS } from '../shaders.js';
 
 export class AbstractRenderer extends PropertyBag {
 
-constructor(gl, volume, camera, environmentTexture, options = {}) {
+constructor(gl, volume, camera, environmentTexture, {
+    resolution = [512, 512],
+} = {}) {
     super();
 
-    this._resolution = options.resolution ?? 512;
+    this._resolution = resolution;
 
     this._gl = gl;
     this._volume = volume;
@@ -127,9 +129,10 @@ setTransferFunction(transferFunction) {
         gl.SRGB8_ALPHA8, gl.RGBA, gl.UNSIGNED_BYTE, transferFunction);
 }
 
-setResolution(resolution) {
-    if (resolution !== this._resolution) {
-        this._resolution = resolution;
+setResolution(width, height) {
+    const [previousWidth, previousHeight] = this._resolution;
+    if (width !== previousWidth || height !== previousHeight) {
+        this._resolution = [width, height];
         this._rebuildBuffers();
         this.reset();
     }
@@ -166,8 +169,8 @@ _getAccumulationBufferSpec() {
 _getRenderBufferSpec() {
     const gl = this._gl;
     return [{
-        width   : this._resolution,
-        height  : this._resolution,
+        width   : this._resolution[0],
+        height  : this._resolution[1],
         min     : gl.NEAREST,
         mag     : gl.NEAREST,
         wrapS   : gl.CLAMP_TO_EDGE,

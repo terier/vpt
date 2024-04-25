@@ -6,10 +6,12 @@ import { SHADERS, MIXINS } from '../shaders.js';
 
 export class AbstractToneMapper extends PropertyBag {
 
-constructor(gl, texture, options = {}) {
+constructor(gl, texture, {
+    resolution = [512, 512],
+} = {}) {
     super();
 
-    this._resolution = options.resolution ?? 512;
+    this._resolution = resolution;
 
     this._gl = gl;
     this._texture = texture;
@@ -49,9 +51,10 @@ _rebuildBuffers() {
     this._renderBuffer = new SingleBuffer(gl, this._getRenderBufferSpec());
 }
 
-setResolution(resolution) {
-    if (resolution !== this._resolution) {
-        this._resolution = resolution;
+setResolution(width, height) {
+    const [previousWidth, previousHeight] = this._resolution;
+    if (width !== previousWidth || height !== previousHeight) {
+        this._resolution = [width, height];
         this._rebuildBuffers();
     }
 }
@@ -63,8 +66,8 @@ _renderFrame() {
 _getRenderBufferSpec() {
     const gl = this._gl;
     return [{
-        width   : this._resolution,
-        height  : this._resolution,
+        width   : this._resolution[0],
+        height  : this._resolution[1],
         min     : gl.LINEAR,
         mag     : gl.LINEAR,
         wrapS   : gl.CLAMP_TO_EDGE,

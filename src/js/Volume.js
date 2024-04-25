@@ -2,7 +2,9 @@ import { WebGL } from './WebGL.js';
 
 export class Volume extends EventTarget {
 
-constructor(gl, reader, options = {}) {
+constructor(gl, reader, {
+    filter = 'linear',
+} = {}) {
     super();
 
     this._gl = gl;
@@ -12,6 +14,8 @@ constructor(gl, reader, options = {}) {
     this.ready = false;
     this.texture = null;
     this.modality = null;
+
+    this.filter = filter;
 }
 
 destroy() {
@@ -52,13 +56,10 @@ async readModality(modalityName) {
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
     const { width, height, depth } = modality.dimensions;
     const { format, internalFormat, type } = modality;
     gl.texStorage3D(gl.TEXTURE_3D, 1, internalFormat, width, height, depth);
-
 
     for (const { index, position } of modality.placements) {
         const data = await this._reader.readBlock(index);
@@ -73,6 +74,8 @@ async readModality(modalityName) {
         const progress = (index + 1) / modality.placements.length;
         this.dispatchEvent(new CustomEvent('progress', { detail: progress }));
     }
+
+    this.setFilter(this.filter);
 
     this.ready = true;
 }

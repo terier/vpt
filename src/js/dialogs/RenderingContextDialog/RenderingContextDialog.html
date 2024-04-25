@@ -8,8 +8,12 @@
         <ui-checkbox bind="filter" checked></ui-checkbox>
     </ui-field>
     <ui-field>
-        <label slot="label">Resolution</label>
-        <input type="number" bind="resolution" min="1" max="4096" value="512">
+        <label slot="label">Canvas width</label>
+        <input type="number" bind="canvasWidth" min="1" max="4096" value="512">
+    </ui-field>
+    <ui-field>
+        <label slot="label">Canvas height</label>
+        <input type="number" bind="canvasHeight" min="1" max="4096" value="512">
     </ui-field>
     <ui-field>
         <label slot="label">Translation</label>

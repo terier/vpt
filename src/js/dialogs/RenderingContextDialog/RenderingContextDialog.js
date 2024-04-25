@@ -17,7 +17,8 @@ constructor() {
     this._handleFilterChange = this._handleFilterChange.bind(this);
     this._handleFullscreenChange = this._handleFullscreenChange.bind(this);
 
-    this.binds.resolution.addEventListener('change', this._handleResolutionChange);
+    this.binds.canvasWidth.addEventListener('change', this._handleResolutionChange);
+    this.binds.canvasHeight.addEventListener('change', this._handleResolutionChange);
     this.binds.translation.addEventListener('input', this._handleTransformationChange);
     this.binds.rotation.addEventListener('input', this._handleTransformationChange);
     this.binds.scale.addEventListener('input', this._handleTransformationChange);
@@ -26,7 +27,7 @@ constructor() {
 }
 
 get resolution() {
-    return this.binds.resolution.value;
+    return [this.binds.canvasWidth.value, this.binds.canvasHeight.value];
 }
 
 get translation() {
