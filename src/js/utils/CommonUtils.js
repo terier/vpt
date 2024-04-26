@@ -24,31 +24,4 @@ static rgb2hex(rgb) {
     return `#${strings.join('')}`;
 }
 
-static clamp(x, min, max) {
-    return Math.min(Math.max(x, min), max);
-}
-
-static lerp(a, b, x) {
-    return a + x * (b - a);
-}
-
-static step(edge, x) {
-    return x < edge ? 0 : 1;
-}
-
-static linstep(edge0, edge1, x) {
-    const t = CommonUtils.clamp((x - edge0) / (edge1 - edge0), 0, 1);
-    return t;
-}
-
-static smoothstep(edge0, edge1, x) {
-    const t = CommonUtils.clamp((x - edge0) / (edge1 - edge0), 0, 1);
-    return t * t * (3 - 2 * t);
-}
-
-static smootherstep(edge0, edge1, x) {
-    const t = CommonUtils.clamp((x - edge0) / (edge1 - edge0), 0, 1);
-    return t * t * t * (t * (t * 6 - 15) + 10);
-}
-
 }
