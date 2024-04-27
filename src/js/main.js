@@ -28,7 +28,10 @@ import { OrbitCameraAnimator } from './animators/OrbitCameraAnimator.js';
 import { ResizeSystem } from './systems/ResizeSystem.js';
 import { UpdateSystem } from './systems/UpdateSystem.js';
 
-import { WebGL } from './WebGL.js';
+import {
+    buildPrograms,
+    createTexture,
+} from './WebGL.js';
 import { SHADERS, MIXINS } from './shaders.js';
 
 const binds = DOMUtils.bind(document.body);
@@ -84,7 +87,7 @@ scene.addChild(volume);
 //    image: createImageBitmap(new ImageData(new Uint8ClampedArray([255, 255, 255, 255]), 1, 1)),
 //}));
 //scene.addChild(environmentLight);
-const environmentLight = WebGL.createTexture(gl, {
+const environmentLight = createTexture(gl, {
     image: await createImageBitmap(new ImageData(new Uint8ClampedArray([255, 255, 255, 255]), 1, 1)),
 });
 
@@ -100,7 +103,7 @@ let toneMapper = new toneMapperClass(gl, renderer.getTexture(), {
     resolution: [canvas.width, canvas.height],
 });
 
-const renderToCanvas = WebGL.buildPrograms(gl, {
+const renderToCanvas = buildPrograms(gl, {
     quad: SHADERS.quad
 }, MIXINS).quad;
 

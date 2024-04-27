@@ -1,7 +1,6 @@
 import { mat4 } from '../../lib/gl-matrix-module.js';
 
 import { PropertyBag } from '../PropertyBag.js';
-import { WebGL } from '../WebGL.js';
 import { SingleBuffer } from '../SingleBuffer.js';
 import { DoubleBuffer } from '../DoubleBuffer.js';
 
@@ -13,6 +12,10 @@ import {
     getProjectionMatrix,
 } from '../SceneUtils.js';
 
+import {
+    buildPrograms,
+    createTexture,
+} from '../WebGL.js';
 import { SHADERS, MIXINS } from '../shaders.js';
 
 export class AbstractRenderer extends PropertyBag {
@@ -31,7 +34,7 @@ constructor(gl, volume, camera, environmentTexture, {
 
     this._rebuildBuffers();
 
-    this._transferFunction = WebGL.createTexture(gl, {
+    this._transferFunction = createTexture(gl, {
         width   : 2,
         height  : 1,
         data    : new Uint8Array([255, 0, 0, 0, 255, 0, 0, 255]),
@@ -46,7 +49,7 @@ constructor(gl, volume, camera, environmentTexture, {
         mag     : gl.LINEAR,
     });
 
-    this._clipQuadProgram = WebGL.buildPrograms(gl, {
+    this._clipQuadProgram = buildPrograms(gl, {
         quad: SHADERS.quad
     }, MIXINS).quad;
 

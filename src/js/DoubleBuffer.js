@@ -1,4 +1,7 @@
-import { WebGL } from './WebGL.js';
+import {
+    createTexture,
+    createFramebuffer,
+} from './WebGL.js';
 
 export class DoubleBuffer {
 
@@ -7,9 +10,9 @@ constructor(gl, spec) {
     this._spec = spec;
 
     this._readAttachments = this._createAttachmentsFromSpec(gl, this._spec);
-    this._readFramebuffer = WebGL.createFramebuffer(gl, this._readAttachments);
+    this._readFramebuffer = createFramebuffer(gl, this._readAttachments);
     this._writeAttachments = this._createAttachmentsFromSpec(gl, this._spec);
-    this._writeFramebuffer = WebGL.createFramebuffer(gl, this._writeAttachments);
+    this._writeFramebuffer = createFramebuffer(gl, this._writeAttachments);
 
     this._width = this._spec[0].width;
     this._height = this._spec[0].height;
@@ -28,7 +31,7 @@ destroy() {
 }
 
 _createAttachmentsFromSpec(gl, spec) {
-    return { color: spec.map(s => WebGL.createTexture(gl, s)) };
+    return { color: spec.map(s => createTexture(gl, s)) };
 }
 
 use() {

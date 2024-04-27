@@ -1,4 +1,7 @@
-import { WebGL } from './WebGL.js';
+import {
+    createTexture,
+    createFramebuffer,
+} from './WebGL.js';
 
 export class SingleBuffer {
 
@@ -7,7 +10,7 @@ constructor(gl, spec) {
     this._spec = spec;
 
     this._attachments = this._createAttachmentsFromSpec(gl, this._spec);
-    this._framebuffer = WebGL.createFramebuffer(gl, this._attachments);
+    this._framebuffer = createFramebuffer(gl, this._attachments);
 
     this._width = this._spec[0].width;
     this._height = this._spec[0].height;
@@ -22,7 +25,7 @@ destroy() {
 }
 
 _createAttachmentsFromSpec(gl, spec) {
-    return { color: spec.map(s => WebGL.createTexture(gl, s)) };
+    return { color: spec.map(s => createTexture(gl, s)) };
 }
 
 use() {

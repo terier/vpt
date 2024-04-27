@@ -1,7 +1,7 @@
 import { DOMUtils } from '../../utils/DOMUtils.js';
 import { CommonUtils } from '../../utils/CommonUtils.js';
-import { WebGL } from '../../WebGL.js';
 import { Draggable } from './Draggable.js';
+import { buildPrograms } from '../../WebGL.js';
 
 const [ SHADERS, MIXINS ] = await Promise.all([
     'shaders.json',
@@ -51,7 +51,7 @@ constructor() {
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
-    this._program = WebGL.buildPrograms(gl, {
+    this._program = buildPrograms(gl, {
         TransferFunction: SHADERS.TransferFunction
     }, MIXINS).TransferFunction;
     const { program } = this._program;

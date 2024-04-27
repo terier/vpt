@@ -1,10 +1,10 @@
 import { mat4 } from '../../lib/gl-matrix-module.js';
 
-import { WebGL } from '../WebGL.js';
 import { AbstractRenderer } from './AbstractRenderer.js';
 
 import { Volume } from '../Volume.js';
 
+import { buildPrograms } from '../WebGL.js';
 import { SHADERS, MIXINS } from '../shaders.js';
 
 export class MIPRenderer extends AbstractRenderer {
@@ -42,7 +42,7 @@ constructor(gl, volume, camera, environmentTexture, options = {}) {
         }
     });
 
-    this._programs = WebGL.buildPrograms(this._gl, SHADERS.renderers.MIP, MIXINS);
+    this._programs = buildPrograms(this._gl, SHADERS.renderers.MIP, MIXINS);
 }
 
 destroy() {

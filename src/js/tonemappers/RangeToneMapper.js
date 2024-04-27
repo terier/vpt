@@ -1,6 +1,6 @@
-import { WebGL } from '../WebGL.js';
 import { AbstractToneMapper } from './AbstractToneMapper.js';
 
+import { buildPrograms } from '../WebGL.js';
 import { SHADERS, MIXINS } from '../shaders.js';
 
 export class RangeToneMapper extends AbstractToneMapper {
@@ -30,7 +30,7 @@ constructor(gl, texture, options = {}) {
         },
     ]);
 
-    this._program = WebGL.buildPrograms(gl, {
+    this._program = buildPrograms(gl, {
         RangeToneMapper: SHADERS.tonemappers.RangeToneMapper
     }, MIXINS).RangeToneMapper;
 }

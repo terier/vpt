@@ -1,6 +1,4 @@
-export class WebGL {
-
-static createShader(gl, source, type) {
+export function createShader(gl, source, type) {
     const shader = gl.createShader(type);
     gl.shaderSource(shader, source);
     gl.compileShader(shader);
@@ -16,7 +14,7 @@ static createShader(gl, source, type) {
     return shader;
 }
 
-static createProgram(gl, shaders) {
+export function createProgram(gl, shaders) {
     const program = gl.createProgram();
     for (const shader of shaders) {
         gl.attachShader(program, shader);
@@ -82,7 +80,7 @@ static createProgram(gl, shaders) {
     return { program, attributes, uniforms };
 }
 
-static buildPrograms(gl, shaders, mixins) {
+export function buildPrograms(gl, shaders, mixins) {
     const cooked = {};
     for (const name in shaders) {
         cooked[name] = {};
@@ -102,9 +100,9 @@ static buildPrograms(gl, shaders, mixins) {
     for (const name in cooked) {
         try {
             const program = cooked[name];
-            programs[name] = WebGL.createProgram(gl, [
-                WebGL.createShader(gl, program.vertex, gl.VERTEX_SHADER),
-                WebGL.createShader(gl, program.fragment, gl.FRAGMENT_SHADER),
+            programs[name] = createProgram(gl, [
+                createShader(gl, program.vertex, gl.VERTEX_SHADER),
+                createShader(gl, program.fragment, gl.FRAGMENT_SHADER),
             ]);
         } catch (e) {
             e.message = `Error compiling and building ${name}:\n${e.message}`;
@@ -115,7 +113,7 @@ static buildPrograms(gl, shaders, mixins) {
     return programs;
 }
 
-static createTexture(gl, {
+export function createTexture(gl, {
     texture = gl.createTexture(),
     unit,
     target  = gl.TEXTURE_2D,
@@ -152,7 +150,7 @@ static createTexture(gl, {
     return texture;
 }
 
-static createFramebuffer(gl, attachments) {
+export function createFramebuffer(gl, attachments) {
     function attach(attachmentPoint, object) {
         if (object instanceof WebGLTexture) {
             gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, object, 0);
@@ -184,7 +182,7 @@ static createFramebuffer(gl, attachments) {
     return framebuffer;
 }
 
-static createBuffer(gl, {
+export function createBuffer(gl, {
     buffer = gl.createBuffer(),
     target = gl.ARRAY_BUFFER,
     hint = gl.STATIC_DRAW,
@@ -196,7 +194,7 @@ static createBuffer(gl, {
     return buffer;
 }
 
-static createSampler(gl, {
+export function createSampler(gl, {
     sampler = gl.createSampler(),
     wrapS, wrapT, wrapR,
     min, mag,
@@ -210,7 +208,7 @@ static createSampler(gl, {
     return sampler;
 }
 
-static configureAttribute(gl, {
+export function configureAttribute(gl, {
     location, count, type,
     normalize = false,
     stride = 0, offset = 0,
@@ -219,6 +217,4 @@ static configureAttribute(gl, {
     gl.enableVertexAttribArray(location);
     gl.vertexAttribPointer(location, count, type, normalize, stride, offset);
     gl.vertexAttribDivisor(location, divisor);
-}
-
 }

@@ -1,6 +1,5 @@
 import { quat, vec3, mat4 } from '../../lib/gl-matrix-module.js';
 
-import { WebGL } from '../WebGL.js';
 import { AbstractRenderer } from './AbstractRenderer.js';
 import { CommonUtils } from '../utils/CommonUtils.js';
 
@@ -12,6 +11,7 @@ import {
     getProjectionMatrix,
 } from '../SceneUtils.js';
 
+import { buildPrograms } from '../WebGL.js';
 import { SHADERS, MIXINS } from '../shaders.js';
 
 export class ISORenderer extends AbstractRenderer {
@@ -64,7 +64,7 @@ constructor(gl, volume, camera, environmentTexture, options = {}) {
         }
     });
 
-    this._programs = WebGL.buildPrograms(this._gl, SHADERS.renderers.ISO, MIXINS);
+    this._programs = buildPrograms(this._gl, SHADERS.renderers.ISO, MIXINS);
 }
 
 destroy() {

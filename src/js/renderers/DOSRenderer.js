@@ -1,6 +1,5 @@
 import { quat, vec3, mat4 } from '../../lib/gl-matrix-module.js';
 
-import { WebGL } from '../WebGL.js';
 import { AbstractRenderer } from './AbstractRenderer.js';
 
 import { Volume } from '../Volume.js';
@@ -11,6 +10,10 @@ import {
     getProjectionMatrix,
 } from '../SceneUtils.js';
 
+import {
+    buildPrograms,
+    createTexture,
+} from '../WebGL.js';
 import { SHADERS, MIXINS } from '../shaders.js';
 
 export class DOSRenderer extends AbstractRenderer {
@@ -91,7 +94,7 @@ constructor(gl, volume, camera, environmentTexture, options = {}) {
     this._minDepth = 0;
     this._maxDepth = 0;
 
-    this._programs = WebGL.buildPrograms(this._gl, SHADERS.renderers.DOS, MIXINS);
+    this._programs = buildPrograms(this._gl, SHADERS.renderers.DOS, MIXINS);
 
     this.generateOcclusionSamples();
 }
@@ -125,7 +128,7 @@ generateOcclusionSamples() {
     }
 
     const gl = this._gl;
-    this._occlusionSamples = WebGL.createTexture(gl, {
+    this._occlusionSamples = createTexture(gl, {
         texture : this._occlusionSamples,
         width   : this.samples,
         height  : 1,

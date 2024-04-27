@@ -1,7 +1,7 @@
 import { PropertyBag } from '../PropertyBag.js';
-import { WebGL } from '../WebGL.js';
 import { SingleBuffer } from '../SingleBuffer.js';
 
+import { buildPrograms } from '../WebGL.js';
 import { SHADERS, MIXINS } from '../shaders.js';
 
 export class AbstractToneMapper extends PropertyBag {
@@ -18,7 +18,7 @@ constructor(gl, texture, {
 
     this._rebuildBuffers();
 
-    this._clipQuadProgram = WebGL.buildPrograms(gl, {
+    this._clipQuadProgram = buildPrograms(gl, {
         quad: SHADERS.quad
     }, MIXINS).quad;
 }
