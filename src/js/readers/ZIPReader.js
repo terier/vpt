@@ -1,99 +1,89 @@
-import { AbstractReader } from './AbstractReader.js';
+const EOCD_SIGNATURE = [0x50, 0x4b, 0x05, 0x06];
+const MIN_EOCD_SIZE = 22;
 
-export class ZIPReader extends AbstractReader {
+export class ZIPReader {
 
-constructor(loader) {
-    super(loader);
-
-    this._eocd = null;
-    this._cd = null;
-}
-
-async getFiles() {
-    if (!this._cd) {
-        await this._readCD();
+    constructor(file) {
+        this.file = file;
+        this.centralDirectory = null;
     }
 
-    return this._cd.map(entry => entry.name);
-}
+    async readFile(fileName) {
+        if (!this.centralDirectory) {
+            await this.readCentralDirectory();
+        }
 
-async readFile(fileName) {
-    if (!this._cd) {
-        await this._readCD();
+        const entry = this.centralDirectory.find(entry => entry.name === fileName);
+        if (!entry) {
+            throw new Error(`ZIPReader: file ${fileName} not found`);
+        }
+
+        return entry.file;
     }
 
-    const entry = this._cd.find(entry => entry.name === fileName);
-    if (!entry) {
-        throw new Error(`ZIPReader: file ${fileName} not in CD`);
+    async readCentralDirectory() {
+        // assume EOCD is minimal
+        const eocdOffset = Math.max(this.file.size - MIN_EOCD_SIZE, 0);
+
+        const eocdBuffer = await this.file.slice(eocdOffset).arrayBuffer();
+        const signature = new Uint8Array(eocdBuffer);
+        for (let i = 0; i < EOCD_SIGNATURE.length; i++) {
+            if (signature[i] !== EOCD_SIGNATURE[i]) {
+                throw new Error(`ZIPReader: EOCD not found`);
+            }
+        }
+
+        const eocd = new DataView(eocdBuffer);
+        const entryCount = eocd.getUint16(10, true);
+        const cdSize = eocd.getUint32(12, true);
+        const cdOffset = eocd.getUint32(16, true);
+
+        // read central directory
+        const cdBuffer = await this.file.slice(cdOffset, cdOffset + cdSize).arrayBuffer();
+        const cd = new DataView(cdBuffer);
+
+        this.centralDirectory = [];
+
+        let offset = 0;
+        for (let i = 0; i < entryCount; i++) {
+            // read central directory entry
+            const gpflag = cd.getUint16(offset + 8, true);
+            const method = cd.getUint16(offset + 10, true);
+            const compressedSize = cd.getUint32(offset + 20, true);
+            const uncompressedSize = cd.getUint32(offset + 24, true);
+            const fileNameLength = cd.getUint16(offset + 28, true);
+            const extraFieldLength = cd.getUint16(offset + 30, true);
+            const fileCommentLength = cd.getUint16(offset + 32, true);
+            const cdEntrySize = 46 + fileNameLength + extraFieldLength + fileCommentLength;
+            const name = this.readString(cd, offset + 46, fileNameLength);
+            const headerOffset = cd.getUint32(offset + 42, true);
+
+            // read file header
+            const headerBuffer = await this.file.slice(headerOffset, headerOffset + 30).arrayBuffer();
+            const header = new DataView(headerBuffer);
+            const fileName2Length = header.getUint16(26, true);
+            const extraField2Length = header.getUint16(28, true);
+            const dataStart = headerEnd + fileName2Length + extraField2Length;
+            const dataEnd = dataStart + compressedSize;
+            const file = this.file.slice(dataStart, dataEnd);
+
+            this.centralDirectory.push({
+                gpflag,
+                method,
+                compressedSize,
+                uncompressedSize,
+                name,
+                file,
+            });
+
+            offset += cdEntrySize;
+        }
     }
 
-    const headerStart = entry.headerOffset;
-    const headerEnd = entry.headerOffset + 30;
-    const header = await this._loader.readData(headerStart, headerEnd);
-    const view = new DataView(header);
-    const fileNameLength = view.getUint16(26, true);
-    const extraFieldLength = view.getUint16(28, true);
-    const dataStart = headerEnd + fileNameLength + extraFieldLength;
-    const dataEnd = dataStart + entry.compressedSize;
-    return await this._loader.readData(dataStart, dataEnd);
-}
-
-async _readEOCD() {
-    const EOCD_SIGNATURE = new Uint8Array([0x50, 0x4b, 0x05, 0x06]);
-    const MIN_EOCD_SIZE = 22;
-
-    const length = await this._loader.readLength();
-    const offset = Math.max(length - MIN_EOCD_SIZE, 0);
-    const size = Math.min(length, MIN_EOCD_SIZE);
-
-    const data = await this._loader.readData(offset, offset + size);
-    const view = new DataView(data);
-    this._eocd = {
-        entries : view.getUint16(10, true),
-        size    : view.getUint32(12, true),
-        offset  : view.getUint32(16, true),
-    };
-}
-
-async _readCD() {
-    if (!this._eocd) {
-        await this._readEOCD();
+    readString(data, index, length) {
+        const decoder = new TextDecoder('utf-8');
+        const encoded = data.buffer.slice(index, index + length);
+        return decoder.decode(encoded);
     }
-
-    const cdstart = this._eocd.offset;
-    const cdend = this._eocd.offset + this._eocd.size;
-    const data = await this._loader.readData(cdstart, cdend);
-    const view = new DataView(data);
-    let offset = 0;
-    let entries = [];
-    for (let i = 0; i < this._eocd.entries; i++) {
-        const gpflag = view.getUint16(offset + 8, true);
-        const method = view.getUint16(offset + 10, true);
-        const compressedSize = view.getUint32(offset + 20, true);
-        const uncompressedSize = view.getUint32(offset + 24, true);
-        const fileNameLength = view.getUint16(offset + 28, true);
-        const extraFieldLength = view.getUint16(offset + 30, true);
-        const fileCommentLength = view.getUint16(offset + 32, true);
-        const cdEntrySize = 46 + fileNameLength + extraFieldLength + fileCommentLength;
-        const name = this._readString(view, offset + 46, fileNameLength);
-        const headerOffset = view.getUint32(offset + 42, true);
-        entries[i] = {
-            gpflag           : gpflag,
-            method           : method,
-            compressedSize   : compressedSize,
-            uncompressedSize : uncompressedSize,
-            name             : name,
-            headerOffset     : headerOffset
-        };
-        offset += cdEntrySize;
-    }
-    this._cd = entries;
-}
-
-_readString(data, index, length) {
-    const decoder = new TextDecoder('utf-8');
-    const encoded = data.buffer.slice(index, index + length);
-    return decoder.decode(encoded);
-}
 
 }

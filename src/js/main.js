@@ -4,8 +4,8 @@ import { DOMUtils } from './utils/DOMUtils.js';
 
 import './ui/UI.js';
 
-import { LoaderFactory } from './loaders/LoaderFactory.js';
 import { ReaderFactory } from './readers/ReaderFactory.js';
+import { SAFReader } from './readers/SAFReader.js';
 import { RendererFactory } from './renderers/RendererFactory.js';
 import { ToneMapperFactory } from './tonemappers/ToneMapperFactory.js';
 
@@ -293,21 +293,54 @@ async function setVolume(reader) {
 }
 
 document.body.addEventListener('dragover', e => e.preventDefault());
-document.body.addEventListener('drop', e => {
+document.body.addEventListener('drop', async e => {
     e.preventDefault();
     const [file] = e.dataTransfer.files;
     if (!file) {
         return;
     }
-    if (!file.name.toLowerCase().endsWith('.bvp')) {
-        throw new Error('Filename extension must be .bvp');
-    }
-    const loaderClass = LoaderFactory('blob');
-    const readerClass = ReaderFactory('bvp');
-    const loader = new loaderClass(file);
-    const reader = new readerClass(loader);
+    //if (!file.name.toLowerCase().endsWith('.bvp')) {
+    //    throw new Error('Filename extension must be .bvp');
+    //}
+    const safReaderClass = ReaderFactory('saf');
+    const safReader = new safReaderClass(file);
+    const bvpReaderClass = ReaderFactory('bvp');
+    const bvpReader = new bvpReaderClass(safReader);
+    const modality = await bvpReader.readModality(0);
 
-    setVolume(reader);
+    // Create volume from modality
+    const texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_3D, texture);
+
+    debugger;
+
+    const [width, height, depth] = modality.block.dimensions;
+    // TODO proper format
+    const format = gl.RED;
+    const iformat = gl.R8;
+    const type = gl.UNSIGNED_BYTE;
+
+    gl.texStorage3D(gl.TEXTURE_3D, 1, iformat,
+        width, height, depth);
+    gl.texSubImage3D(gl.TEXTURE_3D, 0,
+        0, 0, 0,
+        width, height, depth,
+        format, type, new Uint8Array(modality.block.data));
+
+    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+    const volumeComponent = new Volume(gl);
+    volumeComponent.texture = texture;
+    volumeComponent.setFilter(renderingContextDialog.filter);
+    volumeComponent.ready = true;
+    volume.removeComponentsOfType(Volume);
+    volume.addComponent(volumeComponent);
+
+    renderer.reset();
 });
 
 async function handleVolumeLoad(e) {
