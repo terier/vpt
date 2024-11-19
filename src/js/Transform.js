@@ -1,4 +1,4 @@
-import { vec3, mat4, quat } from '../../lib/gl-matrix-module.js';
+import { vec3, mat4, quat } from '../lib/gl-matrix-module.js';
 import { Component } from './Component.js';
 
 export class Transform extends Component {
