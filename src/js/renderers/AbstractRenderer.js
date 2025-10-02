@@ -16,6 +16,7 @@ import {
     buildPrograms,
     createTexture,
 } from '../WebGL.js';
+
 import { SHADERS, MIXINS } from '../shaders.js';
 
 export class AbstractRenderer extends PropertyBag {

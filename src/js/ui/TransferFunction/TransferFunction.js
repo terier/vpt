@@ -3,10 +3,7 @@ import { CommonUtils } from '../../utils/CommonUtils.js';
 import { Draggable } from './Draggable.js';
 import { buildPrograms } from '../../WebGL.js';
 
-const [ SHADERS, MIXINS ] = await Promise.all([
-    'shaders.json',
-    'mixins.json',
-].map(url => fetch(url).then(response => response.json())));
+import { SHADERS, MIXINS } from '../../shaders.js';
 
 const [ templateElement, templateBump ] = await Promise.all([
     new URL('./TransferFunction.html', import.meta.url),
