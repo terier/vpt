@@ -7,10 +7,7 @@ import { DoubleBuffer } from '../DoubleBuffer.js';
 
 import { Transform } from '../Transform.js';
 
-const [ SHADERS, MIXINS ] = await Promise.all([
-    'shaders.json',
-    'mixins.json',
-].map(url => fetch(url).then(response => response.json())));
+import { SHADERS, MIXINS } from '../shaders.js';
 
 export class AbstractRenderer extends PropertyBag {
 

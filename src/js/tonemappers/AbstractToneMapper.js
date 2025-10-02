@@ -2,10 +2,7 @@ import { PropertyBag } from '../PropertyBag.js';
 import { WebGL } from '../WebGL.js';
 import { SingleBuffer } from '../SingleBuffer.js';
 
-const [ SHADERS, MIXINS ] = await Promise.all([
-    'shaders.json',
-    'mixins.json',
-].map(url => fetch(url).then(response => response.json())));
+import { SHADERS, MIXINS } from '../shaders.js';
 
 export class AbstractToneMapper extends PropertyBag {
 

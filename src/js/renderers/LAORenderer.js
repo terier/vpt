@@ -5,10 +5,7 @@ import { AbstractRenderer } from './AbstractRenderer.js';
 
 import { PerspectiveCamera } from '../PerspectiveCamera.js';
 
-const [ SHADERS, MIXINS ] = await Promise.all([
-    'shaders.json',
-    'mixins.json',
-].map(url => fetch(url).then(response => response.json())));
+import { SHADERS, MIXINS } from '../shaders.js';
 
 export class LAORenderer extends AbstractRenderer {
 

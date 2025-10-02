@@ -12,10 +12,7 @@ import { ToneMapperFactory } from './tonemappers/ToneMapperFactory.js';
 import { CircleAnimator } from './animators/CircleAnimator.js';
 import { OrbitCameraAnimator } from './animators/OrbitCameraAnimator.js';
 
-const [ SHADERS, MIXINS ] = await Promise.all([
-    'shaders.json',
-    'mixins.json',
-].map(url => fetch(url).then(response => response.json())));
+import { SHADERS, MIXINS } from './shaders.js';
 
 export class RenderingContext extends EventTarget {
 
