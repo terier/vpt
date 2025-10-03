@@ -11,7 +11,6 @@ export class Volume {
         let iformat;
         switch (datatype) {
             case 'unorm8': iformat = gl.R8; break;
-            case 'unorm16': iformat = gl.R16; break;
             default: throw new Error(`Volume: datatype '${datatype}' not supported`);
         }
 
