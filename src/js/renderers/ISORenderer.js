@@ -3,6 +3,7 @@ import { quat, vec3, mat4 } from '../../lib/gl-matrix-module.js';
 import { AbstractRenderer } from './AbstractRenderer.js';
 import { CommonUtils } from '../utils/CommonUtils.js';
 
+import { Camera } from '../Camera.js';
 import { Volume } from '../Volume.js';
 
 import {
@@ -16,8 +17,8 @@ import { SHADERS, MIXINS } from '../shaders.js';
 
 export class ISORenderer extends AbstractRenderer {
 
-constructor(gl, volume, camera, environmentTexture, options = {}) {
-    super(gl, volume, camera, environmentTexture, options);
+constructor(gl, scene) {
+    super(gl, scene);
 
     this.registerProperties([
         {
@@ -88,11 +89,18 @@ _resetFrame() {
 _generateFrame() {
     const gl = this._gl;
 
+    const volume = this._scene.find(node => node.getComponentOfType(Volume));
+    if (!volume) {
+        return;
+    }
+
+    const volumeTexture = volume.getComponentOfType(Volume).texture;
+
     const { program, uniforms } = this._programs.generate;
     gl.useProgram(program);
 
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_3D, this._volume.getComponentOfType(Volume).getTexture());
+    gl.bindTexture(gl.TEXTURE_3D, volumeTexture);
     gl.uniform1i(uniforms.uVolume, 0);
 
     gl.activeTexture(gl.TEXTURE1);
@@ -130,6 +138,14 @@ _integrateFrame() {
 _renderFrame() {
     const gl = this._gl;
 
+    const volume = this._scene.find(node => node.getComponentOfType(Volume));
+    const camera = this._scene.find(node => node.getComponentOfType(Camera));
+    if (!volume || !camera) {
+        return;
+    }
+
+    const volumeTexture = volume.getComponentOfType(Volume).texture;
+
     const { program, uniforms } = this._programs.render;
     gl.useProgram(program);
 
@@ -138,7 +154,7 @@ _renderFrame() {
     gl.uniform1i(uniforms.uClosest, 0);
 
     gl.activeTexture(gl.TEXTURE1);
-    gl.bindTexture(gl.TEXTURE_3D, this._volume.getComponentOfType(Volume).getTexture());
+    gl.bindTexture(gl.TEXTURE_3D, volumeTexture);
     gl.uniform1i(uniforms.uVolume, 1);
 
     gl.activeTexture(gl.TEXTURE2);
@@ -147,8 +163,8 @@ _renderFrame() {
 
     // Light direction is defined in view space, so transform it to model space.
     const centerMatrix = mat4.fromTranslation(mat4.create(), [-0.5, -0.5, -0.5]);
-    const modelMatrix = getGlobalModelMatrix(this._volume);
-    const viewMatrix = getGlobalViewMatrix(this._camera);
+    const modelMatrix = getGlobalModelMatrix(volume);
+    const viewMatrix = getGlobalViewMatrix(camera);
     const matrix = mat4.create();
     mat4.multiply(matrix, centerMatrix, matrix);
     mat4.multiply(matrix, modelMatrix, matrix);

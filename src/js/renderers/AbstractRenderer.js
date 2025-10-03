@@ -4,6 +4,8 @@ import { PropertyBag } from '../PropertyBag.js';
 import { SingleBuffer } from '../SingleBuffer.js';
 import { DoubleBuffer } from '../DoubleBuffer.js';
 
+import { Camera } from '../Camera.js';
+import { Volume } from '../Volume.js';
 import { Transform } from '../Transform.js';
 
 import {
@@ -21,7 +23,7 @@ import { SHADERS, MIXINS } from '../shaders.js';
 
 export class AbstractRenderer extends PropertyBag {
 
-constructor(gl, volume, camera, environmentTexture, {
+constructor(gl, scene, {
     resolution = [512, 512],
 } = {}) {
     super();
@@ -29,9 +31,7 @@ constructor(gl, volume, camera, environmentTexture, {
     this._resolution = resolution;
 
     this._gl = gl;
-    this._volume = volume;
-    this._camera = camera;
-    this._environmentTexture = environmentTexture;
+    this._scene = scene;
 
     this._rebuildBuffers();
 
@@ -58,10 +58,13 @@ constructor(gl, volume, camera, environmentTexture, {
 }
 
 calculatePVMMatrix() {
+    const volume = this._scene.find(node => node.getComponentOfType(Volume));
+    const camera = this._scene.find(node => node.getComponentOfType(Camera));
+
     const centerMatrix = mat4.fromTranslation(mat4.create(), [-0.5, -0.5, -0.5]);
-    const modelMatrix = getGlobalModelMatrix(this._volume);
-    const viewMatrix = getGlobalViewMatrix(this._camera);
-    const projectionMatrix = getProjectionMatrix(this._camera);
+    const modelMatrix = getGlobalModelMatrix(volume);
+    const viewMatrix = getGlobalViewMatrix(camera);
+    const projectionMatrix = getProjectionMatrix(camera);
 
     const matrix = mat4.create();
     mat4.multiply(matrix, centerMatrix, matrix);
@@ -119,11 +122,6 @@ _rebuildBuffers() {
     this._frameBuffer = new SingleBuffer(gl, this._getFrameBufferSpec());
     this._accumulationBuffer = new DoubleBuffer(gl, this._getAccumulationBufferSpec());
     this._renderBuffer = new SingleBuffer(gl, this._getRenderBufferSpec());
-}
-
-setVolume(volume) {
-    this._volume = volume;
-    this.reset();
 }
 
 setTransferFunction(transferFunction) {

@@ -3,14 +3,15 @@ import { mat4 } from '../../lib/gl-matrix-module.js';
 import { AbstractRenderer } from './AbstractRenderer.js';
 
 import { Volume } from '../Volume.js';
+import { EnvironmentMap } from '../EnvironmentMap.js';
 
 import { buildPrograms } from '../WebGL.js';
 import { SHADERS, MIXINS } from '../shaders.js';
 
 export class MCMRenderer extends AbstractRenderer {
 
-constructor(gl, volume, camera, environmentTexture, options = {}) {
-    super(gl, volume, camera, environmentTexture, options);
+constructor(gl, scene) {
+    super(gl, scene);
 
     this.registerProperties([
         {
@@ -109,6 +110,13 @@ _generateFrame() {
 _integrateFrame() {
     const gl = this._gl;
 
+    const volume = this._scene.find(node => node.getComponentOfType(Volume))?.getComponentOfType(Volume);
+    const environment = this._scene.find(node => node.getComponentOfType(EnvironmentMap))?.getComponentOfType(EnvironmentMap);
+
+    if (!volume || !volume.ready || !environment) {
+        return;
+    }
+
     const { program, uniforms } = this._programs.integrate;
     gl.useProgram(program);
 
@@ -129,11 +137,11 @@ _integrateFrame() {
     gl.uniform1i(uniforms.uRadiance, 3);
 
     gl.activeTexture(gl.TEXTURE4);
-    gl.bindTexture(gl.TEXTURE_3D, this._volume.getComponentOfType(Volume).getTexture());
+    gl.bindTexture(gl.TEXTURE_3D, volume.texture);
     gl.uniform1i(uniforms.uVolume, 4);
 
     gl.activeTexture(gl.TEXTURE5);
-    gl.bindTexture(gl.TEXTURE_2D, this._environmentTexture);
+    gl.bindTexture(gl.TEXTURE_2D, environment.texture);
     gl.uniform1i(uniforms.uEnvironment, 5);
 
     gl.activeTexture(gl.TEXTURE6);

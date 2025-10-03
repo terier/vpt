@@ -9,8 +9,8 @@ import { SHADERS, MIXINS } from '../shaders.js';
 
 export class EAMRenderer extends AbstractRenderer {
 
-constructor(gl, volume, camera, environmentTexture, options = {}) {
-    super(gl, volume, camera, environmentTexture, options);
+constructor(gl, scene) {
+    super(gl, scene);
 
     this.registerProperties([
         {
@@ -85,11 +85,18 @@ _resetFrame() {
 _generateFrame() {
     const gl = this._gl;
 
+    const volume = this._scene.find(node => node.getComponentOfType(Volume));
+    if (!volume) {
+        return;
+    }
+
+    const volumeTexture = volume.getComponentOfType(Volume).texture;
+
     const { program, uniforms } = this._programs.generate;
     gl.useProgram(program);
 
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_3D, this._volume.getComponentOfType(Volume).getTexture());
+    gl.bindTexture(gl.TEXTURE_3D, volumeTexture);
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
 

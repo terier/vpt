@@ -1,128 +1,63 @@
-export class Volume extends EventTarget {
+export class Volume {
 
-constructor(gl, reader, {
-    filter = 'linear',
-} = {}) {
-    super();
+    constructor(gl, {
+        size = [1, 1, 1],
+        datatype = 'unorm8',
+        filter = 'linear',
+    } = {}) {
+        // TODO proper format
+        const format = gl.RED;
+        const type = gl.UNSIGNED_BYTE;
+        let iformat;
+        switch (datatype) {
+            case 'unorm8': iformat = gl.R8; break;
+            case 'unorm16': iformat = gl.R16; break;
+            default: throw new Error(`Volume: datatype '${datatype}' not supported`);
+        }
 
-    this._gl = gl;
-    this._reader = reader;
+        const texture = gl.createTexture();
+        const [width, height, depth] = size;
+        gl.bindTexture(gl.TEXTURE_3D, texture);
+        gl.texStorage3D(gl.TEXTURE_3D, 1, iformat,
+            width, height, depth);
 
-    this.metadata = null;
-    this.ready = false;
-    this.texture = null;
-    this.modality = null;
+        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
 
-    this.filter = filter;
-}
-
-destroy() {
-    const gl = this._gl;
-    if (this.texture) {
-        gl.deleteTexture(this.texture);
-    }
-}
-
-async readMetadata() {
-    if (!this.metadata) {
-        this.metadata = await this._reader.readMetadata();
-    }
-    return this.metadata;
-}
-
-async readModality(modalityName) {
-    this.ready = false;
-
-    if (!this.metadata) {
-        await this.readMetadata();
+        this.gl = gl;
+        this.size = size;
+        this.datatype = datatype;
+        this.texture = texture;
+        this.filter = filter;
+        this.format = format;
+        this.iformat = iformat;
+        this.type = type;
     }
 
-    const modality = this.metadata.modalities.find(modality => modality.name === modalityName);
-    if (!modality) {
-        throw new Error(`Modality '${modalityName}' does not exist`);
-    }
-
-    this.modality = modality;
-
-    const gl = this._gl;
-    if (this.texture) {
-        gl.deleteTexture(this.texture);
-    }
-    this.texture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_3D, this.texture);
-
-    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
-
-    const { width, height, depth } = modality.dimensions;
-    const { format, internalFormat, type } = modality;
-    gl.texStorage3D(gl.TEXTURE_3D, 1, internalFormat, width, height, depth);
-
-    for (const { index, position } of modality.placements) {
-        const data = await this._reader.readBlock(index);
-        const block = this.metadata.blocks[index];
-        const { width, height, depth } = block.dimensions;
-        const { x, y, z } = position;
-        gl.bindTexture(gl.TEXTURE_3D, this.texture);
+    writeData(data, origin = [0, 0, 0], extent = [1, 1, 1]) {
+        const { gl, texture, size, format, type } = this;
+        const [width, height, depth] = size;
+        gl.bindTexture(gl.TEXTURE_3D, texture);
         gl.texSubImage3D(gl.TEXTURE_3D, 0,
-            x, y, z, width, height, depth,
-            format, type, this._typize(data, type));
-
-        const progress = (index + 1) / modality.placements.length;
-        this.dispatchEvent(new CustomEvent('progress', { detail: progress }));
+            ...origin,
+            ...extent,
+            format, type, new Uint8Array(data));
     }
 
-    this.setFilter(this.filter);
+    setFilter(filter) {
+        const { gl, texture } = this;
 
-    this.ready = true;
-}
-
-async load() {
-    await this.readModality('default');
-}
-
-_typize(data, type) {
-    const gl = this._gl;
-    switch (type) {
-        case gl.BYTE:                         return new Int8Array(data);
-        case gl.UNSIGNED_BYTE:                return new Uint8Array(data);
-        case gl.UNSIGNED_BYTE:                return new Uint8ClampedArray(data);
-        case gl.SHORT:                        return new Int16Array(data);
-        case gl.UNSIGNED_SHORT:               return new Uint16Array(data);
-        case gl.UNSIGNED_SHORT_5_6_5:         return new Uint16Array(data);
-        case gl.UNSIGNED_SHORT_5_5_5_1:       return new Uint16Array(data);
-        case gl.UNSIGNED_SHORT_4_4_4_4:       return new Uint16Array(data);
-        case gl.INT:                          return new Int32Array(data);
-        case gl.UNSIGNED_INT:                 return new Uint32Array(data);
-        case gl.UNSIGNED_INT_5_9_9_9_REV:     return new Uint32Array(data);
-        case gl.UNSIGNED_INT_2_10_10_10_REV:  return new Uint32Array(data);
-        case gl.UNSIGNED_INT_10F_11F_11F_REV: return new Uint32Array(data);
-        case gl.UNSIGNED_INT_24_8:            return new Uint32Array(data);
-        case gl.HALF_FLOAT:                   return new Uint16Array(data);
-        case gl.FLOAT:                        return new Float32Array(data);
-        default: throw new Error('Unknown volume datatype: ' + type);
-    }
-}
-
-getTexture() {
-    if (this.ready) {
-        return this.texture;
-    } else {
-        return null;
-    }
-}
-
-setFilter(filter) {
-    if (!this.texture) {
-        return;
+        this.filter = filter;
+        const glfilter = filter === 'linear' ? gl.LINEAR : gl.NEAREST;
+        gl.bindTexture(gl.TEXTURE_3D, texture);
+        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, glfilter);
+        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, glfilter);
     }
 
-    const gl = this._gl;
-    filter = filter === 'linear' ? gl.LINEAR : gl.NEAREST;
-    gl.bindTexture(gl.TEXTURE_3D, this.texture);
-    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, filter);
-    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, filter);
-}
+    destroy() {
+        const { gl, texture } = this;
+        gl.deleteTexture(texture);
+    }
 
 }

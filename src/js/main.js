@@ -6,6 +6,7 @@ import './ui/UI.js';
 
 import { ReaderFactory } from './readers/ReaderFactory.js';
 import { SAFReader } from './readers/SAFReader.js';
+import { loadRAW } from './readers/loadRAW.js';
 import { RendererFactory } from './renderers/RendererFactory.js';
 import { ToneMapperFactory } from './tonemappers/ToneMapperFactory.js';
 
@@ -67,7 +68,7 @@ gl.pixelStorei(gl.PACK_ALIGNMENT, 1);
 gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
 
 // Construct scene
-const scene = new Node();
+const scene = [];
 
 const camera = new Node();
 camera.addComponent(new Camera());
@@ -75,25 +76,25 @@ camera.addComponent(new Transform({
     translation: [0, 0, 2],
 }));
 camera.addComponent(new OrbitCameraAnimator(camera, canvas));
-scene.addChild(camera);
+scene.push(camera);
 
 const volume = new Node();
 volume.addComponent(new Volume(gl));
 volume.addComponent(new Transform());
-scene.addChild(volume);
+scene.push(volume);
 
-//const environmentLight = new Node();
-//environmentLight.addComponent(new EnvironmentMap({
-//    image: createImageBitmap(new ImageData(new Uint8ClampedArray([255, 255, 255, 255]), 1, 1)),
-//}));
-//scene.addChild(environmentLight);
-const environmentLight = createTexture(gl, {
+const environmentTexture = createTexture(gl, {
     image: await createImageBitmap(new ImageData(new Uint8ClampedArray([255, 255, 255, 255]), 1, 1)),
 });
+const environmentLight = new Node();
+environmentLight.addComponent(new EnvironmentMap({
+    texture: environmentTexture,
+}));
+scene.push(environmentLight);
 
 // Construct render graph
 const rendererClass = RendererFactory('mcm');
-let renderer = new rendererClass(gl, volume, camera, environmentLight, {
+let renderer = new rendererClass(gl, scene, {
     resolution: [canvas.width, canvas.height],
 });
 renderer.reset();
@@ -109,11 +110,11 @@ const renderToCanvas = buildPrograms(gl, {
 
 // Main application functions
 function update(t, dt) {
-    scene.traverse(node => {
+    for (const node of scene) {
         for (const component of node.components) {
             component.update?.(t, dt);
         }
-    });
+    }
 }
 
 function resize({ displaySize: { width, height }}) {
@@ -218,11 +219,10 @@ function setRenderer(which) {
     renderer.destroy();
 
     const rendererClass = RendererFactory(which);
-    renderer = new rendererClass(gl, volume, camera, environmentLight, {
+    renderer = new rendererClass(gl, scene, {
         resolution: [canvas.width, canvas.height],
     });
     renderer.reset();
-    renderer.setVolume(volume);
 
     rendererDialog.remove();
     rendererDialog = createDialogForRenderer(renderer);
@@ -279,19 +279,6 @@ mainDialog.addEventListener('tonemapperchange', e => {
 //    renderingContext.recordAnimation(e.detail);
 //}
 
-async function setVolume(reader) {
-    const volumeComponent = new Volume(gl, reader);
-    volumeComponent.addEventListener('progress', e => {
-        volumeLoadDialog.binds.loadProgress.value = e.detail;
-    });
-    await volumeComponent.load();
-    volumeComponent.setFilter(renderingContextDialog.filter);
-    volume.removeComponentsOfType(Volume);
-    volume.addComponent(volumeComponent);
-
-    renderer.reset();
-}
-
 document.body.addEventListener('dragover', e => e.preventDefault());
 document.body.addEventListener('drop', async e => {
     e.preventDefault();
@@ -299,73 +286,54 @@ document.body.addEventListener('drop', async e => {
     if (!file) {
         return;
     }
-    //if (!file.name.toLowerCase().endsWith('.bvp')) {
-    //    throw new Error('Filename extension must be .bvp');
-    //}
+    if (!file.name.toLowerCase().endsWith('.bvp.saf')) {
+        throw new Error('Filename extension must be .bvp.saf');
+    }
     const safReaderClass = ReaderFactory('saf');
     const safReader = new safReaderClass(file);
     const bvpReaderClass = ReaderFactory('bvp');
     const bvpReader = new bvpReaderClass(safReader);
     const modality = await bvpReader.readModality(0);
 
-    // Create volume from modality
-    const texture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_3D, texture);
+    const size = modality.block.dimensions;
+    const datatype = 'unorm8';
+    const filter = renderingContextDialog.filter;
 
-    debugger;
+    const volume = new Volume(gl, { size, datatype, filter });
+    volume.writeData(modality.block.data, [0, 0, 0], size);
+    setVolume(volume);
+});
 
-    const [width, height, depth] = modality.block.dimensions;
-    // TODO proper format
-    const format = gl.RED;
-    const iformat = gl.R8;
-    const type = gl.UNSIGNED_BYTE;
-
-    gl.texStorage3D(gl.TEXTURE_3D, 1, iformat,
-        width, height, depth);
-    gl.texSubImage3D(gl.TEXTURE_3D, 0,
-        0, 0, 0,
-        width, height, depth,
-        format, type, new Uint8Array(modality.block.data));
-
-    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-
-    const volumeComponent = new Volume(gl);
-    volumeComponent.texture = texture;
-    volumeComponent.setFilter(renderingContextDialog.filter);
-    volumeComponent.ready = true;
+function setVolume(volumeComponent) {
     volume.removeComponentsOfType(Volume);
     volume.addComponent(volumeComponent);
-
     renderer.reset();
-});
+}
 
 async function handleVolumeLoad(e) {
     const options = e.detail;
     if (options.type === 'file') {
-        const readerClass = ReaderFactory(options.filetype);
-        if (readerClass) {
-            const loaderClass = LoaderFactory('blob');
-            const loader = new loaderClass(options.file);
-            const reader = new readerClass(loader, {
-                width  : options?.dimensions?.[0],
-                height : options?.dimensions?.[1],
-                depth  : options?.dimensions?.[2],
-                bits   : options?.precision,
-            });
-            await setVolume(reader);
+        if (options.filetype !== 'raw') {
+            throw new Error(`Only .raw files`);
         }
+        const size = options?.dimensions ?? [1, 1, 1];
+        let datatype;
+        switch (options?.precision) {
+            case 8: datatype = 'unorm8'; break;
+            case 16: datatype = 'unorm16'; break;
+            default: throw new Error(`Precision ${options?.precision} not supported`);
+        }
+        const volume = await loadRAW(options.file, gl, size, datatype);
+        volume.setFilter(renderingContextDialog.filter);
+        setVolume(volume);
     } else if (options.type === 'url') {
-        const readerClass = ReaderFactory(options.filetype);
-        if (readerClass) {
-            const loaderClass = LoaderFactory('ajax');
-            const loader = new loaderClass(options.url);
-            const reader = new readerClass(loader);
-            await setVolume(reader);
-        }
+        //const readerClass = ReaderFactory(options.filetype);
+        //if (readerClass) {
+        //    const file = await fetch(options.url).then(response => response.blob());
+        //    const reader = new readerClass(file);
+        //    //await setVolume(reader);
+        //}
+        throw new Error(`Not yet working`);
     }
 }
 

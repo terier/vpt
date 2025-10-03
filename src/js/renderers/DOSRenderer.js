@@ -2,6 +2,7 @@ import { quat, vec3, mat4 } from '../../lib/gl-matrix-module.js';
 
 import { AbstractRenderer } from './AbstractRenderer.js';
 
+import { Camera } from '../Camera.js';
 import { Volume } from '../Volume.js';
 
 import {
@@ -18,8 +19,8 @@ import { SHADERS, MIXINS } from '../shaders.js';
 
 export class DOSRenderer extends AbstractRenderer {
 
-constructor(gl, volume, camera, environmentTexture, options = {}) {
-    super(gl, volume, camera, environmentTexture, options);
+constructor(gl, scene) {
+    super(gl, scene);
 
     this.registerProperties([
         {
@@ -144,9 +145,15 @@ generateOcclusionSamples() {
 }
 
 calculateDepth() {
+    const volume = this._scene.find(node => node.getComponentOfType(Volume));
+    const camera = this._scene.find(node => node.getComponentOfType(Camera));
+    if (!volume || !camera) {
+        return;
+    }
+
     const centerMatrix = mat4.fromTranslation(mat4.create(), [-0.5, -0.5, -0.5]);
-    const modelMatrix = getGlobalModelMatrix(this._volume);
-    const viewMatrix = getGlobalViewMatrix(this._camera);
+    const modelMatrix = getGlobalModelMatrix(volume);
+    const viewMatrix = getGlobalViewMatrix(camera);
 
     const matrix = mat4.create();
     mat4.multiply(matrix, centerMatrix, matrix);
@@ -188,6 +195,14 @@ _resetFrame() {
 _integrateFrame() {
     const gl = this._gl;
 
+    const volume = this._scene.find(node => node.getComponentOfType(Volume));
+    const camera = this._scene.find(node => node.getComponentOfType(Camera));
+    if (!volume || !camera) {
+        return;
+    }
+
+    const volumeTexture = volume.getComponentOfType(Volume).texture;
+
     const { program, uniforms } = this._programs.integrate;
     gl.useProgram(program);
 
@@ -198,7 +213,7 @@ _integrateFrame() {
 
     gl.activeTexture(gl.TEXTURE2);
     gl.uniform1i(uniforms.uVolume, 2);
-    gl.bindTexture(gl.TEXTURE_3D, this._volume.getComponentOfType(Volume).getTexture());
+    gl.bindTexture(gl.TEXTURE_3D, volumeTexture);
 
     gl.activeTexture(gl.TEXTURE3);
     gl.uniform1i(uniforms.uTransferFunction, 3);
@@ -231,7 +246,7 @@ _integrateFrame() {
         gl.uniform1i(uniforms.uOcclusion, 1);
         gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[1]);
 
-        const projectionMatrix = getProjectionMatrix(this._camera);
+        const projectionMatrix = getProjectionMatrix(camera);
         const correction = [1, 1, -this._depth];
         vec3.transformMat4(correction, correction, projectionMatrix);
         const occlusionExtent = sliceDistance * Math.tan(this.aperture * Math.PI / 180);
