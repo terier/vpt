@@ -3,6 +3,7 @@ import { mat4 } from '../../lib/gl-matrix-module.js';
 import { AbstractRenderer } from './AbstractRenderer.js';
 
 import { Volume } from '../Volume.js';
+import { EnvironmentMap } from '../EnvironmentMap.js';
 
 import { buildPrograms } from '../WebGL.js';
 import { SHADERS, MIXINS } from '../shaders.js';
@@ -72,11 +73,14 @@ _generateFrame() {
     const gl = this._gl;
 
     const volume = this._scene.find(node => node.getComponentOfType(Volume));
-    if (!volume) {
+    const environment = this._scene.find(node => node.getComponentOfType(EnvironmentMap));
+
+    if (!volume || !environment) {
         return;
     }
 
     const volumeTexture = volume.getComponentOfType(Volume).texture;
+    const environmentTexture = environment.getComponentOfType(EnvironmentMap).texture;
 
     const { program, uniforms } = this._programs.generate;
     gl.useProgram(program);
@@ -84,7 +88,7 @@ _generateFrame() {
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_3D, volumeTexture);
     gl.activeTexture(gl.TEXTURE1);
-    gl.bindTexture(gl.TEXTURE_2D, this._environmentTexture);
+    gl.bindTexture(gl.TEXTURE_2D, environmentTexture);
     gl.activeTexture(gl.TEXTURE2);
     gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
 
