@@ -10,8 +10,8 @@ import { SHADERS, MIXINS } from '../shaders.js';
 
 export class MCMRenderer extends AbstractRenderer {
 
-constructor(gl, scene) {
-    super(gl, scene);
+constructor(gl) {
+    super(gl);
 
     this.registerProperties([
         {
@@ -58,14 +58,14 @@ constructor(gl, scene) {
             this.setTransferFunction(this.transferFunction);
         }
 
-        if ([
+        /*if ([
             'extinction',
             'anisotropy',
             'bounces',
             'transferFunction',
         ].includes(name)) {
             this.reset();
-        }
+        }*/
     });
 
     this._programs = buildPrograms(gl, SHADERS.renderers.MCM, MIXINS);
@@ -80,38 +80,39 @@ destroy() {
     super.destroy();
 }
 
-_resetFrame() {
+reset(accumulationBuffer, scene) {
     const gl = this._gl;
 
     const { program, uniforms } = this._programs.reset;
     gl.useProgram(program);
 
-    gl.uniform2f(uniforms.uInverseResolution, 1 / this._resolution[0], 1 / this._resolution[1]);
+    gl.uniform2f(uniforms.uInverseResolution, 1 / accumulationBuffer._width, 1 / accumulationBuffer._height);
     gl.uniform1f(uniforms.uRandSeed, Math.random());
     gl.uniform1f(uniforms.uBlur, 0);
 
-    const matrix = this.calculatePVMMatrix();
+    const matrix = this.calculatePVMMatrix(scene);
     mat4.invert(matrix, matrix);
     gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, matrix);
 
+    accumulationBuffer.use();
     gl.drawBuffers([
         gl.COLOR_ATTACHMENT0,
         gl.COLOR_ATTACHMENT1,
         gl.COLOR_ATTACHMENT2,
         gl.COLOR_ATTACHMENT3,
     ]);
-
     gl.drawArrays(gl.TRIANGLES, 0, 3);
+    accumulationBuffer.swap();
 }
 
-_generateFrame() {
+generate(frameBuffer, scene) {
 }
 
-_integrateFrame() {
+integrate(frameBuffer, accumulationBuffer, scene) {
     const gl = this._gl;
 
-    const volume = this._scene.find(node => node.getComponentOfType(Volume));
-    const environment = this._scene.find(node => node.getComponentOfType(EnvironmentMap));
+    const volume = scene.find(node => node.getComponentOfType(Volume));
+    const environment = scene.find(node => node.getComponentOfType(EnvironmentMap));
 
     if (!volume || !environment) {
         return;
@@ -124,19 +125,19 @@ _integrateFrame() {
     gl.useProgram(program);
 
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[0]);
+    gl.bindTexture(gl.TEXTURE_2D, accumulationBuffer.getAttachments().color[0]);
     gl.uniform1i(uniforms.uPosition, 0);
 
     gl.activeTexture(gl.TEXTURE1);
-    gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[1]);
+    gl.bindTexture(gl.TEXTURE_2D, accumulationBuffer.getAttachments().color[1]);
     gl.uniform1i(uniforms.uDirection, 1);
 
     gl.activeTexture(gl.TEXTURE2);
-    gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[2]);
+    gl.bindTexture(gl.TEXTURE_2D, accumulationBuffer.getAttachments().color[2]);
     gl.uniform1i(uniforms.uTransmittance, 2);
 
     gl.activeTexture(gl.TEXTURE3);
-    gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[3]);
+    gl.bindTexture(gl.TEXTURE_2D, accumulationBuffer.getAttachments().color[3]);
     gl.uniform1i(uniforms.uRadiance, 3);
 
     gl.activeTexture(gl.TEXTURE4);
@@ -151,7 +152,7 @@ _integrateFrame() {
     gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
     gl.uniform1i(uniforms.uTransferFunction, 6);
 
-    gl.uniform2f(uniforms.uInverseResolution, 1 / this._resolution[0], 1 / this._resolution[1]);
+    gl.uniform2f(uniforms.uInverseResolution, 1 / accumulationBuffer._width, 1 / accumulationBuffer._height);
     gl.uniform1f(uniforms.uRandSeed, Math.random());
     gl.uniform1f(uniforms.uBlur, 0);
 
@@ -160,95 +161,46 @@ _integrateFrame() {
     gl.uniform1ui(uniforms.uMaxBounces, this.bounces);
     gl.uniform1ui(uniforms.uSteps, this.steps);
 
-    const matrix = this.calculatePVMMatrix();
+    const matrix = this.calculatePVMMatrix(scene);
     mat4.invert(matrix, matrix);
     gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, matrix);
 
+    accumulationBuffer.use();
     gl.drawBuffers([
         gl.COLOR_ATTACHMENT0,
         gl.COLOR_ATTACHMENT1,
         gl.COLOR_ATTACHMENT2,
         gl.COLOR_ATTACHMENT3,
     ]);
-
     gl.drawArrays(gl.TRIANGLES, 0, 3);
+    accumulationBuffer.swap();
 }
 
-_renderFrame() {
+render(accumulationBuffer, renderBuffer, scene) {
     const gl = this._gl;
 
     const { program, uniforms } = this._programs.render;
     gl.useProgram(program);
 
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[3]);
+    gl.bindTexture(gl.TEXTURE_2D, accumulationBuffer.getAttachments().color[3]);
 
     gl.uniform1i(uniforms.uColor, 0);
 
+    renderBuffer.use();
     gl.drawArrays(gl.TRIANGLES, 0, 3);
 }
 
-_getFrameBufferSpec() {
-    const gl = this._gl;
-    return [{
-        width   : this._resolution[0],
-        height  : this._resolution[1],
-        min     : gl.NEAREST,
-        mag     : gl.NEAREST,
-        format  : gl.RGBA,
-        iformat : gl.RGBA32F,
-        type    : gl.FLOAT,
-    }];
+get frameBufferFormat() {
+    return ['rgba32float'];
 }
 
-_getAccumulationBufferSpec() {
-    const gl = this._gl;
-
-    const positionBufferSpec = {
-        width   : this._resolution[0],
-        height  : this._resolution[1],
-        min     : gl.NEAREST,
-        mag     : gl.NEAREST,
-        format  : gl.RGBA,
-        iformat : gl.RGBA32F,
-        type    : gl.FLOAT,
-    };
-
-    const directionBufferSpec = {
-        width   : this._resolution[0],
-        height  : this._resolution[1],
-        min     : gl.NEAREST,
-        mag     : gl.NEAREST,
-        format  : gl.RGBA,
-        iformat : gl.RGBA32F,
-        type    : gl.FLOAT,
-    };
-
-    const transmittanceBufferSpec = {
-        width   : this._resolution[0],
-        height  : this._resolution[1],
-        min     : gl.NEAREST,
-        mag     : gl.NEAREST,
-        format  : gl.RGBA,
-        iformat : gl.RGBA32F,
-        type    : gl.FLOAT,
-    };
-
-    const radianceBufferSpec = {
-        width   : this._resolution[0],
-        height  : this._resolution[1],
-        min     : gl.NEAREST,
-        mag     : gl.NEAREST,
-        format  : gl.RGBA,
-        iformat : gl.RGBA32F,
-        type    : gl.FLOAT,
-    };
-
+get accumulationBufferFormat() {
     return [
-        positionBufferSpec,
-        directionBufferSpec,
-        transmittanceBufferSpec,
-        radianceBufferSpec,
+        'rgba32float', // position
+        'rgba32float', // direction
+        'rgba32float', // transmittance
+        'rgba32float', // radiance
     ];
 }
 

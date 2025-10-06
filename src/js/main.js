@@ -9,6 +9,9 @@ import { SAFReader } from './readers/SAFReader.js';
 import { loadRAW } from './readers/loadRAW.js';
 import { RendererFactory } from './renderers/RendererFactory.js';
 import { ToneMapperFactory } from './tonemappers/ToneMapperFactory.js';
+import { formatToTextureType } from './TextureFormats.js';
+import { SingleBuffer } from './SingleBuffer.js';
+import { DoubleBuffer } from './DoubleBuffer.js';
 
 import { MainDialog } from './dialogs/MainDialog/MainDialog.js';
 import { VolumeLoadDialog } from './dialogs/VolumeLoadDialog/VolumeLoadDialog.js';
@@ -94,19 +97,42 @@ scene.push(environmentLight);
 
 // Construct render graph
 const rendererClass = RendererFactory('mcm');
-let renderer = new rendererClass(gl, scene, {
-    resolution: [canvas.width, canvas.height],
-});
-renderer.reset();
+let renderer = new rendererClass(gl);
 
 const toneMapperClass = ToneMapperFactory('artistic');
-let toneMapper = new toneMapperClass(gl, renderer.getTexture(), {
-    resolution: [canvas.width, canvas.height],
-});
+let toneMapper = new toneMapperClass(gl);
 
-const renderToCanvas = buildPrograms(gl, {
-    quad: SHADERS.quad
-}, MIXINS).quad;
+// Construct render targets
+let frameBuffer, accumulationBuffer, renderBuffer;
+
+const commonRenderTargetParameters = {
+    width: canvas.width,
+    height: canvas.height,
+    min: gl.NEAREST,
+    mag: gl.NEAREST,
+    wrapS: gl.CLAMP_TO_EDGE,
+    wrapT: gl.CLAMP_TO_EDGE,
+};
+
+function rebuildRenderTargets() {
+    frameBuffer?.destroy();
+    frameBuffer = new SingleBuffer(gl, renderer.frameBufferFormat.map(format => ({
+        ...commonRenderTargetParameters,
+        ...formatToTextureType(gl, format),
+    })));
+    accumulationBuffer?.destroy();
+    accumulationBuffer = new DoubleBuffer(gl, renderer.accumulationBufferFormat.map(format => ({
+        ...commonRenderTargetParameters,
+        ...formatToTextureType(gl, format),
+    })));
+    renderBuffer?.destroy();
+    renderBuffer = new SingleBuffer(gl, [{
+        ...commonRenderTargetParameters,
+        ...formatToTextureType(gl, 'rgba16float'),
+    }]);
+}
+
+rebuildRenderTargets();
 
 // Main application functions
 function update(t, dt) {
@@ -118,8 +144,9 @@ function update(t, dt) {
 }
 
 function resize({ displaySize: { width, height }}) {
-    renderer.setResolution(width, height);
-    toneMapper.setResolution(width, height);
+    commonRenderTargetParameters.width = width;
+    commonRenderTargetParameters.height = height;
+    rebuildRenderTargets();
     camera.getComponentOfType(Camera).aspect = width / height;
 }
 
@@ -127,21 +154,13 @@ function render() {
     // TODO: execute render graph
     //renderer.render(scene, camera);
 
-    renderer.render();
-    toneMapper.setTexture(renderer.getTexture());
-    toneMapper.render();
-
-    const { program, uniforms } = renderToCanvas;
-    gl.useProgram(program);
+    renderer.generate(frameBuffer, scene);
+    renderer.integrate(frameBuffer, accumulationBuffer, scene);
+    renderer.render(accumulationBuffer, renderBuffer, scene);
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
-
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, toneMapper.getTexture());
-    gl.uniform1i(uniforms.uTexture, 0);
-
-    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    toneMapper.render(renderBuffer);
 }
 
 new ResizeSystem({ canvas, resize }).start();
@@ -179,7 +198,7 @@ renderingContextDialog.addEventListener('transformation', e => {
 renderingContextDialog.addEventListener('filter', e => {
     const volumeComponent = volume.getComponentOfType(Volume);
     volumeComponent.setFilter(renderingContextDialog.filter);
-    renderer.reset();
+    renderer.reset(accumulationBuffer, scene);
 });
 
 renderingContextDialog.addEventListener('fullscreen', e => {
@@ -216,13 +235,12 @@ let rendererDialog = createDialogForRenderer(renderer);
 mainDialog.getRendererSettingsContainer().appendChild(rendererDialog);
 
 function setRenderer(which) {
-    renderer.destroy();
 
     const rendererClass = RendererFactory(which);
-    renderer = new rendererClass(gl, scene, {
-        resolution: [canvas.width, canvas.height],
-    });
-    renderer.reset();
+    renderer.destroy();
+    renderer = new rendererClass(gl);
+    rebuildRenderTargets();
+    renderer.reset(accumulationBuffer, scene);
 
     rendererDialog.remove();
     rendererDialog = createDialogForRenderer(renderer);
@@ -256,12 +274,9 @@ let toneMapperDialog = createDialogForToneMapper(toneMapper);
 mainDialog.getToneMapperSettingsContainer().appendChild(toneMapperDialog);
 
 function setToneMapper(which) {
-    toneMapper.destroy();
-
     const toneMapperClass = ToneMapperFactory(which);
-    toneMapper = new toneMapperClass(gl, renderer.getTexture(), {
-        resolution: [canvas.width, canvas.height],
-    });
+    toneMapper.destroy();
+    toneMapper = new toneMapperClass(gl);
 
     toneMapperDialog.remove();
     toneMapperDialog = createDialogForToneMapper(toneMapper);
@@ -307,7 +322,7 @@ document.body.addEventListener('drop', async e => {
 function setVolume(volumeComponent) {
     volume.removeComponentsOfType(Volume);
     volume.addComponent(volumeComponent);
-    renderer.reset();
+    renderer.reset(accumulationBuffer, scene);
 }
 
 async function handleVolumeLoad(e) {
@@ -343,7 +358,7 @@ function handleEnvmapLoad(e) {
     image.crossOrigin = 'anonymous';
     image.addEventListener('load', () => {
         renderingContext.setEnvironmentMap(image);
-        renderingContext.renderer.reset();
+        renderingContext.renderer.reset(accumulationBuffer, scene);
     });
 
     if (options.type === 'file') {
