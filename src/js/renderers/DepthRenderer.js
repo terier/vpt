@@ -91,6 +91,7 @@ reset(accumulationBuffer, scene) {
     accumulationBuffer.swap();
 
     this._frameNumber = 0;
+    this.needsReset = false;
 }
 
 generate(frameBuffer, scene) {
@@ -131,6 +132,10 @@ generate(frameBuffer, scene) {
 
 integrate(frameBuffer, accumulationBuffer, scene) {
     const gl = this._gl;
+
+    if (this.needsReset) {
+        this.reset(accumulationBuffer, scene);
+    }
 
     const { program, uniforms } = this._programs.integrate;
     gl.useProgram(program);

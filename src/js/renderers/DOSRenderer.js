@@ -182,23 +182,28 @@ reset(accumulationBuffer, scene) {
     this._minDepth = Math.max(this._minDepth, 0);
     this._depth = this._minDepth;
 
+    const { program, uniforms } = this._programs.reset;
+    gl.useProgram(program);
+
+    accumulationBuffer.use();
     gl.drawBuffers([
         gl.COLOR_ATTACHMENT0,
         gl.COLOR_ATTACHMENT1,
     ]);
-
-    const { program, uniforms } = this._programs.reset;
-    accumulationBuffer.use();
-    gl.useProgram(program);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
     accumulationBuffer.swap();
 
-    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    this.needsReset = false;
 }
 
 generate(frameBuffer, scene) {}
 
 integrate(frameBuffer, accumulationBuffer, scene) {
     const gl = this._gl;
+
+    if (this.needsReset) {
+        this.reset(accumulationBuffer, scene);
+    }
 
     const volume = scene.find(node => node.getComponentOfType(Volume));
     const camera = scene.find(node => node.getComponentOfType(Camera));

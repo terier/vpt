@@ -103,6 +103,8 @@ reset(accumulationBuffer, scene) {
     ]);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     accumulationBuffer.swap();
+
+    this.needsReset = false;
 }
 
 generate(frameBuffer, scene) {
@@ -110,6 +112,10 @@ generate(frameBuffer, scene) {
 
 integrate(frameBuffer, accumulationBuffer, scene) {
     const gl = this._gl;
+
+    if (this.needsReset) {
+        this.reset(accumulationBuffer, scene);
+    }
 
     const volume = scene.find(node => node.getComponentOfType(Volume));
     const environment = scene.find(node => node.getComponentOfType(EnvironmentMap));
