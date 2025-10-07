@@ -5,8 +5,8 @@ import { SHADERS, MIXINS } from '../shaders.js';
 
 export class AcesToneMapper extends AbstractToneMapper {
 
-constructor(gl, texture, options = {}) {
-    super(gl, texture, options);
+constructor(gl) {
+    super(gl);
 
     this.registerProperties([
         {
@@ -37,14 +37,14 @@ destroy() {
     super.destroy();
 }
 
-_renderFrame() {
+render(renderBuffer) {
     const gl = this._gl;
 
     const { program, uniforms } = this._program;
     gl.useProgram(program);
 
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this._texture);
+    gl.bindTexture(gl.TEXTURE_2D, renderBuffer.getAttachments().color[0]);
 
     gl.uniform1i(uniforms.uTexture, 0);
     gl.uniform1f(uniforms.uExposure, this.exposure);

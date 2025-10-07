@@ -9,8 +9,8 @@ import { SHADERS, MIXINS } from '../shaders.js';
 
 export class LAORenderer extends AbstractRenderer {
 
-constructor(gl, scene) {
-    super(gl, scene);
+constructor(gl) {
+    super(gl);
 
     this.registerProperties([
         {
@@ -115,7 +115,7 @@ constructor(gl, scene) {
             'extinction',
             'slices',
         ].includes(name)) {
-            this.reset();
+            this.needsReset = true;
         }
     });
 
@@ -131,19 +131,22 @@ destroy() {
     super.destroy();
 }
 
-_resetFrame() {
+reset(accumulationBuffer, scene) {
     const gl = this._gl;
 
     const { program, uniforms } = this._programs.reset;
     gl.useProgram(program);
 
+    accumulationBuffer.use();
     gl.drawArrays(gl.TRIANGLES, 0, 3);
+    accumulationBuffer.swap();
 }
 
-_generateFrame() {
+generate(frameBuffer, scene) {
     const gl = this._gl;
 
-    const volume = this._scene.find(node => node.getComponentOfType(Volume));
+    const volume = scene.find(node => node.getComponentOfType(Volume));
+
     if (!volume) {
         return;
     }
@@ -174,68 +177,54 @@ _generateFrame() {
     gl.uniform3fv(uniforms.uLightPosition, this.lightPosition);
     gl.uniform1f(uniforms.uOffset, Math.random());
 
-    const matrix = this.calculatePVMMatrix();
+    const matrix = this.calculatePVMMatrix(scene);
     mat4.invert(matrix, matrix);
     gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, matrix);
 
+    frameBuffer.use();
     gl.drawArrays(gl.TRIANGLES, 0, 3);
 }
 
-_integrateFrame() {
+integrate(frameBuffer, accumulationBuffer, scene) {
     const gl = this._gl;
 
     const { program, uniforms } = this._programs.integrate;
     gl.useProgram(program);
 
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[0]);
+    gl.bindTexture(gl.TEXTURE_2D, accumulationBuffer.getAttachments().color[0]);
     gl.activeTexture(gl.TEXTURE1);
-    gl.bindTexture(gl.TEXTURE_2D, this._frameBuffer.getAttachments().color[0]);
+    gl.bindTexture(gl.TEXTURE_2D, frameBuffer.getAttachments().color[0]);
 
     gl.uniform1i(uniforms.uAccumulator, 0);
     gl.uniform1i(uniforms.uFrame, 1);
 
+    accumulationBuffer.use();
     gl.drawArrays(gl.TRIANGLES, 0, 3);
+    accumulationBuffer.swap();
 }
 
-_renderFrame() {
+render(accumulationBuffer, renderBuffer, scene) {
     const gl = this._gl;
 
     const { program, uniforms } = this._programs.render;
     gl.useProgram(program);
 
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[0]);
+    gl.bindTexture(gl.TEXTURE_2D, accumulationBuffer.getAttachments().color[0]);
 
     gl.uniform1i(uniforms.uAccumulator, 0);
 
+    renderBuffer.use();
     gl.drawArrays(gl.TRIANGLES, 0, 3);
 }
 
-_getFrameBufferSpec() {
-    const gl = this._gl;
-    return [{
-        width   : this._resolution[0],
-        height  : this._resolution[1],
-        min     : gl.NEAREST,
-        mag     : gl.NEAREST,
-        format  : gl.RGBA,
-        iformat : gl.RGBA,
-        type    : gl.UNSIGNED_BYTE,
-    }];
+get frameBufferFormat() {
+    return ['rgba8unorm'];
 }
 
-_getAccumulationBufferSpec() {
-    const gl = this._gl;
-    return [{
-        width   : this._resolution[0],
-        height  : this._resolution[1],
-        min     : gl.NEAREST,
-        mag     : gl.NEAREST,
-        format  : gl.RGBA,
-        iformat : gl.RGBA,
-        type    : gl.UNSIGNED_BYTE,
-    }];
+get accumulationBufferFormat() {
+    return ['rgba8unorm'];
 }
 
 }

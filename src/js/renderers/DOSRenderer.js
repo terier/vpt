@@ -19,8 +19,8 @@ import { SHADERS, MIXINS } from '../shaders.js';
 
 export class DOSRenderer extends AbstractRenderer {
 
-constructor(gl, scene) {
-    super(gl, scene);
+constructor(gl) {
+    super(gl);
 
     this.registerProperties([
         {
@@ -87,7 +87,7 @@ constructor(gl, scene) {
             'samples',
             'transferFunction',
         ].includes(name)) {
-            this.reset();
+            this.needsReset = true;
         }
     });
 
@@ -144,9 +144,10 @@ generateOcclusionSamples() {
     });
 }
 
-calculateDepth() {
-    const volume = this._scene.find(node => node.getComponentOfType(Volume));
-    const camera = this._scene.find(node => node.getComponentOfType(Camera));
+calculateDepth(scene) {
+    const volume = scene.find(node => node.getComponentOfType(Volume));
+    const camera = scene.find(node => node.getComponentOfType(Camera));
+
     if (!volume || !camera) {
         return;
     }
@@ -174,10 +175,10 @@ calculateDepth() {
     return [Math.min(...depths), Math.max(...depths)];
 }
 
-_resetFrame() {
+reset(accumulationBuffer, scene) {
     const gl = this._gl;
 
-    [this._minDepth, this._maxDepth] = this.calculateDepth();
+    [this._minDepth, this._maxDepth] = this.calculateDepth(scene);
     this._minDepth = Math.max(this._minDepth, 0);
     this._depth = this._minDepth;
 
@@ -187,16 +188,21 @@ _resetFrame() {
     ]);
 
     const { program, uniforms } = this._programs.reset;
+    accumulationBuffer.use();
     gl.useProgram(program);
+    accumulationBuffer.swap();
 
     gl.drawArrays(gl.TRIANGLES, 0, 3);
 }
 
-_integrateFrame() {
+generate(frameBuffer, scene) {}
+
+integrate(frameBuffer, accumulationBuffer, scene) {
     const gl = this._gl;
 
-    const volume = this._scene.find(node => node.getComponentOfType(Volume));
-    const camera = this._scene.find(node => node.getComponentOfType(Camera));
+    const volume = scene.find(node => node.getComponentOfType(Volume));
+    const camera = scene.find(node => node.getComponentOfType(Camera));
+
     if (!volume || !camera) {
         return;
     }
@@ -205,11 +211,6 @@ _integrateFrame() {
 
     const { program, uniforms } = this._programs.integrate;
     gl.useProgram(program);
-
-    gl.drawBuffers([
-        gl.COLOR_ATTACHMENT0,
-        gl.COLOR_ATTACHMENT1,
-    ]);
 
     gl.activeTexture(gl.TEXTURE2);
     gl.uniform1i(uniforms.uVolume, 2);
@@ -227,7 +228,7 @@ _integrateFrame() {
     gl.uniform1ui(uniforms.uOcclusionSamplesCount, this.samples);
     gl.uniform1f(uniforms.uExtinction, this.extinction);
 
-    const matrix = this.calculatePVMMatrix();
+    const matrix = this.calculatePVMMatrix(scene);
     mat4.invert(matrix, matrix);
     gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, matrix);
 
@@ -240,11 +241,11 @@ _integrateFrame() {
 
         gl.activeTexture(gl.TEXTURE0);
         gl.uniform1i(uniforms.uColor, 0);
-        gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[0]);
+        gl.bindTexture(gl.TEXTURE_2D, accumulationBuffer.getAttachments().color[0]);
 
         gl.activeTexture(gl.TEXTURE1);
         gl.uniform1i(uniforms.uOcclusion, 1);
-        gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[1]);
+        gl.bindTexture(gl.TEXTURE_2D, accumulationBuffer.getAttachments().color[1]);
 
         const projectionMatrix = getProjectionMatrix(camera);
         const correction = [1, 1, -this._depth];
@@ -256,70 +257,41 @@ _integrateFrame() {
         gl.uniform2f(uniforms.uOcclusionScale, correction[0], correction[1]);
         gl.uniform1f(uniforms.uDepth, correction[2]);
 
-        this._accumulationBuffer.use();
+        accumulationBuffer.use();
+        gl.drawBuffers([
+            gl.COLOR_ATTACHMENT0,
+            gl.COLOR_ATTACHMENT1,
+        ]);
         gl.drawArrays(gl.TRIANGLES, 0, 3);
-        this._accumulationBuffer.swap();
+        accumulationBuffer.swap();
 
         this._depth += sliceDistance;
     }
-
-    // Swap again to undo the last swap by AbstractRenderer
-    this._accumulationBuffer.swap();
 }
 
-_renderFrame() {
+render(accumulationBuffer, renderBuffer, scene) {
     const gl = this._gl;
 
     const { program, uniforms } = this._programs.render;
     gl.useProgram(program);
 
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[0]);
+    gl.bindTexture(gl.TEXTURE_2D, accumulationBuffer.getAttachments().color[0]);
 
     gl.uniform1i(uniforms.uAccumulator, 0);
 
+    renderBuffer.use();
     gl.drawArrays(gl.TRIANGLES, 0, 3);
 }
 
-_getFrameBufferSpec() {
-    const gl = this._gl;
-    return [{
-        width   : this._resolution[0],
-        height  : this._resolution[1],
-        min     : gl.NEAREST,
-        mag     : gl.NEAREST,
-        format  : gl.RGBA,
-        iformat : gl.RGBA32F,
-        type    : gl.FLOAT,
-    }];
+get frameBufferFormat() {
+    return ['rgba32float'];
 }
 
-_getAccumulationBufferSpec() {
-    const gl = this._gl;
-
-    const colorBuffer = {
-        width   : this._resolution[0],
-        height  : this._resolution[1],
-        min     : gl.NEAREST,
-        mag     : gl.NEAREST,
-        format  : gl.RGBA,
-        iformat : gl.RGBA32F,
-        type    : gl.FLOAT,
-    };
-
-    const occlusionBuffer = {
-        width   : this._resolution[0],
-        height  : this._resolution[1],
-        min     : gl.LINEAR,
-        mag     : gl.LINEAR,
-        format  : gl.RED,
-        iformat : gl.R32F,
-        type    : gl.FLOAT,
-    };
-
+get accumulationBufferFormat() {
     return [
-        colorBuffer,
-        occlusionBuffer,
+        'rgba32float', // color buffer
+        'r32float', // occlusion buffer
     ];
 }
 

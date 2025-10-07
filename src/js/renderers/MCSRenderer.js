@@ -10,8 +10,8 @@ import { SHADERS, MIXINS } from '../shaders.js';
 
 export class MCSRenderer extends AbstractRenderer {
 
-constructor(gl, scene) {
-    super(gl, scene);
+constructor(gl) {
+    super(gl);
 
     this.registerProperties([
         {
@@ -40,7 +40,7 @@ constructor(gl, scene) {
             'extinction',
             'transferFunction',
         ].includes(name)) {
-            this.reset();
+            this.needsReset = true;
         }
     });
 
@@ -58,22 +58,24 @@ destroy() {
     super.destroy();
 }
 
-_resetFrame() {
+reset(accumulationBuffer, scene) {
     const gl = this._gl;
 
     const { program, uniforms } = this._programs.reset;
     gl.useProgram(program);
 
+    accumulationBuffer.use();
     gl.drawArrays(gl.TRIANGLES, 0, 3);
+    accumulationBuffer.swap();
 
     this._frameNumber = 1;
 }
 
-_generateFrame() {
+generate(frameBuffer, scene) {
     const gl = this._gl;
 
-    const volume = this._scene.find(node => node.getComponentOfType(Volume));
-    const environment = this._scene.find(node => node.getComponentOfType(EnvironmentMap));
+    const volume = scene.find(node => node.getComponentOfType(Volume));
+    const environment = scene.find(node => node.getComponentOfType(EnvironmentMap));
 
     if (!volume || !environment) {
         return;
@@ -98,7 +100,7 @@ _generateFrame() {
     gl.uniform1f(uniforms.uRandSeed, Math.random());
     gl.uniform1f(uniforms.uExtinction, this.extinction);
 
-    const matrix = this.calculatePVMMatrix();
+    const matrix = this.calculatePVMMatrix(scene);
     mat4.invert(matrix, matrix);
     gl.uniformMatrix4fv(uniforms.uMvpInverseMatrix, false, matrix);
 
@@ -115,67 +117,53 @@ _generateFrame() {
     z /= length;
     gl.uniform3f(uniforms.uScatteringDirection, x, y, z);
 
+    frameBuffer.use();
     gl.drawArrays(gl.TRIANGLES, 0, 3);
 }
 
-_integrateFrame() {
+integrate(frameBuffer, accumulationBuffer, scene) {
     const gl = this._gl;
 
     const { program, uniforms } = this._programs.integrate;
     gl.useProgram(program);
 
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[0]);
+    gl.bindTexture(gl.TEXTURE_2D, accumulationBuffer.getAttachments().color[0]);
     gl.activeTexture(gl.TEXTURE1);
-    gl.bindTexture(gl.TEXTURE_2D, this._frameBuffer.getAttachments().color[0]);
+    gl.bindTexture(gl.TEXTURE_2D, frameBuffer.getAttachments().color[0]);
 
     gl.uniform1i(uniforms.uAccumulator, 0);
     gl.uniform1i(uniforms.uFrame, 1);
     gl.uniform1f(uniforms.uInvFrameNumber, 1 / this._frameNumber);
 
+    accumulationBuffer.use();
     gl.drawArrays(gl.TRIANGLES, 0, 3);
+    accumulationBuffer.swap();
 
     this._frameNumber += 1;
 }
 
-_renderFrame() {
+render(accumulationBuffer, renderBuffer, scene) {
     const gl = this._gl;
 
     const { program, uniforms } = this._programs.render;
     gl.useProgram(program);
 
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this._accumulationBuffer.getAttachments().color[0]);
+    gl.bindTexture(gl.TEXTURE_2D, accumulationBuffer.getAttachments().color[0]);
 
     gl.uniform1i(uniforms.uAccumulator, 0);
 
+    renderBuffer.use();
     gl.drawArrays(gl.TRIANGLES, 0, 3);
 }
 
-_getFrameBufferSpec() {
-    const gl = this._gl;
-    return [{
-        width   : this._resolution[0],
-        height  : this._resolution[1],
-        min     : gl.NEAREST,
-        mag     : gl.NEAREST,
-        format  : gl.RGBA,
-        iformat : gl.RGBA32F,
-        type    : gl.FLOAT,
-    }];
+get frameBufferFormat() {
+    return ['rgba32float'];
 }
 
-_getAccumulationBufferSpec() {
-    const gl = this._gl;
-    return [{
-        width   : this._resolution[0],
-        height  : this._resolution[1],
-        min     : gl.NEAREST,
-        mag     : gl.NEAREST,
-        format  : gl.RGBA,
-        iformat : gl.RGBA32F,
-        type    : gl.FLOAT,
-    }];
+get accumulationBufferFormat() {
+    return ['rgba32float'];
 }
 
 }

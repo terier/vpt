@@ -43,7 +43,7 @@ constructor(gl) {
         mag     : gl.LINEAR,
     });
 
-    this.lastMatrix = mat4.create();
+    this.needsReset = true;
 }
 
 calculatePVMMatrix(scene) {
@@ -74,6 +74,7 @@ setTransferFunction(transferFunction) {
     gl.bindTexture(gl.TEXTURE_2D, this._transferFunction);
     gl.texImage2D(gl.TEXTURE_2D, 0,
         gl.SRGB8_ALPHA8, gl.RGBA, gl.UNSIGNED_BYTE, transferFunction);
+    this.needsReset = true;
 }
 
 }

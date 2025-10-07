@@ -58,14 +58,14 @@ constructor(gl) {
             this.setTransferFunction(this.transferFunction);
         }
 
-        /*if ([
+        if ([
             'extinction',
             'anisotropy',
             'bounces',
             'transferFunction',
         ].includes(name)) {
-            this.reset();
-        }*/
+            this.needsReset = true;
+        }
     });
 
     this._programs = buildPrograms(gl, SHADERS.renderers.MCM, MIXINS);
