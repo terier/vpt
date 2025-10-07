@@ -78,7 +78,11 @@ camera.addComponent(new Camera());
 camera.addComponent(new Transform({
     translation: [0, 0, 2],
 }));
-camera.addComponent(new OrbitCameraAnimator(camera, canvas));
+const animator = new OrbitCameraAnimator(camera, canvas);
+camera.addComponent(animator);
+animator.addEventListener('update', e => {
+    renderer.needsReset = true;
+});
 scene.push(camera);
 
 const volume = new Node();
@@ -148,6 +152,7 @@ function resize({ displaySize: { width, height }}) {
     commonRenderTargetParameters.height = height;
     rebuildRenderTargets();
     camera.getComponentOfType(Camera).aspect = width / height;
+    renderer.needsReset = true;
 }
 
 function render() {

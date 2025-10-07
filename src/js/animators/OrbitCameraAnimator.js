@@ -1,11 +1,11 @@
 import { quat, vec3, mat4 } from '../../lib/gl-matrix-module.js';
-import { Ticker } from '../Ticker.js';
 import { Transform } from '../Transform.js';
 
-export class OrbitCameraAnimator {
+export class OrbitCameraAnimator extends EventTarget {
 
 constructor(camera, domElement, options = {}) {
-    this._update = this._update.bind(this);
+    super();
+
     this._handlePointerDown = this._handlePointerDown.bind(this);
     this._handlePointerUp = this._handlePointerUp.bind(this);
     this._handlePointerMove = this._handlePointerMove.bind(this);
@@ -16,7 +16,7 @@ constructor(camera, domElement, options = {}) {
     Object.assign(this, {
         rotationSpeed: 0.005,
         translationSpeed: 0.005,
-        moveSpeed: 0.001,
+        moveSpeed: 1,
         zoomSpeed: 0.001,
     }, options);
 
@@ -39,10 +39,9 @@ constructor(camera, domElement, options = {}) {
     this._isTranslating = false;
     this._isRotating = false;
 
-    this._time = Date.now();
+    this._isDirty = true;
 
     this._addEventListeners();
-    Ticker.add(this._update);
 }
 
 _addEventListeners() {
@@ -77,6 +76,10 @@ _handlePointerMove(e) {
     const dx = e.movementX;
     const dy = e.movementY;
 
+    if (dx !== 0 || dy !== 0) {
+        this._isDirty = true;
+    }
+
     if (this._isRotating) {
         const angleX = -dx * this.rotationSpeed;
         const angleY = -dy * this.rotationSpeed;
@@ -98,6 +101,9 @@ _handlePointerMove(e) {
 }
 
 _handleWheel(e) {
+    if (e.deltaY !== 0) {
+        this._isDirty = true;
+    }
     this._zoom(e.deltaY * this.zoomSpeed);
 }
 
@@ -137,13 +143,15 @@ _rotateAroundFocus(dx, dy) {
     const twopi = Math.PI * 2;
     const halfpi = Math.PI / 2;
 
+    if (dx !== 0 || dy !== 0) {
+        this._isDirty = true;
+    }
+
     this._pitch += dy;
     this._pitch = Math.min(Math.max(this._pitch, -halfpi), halfpi);
 
     this._yaw += dx;
     this._yaw = ((this._yaw % twopi) + twopi) % twopi;
-
-    this._updateCamera();
 }
 
 _move(v) {
@@ -152,19 +160,14 @@ _move(v) {
     quat.rotateX(rotation, rotation, this._pitch);
     vec3.transformQuat(v, v, rotation);
     vec3.add(this._focus, this._focus, v);
-    this._updateCamera();
+    this._isDirty = true;
 }
 
 _zoom(amount) {
     this._focusDistance *= Math.exp(amount);
-    this._updateCamera();
 }
 
-_update() {
-    const t = Date.now();
-    const dt = t - this._time;
-    this._time = t;
-
+update(t, dt) {
     let dx = 0;
     let dz = 0;
 
@@ -184,10 +187,12 @@ _update() {
     if (dx !== 0 || dz !== 0) {
         this._move([dx, 0, dz]);
     }
-}
 
-update(t) {
-    // this animator does not animate, it only responds to user input
+    if (this._isDirty) {
+        this._updateCamera();
+        this._isDirty = false;
+        this.dispatchEvent(new Event('update'));
+    }
 }
 
 }
