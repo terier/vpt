@@ -32,6 +32,8 @@ export class Volume {
         this.format = format;
         this.iformat = iformat;
         this.type = type;
+
+        this.setFilter(filter);
     }
 
     writeData(data, origin = [0, 0, 0], extent = [1, 1, 1]) {

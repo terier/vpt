@@ -94,19 +94,14 @@ export class BVPReader {
         // Apply data
         if (blockDescriptor.data) {
             const { data, encoding } = blockDescriptor;
-            // TODO encoding
-            //if (encoding !== 'raw') {
-            //    throw new Error(`Only raw encoding supported`);
-            //}
-            // TODO lz4s
-            if (!['raw', 'lz4'].includes(encoding)) {
+            if (!['raw', 'lz4s'].includes(encoding)) {
                 throw new Error(`Encoding ${encoding} not supported`);
             }
 
             const externalFile = await this.fileSystem.readFile(data);
             const externalData = new Uint8Array(await externalFile.arrayBuffer());
 
-            const decodedData = new Uint8Array(block.data.length);
+            const decodedData = new Uint8Array(block.data.byteLength);
             if (encoding === 'raw') {
                 decodedData.set(externalData);
                 // TODO check length
@@ -115,7 +110,7 @@ export class BVPReader {
                 // TODO check length
             }
 
-            block.data = externalData;
+            block.data = decodedData;
         }
 
         return block;

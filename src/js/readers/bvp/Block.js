@@ -9,6 +9,24 @@ export class Block {
         this.data = data !== null ? data : format.allocateDimensions(dimensions);
     }
 
+    linearIndex3D([x, y, z], [w, h, d]) {
+        return x + y * w + z * w * h;
+    }
+
+    *lexi3D([w, h, d]) {
+        for (let z = 0; z < d; z++) {
+            for (let y = 0; y < h; y++) {
+                for (let x = 0; x < w; x++) {
+                    yield [x, y, z];
+                }
+            }
+        }
+    }
+
+    add3D([x, y, z], [u, v, w]) {
+        return [x + u, y + v, z + w];
+    }
+
     get(start, end) {
         const extent = vec.sub(end, start);
 
@@ -37,10 +55,10 @@ export class Block {
         const block = new Block(extent, this.format);
         const srcBytes = new Uint8Array(this.data);
         const dstBytes = new Uint8Array(block.data);
-        for (const localMicroblockIndex of vec.lexi(microblockCropExtent)) {
-            const globalMicroblockIndex = vec.add(localMicroblockIndex, microblockStart);
-            const srcMicroblockIndex = vec.linearIndex(globalMicroblockIndex, microblockFullExtent);
-            const dstMicroblockIndex = vec.linearIndex(localMicroblockIndex, microblockCropExtent);
+        for (const localMicroblockIndex of this.lexi3D(microblockCropExtent)) {
+            const globalMicroblockIndex = this.add3D(localMicroblockIndex, microblockStart);
+            const srcMicroblockIndex = this.linearIndex3D(globalMicroblockIndex, microblockFullExtent);
+            const dstMicroblockIndex = this.linearIndex3D(localMicroblockIndex, microblockCropExtent);
             for (let i = 0; i < microblockSize; i++) {
                 dstBytes[i + dstMicroblockIndex * microblockSize] = srcBytes[i + srcMicroblockIndex * microblockSize];
             }
@@ -80,10 +98,10 @@ export class Block {
 
         const srcBytes = new Uint8Array(block.data);
         const dstBytes = new Uint8Array(this.data);
-        for (const localMicroblockIndex of vec.lexi(microblockCropExtent)) {
-            const globalMicroblockIndex = vec.add(localMicroblockIndex, microblockStart);
-            const srcMicroblockIndex = vec.linearIndex(localMicroblockIndex, microblockCropExtent);
-            const dstMicroblockIndex = vec.linearIndex(globalMicroblockIndex, microblockFullExtent);
+        for (const localMicroblockIndex of this.lexi3D(microblockCropExtent)) {
+            const globalMicroblockIndex = this.add3D(localMicroblockIndex, microblockStart);
+            const srcMicroblockIndex = this.linearIndex3D(localMicroblockIndex, microblockCropExtent);
+            const dstMicroblockIndex = this.linearIndex3D(globalMicroblockIndex, microblockFullExtent);
             for (let i = 0; i < microblockSize; i++) {
                 dstBytes[i + dstMicroblockIndex * microblockSize] = srcBytes[i + srcMicroblockIndex * microblockSize];
             }

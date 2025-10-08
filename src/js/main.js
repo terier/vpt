@@ -347,13 +347,23 @@ async function handleVolumeLoad(e) {
         volume.setFilter(renderingContextDialog.filter);
         setVolume(volume);
     } else if (options.type === 'url') {
-        //const readerClass = ReaderFactory(options.filetype);
-        //if (readerClass) {
-        //    const file = await fetch(options.url).then(response => response.blob());
-        //    const reader = new readerClass(file);
-        //    //await setVolume(reader);
-        //}
-        throw new Error(`Not yet working`);
+        const file = await fetch(options.url).then(response => response.blob());
+        if (!file.name.toLowerCase().endsWith('.bvp.saf')) {
+            throw new Error('Filename extension must be .bvp.saf');
+        }
+        const safReaderClass = ReaderFactory('saf');
+        const safReader = new safReaderClass(file);
+        const bvpReaderClass = ReaderFactory('bvp');
+        const bvpReader = new bvpReaderClass(safReader);
+        const modality = await bvpReader.readModality(0);
+
+        const size = modality.block.dimensions;
+        const datatype = 'unorm8';
+        const filter = renderingContextDialog.filter;
+
+        const volume = new Volume(gl, { size, datatype, filter });
+        volume.writeData(modality.block.data, [0, 0, 0], size);
+        setVolume(volume);
     }
 }
 
