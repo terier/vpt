@@ -347,10 +347,10 @@ async function handleVolumeLoad(e) {
         volume.setFilter(renderingContextDialog.filter);
         setVolume(volume);
     } else if (options.type === 'url') {
-        const file = await fetch(options.url).then(response => response.blob());
-        if (!file.name.toLowerCase().endsWith('.bvp.saf')) {
+        if (!options.url.toLowerCase().endsWith('.bvp.saf')) {
             throw new Error('Filename extension must be .bvp.saf');
         }
+        const file = await fetch(options.url).then(response => response.blob());
         const safReaderClass = ReaderFactory('saf');
         const safReader = new safReaderClass(file);
         const bvpReaderClass = ReaderFactory('bvp');
